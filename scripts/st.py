@@ -1,3 +1,4 @@
+import time
 import serial as s
 import re
 import shlex
@@ -114,6 +115,8 @@ class StArm():
 
         # TODO
         # Check and parse return values of all ROBOFORTH methods called.
+
+        self.debug = True
         if init:
             self.cxn.flushInput()
             self.purge()
@@ -134,6 +137,7 @@ class StArm():
         self.cxn.flushInput()
         print('flush')
         self.cxn.write(cmd + CR)
+        print "wrote: ", cmd+CR
         print('write')
         self.block_on_result(cmd)
 
@@ -262,7 +266,7 @@ class StArm():
     def block_on_result(self, cmd, debug=False):
         t = time.time()
         s = self.cxn.read(self.cxn.inWaiting())
-        print s
+        print "s is: ", s
         while s[-5:-3] != OK:
             #Match '>' only at the end of the string
             if s[-1:] == '>':
