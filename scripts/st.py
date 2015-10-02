@@ -266,7 +266,6 @@ class StArm():
     def block_on_result(self, cmd, debug=False):
         t = time.time()
         s = self.cxn.read(self.cxn.inWaiting())
-        print "s is: ", s
         while s[-5:-3] != OK:
             #Match '>' only at the end of the string
             if s[-1:] == '>':

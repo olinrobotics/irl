@@ -12,12 +12,12 @@ class ArmCommands:
         self.arm.calibrate()
         self.arm.home()
 
-    def run_arm(self,plan):
-        self.plan = self.convert_plan_type(plan)
-        fixed_output = self.plan_check()
+    def run_arm(self,plan=[]):
+        # self.plan = self.convert_plan_type(plan)
+        # fixed_output = self.plan_check()
         #print "Checked output:", fixed_output
         # fixed_output = fixed_output[:5]
-        print fixed_output
+        # print fixed_output
 
         #return None #Used to keep arm from moving during testing
 
@@ -25,7 +25,7 @@ class ArmCommands:
         #self.arm.create_route("TEST1",fixed_output)
         self.arm.create_route("TEST1",[[-2992, 0, 5500], [-2000,1800,5500]])
         self.arm.run_route("TEST1")
-
+        print "test_done"
         self.plan = []
 
     def convert_plan_type(self,plan):
@@ -57,7 +57,14 @@ class ArmCommands:
             new_plan.append(coord)
         return new_plan
 
+    def subscriber(self):
+        pass
+
+    def msg_callback(self):
+        pass
+
 if __name__ == "__main__":
     rospy.init_node('robot_arm', anonymous=True)
     object_tracker = ArmCommands()
+    object_tracker.run_arm()
     rospy.spin()
