@@ -447,6 +447,9 @@ class StArm():
         self.block_on_result(cmd)
 
     def where(self):
+
+
+
         return 'Fix me when you have time'
         cmd = WHERE
         print cmd

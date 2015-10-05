@@ -14,7 +14,7 @@ class ArmCommands:
         self.plan = []
         self.arm = st.StArm()
         self.arm.start()
-        #self.arm.calibrate()
+        self.arm.calibrate()
         self.arm.home()
 
     def run_arm(self):
