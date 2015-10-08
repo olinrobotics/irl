@@ -279,36 +279,6 @@ class StArm():
             print('Command ' + cmd + ' completed successfully.')
         return s
 
-
-
-    # def block_on_result(self, cmd, debug=False):
-    #     print "blocking on result"
-    #     try:
-    #         s = self.cxn.read(self.cxn.inWaiting())
-    #         res = re.search(OK, s).group(0)
-    #     except AttributeError:
-    #         print "attrib error"
-    #         res = ''
-
-    #     while res != OK:
-    #         chars = self.cxn.inWaiting()
-    #         s += self.cxn.read(chars)
-    #         try:
-    #             res = re.search('>', s).group(0)
-    #             if res == '>':
-    #                 if debug:
-    #                     print('Command ' + cmd + ' completed without ' +
-    #                       'verification of success.')
-    #                 return
-    #             else:
-    #                 res = re.search(OK, s).group(0)
-    #         except AttributeError:
-    #             res = ''
-
-    #     if debug:
-    #         print('Command ' + cmd + ' completed successfully.')
-    #     return s
-
     def get_status(self):
         if self.cxn.isOpen():
             self.cxn.write('' + CR)
