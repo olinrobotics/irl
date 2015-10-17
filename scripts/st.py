@@ -204,8 +204,6 @@ class StArm():
 
         # Initiaze in Cartesian mode and declare new route
         cmd = '  ' + CARTESIAN + ' ' + NEW + ' ' + ROUTE + ' ' + route_name
-
-
         # Reserve correct ammount of memory since default is 20
         cmd += ' ' + str(len(commands)) + ' ' + RESERVE + ' ' + route_name
         # Put arm in Learning mode
@@ -217,13 +215,14 @@ class StArm():
         self.cxn.write(cmd + CR)
         self.block_on_result(cmd, debug)
 
-        # save space
-        for x in range(0,len(commands)):
-            cmd = route_name + ' 1 INSERT DECIMAL CF'
+        ##TODO: Not sure if necessary, figure out what this
+        # # save space
+        # for x in range(len(commands)):
+        #     cmd = route_name + ' 1 INSERT DECIMAL CF'
 
-            self.cxn.flushInput()
-            self.cxn.write(cmd + CR)
-            self.block_on_result(cmd, debug)
+        #     self.cxn.flushInput()
+        #     self.cxn.write(cmd + CR)
+        #     self.block_on_result(cmd, debug)
 
         index = 0
         for point in commands:
@@ -330,6 +329,7 @@ class StArm():
         self.cxn.flushInput()
         self.cxn.write(cmd + CR)
         self.block_on_result(cmd)
+        self.where()
 
     def move_to(self, x, y, z, debug=False, block=True):
         cmd = str(x) + ' ' + str(y) + ' ' + str(z) + ' MOVETO'
@@ -422,6 +422,8 @@ class StArm():
         self.cxn.flushInput()
         self.cxn.write(cmd + CR)
         res = self.block_on_result(cmd)
+        print "I'M LOCATED"
+        print res
         try:
             lines = res.split('\r\n')
             #TODO: Need to account for possibility that arm is in decimal mode

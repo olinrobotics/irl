@@ -9,7 +9,7 @@ class ArmCommands:
     def __init__(self):
         rospy.init_node('robot_arm', anonymous=True)
         #self.arm.pub_arm = rospy.Publisher('/arm_debug', Twist, queue_size=10)
-        rospy.Subscriber('/arm_cmd', String, self.arm.callback, queue_size=10)
+        rospy.Subscriber('/arm_cmd', String, self.callback, queue_size=10)
 
         self.debug = False
 
@@ -18,15 +18,26 @@ class ArmCommands:
         self.arm.start()
         #self.arm.arm.calibrate()
         self.arm.home()
+        #self.run_arm()
+        #self.arm.move_to(-2992, 0, 5500)
+        #self.arm.create_route('hello', [[1,2,3],[4,5,6],[7,8,9]])
 
     def run_arm(self):
+        self.arm.purge()
+        self.arm.move_to(-1000, 0, 5500)
+        self.arm.move_to(-2992, 50, 4000)
+        self.arm.move_to(-2000, 1800, 5500)
         self.arm.continuous()
-        self.arm.create_route("TEST1",[[-2992, 0, 5500], [-2000,1800,5500]])
+        self.arm.create_route("TEST1",[[-1000, 0, 5500], [-2992, 50, 4000], [-2000, 1800, 5500]])
         self.arm.run_route("TEST1")
         print "test_done"
 
     def callback(self, cmdin):
+        self.arm.joint()
         cmd = str(cmdin).replace("data: ", "")
+        if len(cmd.split(':: ')) > 1:
+            param = cmd.split(':: ')[1]
+            cmd = cmd.split(':: ')[0]
         print cmd
         if cmd == "de_energize":
             self.arm.de_energize()
@@ -47,45 +58,35 @@ class ArmCommands:
         elif cmd == "get_speed":
             speed = self.arm.get_speed()
         elif cmd == "set_speed":
-            speed = 1
-            self.arm.set_speed(speed)
+            self.arm.set_speed(param)
         elif cmd == "set_point":
-            name = "TEST"
-            self.arm.set_point(name)
+            self.arm.set_point(param)
         elif cmd == "get_accel":
             accel = self.arm.get_accel()
         elif cmd == "set_accel":
-            accel = 0.1
-            self.arm.set_accel(accel)
+            self.arm.set_accel(param)
         elif cmd == "run_route":
-            route = "TEST"
-            self.arm.run_route(route)
+            self.arm.run_route(param)
         elif cmd == "move_to":
-            x = 0
-            y = 0
-            z = 0
+            temp = param.split(", ")
+            x = temp[0]
+            y = temp[1]
+            z = temp[2]
             self.arm.move_to(x,y,z,self.arm.debug)
         elif cmd == "rotate_wrist":
-            roll = 0
-            self.arm.rotate_wrist(roll)
+            self.arm.rotate_wrist(param)
         elif cmd == "rotate_wrist_rel":
-            roll_inc = 0
-            self.arm.rotate_wrist_rel(roll_inc)
+            self.arm.rotate_wrist_rel(param)
         elif cmd == "rotate_hand":
-            pitch = 0
-            self.arm.rotate_hand(pitch)
+            self.arm.rotate_hand(param)
         elif cmd == "rotate_elbow":
-            pitch = 0
-            self.arm.rotate_elbow(pitch)
+            self.arm.rotate_elbow(param)
         elif cmd == "rotate_shoulder":
-            pitch = 0
-            self.arm.rotate_shoulder(pitch)
+            self.arm.rotate_shoulder(param)
         elif cmd == "rotate_waist":
-            pitch = 0
-            self.arm.rotate_waist(pitch)
+            self.arm.rotate_waist(param)
         elif cmd == "rotate_hand_rel":
-            pitch_inc = 0
-            self.arm.rotate_hand_rel(pitch_inc)
+            self.arm.rotate_hand_rel(param)
 
     def run(self):
         r = rospy.Rate(10)
@@ -94,6 +95,10 @@ class ArmCommands:
 
 if __name__ == "__main__":
     object_tracker = ArmCommands()
-    # object_tracker.run_arm()
+    object_tracker.run_arm()
+
     object_tracker.run()
     rospy.spin()
+
+
+
