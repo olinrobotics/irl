@@ -4,6 +4,7 @@ import math
 import st
 import numpy as np
 from std_msgs.msg import String
+import time
 
 class ArmCommands:
     def __init__(self):
@@ -28,8 +29,8 @@ class ArmCommands:
         self.arm.move_to(-2992, 50, 4000)
         self.arm.move_to(-2000, 1800, 5500)
         self.arm.continuous()
-        self.arm.create_route("TEST1",[[-1000, 0, 5500], [-2992, 50, 4000], [-2000, 1800, 5500]])
-        self.arm.run_route("TEST1")
+        # self.arm.create_route("TEST1",[[-1000, 0, 5500], [-2992, 50, 4000], [-2000, 1800, 5500]])
+        # self.arm.run_route("TEST1")
         print "test_done"
 
     def callback(self, cmdin):
@@ -58,7 +59,8 @@ class ArmCommands:
         elif cmd == "get_speed":
             speed = self.arm.get_speed()
         elif cmd == "set_speed":
-            self.arm.set_speed(param)
+            print "setting speed to ", param
+            self.arm.set_speed(float(param))
         elif cmd == "set_point":
             self.arm.set_point(param)
         elif cmd == "get_accel":
@@ -88,6 +90,28 @@ class ArmCommands:
         elif cmd == "rotate_hand_rel":
             self.arm.rotate_hand_rel(param)
 
+    def push_cup(self):
+        self.arm.set_speed(3000)
+        sequence = [("E: 13000", "H: -100", "W: 200", "S: 9500"), ("E: 11000", 'placeholder'),
+                    ("S: 10500", "E: 9750"), ("S: 11700", "E: 7000"),
+                    ("S: 6000", "W: 5000", "S: 8000", "H: 300", "H: 0"),
+                    ("W: 0", 'placeholder')]
+
+        for elem in sequence:
+            for tcmd in elem:
+                cmd = tcmd.split(": ")
+                print cmd
+                if cmd[0] == "E":
+                    self.arm.rotate_elbow(int(cmd[1]))
+                elif cmd[0] == "S":
+                    self.arm.rotate_shoulder(int(cmd[1]))
+                elif cmd[0] == "W":
+                    self.arm.rotate_waist(int(cmd[1]))
+                elif cmd[0] == "H":
+                    self.arm.rotate_hand(int(cmd[1]))
+                print "next"
+            num = raw_input("press enter to continue")
+
     def run(self):
         r = rospy.Rate(10)
         while not rospy.is_shutdown():
@@ -95,8 +119,8 @@ class ArmCommands:
 
 if __name__ == "__main__":
     object_tracker = ArmCommands()
-    object_tracker.run_arm()
-
+    # object_tracker.run_arm()
+    object_tracker.push_cup()
     object_tracker.run()
     rospy.spin()
 
