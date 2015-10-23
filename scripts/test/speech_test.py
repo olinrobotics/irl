@@ -11,8 +11,6 @@ lmd   = "/usr/share/pocketsphinx/model/lm/en_US/hub4.5000.DMP"
 dictd = "/usr/share/pocketsphinx/model/lm/en_US/cmu07a.dic"
 
 def decodeSpeech(hmmd,lmdir,dictp,wavfile):
-
-
     psConfig = ps.Decoder.default_config()
     psConfig.set_string('-hmm', hmdir)
 
@@ -24,9 +22,9 @@ def decodeSpeech(hmmd,lmdir,dictp,wavfile):
     wavFile = file(wavfile,'rb')
     wavFile.seek(44)
     speechRec.decode_raw(wavFile)
-    result = speechRec.get_hyp()
+    result = speechRec.hyp()
 
-    return result[0]
+    return (result.hypstr, '')
 
 CHUNK = 1024
 FORMAT = pyaudio.paInt16
