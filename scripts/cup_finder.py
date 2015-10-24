@@ -15,12 +15,13 @@ class ImageConverter:
         self.inputMode = False
         self.roiPts = []
         self.roiBox = None
+        self.knocked_over = False
 
-        self.turn = "edwin"
+        self.turn = "user"
 
         self.bridge = CvBridge()
         self.image_sub = rospy.Subscriber("/camera/rgb/image_color",Image,self.track_object)
-        self.pub = rospy.Publisher("whos_turn", String, queue_size=0)
+        self.pub = rospy.Publisher("whos_turn", String, queue_size=1)
 
         self.fgbg = cv2.BackgroundSubtractorMOG()
 
@@ -60,10 +61,10 @@ class ImageConverter:
             num = pts[0][0] - pts[3][0]
             # print num
             if abs(num) > 70:
-                self.pub.publish("edwin")
+                self.turn = "edwin"
                 # print "edwin's turn"
             else:
-                self.pub.publish("user")
+                self.turn = "user"
                 # print "sophie's turn"
             cv2.polylines(self.frame, [pts], True, (0, 255, 0), 2)
 
@@ -104,41 +105,14 @@ class ImageConverter:
             self.roiHist = cv2.normalize(self.roiHist, self.roiHist, 0, 255, cv2.NORM_MINMAX)
             self.roiBox = (tl[0], tl[1], br[0], br[1])
 
-        # cleanup the camera and close any open windows
-        # camera.release()
-        # cv2.destroyAllWindows()
-
-
-    # def callback(self,data):
-    #     try:
-    #         cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
-    #     except CvBridgeError, e:
-    #         print e
-
-    #     # img_HSV = cv2.cvtColor(cv_image, cv.CV_BGR2HSV)
-    #     crop = cv_image[240:480, 0:640]
-    #     fgmask = self.fgbg.apply(crop)
-
-    #     # lines = cv2.HoughLines(fgmask, 1, np.pi/180, 100, 100, 10)
-    #     # if lines != None:
-    #     #     print lines[0][0][0]
-    #     #     if 50 < abs(lines[0][0][0]) < 170:
-    #     #         print "sophie's turn"
-    #     #     else:
-    #     #         print "edwin's turn"
-
-    #     res = cv2.bitwise_and(crop, crop, mask=fgmask)
-    #     cv2.imshow("mog", res)
-
-    #     cv2.imshow("Image window", fgmask)
-    #     cv2.waitKey(3)
-
 
 def main():
     ic = ImageConverter()
     rospy.init_node('imageconverter')
+    r = rospy.Rate(10)
     while not rospy.is_shutdown():
-        pass
+        ic.pub.publish(ic.turn)
+        r.sleep()
 
 if __name__ == "__main__":
     main()
