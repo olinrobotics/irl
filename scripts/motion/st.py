@@ -1,3 +1,4 @@
+import time
 import serial as s
 import re
 import shlex
@@ -114,6 +115,8 @@ class StArm():
 
         # TODO
         # Check and parse return values of all ROBOFORTH methods called.
+
+        self.debug = True
         if init:
             self.cxn.flushInput()
             self.purge()
@@ -134,6 +137,7 @@ class StArm():
         self.cxn.flushInput()
         print('flush')
         self.cxn.write(cmd + CR)
+        print "wrote: ", cmd+CR
         print('write')
         self.block_on_result(cmd)
 
@@ -200,8 +204,6 @@ class StArm():
 
         # Initiaze in Cartesian mode and declare new route
         cmd = '  ' + CARTESIAN + ' ' + NEW + ' ' + ROUTE + ' ' + route_name
-
-
         # Reserve correct ammount of memory since default is 20
         cmd += ' ' + str(len(commands)) + ' ' + RESERVE + ' ' + route_name
         # Put arm in Learning mode
@@ -213,13 +215,14 @@ class StArm():
         self.cxn.write(cmd + CR)
         self.block_on_result(cmd, debug)
 
-        # save space
-        for x in range(0,len(commands)):
-            cmd = route_name + ' 1 INSERT DECIMAL CF'
+        ##TODO: Not sure if necessary, figure out what this
+        # # save space
+        # for x in range(len(commands)):
+        #     cmd = route_name + ' 1 INSERT DECIMAL CF'
 
-            self.cxn.flushInput()
-            self.cxn.write(cmd + CR)
-            self.block_on_result(cmd, debug)
+        #     self.cxn.flushInput()
+        #     self.cxn.write(cmd + CR)
+        #     self.block_on_result(cmd, debug)
 
         index = 0
         for point in commands:
@@ -262,7 +265,6 @@ class StArm():
     def block_on_result(self, cmd, debug=False):
         t = time.time()
         s = self.cxn.read(self.cxn.inWaiting())
-        print s
         while s[-5:-3] != OK:
             #Match '>' only at the end of the string
             if s[-1:] == '>':
@@ -275,36 +277,6 @@ class StArm():
         if self.debug:
             print('Command ' + cmd + ' completed successfully.')
         return s
-
-
-
-    # def block_on_result(self, cmd, debug=False):
-    #     print "blocking on result"
-    #     try:
-    #         s = self.cxn.read(self.cxn.inWaiting())
-    #         res = re.search(OK, s).group(0)
-    #     except AttributeError:
-    #         print "attrib error"
-    #         res = ''
-
-    #     while res != OK:
-    #         chars = self.cxn.inWaiting()
-    #         s += self.cxn.read(chars)
-    #         try:
-    #             res = re.search('>', s).group(0)
-    #             if res == '>':
-    #                 if debug:
-    #                     print('Command ' + cmd + ' completed without ' +
-    #                       'verification of success.')
-    #                 return
-    #             else:
-    #                 res = re.search(OK, s).group(0)
-    #         except AttributeError:
-    #             res = ''
-
-    #     if debug:
-    #         print('Command ' + cmd + ' completed successfully.')
-    #     return s
 
     def get_status(self):
         if self.cxn.isOpen():
@@ -357,6 +329,7 @@ class StArm():
         self.cxn.flushInput()
         self.cxn.write(cmd + CR)
         self.block_on_result(cmd)
+        self.where()
 
     def move_to(self, x, y, z, debug=False, block=True):
         cmd = str(x) + ' ' + str(y) + ' ' + str(z) + ' MOVETO'
@@ -444,40 +417,22 @@ class StArm():
         self.block_on_result(cmd)
 
     def where(self):
-        return 'Fix me when you have time'
+        self.cartesian()
         cmd = WHERE
-        print cmd
         self.cxn.flushInput()
         self.cxn.write(cmd + CR)
-        #res = self.block_on_result(cmd)
-        res = self.cxn.readline()
-        #TODO
-        #Rewrite this method to use block_on_result
+        res = self.block_on_result(cmd)
+        print "I'M LOCATED"
+        print res
         try:
-            while re.search(OK, res) is None:
-            #while res[-2:] != 'OK':
-                res += self.cxn.readline()
-                if res == "WHERE":        # I added this to stop the false positives
-                    print "I don't know!"
-                    break
-                if res != '':
-                    if res[-3] == '>':
-                        print('WHERE command completed without' +
-                              ' verification of success.')
-                        break
-
             lines = res.split('\r\n')
             #TODO: Need to account for possibility that arm is in decimal mode
-            #print 'lines = ', lines                #I added this to see what res was reading.
-            cp = [int(x.strip().replace('.', '')) for x in shlex.split(lines[2])]
-            pp = []
-            for x in shlex.split(lines[3]):
-                try:
-                     pp.append(int(x.strip().replace('.','')))
-                except:
-                     pass
-            #pp = [int(x.strip().replace('.', ''))
-            #      for x in shlex.split(lines[3])]
+
+            cp = [int(x.strip().replace('.', ''))
+                  for x in shlex.split(lines[2])]
+            pp = [int(x.strip().replace('.', ''))
+                  for x in shlex.split(lines[3])[1:]]
+
             self.curr_pos.set(cp)
             self.prev_pos.set(pp)
         except RuntimeError, e:
