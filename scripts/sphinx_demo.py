@@ -1,17 +1,20 @@
 #!/usr/bin/env python2
 from pocketsphinx import *
 
-hmm = 'voxforge-de-r20140813/model_parameters/voxforge.cd_cont_3000'
-dic = 'voxforge-de-r20140813/etc/voxforge.dic'
-lm= 'voxforge-de-r20140813/etc/voxforge.lm.DMP'
+hmm = "/usr/share/pocketsphinx/model/hmm/en_US/hub4wsj_sc_8k"
+lm   = "/usr/share/pocketsphinx/model/lm/en_US/hub4.5000.DMP"
+dic = "/usr/share/pocketsphinx/model/lm/en_US/cmu07a.dic"
+
 
 config = Decoder.default_config()
 config.set_string('-hmm', hmm)
 config.set_string('-lm', lm)
 config.set_string('-dict', dic)
-config.set_string('-logfn', '/dev/null')
+#config.set_string('-logfn', '/dev/null')
 
+print "setup decoder"
 decoder = Decoder(config)
+print "setup down"
 
 p = pyaudio.PyAudio()
 
@@ -22,7 +25,9 @@ decoder.start_utt('')
 while True:
     buf = stream.read(1024)
     if buf:
+        print "process decoder"
         decoder.process_raw(buf, False, False)
+        print "process done"
         try:
             if  decoder.hyp().hypstr != '':
                 print 'Partial decoding result:', decoder.hyp().hypstr
