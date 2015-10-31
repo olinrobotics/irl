@@ -25,9 +25,37 @@ class ArmCommands:
 
     def run_arm(self):
         self.arm.purge()
-        self.arm.move_to(-1000, 0, 5500)
-        self.arm.move_to(-2992, 50, 4000)
-        self.arm.move_to(-2000, 1800, 5500)
+        self.arm.set_speed(3000)
+        #Moving to face subject, then cock head in curiosity
+        self.arm.move_to(3664, 1774, 3013)
+        self.arm.rotate_hand(0)
+        self.arm.rotate_wrist(800)
+        self.arm.rotate_hand(100)
+        self.arm.rotate_wrist(2000)
+        #Moving to sleep position
+        self.arm.move_to(0, 1891, 1737)
+        self.arm.rotate_hand(700)
+        self.arm.rotate_wrist(1000)
+        #Wake up
+        self.arm.move_to(0,3523, 5032)
+        self.arm.rotate_wrist(1500)
+        self.arm.rotate_hand(500)
+        self.arm.rotate_hand(900)
+        self.arm.rotate_hand(500)
+        self.arm.rotate_hand(700)
+        #Greet Subject
+        self.arm.move_to(3664, 1774, 3013)
+        self.arm.rotate_wrist(1500)
+        self.arm.rotate_hand(100)
+        self.arm.rotate_hand(0)
+        self.arm.rotate_hand(300)
+        self.arm.rotate_hand(100)
+        #Ending Interaction
+        self.arm.move_to(-2689, 2612, 3750)
+        self.arm.rotate_hand(500)
+        self.arm.rotate_wrist(1500)
+        self.arm.rotate_waist(0)
+
         self.arm.continuous()
         # self.arm.create_route("TEST1",[[-1000, 0, 5500], [-2992, 50, 4000], [-2000, 1800, 5500]])
         # self.arm.run_route("TEST1")
@@ -119,7 +147,7 @@ class ArmCommands:
 
 if __name__ == "__main__":
     object_tracker = ArmCommands()
-    # object_tracker.run_arm()
+    object_tracker.run_arm()
     #object_tracker.push_cup()
     object_tracker.run()
     rospy.spin()
