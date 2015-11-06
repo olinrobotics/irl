@@ -26,36 +26,6 @@ class ArmCommands:
     def run_arm(self):
         self.arm.purge()
         self.arm.set_speed(3000)
-        #Moving to face subject, then cock head in curiosity
-        self.arm.move_to(3664, 1774, 3013)
-        self.arm.rotate_hand(0)
-        self.arm.rotate_wrist(800)
-        self.arm.rotate_hand(100)
-        self.arm.rotate_wrist(2000)
-        #Moving to sleep position
-        self.arm.move_to(0, 1891, 1737)
-        self.arm.rotate_hand(700)
-        self.arm.rotate_wrist(1000)
-        #Wake up
-        self.arm.move_to(0,3523, 5032)
-        self.arm.rotate_wrist(1500)
-        self.arm.rotate_hand(500)
-        self.arm.rotate_hand(900)
-        self.arm.rotate_hand(500)
-        self.arm.rotate_hand(700)
-        #Greet Subject
-        self.arm.move_to(3664, 1774, 3013)
-        self.arm.rotate_wrist(1500)
-        self.arm.rotate_hand(100)
-        self.arm.rotate_hand(0)
-        self.arm.rotate_hand(300)
-        self.arm.rotate_hand(100)
-        #Ending Interaction
-        self.arm.move_to(-2689, 2612, 3750)
-        self.arm.rotate_hand(500)
-        self.arm.rotate_wrist(1500)
-        self.arm.rotate_waist(0)
-
         self.arm.continuous()
         # self.arm.create_route("TEST1",[[-1000, 0, 5500], [-2992, 50, 4000], [-2000, 1800, 5500]])
         # self.arm.run_route("TEST1")
@@ -140,6 +110,151 @@ class ArmCommands:
                 print "next"
             num = raw_input("press enter to continue")
 
+
+
+    def curiosity(self):
+        self.arm.set_speed(3000)
+         #Moving to face subject, then cock head in curiosity
+        #self.arm.move_to(3664, 1774, 3013)
+        #self.arm.rotate_hand(0)
+        #self.arm.rotate_wrist(800)
+        #self.arm.rotate_hand(100)
+        #self.arm.rotate_wrist(2000)
+        sequence = [("M: 3664: 1774: 3013"), ("H: 0"),
+                    ("R: 800"), ("H: 100"),
+                    ("R: 2000")]
+
+        for elem in sequence:
+                cmd = elem.split(": ")
+                print cmd
+                if cmd[0] == "E":
+                    self.arm.rotate_elbow(int(cmd[1]))
+                elif cmd[0] == "S":
+                    self.arm.rotate_shoulder(int(cmd[1]))
+                elif cmd[0] == "W":
+                    self.arm.rotate_waist(int(cmd[1]))
+                elif cmd[0] == "H":
+                    self.arm.rotate_hand(int(cmd[1]))
+                elif cmd[0] == "M":
+                     self.arm.move_to(int(cmd[1]), int(cmd[2]), int(cmd[3]))
+                elif cmd[0] == "R":
+                    self .arm.rotate_wrist(int(cmd[1]))
+                
+    
+    def sleep(self):
+        self.arm.set_speed(3000)
+        #Moving to sleep position
+        #self.arm.move_to(0, 1891, 1737)
+        #self.arm.rotate_hand(700)
+        #self.arm.rotate_wrist(1000)
+        sequence = [("M: 0: 1891: 1737"), ("H: 700"),
+                    ("R: 1000")]
+
+        for elem in sequence:
+                cmd = elem.split(": ")
+                print cmd
+                if cmd[0] == "E":
+                    self.arm.rotate_elbow(int(cmd[1]))
+                elif cmd[0] == "S":
+                    self.arm.rotate_shoulder(int(cmd[1]))
+                elif cmd[0] == "W":
+                    self.arm.rotate_waist(int(cmd[1]))
+                elif cmd[0] == "H":
+                    self.arm.rotate_hand(int(cmd[1]))
+                elif cmd[0] == "M":
+                     self.arm.move_to(int(cmd[1]), int(cmd[2]), int(cmd[3]))
+                elif cmd[0] == "R":
+                    self .arm.rotate_wrist(int(cmd[1]))    
+                
+
+    def wake_up(self):
+        self.arm.set_speed(3000)
+        #Wake up
+        #self.arm.move_to(0,3523, 5032)
+        #self.arm.rotate_wrist(1500)
+        #self.arm.rotate_hand(500)
+        #self.arm.rotate_hand(900)
+        #self.arm.rotate_hand(500)
+        #self.arm.rotate_hand(700)
+        sequence = [("M: 0: 3523: 5032"), ("R: 1500"),
+                    ("H: 500"), ("H: 900"),
+                    ("H: 500"),
+                    ("H: 700")]
+
+        for elem in sequence:
+                cmd = elem.split(": ")
+                print cmd
+                if cmd[0] == "E":
+                    self.arm.rotate_elbow(int(cmd[1]))
+                elif cmd[0] == "S":
+                    self.arm.rotate_shoulder(int(cmd[1]))
+                elif cmd[0] == "W":
+                    self.arm.rotate_waist(int(cmd[1]))
+                elif cmd[0] == "H":
+                    self.arm.rotate_hand(int(cmd[1]))
+                elif cmd[0] == "M":
+                     self.arm.move_to(int(cmd[1]), int(cmd[2]), int(cmd[3]))
+                elif cmd[0] == "R":
+                    self .arm.rotate_wrist(int(cmd[1]))   
+                
+
+    def greet(self):
+        self.arm.set_speed(3000)
+        #Greet Subject
+        #self.arm.move_to(3664, 1774, 3013)
+        #self.arm.rotate_wrist(1500)
+        #self.arm.rotate_hand(100)
+        #self.arm.rotate_hand(0)
+        #self.arm.rotate_hand(300)
+        #self.arm.rotate_hand(100)
+        sequence = [("M: 3664: 1774: 3013"), ("R: 1500"),
+                    ("H: 100"), ("H: 0"),
+                    ("H: 300"),
+                    ("H: 100")]
+
+        for elem in sequence:
+                cmd = elem.split(": ")
+                print cmd
+                if cmd[0] == "E":
+                    self.arm.rotate_elbow(int(cmd[1]))
+                elif cmd[0] == "S":
+                    self.arm.rotate_shoulder(int(cmd[1]))
+                elif cmd[0] == "W":
+                    self.arm.rotate_waist(int(cmd[1]))
+                elif cmd[0] == "H":
+                    self.arm.rotate_hand(int(cmd[1]))
+                elif cmd[0] == "M":
+                     self.arm.move_to(int(cmd[1]), int(cmd[2]), int(cmd[3]))
+                elif cmd[0] == "R":
+                    self .arm.rotate_wrist(int(cmd[1]))   
+                
+    def goodbye(self):
+        self.arm.set_speed(3000)
+         #Ending Interaction
+        #self.arm.move_to(-2689, 2612, 3750)
+        #self.arm.rotate_hand(500)
+        #self.arm.rotate_wrist(1500)
+        #self.arm.rotate_waist(0)
+        sequence = [("M: -2689: 2612: 3750"), ("H: 500"),
+                    ("R: 1500"), ("W: 0")]
+
+        for elem in sequence:
+                cmd = elem.split(": ")
+                print cmd
+                if cmd[0] == "E":
+                    self.arm.rotate_elbow(int(cmd[1]))
+                elif cmd[0] == "S":
+                    self.arm.rotate_shoulder(int(cmd[1]))
+                elif cmd[0] == "W":
+                    self.arm.rotate_waist(int(cmd[1]))
+                elif cmd[0] == "H":
+                    self.arm.rotate_hand(int(cmd[1]))
+                elif cmd[0] == "M":
+                     self.arm.move_to(int(cmd[1]), int(cmd[2]), int(cmd[3]))
+                elif cmd[0] == "R":
+                    self .arm.rotate_wrist(int(cmd[1]))   
+                
+            
     def run(self):
         r = rospy.Rate(10)
         while not rospy.is_shutdown():
@@ -148,6 +263,11 @@ class ArmCommands:
 if __name__ == "__main__":
     object_tracker = ArmCommands()
     object_tracker.run_arm()
+    object_tracker.curiosity()
+    object_tracker.sleep()
+    object_tracker.wake_up()
+    object_tracker.greet()
+    object_tracker.goodbye()
     #object_tracker.push_cup()
     object_tracker.run()
     rospy.spin()
