@@ -25,12 +25,16 @@ class ArmCommands:
 
     def run_arm(self):
         self.arm.purge()
-        self.arm.move_to(-1000, 0, 5500)
-        self.arm.move_to(-2992, 50, 4000)
-        self.arm.move_to(-2000, 1800, 5500)
+        self.arm.set_speed(3000)
+        self.arm.move_to(3664, 1774, 3013)
+        self.arm.rotate_hand(0)
+        self.arm.rotate_wrist(800)
+        self.arm.rotate_wrist(1600)
+        #self.arm.move_to(-2992, 50, 4000)
+        #self.arm.move_to(-2000, 1800, 5500)
         self.arm.continuous()
-        # self.arm.create_route("TEST1",[[-1000, 0, 5500], [-2992, 50, 4000], [-2000, 1800, 5500]])
-        # self.arm.run_route("TEST1")
+        #self.arm.create_route("TEST1",[[-1000, 0, 5500], [-2992, 50, 4000], [-2000, 1800, 5500]])
+        #self.arm.run_route("TEST1")
         print "test_done"
 
     def callback(self, cmdin):
@@ -119,8 +123,8 @@ class ArmCommands:
 
 if __name__ == "__main__":
     object_tracker = ArmCommands()
-    # object_tracker.run_arm()
-    object_tracker.push_cup()
+    object_tracker.run_arm()
+    #object_tracker.push_cup()
     object_tracker.run()
     rospy.spin()
 
