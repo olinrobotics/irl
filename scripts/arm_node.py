@@ -10,36 +10,60 @@ class ArmCommands:
     def __init__(self):
         rospy.init_node('robot_arm', anonymous=True)
         #self.arm.pub_arm = rospy.Publisher('/arm_debug', Twist, queue_size=10)
-        rospy.Subscriber('/arm_cmd', String, self.callback, queue_size=10)
-        # rospy.Subscriber('/whos_turn', String, self.turn_callback, queue_size=0)
-
+        rospy.Subscriber('/arm_cmd', String, self.arm_callback, queue_size=10)
+        rospy.Subscriber('/behaviors_cmd', String, self.behavior_callback, queue_size=10)
         self.debug = False
-
         self.plan = []
         self.arm = st.StArm()
         self.arm.start()
-        #self.arm.arm.calibrate()
+        self.arm.calibrate()
         self.arm.home()
-        #self.run_arm()
-        #self.arm.move_to(-2992, 0, 5500)
-        #self.arm.create_route('hello', [[1,2,3],[4,5,6],[7,8,9]])
+        self.behaviors = {}
 
+        self.create_routes()
+        self.create_behavoirs()
 
-    # def turn_callback(self, data):
-    #     self.turn = data
-    #     print self.turn
+    def create_routes(self):
+        self.arm.create_route("R_look", [[3664, 1774, 3013, 11, 0, 21]])
+        self.arm.create_route("R_playful", [[2027, 981, 98, -11, 0, 72]])
+        self.arm.create_route("R_sleep", [[0, 1891, 1732, 48, 0, 0]])
+        self.arm.create_route("R_wakeup", [[0, 3523, 5032, 1, 0, 0]])
+        self.arm.create_route("R_leaving", [[-2689, 2612, 375, 27, 0, 18]])
 
-    # def run_arm(self):
-    #     self.arm.purge()
-    #     self.arm.move_to(-1000, 0, 5500)
-    #     self.arm.move_to(-2992, 50, 4000)
-    #     self.arm.move_to(-2000, 1800, 5500)
-    #     self.arm.continuous()
-    #     # self.arm.create_route("TEST1",[[-1000, 0, 5500], [-2992, 50, 4000], [-2000, 1800, 5500]])
-    #     # self.arm.run_route("TEST1")
-    #     print "test_done"
+        self.routes = ["R_look", "R_playful", "R_sleep", "R_wakeup", "R_leaving"]
 
-    def callback(self, cmdin):
+    def create_behavoirs(self):
+        self.behaviors["butt_wiggle"] = "R_leaving, WA: 1000, WA: 800, WA: 1000"
+
+    def run_routes(self):
+        self.arm.continuous()
+        for elem in self.routes:
+            print elem
+            self.arm.run_route(elem)
+        print "test_done"
+
+    def behavior_callback(self, cmdin):
+        cmd = str(cmdin).replace("data: ", "")
+        if cmd in self.behaviors.keys():
+            cmd_list = self.behaviors[cmd].split(", ")
+            for elem in cmd_list:
+                if "R_" in elem:
+                    self.arm.run_route(elem)
+                else:
+                    joint = elem.split(": ")[0]
+                    pos = int(elem.split(": ")[1])
+                    if joint == "H":
+                        self.arm.rotate_hand(pos)
+                    elif joint == "WR":
+                        self.arm.rotate_wrist(pos)
+                    elif joint == "E":
+                        self.arm.rotate_elbow(pos)
+                    elif joint == "S":
+                        self.arm.rotate_shoulder(pos)
+                    elif joint == "WA":
+                        self.arm.rotate_waist(pos)
+
+    def arm_callback(self, cmdin):
         self.arm.joint()
         cmd = str(cmdin).replace("data: ", "")
         if len(cmd.split(':: ')) > 1:
@@ -48,6 +72,8 @@ class ArmCommands:
         print cmd
         if cmd == "de_energize":
             self.arm.de_energize()
+        elif cmd == "run_routes":
+            self.run_routes()
         elif cmd == "energize":
             self.arm.energize()
         elif cmd == "where":
@@ -96,28 +122,6 @@ class ArmCommands:
         elif cmd == "rotate_hand_rel":
             self.arm.rotate_hand_rel(param)
 
-    # def push_cup(self):
-    #     self.arm.set_speed(3000)
-    #     sequence = [("E: 13000", "H: -100", "W: 200", "S: 9500"), ("E: 11000", 'placeholder'),
-    #                 ("S: 10500", "E: 9750"), ("S: 11700", "E: 7000"),
-    #                 ("S: 6000", "W: 5000", "S: 8000", "H: 300", "H: 0"),
-    #                 ("W: 0", 'placeholder')]
-
-    #     for elem in sequence:
-    #         for tcmd in elem:
-    #             cmd = tcmd.split(": ")
-    #             print cmd
-    #             if cmd[0] == "E":
-    #                 self.arm.rotate_elbow(int(cmd[1]))
-    #             elif cmd[0] == "S":
-    #                 self.arm.rotate_shoulder(int(cmd[1]))
-    #             elif cmd[0] == "W":
-    #                 self.arm.rotate_waist(int(cmd[1]))
-    #             elif cmd[0] == "H":
-    #                 self.arm.rotate_hand(int(cmd[1]))
-    #             print "next"
-    #         num = raw_input("press enter to continue")
-
     def run(self):
         r = rospy.Rate(10)
         while not rospy.is_shutdown():
@@ -125,8 +129,6 @@ class ArmCommands:
 
 if __name__ == "__main__":
     object_tracker = ArmCommands()
-    # object_tracker.run_arm()
-    # object_tracker.push_cup()
     object_tracker.run()
     rospy.spin()
 
