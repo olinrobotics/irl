@@ -11,6 +11,7 @@ class ArmCommands:
         rospy.init_node('robot_arm', anonymous=True)
         #self.arm.pub_arm = rospy.Publisher('/arm_debug', Twist, queue_size=10)
         rospy.Subscriber('/arm_cmd', String, self.callback, queue_size=10)
+        # rospy.Subscriber('/whos_turn', String, self.turn_callback, queue_size=0)
 
         self.debug = False
 
@@ -23,6 +24,7 @@ class ArmCommands:
         #self.arm.move_to(-2992, 0, 5500)
         #self.arm.create_route('hello', [[1,2,3],[4,5,6],[7,8,9]])
 
+<<<<<<< HEAD:scripts/test/arm_node.py
     def run_arm(self):
         self.arm.purge()
         self.arm.set_speed(3000)
@@ -36,6 +38,22 @@ class ArmCommands:
         #self.arm.create_route("TEST1",[[-1000, 0, 5500], [-2992, 50, 4000], [-2000, 1800, 5500]])
         #self.arm.run_route("TEST1")
         print "test_done"
+=======
+
+    # def turn_callback(self, data):
+    #     self.turn = data
+    #     print self.turn
+
+    # def run_arm(self):
+    #     self.arm.purge()
+    #     self.arm.move_to(-1000, 0, 5500)
+    #     self.arm.move_to(-2992, 50, 4000)
+    #     self.arm.move_to(-2000, 1800, 5500)
+    #     self.arm.continuous()
+    #     # self.arm.create_route("TEST1",[[-1000, 0, 5500], [-2992, 50, 4000], [-2000, 1800, 5500]])
+    #     # self.arm.run_route("TEST1")
+    #     print "test_done"
+>>>>>>> basic_stt:scripts/motion/arm_node.py
 
     def callback(self, cmdin):
         self.arm.joint()
@@ -94,27 +112,27 @@ class ArmCommands:
         elif cmd == "rotate_hand_rel":
             self.arm.rotate_hand_rel(param)
 
-    def push_cup(self):
-        self.arm.set_speed(3000)
-        sequence = [("E: 13000", "H: -100", "W: 200", "S: 9500"), ("E: 11000", 'placeholder'),
-                    ("S: 10500", "E: 9750"), ("S: 11700", "E: 7000"),
-                    ("S: 6000", "W: 5000", "S: 8000", "H: 300", "H: 0"),
-                    ("W: 0", 'placeholder')]
+    # def push_cup(self):
+    #     self.arm.set_speed(3000)
+    #     sequence = [("E: 13000", "H: -100", "W: 200", "S: 9500"), ("E: 11000", 'placeholder'),
+    #                 ("S: 10500", "E: 9750"), ("S: 11700", "E: 7000"),
+    #                 ("S: 6000", "W: 5000", "S: 8000", "H: 300", "H: 0"),
+    #                 ("W: 0", 'placeholder')]
 
-        for elem in sequence:
-            for tcmd in elem:
-                cmd = tcmd.split(": ")
-                print cmd
-                if cmd[0] == "E":
-                    self.arm.rotate_elbow(int(cmd[1]))
-                elif cmd[0] == "S":
-                    self.arm.rotate_shoulder(int(cmd[1]))
-                elif cmd[0] == "W":
-                    self.arm.rotate_waist(int(cmd[1]))
-                elif cmd[0] == "H":
-                    self.arm.rotate_hand(int(cmd[1]))
-                print "next"
-            num = raw_input("press enter to continue")
+    #     for elem in sequence:
+    #         for tcmd in elem:
+    #             cmd = tcmd.split(": ")
+    #             print cmd
+    #             if cmd[0] == "E":
+    #                 self.arm.rotate_elbow(int(cmd[1]))
+    #             elif cmd[0] == "S":
+    #                 self.arm.rotate_shoulder(int(cmd[1]))
+    #             elif cmd[0] == "W":
+    #                 self.arm.rotate_waist(int(cmd[1]))
+    #             elif cmd[0] == "H":
+    #                 self.arm.rotate_hand(int(cmd[1]))
+    #             print "next"
+    #         num = raw_input("press enter to continue")
 
     def run(self):
         r = rospy.Rate(10)
@@ -123,8 +141,13 @@ class ArmCommands:
 
 if __name__ == "__main__":
     object_tracker = ArmCommands()
+<<<<<<< HEAD:scripts/test/arm_node.py
     object_tracker.run_arm()
     #object_tracker.push_cup()
+=======
+    # object_tracker.run_arm()
+    # object_tracker.push_cup()
+>>>>>>> basic_stt:scripts/motion/arm_node.py
     object_tracker.run()
     rospy.spin()
 
