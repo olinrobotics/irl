@@ -14,7 +14,8 @@ class ImageConverter:
   def __init__(self):
     # self.image_pub = rospy.Publisher("image_topic_2",Image)
     self.bridge = CvBridge()
-    self.image_sub = rospy.Subscriber("/camera/rgb/image_color",Image,self.callback)
+    #self.image_sub = rospy.Subscriber("/camera/rgb/image_color",Image,self.callback)
+    self.image_sub = rospy.Subscriber("/usb_cam/image_raw",Image,self.callback)
     self.cv_image = None
 
   def callback(self,data):
@@ -69,4 +70,4 @@ def main():
 		c = cv2.waitKey(1)
 
 if __name__ == '__main__':
-	main()
+	main()\
