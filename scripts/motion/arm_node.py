@@ -12,6 +12,9 @@ class ArmCommands:
         #self.arm.pub_arm = rospy.Publisher('/arm_debug', Twist, queue_size=10)
         rospy.Subscriber('/arm_cmd', String, self.arm_callback, queue_size=10)
         rospy.Subscriber('/behaviors_cmd', String, self.behavior_callback, queue_size=10)
+
+        self.pub = rospy.Publisher('arm_debug', String, queue_size=10)
+
         self.debug = False
         self.plan = []
         self.arm = st.StArm()
@@ -106,7 +109,9 @@ class ArmCommands:
             x = temp[0]
             y = temp[1]
             z = temp[2]
+            pitch = temp[3]
             self.arm.move_to(x,y,z,self.arm.debug)
+            self.pub.publish("done")
         elif cmd == "rotate_wrist":
             self.arm.rotate_wrist(param)
         elif cmd == "rotate_wrist_rel":

@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+import rospy
+import math
+import st
+import numpy as np
+from std_msgs.msg import String
 import time
 import serial as s
 import re
@@ -102,6 +108,7 @@ class StArm():
                  init=True, to=DEFAULT_TIMEOUT):
 
         possiblePorts = ['/dev/ttyUSB0', '/dev/ttyUSB1','/dev/ttyUSB2', '/dev/ttyUSB3', '/dev/ttyUSB4']
+        self.pub = rospy.Publisher('arm_debug', String, queue_size=10)
 
         for port in possiblePorts:
             try:
@@ -271,6 +278,7 @@ class StArm():
                 if self.debug:
                     print('Command ' + cmd + ' completed without ' +
                           'verification of success.')
+                self.pub.publish(cmd + "FAILED: " + s)
                 raise Exception('Arm command failed to execute as expected.', s)
             s += self.cxn.read(self.cxn.inWaiting())
 
@@ -424,6 +432,7 @@ class StArm():
         res = self.block_on_result(cmd)
         print "I'M LOCATED"
         print res
+        self.pub.publish(str(res))
         try:
             lines = res.split('\r\n')
             #TODO: Need to account for possibility that arm is in decimal mode
@@ -436,6 +445,7 @@ class StArm():
             self.curr_pos.set(cp)
             self.prev_pos.set(pp)
         except RuntimeError, e:
+            self.pub.publish("EXCEPT IN WHERE: " + str(e))
             print('Exception in where.')
             print(e)
             self.curr_pos.set([0, 0, 0, 0, 0])

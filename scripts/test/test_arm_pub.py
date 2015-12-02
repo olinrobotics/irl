@@ -13,12 +13,18 @@ class ArmGui:
         self.x = tk.StringVar()
         self.y = tk.StringVar()
         self.z = tk.StringVar()
+        self.pitch = tk.StringVar()
 
         self.init_control_fields()
         self.init_pub()
 
+    def route_move(self, num):
+        msg = "data: run_route:: " + str(self.route_s.get())
+        print "sending: ", msg
+        self.pub.publish(msg)
+
     def xyz_move(self):
-        msg = "data: move_to:: " + self.x.get() + ", " + self.y.get() + ", " + self.z.get()
+        msg = "data: move_to:: " + self.x.get() + ", " + self.y.get() + ", " + self.z.get() + ", " + self.pitch.get()
         print "sending; ", msg
         self.pub.publish(msg)
 
@@ -74,11 +80,20 @@ class ArmGui:
         self.f7 = tk.Frame(self.master)
         self.f7.pack(side=tk.TOP, fill=tk.X)
 
-        tk.Label(self.f7, text="XYZ: ").pack(side=tk.LEFT)
-        tk.Entry(self.f7, textvariable=self.x).pack(side=tk.LEFT)
-        tk.Entry(self.f7, textvariable=self.y).pack(side=tk.LEFT)
-        tk.Entry(self.f7, textvariable=self.z).pack(side=tk.LEFT)
-        tk.Button(self.f7, text="Set", width=5, command=self.xyz_move).pack(side=tk.LEFT)
+        self.f8 = tk.Frame(self.master)
+        self.f8.pack(side=tk.TOP, fill=tk.X)
+
+        self.route_s = tk.Entry(self.f7)
+        self.route_s.bind('<Return>', self.route_move)
+        tk.Label(self.f7, text="Route: ").pack(side=tk.LEFT)
+        self.route_s.pack()
+
+        tk.Label(self.f8, text="XYZ: ").pack(side=tk.LEFT)
+        tk.Entry(self.f8, textvariable=self.x, width=5).pack(side=tk.LEFT)
+        tk.Entry(self.f8, textvariable=self.y, width=5).pack(side=tk.LEFT)
+        tk.Entry(self.f8, textvariable=self.z, width=5).pack(side=tk.LEFT)
+        tk.Entry(self.f8, textvariable=self.pitch, width=5).pack(side=tk.LEFT)
+        tk.Button(self.f8, text="Set", width=5, command=self.xyz_move).pack(side=tk.LEFT)
 
         self.wrist_s = tk.Entry(self.f1)
         self.wrist_s.bind('<Return>', self.wrist_move)
