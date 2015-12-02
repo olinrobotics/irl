@@ -32,6 +32,7 @@ class ArmCommands:
         self.arm.create_route("R_sleep", [[0, 1891, 1732, 48, 0, 0]])
         self.arm.create_route("R_wakeup", [[0, 3523, 5032, 1, 0, 0]])
         self.arm.create_route("R_leaving", [[-2689, 2612, 375, 27, 0, 18]])
+        self.arm.create_route("R_drawr", [[0, 2740, -700, 810, 0, 0]])
 
         self.routes = ["R_look", "R_playful", "R_sleep", "R_wakeup", "R_leaving"]
 
@@ -105,6 +106,7 @@ class ArmCommands:
         elif cmd == "run_route":
             self.arm.run_route(param)
         elif cmd == "move_to":
+            #NOTE: move_to is in units of mm
             temp = param.split(", ")
             x = temp[0]
             y = temp[1]

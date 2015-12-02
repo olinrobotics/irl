@@ -232,21 +232,26 @@ class StArm():
         #     self.block_on_result(cmd, debug)
 
         index = 0
-        for point in commands:
+        for cmd in commands:
             index += 1
-            point = str(point[2]) + ' ' + str(point[1]) + ' ' + str(point[0])
+            point = str(cmd[2]) + ' ' + str(cmd[1]) + ' ' + str(cmd[0])
 
-            if len(point) == 6:
-                euler_angles = str(point[5]) + ' ' + str(point[4]) + ' ' + str(point[3])
+            print "CMD IS: ", cmd
+            print "LEN: ", len(cmd)
+
+            if len(cmd) == 6:
+                print "MAKING EULER ANGLES"
+                euler_angles = str(cmd[5]) + ' ' + str(cmd[4]) + ' ' + str(cmd[3])
             else:
+                print "DEFAULT EULER ANGLES"
                 euler_angles = '0 0 0'
 
-            cmd = DECIMAL + ' ' + euler_angles + ' ' + point +  ' ' + route_name + ' ' + str(index) + ' LINE DLD'
-            print cmd
+            cmd_tosend = DECIMAL + ' ' + euler_angles + ' ' + point +  ' ' + route_name + ' ' + str(index) + ' LINE DLD'
+            print cmd_tosend
             print "Adding [" + point + ' ' + euler_angles + "] to route"
             self.cxn.flushInput()
-            self.cxn.write(cmd + CR)
-            self.block_on_result(cmd, debug)
+            self.cxn.write(cmd_tosend + CR)
+            self.block_on_result(cmd_tosend, debug)
 
     def calibrate(self):
         cmd = CALIBRATE

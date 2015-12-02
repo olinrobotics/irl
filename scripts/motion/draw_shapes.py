@@ -12,7 +12,6 @@ class Drawer:
 		self.pub = rospy.Publisher('arm_cmd', String, queue_size=10)
 
 		self.pub.publish("data: set_speed:: 3000")
-
 		self.ready_to_play()
 		self.sub = rospy.Subscriber('draw_me', String, self.draw_callback, queue_size=None)
 
