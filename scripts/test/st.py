@@ -349,6 +349,8 @@ class StArm():
         self.cxn.flushInput()
         self.cxn.write(cmd + CR)
         self.block_on_result(cmd)
+        self.cartesian()
+        self.where()
 
     def rotate_wrist_rel(self, roll_inc):
         cmd = TELL + ' ' + WRIST + ' ' + str(roll_inc) + ' ' + MOVE
