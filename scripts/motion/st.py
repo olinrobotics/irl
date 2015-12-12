@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+import rospy
+import math
+import st
+import numpy as np
+from std_msgs.msg import String
 import time
 import serial as s
 import re
@@ -102,6 +108,7 @@ class StArm():
                  init=True, to=DEFAULT_TIMEOUT):
 
         possiblePorts = ['/dev/ttyUSB0', '/dev/ttyUSB1','/dev/ttyUSB2', '/dev/ttyUSB3', '/dev/ttyUSB4']
+        self.pub = rospy.Publisher('arm_debug', String, queue_size=10)
 
         for port in possiblePorts:
             try:
@@ -225,21 +232,26 @@ class StArm():
         #     self.block_on_result(cmd, debug)
 
         index = 0
-        for point in commands:
+        for cmd in commands:
             index += 1
-            point = str(point[2]) + ' ' + str(point[1]) + ' ' + str(point[0])
+            point = str(cmd[2]) + ' ' + str(cmd[1]) + ' ' + str(cmd[0])
 
-            if len(point) == 6:
-                euler_angles = str(point[5]) + ' ' + str(point[4]) + ' ' + str(point[3])
+            print "CMD IS: ", cmd
+            print "LEN: ", len(cmd)
+
+            if len(cmd) == 6:
+                print "MAKING EULER ANGLES"
+                euler_angles = str(cmd[5]) + ' ' + str(cmd[4]) + ' ' + str(cmd[3])
             else:
+                print "DEFAULT EULER ANGLES"
                 euler_angles = '0 0 0'
 
-            cmd = DECIMAL + ' ' + euler_angles + ' ' + point +  ' ' + route_name + ' ' + str(index) + ' LINE DLD'
-            print cmd
+            cmd_tosend = DECIMAL + ' ' + euler_angles + ' ' + point +  ' ' + route_name + ' ' + str(index) + ' LINE DLD'
+            print cmd_tosend
             print "Adding [" + point + ' ' + euler_angles + "] to route"
             self.cxn.flushInput()
-            self.cxn.write(cmd + CR)
-            self.block_on_result(cmd, debug)
+            self.cxn.write(cmd_tosend + CR)
+            self.block_on_result(cmd_tosend, debug)
 
     def calibrate(self):
         cmd = CALIBRATE
@@ -271,6 +283,7 @@ class StArm():
                 if self.debug:
                     print('Command ' + cmd + ' completed without ' +
                           'verification of success.')
+                self.pub.publish(cmd + "FAILED: " + s)
                 raise Exception('Arm command failed to execute as expected.', s)
             s += self.cxn.read(self.cxn.inWaiting())
 
@@ -424,6 +437,7 @@ class StArm():
         res = self.block_on_result(cmd)
         print "I'M LOCATED"
         print res
+        self.pub.publish(str(res))
         try:
             lines = res.split('\r\n')
             #TODO: Need to account for possibility that arm is in decimal mode
@@ -436,6 +450,7 @@ class StArm():
             self.curr_pos.set(cp)
             self.prev_pos.set(pp)
         except RuntimeError, e:
+            self.pub.publish("EXCEPT IN WHERE: " + str(e))
             print('Exception in where.')
             print(e)
             self.curr_pos.set([0, 0, 0, 0, 0])
