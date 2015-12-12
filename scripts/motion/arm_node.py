@@ -35,12 +35,14 @@ class ArmCommands:
         self.arm.create_route("R_leaving", [[-2689, 2612, 375, 27, 0, 18]])
         self.arm.create_route("R_drawr", [[0, 2740, -700, 810, 0, 0]])
         self.arm.create_route("R_greet1", [[3665, 1774, 3013, 0, 0, 0]])
+        self.arm.create_route("R_curious", [[3664, 1774, 3013, 0, 0, 0]])
+        self.routes = ["R_look", "R_playful", "R_sleep", "R_wakeup", "R_leaving, R_greet1", "R_curious"]
 
-        self.routes = ["R_look", "R_playful", "R_sleep", "R_wakeup", "R_leaving, R_greet1"]
-
-    def create_behaviors(self):
-        self.behaviors["butt_wiggle"] = "R_leaving, WA: 1000, WA: 800, WA: 1000, R_wakeup"
-        #self.behaviors["greet"] = "R_greet1, R:1500, H: 100, H: 0, H: 300, H: 100"
+        with open("../params/routes.txt", "r+") as f:
+            content = f.readlines()
+            for route in self.routes:
+                if route not in content:
+                    f.write(route + "\n")
 
     def run_routes(self):
         self.arm.continuous()
@@ -48,27 +50,6 @@ class ArmCommands:
             print elem
             self.arm.run_route(elem)
         print "test_done"
-
-    def behavior_callback(self, cmdin):
-        cmd = str(cmdin).replace("data: ", "")
-        if cmd in self.behaviors.keys():
-            cmd_list = self.behaviors[cmd].split(", ")
-            for elem in cmd_list:
-                if "R_" in elem:
-                    self.arm.run_route(elem)
-                else:
-                    joint = elem.split(": ")[0]
-                    pos = int(elem.split(": ")[1])
-                    if joint == "H":
-                        self.arm.rotate_hand(pos)
-                    elif joint == "WR":
-                        self.arm.rotate_wrist(pos)
-                    elif joint == "E":
-                        self.arm.rotate_elbow(pos)
-                    elif joint == "S":
-                        self.arm.rotate_shoulder(pos)
-                    elif joint == "WA":
-                        self.arm.rotate_waist(pos)
 
     def arm_callback(self, cmdin):
         self.arm.joint()
@@ -132,10 +113,6 @@ class ArmCommands:
         elif cmd == "rotate_hand_rel":
             self.arm.rotate_hand_rel(param)
 
-    def test(self):
-        self.arm.set_speed(3000);
-        self.arm.move_to(3664, 1774, 3013)              
-
     def run(self):
         r = rospy.Rate(10)
         while not rospy.is_shutdown():
@@ -144,7 +121,6 @@ class ArmCommands:
 if __name__ == "__main__":
     object_tracker = ArmCommands()
     object_tracker.run()
-    object_tracker.test()
     rospy.spin()
 
 

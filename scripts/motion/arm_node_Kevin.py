@@ -139,8 +139,8 @@ class ArmCommands:
                      self.arm.move_to(int(cmd[1]), int(cmd[2]), int(cmd[3]))
                 elif cmd[0] == "R":
                     self .arm.rotate_wrist(int(cmd[1]))
-                
-    
+
+
     def sleep(self):
         self.arm.set_speed(3000)
         #Moving to sleep position
@@ -164,8 +164,8 @@ class ArmCommands:
                 elif cmd[0] == "M":
                      self.arm.move_to(int(cmd[1]), int(cmd[2]), int(cmd[3]))
                 elif cmd[0] == "R":
-                    self .arm.rotate_wrist(int(cmd[1]))    
-                
+                    self .arm.rotate_wrist(int(cmd[1]))
+
 
     def wake_up(self):
         self.arm.set_speed(3000)
@@ -195,8 +195,8 @@ class ArmCommands:
                 elif cmd[0] == "M":
                      self.arm.move_to(int(cmd[1]), int(cmd[2]), int(cmd[3]))
                 elif cmd[0] == "R":
-                    self .arm.rotate_wrist(int(cmd[1]))   
-                
+                    self .arm.rotate_wrist(int(cmd[1]))
+
 
     def greet(self):
         self.arm.set_speed(3000)
@@ -226,8 +226,8 @@ class ArmCommands:
                 elif cmd[0] == "M":
                      self.arm.move_to(int(cmd[1]), int(cmd[2]), int(cmd[3]))
                 elif cmd[0] == "R":
-                    self .arm.rotate_wrist(int(cmd[1]))   
-                
+                    self .arm.rotate_wrist(int(cmd[1]))
+
     def goodbye(self):
         self.arm.set_speed(3000)
          #Ending Interaction
@@ -252,14 +252,14 @@ class ArmCommands:
                 elif cmd[0] == "M":
                      self.arm.move_to(int(cmd[1]), int(cmd[2]), int(cmd[3]))
                 elif cmd[0] == "R":
-                    self .arm.rotate_wrist(int(cmd[1]))   
+                    self .arm.rotate_wrist(int(cmd[1]))
 
-    
+
     def drawRectangle(self):
         self.arm.set_speed(3000)
-        sequence = [("M: 1000: 4000: -500"), ("M: 1000: 4000: -650"), ("M: 1200: 4000: -650"), 
-                    ("M: 1200: 4200: -670"), ("M: 1000: 4200: -650"), ("M: 1000: 4000: -650"), 
-                    ("M: 1000: 4000: -500")]      
+        sequence = [("M: 1000: 4000: -500"), ("M: 1000: 4000: -650"), ("M: 1200: 4000: -650"),
+                    ("M: 1200: 4200: -670"), ("M: 1000: 4200: -650"), ("M: 1000: 4000: -650"),
+                    ("M: 1000: 4000: -500")]
 
                 for elem in sequence:
                 cmd = elem.split(": ")
@@ -275,11 +275,11 @@ class ArmCommands:
                 elif cmd[0] == "M":
                      self.arm.move_to(int(cmd[1]), int(cmd[2]), int(cmd[3]))
                 elif cmd[0] == "R":
-                    self .arm.rotate_wrist(int(cmd[1]))  
+                    self .arm.rotate_wrist(int(cmd[1]))
     def test(self):
         self.arm.set_speed(3000);
-        self.arm.move_to(3664, 1774, 3013)                
-            
+        self.arm.move_to(3664, 1774, 3013)
+
     def run(self):
         r = rospy.Rate(10)
         while not rospy.is_shutdown():
