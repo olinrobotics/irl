@@ -257,8 +257,9 @@ class ArmCommands:
     
     def drawRectangle(self):
         self.arm.set_speed(3000)
-        sequence = [("M: 0: 400: -650"), ("M; 100: 400: -670"), ("M; 100: 400: -670"), 
-                    ("M; 100: 400: -670"), ("M; 100: 400: -670"), ("M; 100: 400: -650")]      
+        sequence = [("M: 1000: 4000: -500"), ("M: 1000: 4000: -650"), ("M: 1200: 4000: -650"), 
+                    ("M: 1200: 4200: -670"), ("M: 1000: 4200: -650"), ("M: 1000: 4000: -650"), 
+                    ("M: 1000: 4000: -500")]      
 
                 for elem in sequence:
                 cmd = elem.split(": ")
@@ -287,8 +288,8 @@ class ArmCommands:
 if __name__ == "__main__":
     object_tracker = ArmCommands()
     object_tracker.run_arm()
-    object_tracker.test()
-    #object_tracker.drawRectangle()
+    o#bject_tracker.test()
+    object_tracker.drawRectangle()
     #object_tracker.curiosity()
     #object_tracker.sleep()
     #object_tracker.wake_up()

@@ -122,6 +122,10 @@ class ArmCommands:
         elif cmd == "rotate_hand_rel":
             self.arm.rotate_hand_rel(param)
 
+    def test(self):
+        self.arm.set_speed(3000);
+        self.arm.move_to(3664, 1774, 3013)              
+
     def run(self):
         r = rospy.Rate(10)
         while not rospy.is_shutdown():
@@ -130,6 +134,7 @@ class ArmCommands:
 if __name__ == "__main__":
     object_tracker = ArmCommands()
     object_tracker.run()
+    object_tracker.test()
     rospy.spin()
 
 
