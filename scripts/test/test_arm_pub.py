@@ -21,7 +21,12 @@ class ArmGui:
     def route_move(self, num):
         msg = "data: run_route:: " + str(self.route_s.get())
         print "sending: ", msg
-        self.pub.publish(msg)
+        self.pub2.publish(msg)
+
+    def behave_move(self, num):
+        msg = "data: " + str(self.behav_s.get())
+        print "sending: ", msg
+        self.pub2.publish(msg)
 
     def xyz_move(self):
         msg = "data: move_to:: " + self.x.get() + ", " + self.y.get() + ", " + self.z.get() + ", " + self.pitch.get()
@@ -83,6 +88,9 @@ class ArmGui:
         self.f8 = tk.Frame(self.master)
         self.f8.pack(side=tk.TOP, fill=tk.X)
 
+        self.f9 = tk.Frame(self.master)
+        self.f9.pack(side=tk.TOP, fill=tk.X)
+
         self.route_s = tk.Entry(self.f7)
         self.route_s.bind('<Return>', self.route_move)
         tk.Label(self.f7, text="Route: ").pack(side=tk.LEFT)
@@ -94,6 +102,11 @@ class ArmGui:
         tk.Entry(self.f8, textvariable=self.z, width=5).pack(side=tk.LEFT)
         tk.Entry(self.f8, textvariable=self.pitch, width=5).pack(side=tk.LEFT)
         tk.Button(self.f8, text="Set", width=5, command=self.xyz_move).pack(side=tk.LEFT)
+
+        self.behav_s = tk.Entry(self.f9)
+        self.behav_s.bind('<Return>', self.behave_move)
+        tk.Label(self.f9, text="Behavior: ").pack(side=tk.LEFT)
+        self.behav_s.pack()
 
         self.wrist_s = tk.Entry(self.f1)
         self.wrist_s.bind('<Return>', self.wrist_move)
@@ -127,6 +140,7 @@ class ArmGui:
 
     def init_pub(self):
         rospy.init_node('arm_tester', anonymous=True)
+        self.pub2 = rospy.Publisher('behaviors_cmd', String, queue_size=10)
         self.pub = rospy.Publisher('arm_cmd', String, queue_size=10)
 
         # while not rospy.is_shutdown():
