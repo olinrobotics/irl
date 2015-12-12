@@ -24,20 +24,23 @@ class ArmCommands:
         self.behaviors = {}
 
         self.create_routes()
-        self.create_behavoirs()
+        self.create_behaviors()
 
     def create_routes(self):
+        #Moves in units of thousands
         self.arm.create_route("R_look", [[3664, 1774, 3013, 11, 0, 21]])
         self.arm.create_route("R_playful", [[2027, 981, 98, -11, 0, 72]])
         self.arm.create_route("R_sleep", [[0, 1891, 1732, 48, 0, 0]])
         self.arm.create_route("R_wakeup", [[0, 3523, 5032, 1, 0, 0]])
         self.arm.create_route("R_leaving", [[-2689, 2612, 375, 27, 0, 18]])
         self.arm.create_route("R_drawr", [[0, 2740, -700, 810, 0, 0]])
+        self.arm.create_route("R_greet1", [[3665, 1774, 3013, 0, 0, 0]])
 
-        self.routes = ["R_look", "R_playful", "R_sleep", "R_wakeup", "R_leaving"]
+        self.routes = ["R_look", "R_playful", "R_sleep", "R_wakeup", "R_leaving, R_greet1"]
 
-    def create_behavoirs(self):
-        self.behaviors["butt_wiggle"] = "R_leaving, WA: 1000, WA: 800, WA: 1000"
+    def create_behaviors(self):
+        self.behaviors["butt_wiggle"] = "R_leaving, WA: 1000, WA: 800, WA: 1000, R_wakeup"
+        #self.behaviors["greet"] = "R_greet1, R:1500, H: 100, H: 0, H: 300, H: 100"
 
     def run_routes(self):
         self.arm.continuous()
