@@ -3,7 +3,6 @@ import math
 import st
 import numpy as np
 from std_msgs.msg import String
-import Tkinter as tk
 import time
 
 
@@ -13,6 +12,8 @@ class Drawer:
 		self.behaviorpub = rospy.Publisher('behaviors_cmd', String, queue_size=10)
 		self.armpub = rospy.Publisher('arm_cmd', String, queue_size=10)
 
+
+
 	def DrawSquare(self, x, y, z):
 		#getting into position
 		msg = "data: move_to:: " + x + "," + y + "," + (z+25)
@@ -20,23 +21,23 @@ class Drawer:
         self.armpub.publish(msg)
 
         #making the square
-        msg = "data: move_to:: " + (x+50) + "," + (y+50) + "," + z
+        msg = "data: move_to:: " + (x+25) + "," + (y+25) + "," + z
         print "sending: ", msg
         self.armpub.publish(msg)
 
-        msg = "data: move_to:: " + (x-50) + "," + (y+50) + "," + z
+        msg = "data: move_to:: " + (x-25) + "," + (y+25) + "," + z
         print "sending: ", msg
         self.armpub.publish(msg)
 
-        msg = "data: move_to:: " + (x-50) + "," + (y-50) + "," + z
+        msg = "data: move_to:: " + (x-25) + "," + (y-25) + "," + z
         print "sending: ", msg
         self.armpub.publish(msg)
 
-        msg = "data: move_to:: " + (x+50) + "," + (y-50) + "," + z
+        msg = "data: move_to:: " + (x+25) + "," + (y-25) + "," + z
         print "sending: ", msg
         self.armpub.publish(msg)
 
-        msg = "data: move_to:: " + (x+50) + "," + (y+50) + "," + z
+        msg = "data: move_to:: " + (x+25) + "," + (y+25) + "," + z
         print "sending: ", msg
         self.armpub.publish(msg)
 
@@ -47,20 +48,61 @@ class Drawer:
         self.armpub.publish(msg)
 	
 
-	def DrawCircle(self, x, y, z, r):
+
+
+	def DrawCircle(self, x, y, z):
 		#getting into position
+        msg = "data: move_to:: " + x + "," + y + "," + (z+25)
+        print "sending: ", msg
+        self.armpub.publish(msg)
 
 		#drawing the circle
+        msg = "data: move_to:: " + x + "," + y + "," + z
+        print "sending: ", msg
+        self.armpub.publish(msg)
+
+        for i in range(-100, 100):
+            msg = "data: move_to:: " + (x+i) + "," + (math.sqrt(10000-(x^2))) + "," + z
+            print "sending: ", msg
+            self.armpub.publish(msg)
+        
+        for j in range(-100, 100):
+            msg = "data: move_to:: " + (x-i) + "," + (-1*math.sqrt(10000-(x^2))) + "," + z
+            print "sending: ", msg
+            self.armpub.publish(msg)
 
 		#picking off the paper and finishing
+        msg = "data: move_to:: " + x + "," + y + "," + (z+25)
+        print "sending: ", msg
+        self.armpub.publish(msg)
 
 
-	def Color(self, x, y, z, r):	
-		#getting into position
 
-		#running algorithm that does a toddler coloring imitation
 
-		#picking off the paper finishing
+	def Color(self, x, y, z):	
+        #getting into position
+        msg = "data: move_to:: " + x + "," + y + "," + (z+25)
+        print "sending: ", msg
+        self.armpub.publish(msg)
+
+        #coloring the circle
+        msg = "data: move_to:: " + x + "," + y + "," + z
+        print "sending: ", msg
+        self.armpub.publish(msg)
+
+        for i in range(-100, 100):
+            msg = "data: move_to:: " + (x+i) + "," + (math.sqrt(10000-(x^2))) + "," + z
+            print "sending: ", msg
+            self.armpub.publish(msg)
+            msg = "data: move_to:: " + (x+i) + "," + (-1*math.sqrt(10000-(x^2))) + "," + z
+            print "sending: ", msg
+            self.armpub.publish(msg)
+
+        #picking off the paper and finishing
+        msg = "data: move_to:: " + x + "," + y + "," + (z+25)
+        print "sending: ", msg
+        self.armpub.publish(msg)
+
 
 
     def run(self):
@@ -68,10 +110,12 @@ class Drawer:
          while not rospy.is_shutdown():
              r.sleep()
 
+
+
 if __name__ == "__main__":
 	draw = Drawer()
 	draw.run()
-	draw.DrawSquare()
-	#draw.DrawCircle()
-	#draw.Color()
+	draw.DrawSquare(x, y, z)
+	draw.DrawCircle(x, y, z)
+	draw.Color(x, y, z)
 	rospy.spin()
