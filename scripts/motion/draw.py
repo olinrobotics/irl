@@ -16,34 +16,34 @@ class Drawer:
 
 	def DrawSquare(self, x, y, z):
 		#getting into position
-		msg = "data: move_to:: " + x + "," + y + "," + (z+25)
+		msg = "data: move_to:: " + x + ", " + y + ", " + (z+25)
         print "sending: ", msg
         self.armpub.publish(msg)
 
         #making the square
-        msg = "data: move_to:: " + (x+25) + "," + (y+25) + "," + z
+        msg = "data: move_to:: " + (x+25) + ", " + (y+25) + ", " + z
         print "sending: ", msg
         self.armpub.publish(msg)
 
-        msg = "data: move_to:: " + (x-25) + "," + (y+25) + "," + z
+        msg = "data: move_to:: " + (x-25) + ", " + (y+25) + ", " + z
         print "sending: ", msg
         self.armpub.publish(msg)
 
-        msg = "data: move_to:: " + (x-25) + "," + (y-25) + "," + z
+        msg = "data: move_to:: " + (x-25) + ", " + (y-25) + ", " + z
         print "sending: ", msg
         self.armpub.publish(msg)
 
-        msg = "data: move_to:: " + (x+25) + "," + (y-25) + "," + z
+        msg = "data: move_to:: " + (x+25) + ", " + (y-25) + ", " + z
         print "sending: ", msg
         self.armpub.publish(msg)
 
-        msg = "data: move_to:: " + (x+25) + "," + (y+25) + "," + z
+        msg = "data: move_to:: " + (x+25) + ", " + (y+25) + ", " + z
         print "sending: ", msg
         self.armpub.publish(msg)
 
 
         #picking up off the paper and finishing
-        msg = "data: move_to:: " + x + "," + y + "," + (z+25)
+        msg = "data: move_to:: " + x + ", " + y + ", " + (z+25)
         print "sending: ", msg
         self.armpub.publish(msg)
 	
@@ -52,27 +52,27 @@ class Drawer:
 
 	def DrawCircle(self, x, y, z):
 		#getting into position
-        msg = "data: move_to:: " + x + "," + y + "," + (z+25)
+        msg = "data: move_to:: " + x + ", " + y + ", " + (z+25)
         print "sending: ", msg
         self.armpub.publish(msg)
 
 		#drawing the circle
-        msg = "data: move_to:: " + x + "," + y + "," + z
+        msg = "data: move_to:: " + x + ", " + y + ", " + z
         print "sending: ", msg
         self.armpub.publish(msg)
 
         for i in range(-100, 100):
-            msg = "data: move_to:: " + (x+i) + "," + (math.sqrt(10000-(x^2))) + "," + z
+            msg = "data: move_to:: " + (x+i) + ", " + (math.sqrt(10000-(x^2))) + ", " + z
             print "sending: ", msg
             self.armpub.publish(msg)
         
         for j in range(-100, 100):
-            msg = "data: move_to:: " + (x-i) + "," + (-1*math.sqrt(10000-(x^2))) + "," + z
+            msg = "data: move_to:: " + (x-i) + ", " + (-1*math.sqrt(10000-(x^2))) + ", " + z
             print "sending: ", msg
             self.armpub.publish(msg)
 
 		#picking off the paper and finishing
-        msg = "data: move_to:: " + x + "," + y + "," + (z+25)
+        msg = "data: move_to:: " + x + ", " + y + ", " + (z+25)
         print "sending: ", msg
         self.armpub.publish(msg)
 
@@ -81,25 +81,25 @@ class Drawer:
 
 	def Color(self, x, y, z):	
         #getting into position
-        msg = "data: move_to:: " + x + "," + y + "," + (z+25)
+        msg = "data: move_to:: " + x + ", " + y + ", " + (z+25)
         print "sending: ", msg
         self.armpub.publish(msg)
 
         #coloring the circle
-        msg = "data: move_to:: " + x + "," + y + "," + z
+        msg = "data: move_to:: " + x + ", " + y + ", " + z
         print "sending: ", msg
         self.armpub.publish(msg)
 
         for i in range(-100, 100):
-            msg = "data: move_to:: " + (x+i) + "," + (math.sqrt(10000-(x^2))) + "," + z
+            msg = "data: move_to:: " + (x+i) + ", " + (math.sqrt(10000-(x^2))) + ", " + z
             print "sending: ", msg
             self.armpub.publish(msg)
-            msg = "data: move_to:: " + (x+i) + "," + (-1*math.sqrt(10000-(x^2))) + "," + z
+            msg = "data: move_to:: " + (x+i) + ", " + (-1*math.sqrt(10000-(x^2))) + ", " + z
             print "sending: ", msg
             self.armpub.publish(msg)
 
         #picking off the paper and finishing
-        msg = "data: move_to:: " + x + "," + y + "," + (z+25)
+        msg = "data: move_to:: " + x + ", " + y + ", " + (z+25)
         print "sending: ", msg
         self.armpub.publish(msg)
 
