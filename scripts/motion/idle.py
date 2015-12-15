@@ -33,11 +33,18 @@ class IdleBehaviors:
 
     def run(self):
         r = rospy.Rate(10)
+        joints = ["H", "WR", "E", "WA"]
         while not rospy.is_shutdown():
-            if time.time() - self.last_interaction > random.randint(5, 10):
-                print "running random"
-                i = self.routes[random.randint(0, len(self.routes)-1)]
-                msg = "data: run_route:: " + str(i)
+            if time.time() - self.last_interaction > random.randint(3, 7):
+                joint = random.choice(joints)
+                if joint == "H":
+                    msg = "data: rotate_hand:: " + str(random.randint(-900, 900))
+                elif joint == "WR":
+                    msg = "data: rotate_wrist:: " + str(random.randint(-500, 2500))
+                elif joint == "E":
+                    msg = "data: rotate_elbow:: " + str(random.randint(11000, 13000))
+                elif joint == "WA":
+                    msg = "data: rotate_waist:: " + str(random.randint(4000, 6000))
                 self.arm_pub.publish(msg)
             r.sleep()
 
