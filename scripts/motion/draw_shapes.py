@@ -22,7 +22,7 @@ class Drawer:
 		print data
 		if data.data == "square":
 			head = "data: move_to:: "
-			cmds = ["500, 200, 300", "500, 400, 300", "500, 400, 500", "500, 200, 500", "500, 200, 300"]
+			cmds = ["500, 200, 300, 0", "500, 400, 300, 0", "500, 400, 500, 0", "500, 200, 500, 0", "500, 200, 300, 0"]
 			for elem in cmds:
 				self.pub.publish(head + elem)
 				time.sleep(2)

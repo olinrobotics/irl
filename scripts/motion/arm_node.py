@@ -11,7 +11,6 @@ class ArmCommands:
         rospy.init_node('robot_arm', anonymous=True)
         #self.arm.pub_arm = rospy.Publisher('/arm_debug', Twist, queue_size=10)
         rospy.Subscriber('/arm_cmd', String, self.arm_callback, queue_size=10)
-        rospy.Subscriber('/behaviors_cmd', String, self.behavior_callback, queue_size=10)
 
         self.pub = rospy.Publisher('arm_debug', String, queue_size=10)
 
@@ -24,7 +23,7 @@ class ArmCommands:
         self.behaviors = {}
 
         self.create_routes()
-        self.create_behaviors()
+        self.arm.run_route("R_look")
 
     def create_routes(self):
         #Moves in units of thousands
@@ -38,19 +37,6 @@ class ArmCommands:
         self.arm.create_route("R_curious", [[3664, 1774, 3013, 0, 0, 0]])
         self.routes = ["R_look", "R_playful", "R_sleep", "R_wakeup", "R_leaving, R_greet1", "R_curious"]
 
-        with open("../params/routes.txt", "r+") as f:
-            content = f.readlines()
-            for route in self.routes:
-                if route not in content:
-                    f.write(route + "\n")
-
-    def run_routes(self):
-        self.arm.continuous()
-        for elem in self.routes:
-            print elem
-            self.arm.run_route(elem)
-        print "test_done"
-
     def arm_callback(self, cmdin):
         self.arm.joint()
         cmd = str(cmdin).replace("data: ", "")
@@ -60,8 +46,6 @@ class ArmCommands:
         print cmd
         if cmd == "de_energize":
             self.arm.de_energize()
-        elif cmd == "run_routes":
-            self.run_routes()
         elif cmd == "energize":
             self.arm.energize()
         elif cmd == "where":
@@ -119,8 +103,8 @@ class ArmCommands:
             r.sleep()
 
 if __name__ == "__main__":
-    object_tracker = ArmCommands()
-    object_tracker.run()
+    arm_eng = ArmCommands()
+    arm_eng.run()
     rospy.spin()
 
 
