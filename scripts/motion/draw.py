@@ -15,6 +15,8 @@ class Drawer:
 
 	def DrawSquare(self, x, y, z):
 		#getting into position
+        center = [x, y, z]
+
 		msg = "data: move_to:: " + x + "," + y + "," + (z+25)
         print "sending: ", msg
         self.armpub.publish(msg)
@@ -45,7 +47,7 @@ class Drawer:
         msg = "data: move_to:: " + x + "," + y + "," + (z+25)
         print "sending: ", msg
         self.armpub.publish(msg)
-	
+
 
 	def DrawCircle(self, x, y, z, r):
 		#getting into position
@@ -55,7 +57,7 @@ class Drawer:
 		#picking off the paper and finishing
 
 
-	def Color(self, x, y, z, r):	
+	def Color(self, x, y, z, r):
 		#getting into position
 
 		#running algorithm that does a toddler coloring imitation
