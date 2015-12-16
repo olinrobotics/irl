@@ -16,7 +16,13 @@ class Drawer:
 
 	def DrawSquare(self, x, y, z):
 		#getting into position
+<<<<<<< HEAD
 		msg = "data: move_to:: " + x + ", " + y + ", " + (z+25)
+=======
+        center = [x, y, z]
+
+		msg = "data: move_to:: " + x + "," + y + "," + (z+25)
+>>>>>>> 05b3f44df6b6f5f48194bfd607edbfa9dd237e6f
         print "sending: ", msg
         self.armpub.publish(msg)
 
@@ -46,7 +52,7 @@ class Drawer:
         msg = "data: move_to:: " + x + ", " + y + ", " + (z+25)
         print "sending: ", msg
         self.armpub.publish(msg)
-	
+
 
 
 
@@ -77,6 +83,11 @@ class Drawer:
         self.armpub.publish(msg)
 
 
+<<<<<<< HEAD
+=======
+	def Color(self, x, y, z, r):
+		#getting into position
+>>>>>>> 05b3f44df6b6f5f48194bfd607edbfa9dd237e6f
 
 
 	def Color(self, x, y, z):	
