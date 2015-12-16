@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import rospy
 import math
 import st
@@ -9,6 +10,7 @@ import time
 class Drawer:
 	def __init__(self):
 		rospy.init.node('drawing stuff', anonymous = True)
+        self.pub.publish("data: set_speed:: 3000")
 		self.behaviorpub = rospy.Publisher('behaviors_cmd', String, queue_size=10)
 		self.armpub = rospy.Publisher('arm_cmd', String, queue_size=10)
 
@@ -16,40 +18,44 @@ class Drawer:
 
 	def DrawSquare(self, x, y, z):
 		#getting into position
-<<<<<<< HEAD
-		msg = "data: move_to:: " + x + ", " + y + ", " + (z+25)
-=======
-        center = [x, y, z]
 
-		msg = "data: move_to:: " + x + "," + y + "," + (z+25)
->>>>>>> 05b3f44df6b6f5f48194bfd607edbfa9dd237e6f
+
+		msg = "data: move_to:: " + x + "," + y + "," + (z+250)
+        print "sending: ", msg
+        self.armpub.publish(msg)
+
+        msg = "data: rotate_hand:: " + 200
+        print "sending: ", msg
+        self.armpub.publish(msg)
+
+        msg = "data: rotate_wrist:: " + 1000
         print "sending: ", msg
         self.armpub.publish(msg)
 
         #making the square
-        msg = "data: move_to:: " + (x+25) + ", " + (y+25) + ", " + z
+        msg = "data: move_to:: " + (x+250) + ", " + (y+250) + ", " + z
         print "sending: ", msg
         self.armpub.publish(msg)
 
-        msg = "data: move_to:: " + (x-25) + ", " + (y+25) + ", " + z
+        msg = "data: move_to:: " + (x-250) + ", " + (y+250) + ", " + z
         print "sending: ", msg
         self.armpub.publish(msg)
 
-        msg = "data: move_to:: " + (x-25) + ", " + (y-25) + ", " + z
+        msg = "data: move_to:: " + (x-250) + ", " + (y-250) + ", " + z
         print "sending: ", msg
         self.armpub.publish(msg)
 
-        msg = "data: move_to:: " + (x+25) + ", " + (y-25) + ", " + z
+        msg = "data: move_to:: " + (x+250) + ", " + (y-250) + ", " + z
         print "sending: ", msg
         self.armpub.publish(msg)
 
-        msg = "data: move_to:: " + (x+25) + ", " + (y+25) + ", " + z
+        msg = "data: move_to:: " + (x+250) + ", " + (y+250) + ", " + z
         print "sending: ", msg
         self.armpub.publish(msg)
 
 
         #picking up off the paper and finishing
-        msg = "data: move_to:: " + x + ", " + y + ", " + (z+25)
+        msg = "data: move_to:: " + x + ", " + y + ", " + (z+250)
         print "sending: ", msg
         self.armpub.publish(msg)
 
@@ -58,7 +64,15 @@ class Drawer:
 
 	def DrawCircle(self, x, y, z):
 		#getting into position
-        msg = "data: move_to:: " + x + ", " + y + ", " + (z+25)
+        msg = "data: move_to:: " + x + ", " + y + ", " + (z+250)
+        print "sending: ", msg
+        self.armpub.publish(msg)
+
+        msg = "data: rotate_hand:: " + 200
+        print "sending: ", msg
+        self.armpub.publish(msg)
+
+        msg = "data: rotate_wrist:: " + 1000
         print "sending: ", msg
         self.armpub.publish(msg)
 
@@ -67,32 +81,35 @@ class Drawer:
         print "sending: ", msg
         self.armpub.publish(msg)
 
-        for i in range(-100, 100):
-            msg = "data: move_to:: " + (x+i) + ", " + (math.sqrt(10000-(x^2))) + ", " + z
+        for i in range(-1000, 1000, 10):
+            msg = "data: move_to:: " + (x+i) + ", " + (math.sqrt(1000000-(x^2))) + ", " + z
             print "sending: ", msg
             self.armpub.publish(msg)
         
-        for j in range(-100, 100):
-            msg = "data: move_to:: " + (x-i) + ", " + (-1*math.sqrt(10000-(x^2))) + ", " + z
+        for j in range(-1000, 1000, 10):
+            msg = "data: move_to:: " + (x-i) + ", " + (-1*math.sqrt(1000000-(x^2))) + ", " + z
             print "sending: ", msg
             self.armpub.publish(msg)
 
 		#picking off the paper and finishing
-        msg = "data: move_to:: " + x + ", " + y + ", " + (z+25)
+        msg = "data: move_to:: " + x + ", " + y + ", " + (z+250)
         print "sending: ", msg
         self.armpub.publish(msg)
 
 
-<<<<<<< HEAD
-=======
-	def Color(self, x, y, z, r):
-		#getting into position
->>>>>>> 05b3f44df6b6f5f48194bfd607edbfa9dd237e6f
 
 
 	def Color(self, x, y, z):	
         #getting into position
-        msg = "data: move_to:: " + x + ", " + y + ", " + (z+25)
+        msg = "data: move_to:: " + x + ", " + y + ", " + (z+250)
+        print "sending: ", msg
+        self.armpub.publish(msg)
+
+        msg = "data: rotate_hand:: " + 200
+        print "sending: ", msg
+        self.armpub.publish(msg)
+
+        msg = "data: rotate_wrist:: " + 1000
         print "sending: ", msg
         self.armpub.publish(msg)
 
@@ -101,16 +118,16 @@ class Drawer:
         print "sending: ", msg
         self.armpub.publish(msg)
 
-        for i in range(-100, 100):
-            msg = "data: move_to:: " + (x+i) + ", " + (math.sqrt(10000-(x^2))) + ", " + z
+        for i in range(-1000, 1000, 10):
+            msg = "data: move_to:: " + (x+i) + ", " + (math.sqrt(1000000-(x^2))) + ", " + z
             print "sending: ", msg
             self.armpub.publish(msg)
-            msg = "data: move_to:: " + (x+i) + ", " + (-1*math.sqrt(10000-(x^2))) + ", " + z
+            msg = "data: move_to:: " + (x+i) + ", " + (-1*math.sqrt(1000000-(x^2))) + ", " + z
             print "sending: ", msg
             self.armpub.publish(msg)
 
         #picking off the paper and finishing
-        msg = "data: move_to:: " + x + ", " + y + ", " + (z+25)
+        msg = "data: move_to:: " + x + ", " + y + ", " + (z+250)
         print "sending: ", msg
         self.armpub.publish(msg)
 
@@ -126,7 +143,7 @@ class Drawer:
 if __name__ == "__main__":
 	draw = Drawer()
 	draw.run()
-	draw.DrawSquare(x, y, z)
-	draw.DrawCircle(x, y, z)
-	draw.Color(x, y, z)
+	draw.DrawSquare(0, 3500, -670)
+	#draw.DrawCircle(x, y, z)
+	#draw.Color(x, y, z)
 	rospy.spin()
