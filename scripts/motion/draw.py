@@ -20,10 +20,10 @@ class Drawer:
         time.sleep(3)
         #getting into position
 
-        msg = "data: move_to:: " + str(x) + "," + str(y) + "," + str(z+250) + ", " + str(0)
+        msg = "data: move_to:: " + str(x) + ", " + str(y) + ", " + str(z+250)+ ", " + str(0)
         print "sending: ", msg
         self.armpub.publish(msg)
-        time.sleep(2)
+        time.sleep(1)
 
         msg = "data: rotate_hand:: " + str(200)
         print "sending: ", msg
