@@ -16,14 +16,14 @@ class Drawer:
 
 
 
-    def DrawSquare(self, x, y, z):
+    def Draw(self, command, x, y, z):
         time.sleep(3)
         #getting into position
 
         msg = "data: move_to:: " + str(x) + "," + str(y) + "," + str(z+250) + ", " + str(0)
         print "sending: ", msg
         self.armpub.publish(msg)
-        time.sleep(1)
+        time.sleep(2)
 
         msg = "data: rotate_hand:: " + str(200)
         print "sending: ", msg
@@ -35,127 +35,79 @@ class Drawer:
         self.armpub.publish(msg)
         time.sleep(1)
 
-        #making the square
-        msg = "data: move_to:: " + str(x+250) + ", " + str(y+250) + ", " + str(z)+ ", " + str(0)
-        print "sending: ", msg
-        self.armpub.publish(msg)
-        time.sleep(1)
 
-        msg = "data: move_to:: " + str(x-250) + ", " + str(y+250) + ", " + str(z)+ ", " + str(0)
-        print "sending: ", msg
-        self.armpub.publish(msg)
-        time.sleep(1)
+        if command == "Square":
 
-        msg = "data: move_to:: " + str(x-250) + ", " + str(y-250) + ", " + str(z)+ ", " + str(0)
-        print "sending: ", msg
-        self.armpub.publish(msg)
-        time.sleep(1)
+            #making the square
+            i = 0;
+            j = 0;
 
-        msg = "data: move_to:: " + str(x+250) + ", " + str(y-250) + ", " + str(z)+ ", " + str(0)
-        print "sending: ", msg
-        self.armpub.publish(msg)
-        time.sleep(1)
+            while i<3:
+                if i%2 == 0 and j%2 == 0:
+                    msg = "data: move_to:: " + str(x+250) + ", " + str(y+250) + ", " + str(z) + ", " +str(0)
+                    i+=1
+                elif i%2 == 1 and j%2 == 0:
+                    msg = "data: move_to:: " + str(x-250) + ", " + str(y+250) + ", " + str(z) + ", " +str(0) 
+                    j+=1
+                elif i%2 == 1 and j%2 == 1:
+                    msg = "data: move_to:: " + str(x-250) + ", " + str(y-250) + ", " + str(z) + ", " +str(0)  
+                    i+=1   
+                else:
+                    msg = "data: move_to:: " + str(x+250) + ", " + str(y-250) + ", " + str(z) + ", " +str(0)     
+                    j+=1
+                
+                print "sending: ", msg
+                self.armpub.publish(msg)
+                time.sleep(1)    
 
-        msg = "data: move_to:: " + str(x+250) + ", " + str(y+250) + ", " + str(z)+ ", " + str(0)
-        print "sending: ", msg
-        self.armpub.publish(msg)
-        time.sleep(1)
+
+        elif command == "Circle":
+
+            #drawing the circle
+            msg = "data: move_to:: " + str(x-200) + ", " + str(y) + ", " + str(z+250)+ ", " + str(0)
+            print "sending: ", msg
+            self.armpub.publish(msg)
+            time.sleep(1)
+
+            for i in range(-200, 210, 10):
+                msg = "data: move_to:: " + str(x+i) + ", " + str(int(math.sqrt(40000-((x+i)**2)))+3500) + ", " + str(z)+ ", " + str(0)
+                print "sending: ", msg
+                self.armpub.publish(msg)
+                time.sleep(.5)
+
+            for j in range(-200, 210, 10):
+                msg = "data: move_to:: " + str(x-j) + ", " + str(int(-1*math.sqrt(40000-((x-j)**2)))+3500) + ", " + str(z)+ ", " + str(0)
+                print "sending: ", msg
+                self.armpub.publish(msg)
+                time.sleep(.5)
+
+            #coloring the circle
+            msg = "data: move_to:: " + str(x-200) + ", " + str(y) + ", " + str(z+250)+ ", " + str(0)
+            print "sending: ", msg
+            self.armpub.publish(msg)
+            time.sleep(1)
+
+            for i in range(-200, 200, 10):
+                msg = "data: move_to:: " + str(x+i) + ", " + str(int(math.sqrt(40000-((x+i)**2)))+3500) + ", " + str(z)+ ", " + str(0)
+                print "sending: ", msg
+                self.armpub.publish(msg)
+                time.sleep(.5)
+                msg = "data: move_to:: " + str(x+i) + ", " + str(int(-1*math.sqrt(40000-((x+i)**2)))+3500) + ", " + str(z)+ ", " + str(0)
+                print "sending: ", msg
+                self.armpub.publish(msg)
+                time.sleep(.5)
+
+
+        else:
+            print "Not a valid command. Try Again."    
+
 
 
         #picking up off the paper and finishing
-        msg = "data: move_to:: " + str(x) + ", " + str(y) + ", " + str(z+250)+ ", " + str(0)
+        msg = "data: move_to:: " + str(x) + ", " + str(y) + ", " + str(z+250) + ", " + str(0)
         print "sending: ", msg
         self.armpub.publish(msg)
         time.sleep(1)
-
-
-
-
-    def DrawCircle(self, x, y, z):
-        time.sleep(3)
-        #getting into position
-        msg = "data: move_to:: " + str(x) + ", " + str(y) + ", " + str(z+250)+ ", " + str(0)
-        print "sending: ", msg
-        self.armpub.publish(msg)
-        time.sleep(1)
-
-        msg = "data: rotate_hand:: " + str(200)
-        print "sending: ", msg
-        self.armpub.publish(msg)
-        time.sleep(1)
-
-        msg = "data: rotate_wrist:: " + str(1000)
-        print "sending: ", msg
-        self.armpub.publish(msg)
-        time.sleep(1)
-
-        #drawing the circle
-        msg = "data: move_to:: " + str(x) + ", " + str(y) + ", " + str(z)+ ", " + str(0)
-        print "sending: ", msg
-        self.armpub.publish(msg)
-        time.sleep(1)
-
-        for i in range(-200, 200, 10):
-            msg = "data: move_to:: " + str(x+i) + ", " + str(int(math.sqrt(40000-((x+i)**2)))) + ", " + str(z)+ ", " + str(0)
-            print "sending: ", msg
-            self.armpub.publish(msg)
-            time.sleep(1)
-
-        for j in range(-200, 200, 10):
-            msg = "data: move_to:: " + str(x-i) + ", " + str(int(-1*math.sqrt(40000-((x-i)**2)))) + ", " + str(z)+ ", " + str(0)
-            print "sending: ", msg
-            self.armpub.publish(msg)
-            time.sleep(1)
-
-        #picking off the paper and finishing
-        msg = "data: move_to:: " + str(x) + ", " + str(y) + ", " + str(z+250)+ ", " + str(0)
-        print "sending: ", msg
-        self.armpub.publish(msg)
-        time.sleep(1)
-
-
-
-
-    def Color(self, x, y, z):
-        time.sleep(3)	
-        #getting into position
-        msg = "data: move_to:: " + str(x) + ", " + str(y) + ", " + str(z+250)+ ", " + str(0)
-        print "sending: ", msg
-        self.armpub.publish(msg)
-        time.sleep(1)
-
-        msg = "data: rotate_hand:: " + str(2000)
-        print "sending: ", msg
-        self.armpub.publish(msg)
-        time.sleep(1)
-
-        msg = "data: rotate_wrist:: " + str(1000)
-        print "sending: ", msg
-        self.armpub.publish(msg)
-        time.sleep(1)
-
-        #coloring the circle
-        msg = "data: move_to:: " + str(x) + ", " + str(y) + ", " + str(z)+ ", " + str(0)
-        print "sending: ", msg
-        self.armpub.publish(msg)
-        time.sleep(1)
-
-        for i in range(-1000, 1000, 10):
-            msg = "data: move_to:: " + str(x+i) + ", " + str(int(math.sqrt(1000000-((x+i)**2)))) + ", " + str(z)+ ", " + str(0)
-            print "sending: ", msg
-            self.armpub.publish(msg)
-            time.sleep(1)
-            msg = "data: move_to:: " + str(x+i) + ", " + str(int(-1*math.sqrt(1000000-((x+i)**2)))) + ", " + str(z)+ ", " + str(0)
-            print "sending: ", msg
-            self.armpub.publish(msg)
-            time.sleep(1)
-
-        #picking off the paper and finishing
-        msg = "data: move_to:: " + str(x) + ", " + str(y) + ", " + str(z+250)+ ", " + str(0)
-        print "sending: ", msg
-        self.armpub.publish(msg)
-        time.sleep(1)
-
 
 
     def run(self):
@@ -168,7 +120,6 @@ class Drawer:
 if __name__ == "__main__":
     draw = Drawer()
     #draw.run()
-    #draw.DrawSquare(0, 3500, -670)
-    draw.DrawCircle(0, 3500, -670)
-    #draw.Color(0, 3500, -670)
+    draw.Draw("Square", 0, 3500, -670)
+    draw.Draw("Circle", 0, 3500, -670)
     rospy.spin()
