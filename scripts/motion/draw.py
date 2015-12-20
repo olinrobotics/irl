@@ -42,19 +42,20 @@ class Drawer:
         time.sleep(1)
 
     def draw_square(self, x, y, z):
-        i = 0;
+        i = 0
+        width = 200
 
         for i in range(5):
             if i == 0:
-                msg = "data: move_to:: " + str(x+250) + ", " + str(y+250) + ", " + str(z) + ", " +str(0)
+                msg = "data: move_to:: " + str(x+width) + ", " + str(y+width) + ", " + str(z) + ", " +str(0)
             elif i == 1:
-                msg = "data: move_to:: " + str(x-250) + ", " + str(y+250) + ", " + str(z) + ", " +str(0)
+                msg = "data: move_to:: " + str(x-width) + ", " + str(y+width) + ", " + str(z) + ", " +str(0)
             elif i == 2:
-                msg = "data: move_to:: " + str(x-250) + ", " + str(y-250) + ", " + str(z) + ", " +str(0)
+                msg = "data: move_to:: " + str(x-width) + ", " + str(y-width) + ", " + str(z) + ", " +str(0)
             elif i == 3:
-                msg = "data: move_to:: " + str(x+250) + ", " + str(y-250) + ", " + str(z) + ", " +str(0)
+                msg = "data: move_to:: " + str(x+width) + ", " + str(y-width) + ", " + str(z) + ", " +str(0)
             elif i == 4:
-                msg = "data: move_to:: " + str(x+250) + ", " + str(y+250) + ", " + str(z) + ", " +str(0)
+                msg = "data: move_to:: " + str(x+width) + ", " + str(y+width) + ", " + str(z) + ", " +str(0)
 
             print "sending: ", msg
             self.arm_pub.publish(msg)
