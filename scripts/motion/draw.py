@@ -61,72 +61,25 @@ class Drawer:
             time.sleep(1)
 
     def draw_circle(self, x, y, z):
-        pass
+        #where x, y is the center of the circle, and r is predefined
+        r = 200
+        h = x
+        k = y
 
-    # def draw_callback(self, command, x, y, z):
-    #     time.sleep(3)
-    #     #getting into position
-
-    #     msg = "data: move_to:: " + str(x) + ", " + str(y) + ", " + str(z+250)+ ", " + str(0)
-    #     print "sending: ", msg
-    #     self.armpub.publish(msg)
-    #     time.sleep(1)
-
-    #     msg = "data: rotate_hand:: " + str(200)
-    #     print "sending: ", msg
-    #     self.armpub.publish(msg)
-    #     time.sleep(1)
-
-    #     msg = "data: rotate_wrist:: " + str(1000)
-    #     print "sending: ", msg
-    #     self.armpub.publish(msg)
-    #     time.sleep(1)
+        for xi in range(x-r, x+r, 50):
+            yi = int(math.sqrt(r**2 - (xi-h)**2) + k)
+            msg = "data: move_to:: " + str(xi) + ", " + str(yi) + ", " + str(z)+ ", " + str(0)
+            print "publishing: ", msg
+            self.arm_pub.publish(msg)
+            time.sleep(.5)
 
 
-    #     if command == "Square":
-
-    #         #making the square
-    #         i = 0;
-    #         j = 0;
-
-    #         while i<3:
-    #             if i%2 == 0 and j%2 == 0:
-    #                 msg = "data: move_to:: " + str(x+250) + ", " + str(y+250) + ", " + str(z) + ", " +str(0)
-    #                 i+=1
-    #             elif i%2 == 1 and j%2 == 0:
-    #                 msg = "data: move_to:: " + str(x-250) + ", " + str(y+250) + ", " + str(z) + ", " +str(0)
-    #                 j+=1
-    #             elif i%2 == 1 and j%2 == 1:
-    #                 msg = "data: move_to:: " + str(x-250) + ", " + str(y-250) + ", " + str(z) + ", " +str(0)
-    #                 i+=1
-    #             else:
-    #                 msg = "data: move_to:: " + str(x+250) + ", " + str(y-250) + ", " + str(z) + ", " +str(0)
-    #                 j+=1
-
-    #             print "sending: ", msg
-    #             self.armpub.publish(msg)
-    #             time.sleep(1)
-
-
-    #     elif command == "Circle":
-
-    #         #drawing the circle
-    #         msg = "data: move_to:: " + str(x-200) + ", " + str(y) + ", " + str(z+250)+ ", " + str(0)
-    #         print "sending: ", msg
-    #         self.armpub.publish(msg)
-    #         time.sleep(1)
-
-    #         for i in range(-200, 210, 10):
-    #             msg = "data: move_to:: " + str(x+i) + ", " + str(int(math.sqrt(40000-((x+i)**2)))+3500) + ", " + str(z)+ ", " + str(0)
-    #             print "sending: ", msg
-    #             self.armpub.publish(msg)
-    #             time.sleep(.5)
-
-    #         for j in range(-200, 210, 10):
-    #             msg = "data: move_to:: " + str(x-j) + ", " + str(int(-1*math.sqrt(40000-((x-j)**2)))+3500) + ", " + str(z)+ ", " + str(0)
-    #             print "sending: ", msg
-    #             self.armpub.publish(msg)
-    #             time.sleep(.5)
+        for xi in range(x+r, x-r-50, -50):
+            yi = int(-1*(math.sqrt(r**2 - (xi-h)**2)) + k)
+            msg = "data: move_to:: " + str(xi) + ", " + str(yi) + ", " + str(z)+ ", " + str(0)
+            print "publishing: ", msg
+            self.arm_pub.publish(msg)
+            time.sleep(.5)
 
     #         #coloring the circle
     #         msg = "data: move_to:: " + str(x-200) + ", " + str(y) + ", " + str(z+250)+ ", " + str(0)
@@ -144,9 +97,6 @@ class Drawer:
     #             self.armpub.publish(msg)
     #             time.sleep(.5)
 
-    #     else:
-    #         print "Not a valid command. Try Again."
-
 
 
 
@@ -161,5 +111,3 @@ class Drawer:
 if __name__ == "__main__":
     draw = Drawer()
     draw.run()
-    #draw.Draw("Square", 0, 3500, -670)
-    #draw.Draw("Circle", 0, 3500, -670)

@@ -14,9 +14,9 @@ def run():
     while not rospy.is_shutdown():
         time.sleep(1)
         msg = Edwin_Shape()
-        msg.shape = "square"
-        msg.x = 300
-        msg.y = 3700
+        msg.shape = "circle"
+        msg.x = 1000
+        msg.y = 2500
         msg.z = -670
         pub.publish(msg)
         time.sleep(10)
