@@ -18,16 +18,16 @@ class Game:
 	 self.sides = [1,3,5,7]
 	 self.middle = [4]
 
-	 def is_winner(self):
+	 def is_winner(board):
 	 	board_sums = [0, 0, 0, 0, 0, 0, 0, 0] #These are the 8 different lines.
-	 	board_sums[0] = self.board[0] + self.board[1] + self.board[2] #Top Horizontal Line
-	 	board_sums[1] = self.board[3] + self.board[4] + self.board[5] #Middle Horizontal Line
-	 	board_sums[2] = self.board[6] + self.board[7] + self.board[8] #Bottom Horizontal Line
-	 	board_sums[3] = self.board[0] + self.board[3] + self.board[6] #Left Vertical Line
-	 	board_sums[4] = self.board[1] + self.board[4] + self.board[7] #Middle Vertical Line
-	 	board_sums[5] = self.board[2] + self.board[5] + self.board[8] #Right Vertical Line
-	 	board_sums[6] = self.board[0] + self.board[4] + self.board[7] #LR Diagonal Line
-	 	board_sums[7] = self.board[2] + self.board[4] + self.board[6] #RL Diagonal Line
+	 	board_sums[0] = board[0] + board[1] + board[2] #Top Horizontal Line
+	 	board_sums[1] = board[3] + board[4] + board[5] #Middle Horizontal Line
+	 	board_sums[2] = board[6] + board[7] + board[8] #Bottom Horizontal Line
+	 	board_sums[3] = board[0] + board[3] + board[6] #Left Vertical Line
+	 	board_sums[4] = board[1] + board[4] + board[7] #Middle Vertical Line
+	 	board_sums[5] = board[2] + board[5] + board[8] #Right Vertical Line
+	 	board_sums[6] = board[0] + board[4] + board[7] #LR Diagonal Line
+	 	board_sums[7] = board[2] + board[4] + board[6] #RL Diagonal Line
 	 	#There are 4 cases - NoWin, EdWin, Player Win and Tie, Tie is accounted for
 	 	#in a piece of code further down.
 	 	for x in range(0, len(board_sums)):
@@ -44,7 +44,7 @@ class Game:
 	 	board_copy = copy.deepcopy(self.board)
 	 		if is_free(board_copy, i):
 	 		board_copy[i] = 10
-	 			if self.is_winner(board_copy) == 1:
+	 			if self.is_winner(board_copy) == True:
 	 				return i
 
 		 #Checks if the winner can win the next turn
@@ -52,7 +52,7 @@ class Game:
 		 	board_copy = copy.deepcopy(self.board)
 		 	if is_free(board_copy, i):
 		 		board_copy[i] = 1:
-		 		if self.is_winner(board_copy) == 2:
+		 		if self.is_winner(board_copy) == True:
 		 			return i
 
 		 #Otherwise, prioritizes grabbing corners.
