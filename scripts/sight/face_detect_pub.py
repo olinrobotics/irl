@@ -38,7 +38,7 @@ class FaceFinder:
 
 
     def run(self):
-        self.cap = cv2.VideoCapture(0)
+        self.cap = cv2.VideoCapture(1)
         r = rospy.Rate(10)
         while not rospy.is_shutdown():
             self.find_smile()

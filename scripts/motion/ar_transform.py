@@ -91,7 +91,7 @@ def callback(data):
 
 
 if __name__ == '__main__':
-    metric = False #change this toggle to True to have output in cm, default is in ft
+    metric = True #change this toggle to True to have output in cm, default is in ft
 
     rospy.init_node('alvar_listener')
 
