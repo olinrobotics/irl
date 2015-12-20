@@ -15,10 +15,11 @@ def run():
         time.sleep(1)
         msg = Edwin_Shape()
         msg.shape = "square"
-        msg.x = 1
-        msg.y = 2
-        msg.z = 3
+        msg.x = 300
+        msg.y = 3700
+        msg.z = -670
         pub.publish(msg)
+        time.sleep(10)
 
 if __name__ == '__main__':
     run()

@@ -19,13 +19,13 @@ class Drawer:
 
     def draw_callback(self, data):
         #getting into position
-        motions = ["data: move_to:: " + str(x) + ", " + str(y) + ", " + str(z+250)+ ", " + str(0),
+        motions = ["data: move_to:: " + str(data.x) + ", " + str(data.y) + ", " + str(data.z+250)+ ", " + str(0),
                     "data: rotate_hand:: " + str(200),
                     "data: rotate_wrist:: " + str(1000)]
 
         for motion in motions:
             print "sending: ", motion
-            self.armpub.publish(motion)
+            self.arm_pub.publish(motion)
             time.sleep(1)
 
         if data.shape == "square":
@@ -36,32 +36,28 @@ class Drawer:
             print "ERROR: I can't draw that."
 
         #pick marker off paper
-        msg = "data: move_to:: " + str(x) + ", " + str(y) + ", " + str(z+250) + ", " + str(0)
+        msg = "data: move_to:: " + str(data.x) + ", " + str(data.y) + ", " + str(data.z+250) + ", " + str(0)
         print "sending: ", msg
-        self.armpub.publish(msg)
+        self.arm_pub.publish(msg)
         time.sleep(1)
 
     def draw_square(self, x, y, z):
-        #making the square
         i = 0;
-        j = 0;
 
-        while i<3:
-            if i%2 == 0 and j%2 == 0:
+        for i in range(5):
+            if i == 0:
                 msg = "data: move_to:: " + str(x+250) + ", " + str(y+250) + ", " + str(z) + ", " +str(0)
-                i+=1
-            elif i%2 == 1 and j%2 == 0:
+            elif i == 1:
                 msg = "data: move_to:: " + str(x-250) + ", " + str(y+250) + ", " + str(z) + ", " +str(0)
-                j+=1
-            elif i%2 == 1 and j%2 == 1:
+            elif i == 2:
                 msg = "data: move_to:: " + str(x-250) + ", " + str(y-250) + ", " + str(z) + ", " +str(0)
-                i+=1
-            else:
+            elif i == 3:
                 msg = "data: move_to:: " + str(x+250) + ", " + str(y-250) + ", " + str(z) + ", " +str(0)
-                j+=1
+            elif i == 4:
+                msg = "data: move_to:: " + str(x+250) + ", " + str(y+250) + ", " + str(z) + ", " +str(0)
 
             print "sending: ", msg
-            self.armpub.publish(msg)
+            self.arm_pub.publish(msg)
             time.sleep(1)
 
     def draw_circle(self, x, y, z):
