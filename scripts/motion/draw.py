@@ -99,15 +99,11 @@ class Drawer:
     #             time.sleep(.5)
 
 
-
-
     def run(self):
         print "running"
         r = rospy.Rate(10)
         while not rospy.is_shutdown():
             r.sleep()
-
-
 
 if __name__ == "__main__":
     draw = Drawer()
