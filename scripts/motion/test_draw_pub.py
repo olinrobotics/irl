@@ -14,21 +14,21 @@ def run():
     while not rospy.is_shutdown():
         time.sleep(1)
         msg = Edwin_Shape()
-        msg.shape = "square"
-        msg.x = 1500
-        msg.y = 3500
+        msg.shape = "board"
+        msg.x = 400
+        msg.y = 3000
         #note that Z should be a function of y.
-        msg.z = -570 - ((msg.y - 2500)/10)
+        msg.z = -600 - ((msg.y - 2500)/10)
         pub.publish(msg)
         time.sleep(10)
 
-        msg.shape = "circle"
-        msg.x = 1500
-        msg.y = 3500
-        #note that Z should be a function of y.
-        msg.z = -570 - ((msg.y - 2500)/10)
-        pub.publish(msg)
-        time.sleep(10)
+        # msg.shape = "circle"
+        # msg.x = 1500
+        # msg.y = 3500
+        # #note that Z should be a function of y.
+        # msg.z = -570 - ((msg.y - 2500)/10)
+        # pub.publish(msg)
+        # time.sleep(10)
 
 if __name__ == '__main__':
     run()

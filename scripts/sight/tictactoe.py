@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import rospy
 from std_msgs.msg import String
+from edwin.msg import *
 import copy
 import cv2
 import cv2.cv as cv
@@ -11,7 +12,8 @@ import time
 class Game:
 	def __init__(self):
 		rospy.init_node('ttt_gamemaster', anonymous = True)
-#		self.pub = rospy.Publisher('draw_cmd', String, queue_size=10)
+		self.draw_pub = rospy.Publisher('draw_cmd', Edwin_Shape, queue_size=10)
+		self.arm_pub = rospy.Publisher('arm_cmd', String, queue_size=10)
 
 		#board represented by 9 element list
 		#A blank space is represented by 0, an "O" is 1, and "X" is 10, we start with blank board
@@ -94,7 +96,6 @@ class Game:
 			board_copy = copy.deepcopy(self.board)
 			if self.is_free(board_copy, self.sides[i]):
 				return self.sides[i]
-
 
 	def edwin_move(self, index):
 		#edwin moves to desired location and draws
