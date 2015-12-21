@@ -69,7 +69,8 @@ class Game:
 							(0, self.image_h), (2*self.image_w, self.image_h), (2*self.image_w, self.image_h),
 							(0, 2*self.image_h), (self.image_w, 2*self.image_h),(2*self.image_w, 2*self.image_h)]
 
-
+		self.y_pos = 2500
+		self.ok = "n"
 
 	# def img_callback(self, data):
 	# 	try:
@@ -82,7 +83,7 @@ class Game:
 		self.board_msg.x = self.b_x
 		self.board_msg.y = self.b_y
 		#note that Z should be a function of y.
-		self.board_msg.z = -630 - ((self.board_msg.y - 2500)/10)
+		self.board_msg.z = -620 - ((self.board_msg.y - 2500)/10)
 		self.draw_pub.publish(self.board_msg)
 
 		time.sleep(25)
@@ -166,7 +167,7 @@ class Game:
 		self.draw_msg.x = center[0]
 		self.draw_msg.y = center[1]
 		#note that Z should be a function of y.
-		self.draw_msg.z = -580 - ((self.draw_msg.y - 2500)/9)
+		self.draw_msg.z = -620 - ((self.draw_msg.y - 2500)/10)
 		self.draw_pub.publish(self.draw_msg)
 
 	 	self.board[index] = 10
@@ -182,12 +183,35 @@ class Game:
 				if val_in == 1:
 					return
 
+	def calibrate(self):
+		time.sleep(5)
+		running = True
+
+		while "y" not in self.ok:
+			self.y_pos = str(raw_input("Y position: "))
+			motions = ["data: rotate_hand:: 50",
+				"data: rotate_wrist:: -500",
+				"data: move_to:: 200, "+self.y_pos+", 500, 0"]
+
+			for motion in motions:
+				print "pub: ", motion
+				self.arm_pub.publish(motion)
+				time.sleep(2)
+
+			ret, self.frame = self.cap.read()
+			for rect in self.image_rectangles:
+				cv2.rectangle(self.frame, rect, (rect[0]+self.image_w, rect[1]+self.image_h), (0,0,255), 2)
+
+			cv2.imshow("camera", self.frame)
+			c = cv2.waitKey(1)
+			self.ok = str(raw_input("OK?"))
+
 
 	def field_scan(self):
 		time.sleep(5)
 		motions = ["data: rotate_hand:: 50",
-					"data: rotate_wrist:: -500",
-					"data: move_to:: 200, 2300, 500, 0"]
+					"data: rotate_wrist:: -550",
+					"data: move_to:: 200, "+self.y_pos+", 500, 0"]
 
 		for motion in motions:
 			print "pub: ", motion
@@ -241,14 +265,18 @@ class Game:
 	 	running = True
 	 	turn = random.randint(0,1)
 	 	self.draw_the_board()
+	 	#self.calibrate()
+	 	self.y_pos = "2250"
 
 	 	if turn == 0:
 	 		print "Your turn first!"
-	 		self.behav_pub.publish("nudge")
 
 	 	while running:
+	 		# self.field_scan()
+	 		# print self.board
 	 		if turn == 0: #Player turn.
-	 			self.behav_pub.publish("nudge")
+	 			#self.behav_pub.publish("nudge")
+	 			#time.sleep(10)
 	 			self.field_scan()
 	 			turn = 1
 	 			if self.is_winner(self.board) == 2: #Checks if the player made a winning move.

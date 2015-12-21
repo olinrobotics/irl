@@ -42,6 +42,7 @@ class ArmBehaviors:
                     elif joint == "WA":
                         msg = "data: rotate_waist:: " + str(pos)
                 print "Publishing: ", msg
+                time.sleep(1)
                 self.pub.publish(msg)
 
     def create_behaviors(self):
@@ -49,6 +50,9 @@ class ArmBehaviors:
         self.behaviors["curiosity"] =  "R_curious, H: 0, WR: 800, H: 100, WR: 2000"
         self.behaviors["greet"] = "R_greet1, WR:1500, H: 100, H: 0, H: 300, H: 100"
         self.behaviors["sleep"] = "R_sleep, H: 700, R: 1000"
+        self.behaviors["nudge"] = "WA: -1000, E: 12000, E: 13000, E: 12000, WA: 1000"
+        self.behaviors["sad"] = "WA: -1000, H: 1000, WR: -250, WR: 250, WR: -250, H:50, WA: 1000"
+        self.behaviors["gloat"] = "E: 12000, WA: -4000, H: 500, H: 0, E: 14000, WA: 1000"
 
     def run(self):
         r = rospy.Rate(10)
