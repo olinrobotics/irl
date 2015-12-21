@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import rospy
 from std_msgs.msg import String
+from edwin.msg import *
 import copy
 import cv2
 import cv2.cv as cv
@@ -11,7 +12,8 @@ import time
 class Game:
 	def __init__(self):
 		rospy.init_node('ttt_gamemaster', anonymous = True)
-#		self.pub = rospy.Publisher('draw_cmd', String, queue_size=10)
+		self.draw_pub = rospy.Publisher('draw_cmd', Edwin_Shape, queue_size=10)
+		self.arm_pub = rospy.Publisher('arm_cmd', String, queue_size=10)
 
 		#board represented by 9 element list
 		#A blank space is represented by 0, an "O" is 1, and "X" is 10, we start with blank board
@@ -22,6 +24,17 @@ class Game:
 		self.corners = [0,2,6,8] #indices of the corner locations
 		self.sides = [1,3,5,7]
 		self.middle = 4
+
+		self.draw_the_board()
+
+	def draw_the_board(self):
+		msg = Edwin_Shape()
+        msg.shape = "board"
+        msg.x = 400
+        msg.y = 3000
+        #note that Z should be a function of y.
+        msg.z = -600 - ((msg.y - 2500)/10)
+        draw_pub.publish(msg)
 
 	def is_winner(self, board):
 		"""
@@ -95,11 +108,20 @@ class Game:
 			if self.is_free(board_copy, self.sides[i]):
 				return self.sides[i]
 
-
 	def edwin_move(self, index):
 		#edwin moves to desired location and draws
 		print "MOVING TO: ", index
 	 	self.board[index] = 10
+
+	def field_scan(self):
+		#TODO: Update board with current values
+		print self.board
+		for i in range(9):
+			if self.is_free(self.board, i):
+				val_in = int(raw_input("Value at "+str(i)+": "))
+				self.board[i] = val_in
+				if val_in == 1:
+					return
 
 	def run(self):
 	 	running = True
@@ -127,15 +149,7 @@ class Game:
 	 				print "EDWIN WINS"
 	 				running = False
 
-	def field_scan(self):
-		#TODO: Update board with current values
-		print self.board
-		for i in range(9):
-			if self.is_free(self.board, i):
-				val_in = int(raw_input("Value at "+str(i)+": "))
-				self.board[i] = val_in
-				if val_in == 1:
-					return
+
 
 if __name__ == '__main__':
 	gm = Game()

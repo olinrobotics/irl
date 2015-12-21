@@ -32,6 +32,8 @@ class Drawer:
             self.draw_square(data.x, data.y, data.z)
         elif data.shape == "circle":
             self.draw_circle(data.x, data.y, data.z)
+        elif data.shape == "board":
+            self.draw_board(data.x, data.y, data.z)
         else:
             print "ERROR: I can't draw that."
 
@@ -41,9 +43,33 @@ class Drawer:
         self.arm_pub.publish(msg)
         time.sleep(1)
 
+    def draw_board(self, x, y, z):
+        w = 250 #width of square
+        lines = [[(x-w, y+3*w), (x-w, y-3*w)],
+                [(x+w, y+3*w), (x+w, y-3*w)],
+                [(x-3*w, y+w), (x+3*w, y+w)],
+                [(x-3*w, y-w),(x+3*w, y-w)]]
+
+        for line in lines:
+            #pick marker off paper
+            msg = "data: move_to:: " + str(line[0][0]) + ", " + str(line[0][1]) + ", " + str(z+250) + ", " +str(0)
+            print "sending: ", msg
+            self.arm_pub.publish(msg)
+            time.sleep(1)
+
+            msg = "data: move_to:: " + str(line[0][0]) + ", " + str(line[0][1]) + ", " + str(z) + ", " +str(0)
+            print "sending: ", msg
+            self.arm_pub.publish(msg)
+            time.sleep(1)
+
+            msg = "data: move_to:: " + str(line[1][0]) + ", " + str(line[1][1]) + ", " + str(z) + ", " +str(0)
+            print "sending: ", msg
+            self.arm_pub.publish(msg)
+            time.sleep(1)
+
     def draw_square(self, x, y, z):
         i = 0
-        width = 200
+        width = 150
 
         for i in range(5):
             if i == 0:
@@ -63,14 +89,14 @@ class Drawer:
 
     def draw_circle(self, x, y, z):
         #where x, y is the center of the circle, and r is predefined
-        r = 200
+        r = 150
         h = x
         k = y
 
         for xi in range(x-r, x+r, 50):
             yi = int(math.sqrt(r**2 - (xi-h)**2) + k)
             msg = "data: move_to:: " + str(xi) + ", " + str(yi) + ", " + str(z)+ ", " + str(0)
-            print "publishing: ", msg
+            print "sending: ", msg
             self.arm_pub.publish(msg)
             time.sleep(.5)
 
@@ -78,7 +104,7 @@ class Drawer:
         for xi in range(x+r, x-r-50, -50):
             yi = int(-1*(math.sqrt(r**2 - (xi-h)**2)) + k)
             msg = "data: move_to:: " + str(xi) + ", " + str(yi) + ", " + str(z)+ ", " + str(0)
-            print "publishing: ", msg
+            print "sending: ", msg
             self.arm_pub.publish(msg)
             time.sleep(.5)
 
