@@ -24,13 +24,14 @@ class Game:
 		rospy.init_node('ttt_gamemaster', anonymous = True)
 		self.draw_pub = rospy.Publisher('draw_cmd', Edwin_Shape, queue_size=10)
 		self.arm_pub = rospy.Publisher('arm_cmd', String, queue_size=10)
+		self.behav_pub = rospy.Publisher('behaviors_cmd', String, queue_size=10)
 
 		self.board_msg = Edwin_Shape()
 		self.draw_msg = Edwin_Shape()
 		self.draw_msg.shape = "square"
 
-		self.bridge = CvBridge()
-		self.image_sub = rospy.Subscriber("camera/rgb/image_color", Image, self.img_callback)
+		# self.bridge = CvBridge()
+		# self.image_sub = rospy.Subscriber("camera/rgb/image_color", Image, self.img_callback)
 
 		#Board X and Y positions
 		self.b_x = 0
@@ -61,18 +62,20 @@ class Game:
 		self.sides = [1,3,5,7]
 		self.middle = 4
 
-		self.image_rectangles = [(0, 0), (117, 0), (234, 0),
-							(0, 96), (117, 96), (234, 96),
-							(0, 192), (117, 192),(234, 192)]
+		self.image_w = 640/3
+		self.image_h = 480/3
 
-		self.image_w = 117
-		self.image_h = 96
+		self.image_rectangles = [(0, 0), (self.image_w, 0), (2*self.image_w, 0),
+							(0, self.image_h), (2*self.image_w, self.image_h), (2*self.image_w, self.image_h),
+							(0, 2*self.image_h), (self.image_w, 2*self.image_h),(2*self.image_w, 2*self.image_h)]
 
-	def img_callback(self, data):
-		try:
-			self.frame = self.bridge.imgmsg_to_cv2(data, "bgr8")
-		except CvBridgeError as e:
-			print(e)
+
+
+	# def img_callback(self, data):
+	# 	try:
+	# 		self.frame = self.bridge.imgmsg_to_cv2(data, "bgr8")
+	# 	except CvBridgeError as e:
+	# 		print(e)
 
 	def draw_the_board(self):
 		self.board_msg.shape = "board"
@@ -163,7 +166,7 @@ class Game:
 		self.draw_msg.x = center[0]
 		self.draw_msg.y = center[1]
 		#note that Z should be a function of y.
-		self.draw_msg.z = -630 - ((self.draw_msg.y - 2500)/10)
+		self.draw_msg.z = -580 - ((self.draw_msg.y - 2500)/9)
 		self.draw_pub.publish(self.draw_msg)
 
 	 	self.board[index] = 10
@@ -182,9 +185,9 @@ class Game:
 
 	def field_scan(self):
 		time.sleep(5)
-		motions = ["data: move_to:: 100, 2200, 500, 0",
-					"data: rotate_wrist:: -100",
-					"data: rotate_hand:: 50"]
+		motions = ["data: rotate_hand:: 50",
+					"data: rotate_wrist:: -500",
+					"data: move_to:: 200, 2300, 500, 0"]
 
 		for motion in motions:
 			print "pub: ", motion
@@ -195,6 +198,8 @@ class Game:
 
 		running = True
 		while running:
+			ret, self.frame = self.cap.read()
+
 			imgray = cv2.cvtColor(self.frame,cv2.COLOR_BGR2GRAY)
 			ret,thresh = cv2.threshold(imgray,115,255,0)
 			blur = cv2.blur(thresh, (2,2))
@@ -227,40 +232,38 @@ class Game:
 				if new_index[key] == 5:
 					self.board[key] = 1
 					running = False
-					#cv2.destroyAllWindows()
 
 
 	def run(self):
 		#Player is O: 1
 		#Edwin is X: 10
+		self.cap = cv2.VideoCapture(1)
 	 	running = True
 	 	turn = random.randint(0,1)
-	 	#self.draw_the_board()
+	 	self.draw_the_board()
 
-	 	# if turn == 0:
-	 	# 	#TODO: Add player turn notification
-	 	# 	print "Your turn first!"
+	 	if turn == 0:
+	 		print "Your turn first!"
+	 		self.behav_pub.publish("nudge")
 
 	 	while running:
-	 		self.field_scan()
-	 		print self.board
-	 		# if turn == 0: #Player turn.
-	 		# 	self.field_scan()
-	 		# 	turn = 1
-	 		# 	if self.is_winner(self.board) == 2: #Checks if the player made a winning move.
-	 		# 		#TODO: Add Edwin defeat notificaiton
-	 		# 		print "PLAYER WINS"
-	 		# 		running = False
+	 		if turn == 0: #Player turn.
+	 			self.behav_pub.publish("nudge")
+	 			self.field_scan()
+	 			turn = 1
+	 			if self.is_winner(self.board) == 2: #Checks if the player made a winning move.
+	 				print "PLAYER WINS"
+	 				self.behav_pub("sad")
+	 				running = False
 
-	 		# elif turn == 1: #Edwin's turn
-	 		# 	next_move_ind = self.next_move()
-	 		# 	self.edwin_move(next_move_ind)
-	 		# 	#TODO: Add player turn notification
-	 		# 	turn = 0
-	 		# 	if self.is_winner(self.board) == 1:
-	 		# 		#TODO: Add winning motion
-	 		# 		print "EDWIN WINS"
-	 		# 		running = False
+	 		elif turn == 1: #Edwin's turn
+	 			next_move_ind = self.next_move()
+	 			self.edwin_move(next_move_ind)
+	 			turn = 0
+	 			if self.is_winner(self.board) == 1:
+	 				print "EDWIN WINS"
+	 				self.behav_pub("gloat")
+	 				running = False
 
 
 
