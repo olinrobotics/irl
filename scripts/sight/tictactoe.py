@@ -25,6 +25,17 @@ class Game:
 		self.sides = [1,3,5,7]
 		self.middle = 4
 
+		self.draw_the_board()
+
+	def draw_the_board(self):
+		msg = Edwin_Shape()
+        msg.shape = "board"
+        msg.x = 400
+        msg.y = 3000
+        #note that Z should be a function of y.
+        msg.z = -600 - ((msg.y - 2500)/10)
+        draw_pub.publish(msg)
+
 	def is_winner(self, board):
 		"""
 		Computes whether board will win
@@ -102,6 +113,16 @@ class Game:
 		print "MOVING TO: ", index
 	 	self.board[index] = 10
 
+	def field_scan(self):
+		#TODO: Update board with current values
+		print self.board
+		for i in range(9):
+			if self.is_free(self.board, i):
+				val_in = int(raw_input("Value at "+str(i)+": "))
+				self.board[i] = val_in
+				if val_in == 1:
+					return
+
 	def run(self):
 	 	running = True
 	 	turn = random.randint(0,1)
@@ -128,15 +149,7 @@ class Game:
 	 				print "EDWIN WINS"
 	 				running = False
 
-	def field_scan(self):
-		#TODO: Update board with current values
-		print self.board
-		for i in range(9):
-			if self.is_free(self.board, i):
-				val_in = int(raw_input("Value at "+str(i)+": "))
-				self.board[i] = val_in
-				if val_in == 1:
-					return
+
 
 if __name__ == '__main__':
 	gm = Game()
