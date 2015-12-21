@@ -1,6 +1,7 @@
 import cv2
 import cv2.cv as cv
 import numpy as np
+import copy
 
 
 def FieldScan():
@@ -15,25 +16,31 @@ def FieldScan():
 		ret, frame = cap.read()
 
 		imgray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
-		ret,thresh = cv2.threshold(imgray,127,255,0)
-		contours,h = cv2.findContours(thresh,1,2)
+		ret,thresh = cv2.threshold(imgray,115,255,0)
+		blur = cv2.blur(thresh, (2,2))
+
+		contours,h = cv2.findContours(blur,cv2.RETR_CCOMP,cv2.CHAIN_APPROX_TC89_L1)
 
 		for cont in contours:
 			approx = cv2.approxPolyDP(cont, 0.01*cv2.arcLength(cont, True), True)
 			sides = len(approx)
-			if (sides > 15) and (sides < 20):
+			if (sides > 15):
 				c, r = cv2.minEnclosingCircle(cont)
 				c2 = np.round(c).astype("int")
 				radius = np.round(r).astype("int")
 				area = cv2.contourArea(cont)
-				if int(area - int(3.14*radius^2)) < 25:
+				filterLevel = int(area - 3.14*radius**2)
+				if filterLevel < 2:
 					cv2.circle(frame, (c2[0], c2[1]), radius, (0, 255, 0), 4)
-				#cv2.drawContours(frame, [cont], 0, (0, 255, 0), -1)
 			elif sides == 4:
 				cv2.drawContours(frame, [cont], 0, (0, 255, 255), -1)
 
+		#Still needs a return function.  
+
 
 		cv2.imshow("camera", frame)
+		cv2.imshow("thresh", thresh)
+		cv2.imshow("contour", blur)
 		c = cv2.waitKey(1)
 
 if __name__ == '__main__':
