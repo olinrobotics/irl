@@ -62,25 +62,10 @@ def FieldScan():
 						continue
 
 		for rect in rectangles:
-		#rect = rectangles[0]
 			cv2.rectangle(frame, rect, (rect[0]+w, rect[1]+h), (0,0,255), 2)
 
-		print board
-
-
-		# for cont in contours:
-		# 	approx = cv2.approxPolyDP(cont, 0.1*cv2.arcLength(cont, True), True)
-		# 	sides = len(approx)
-		# 	if sides == 4:
-		# 		x,y,w,h = cv2.boundingRect(cont)
-		# 		cv2.rectangle(frame,(x,y),(x+w,y+h),(0,255,0),2)
-		# 			#cv2.drawContours(frame, [cont], 0, (0, 255, 255), -1)
-
 		cv2.imshow("camera", frame)
-		#cv2.imshow("thresh", thresh)
-		#cv2.imshow("contour", blur)
 		c = cv2.waitKey(1)
 
 if __name__ == '__main__':
 	FieldScan()
-	#print inside_rect((0, 0), 2, 2, 3, 1)

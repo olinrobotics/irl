@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import rospy
 from std_msgs.msg import String
-from edwin.msg import *
+from edwin.msg import Edwin_Shape
 import copy
 import cv2
 import cv2.cv as cv
@@ -9,13 +9,44 @@ import numpy as np
 import random
 import time
 
+def inside_rect(rx, ry, w, h, x, y):
+	# rx = rect[0]
+	# ry = rect[1]
+	if rx < x < rx+w and ry < y < ry+h:
+		return True
+	else:
+		return False
+
 class Game:
 	def __init__(self):
 		rospy.init_node('ttt_gamemaster', anonymous = True)
 		self.draw_pub = rospy.Publisher('draw_cmd', Edwin_Shape, queue_size=10)
 		self.arm_pub = rospy.Publisher('arm_cmd', String, queue_size=10)
 
-		#board represented by 9 element list
+		self.board_msg = Edwin_Shape()
+		self.draw_msg = Edwin_Shape()
+		self.draw_msg.shape = "square"
+
+		#Board X and Y positions
+		self.b_x = 0
+		self.b_y = 4000
+		self.b_w = 250
+
+		#Sector centroids
+		self.b_centers = {}
+		self.b_centers[0] = (self.b_x - 2.25*self.b_w, self.b_y + 1.5*self.b_w)
+		self.b_centers[1] = (self.b_x, self.b_y + 2*self.b_w)
+		self.b_centers[2] = (self.b_x + 2*self.b_w, self.b_y + 1.5*self.b_w)
+
+		self.b_centers[3] = (self.b_x - 2*self.b_w, self.b_y)
+		self.b_centers[4] = (self.b_x, self.b_y)
+		self.b_centers[5] = (self.b_x + 2*self.b_w, self.b_y)
+
+		self.b_centers[6] = (self.b_x - 2*self.b_w, self.b_y - 1.5*self.b_w)
+		self.b_centers[7] = (self.b_x, self.b_y - 1.5*self.b_w)
+		self.b_centers[8] = (self.b_x + 2*self.b_w, self.b_y - 1.5*self.b_w)
+
+
 		#A blank space is represented by 0, an "O" is 1, and "X" is 10, we start with blank board
 		self.board =   [0, 0, 0,
 						0, 0, 0,
@@ -25,16 +56,23 @@ class Game:
 		self.sides = [1,3,5,7]
 		self.middle = 4
 
-		self.draw_the_board()
+		self.image_rectangles = [(0, 0), (117, 0), (234, 0),
+							(0, 96), (117, 96), (234, 96),
+							(0, 192), (117, 192),(234, 192)]
+
+		self.image_w = 117
+		self.image_h = 96
+
 
 	def draw_the_board(self):
-		msg = Edwin_Shape()
-        msg.shape = "board"
-        msg.x = 400
-        msg.y = 3000
-        #note that Z should be a function of y.
-        msg.z = -600 - ((msg.y - 2500)/10)
-        draw_pub.publish(msg)
+		self.board_msg.shape = "board"
+		self.board_msg.x = self.b_x
+		self.board_msg.y = self.b_y
+		#note that Z should be a function of y.
+		self.board_msg.z = -630 - ((self.board_msg.y - 2500)/10)
+		self.draw_pub.publish(self.board_msg)
+
+		time.sleep(25)
 
 	def is_winner(self, board):
 		"""
@@ -111,9 +149,17 @@ class Game:
 	def edwin_move(self, index):
 		#edwin moves to desired location and draws
 		print "MOVING TO: ", index
-	 	self.board[index] = 10
+		center = self.b_centers[index]
+		self.draw_msg.x = center[0]
+		self.draw_msg.y = center[1]
+		#note that Z should be a function of y.
+		self.draw_msg.z = -630 - ((self.draw_msg.y - 2500)/10)
+		self.draw_pub.publish(self.draw_msg)
 
-	def field_scan(self):
+	 	self.board[index] = 10
+	 	time.sleep(10)
+
+	def manual_field_scan(self):
 		#TODO: Update board with current values
 		print self.board
 		for i in range(9):
@@ -123,9 +169,68 @@ class Game:
 				if val_in == 1:
 					return
 
+
+	def field_scan(self):
+		time.sleep(5)
+		motions = ["data: move_to:: 100, 2200, 500, 0",
+					"data: rotate_wrist:: -100",
+					"data: rotate_hand:: 50"]
+
+		for motion in motions:
+			print "pub: ", motion
+			self.arm_pub.publish(motion)
+			time.sleep(2)
+
+		new_index = {}
+
+		running = True
+		while running:
+			ret, frame = self.cap.read()
+
+			imgray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
+			ret,thresh = cv2.threshold(imgray,115,255,0)
+			blur = cv2.blur(thresh, (2,2))
+
+			contours,h = cv2.findContours(blur,cv2.RETR_CCOMP,cv2.CHAIN_APPROX_TC89_L1)
+			circles = cv2.HoughCircles(imgray, cv.CV_HOUGH_GRADIENT,1, 100, param1=50,param2=30,minRadius=20,maxRadius=50)
+
+			if circles is not None:
+				circles = np.round(circles[0, :]).astype("int")
+				for (x, y, r) in circles:
+					cv2.circle(frame, (x, y), r, (0, 255, 0), 4)
+					for i in range(9):
+						if self.board[i] == 0:
+							#checks each section of box if it contains a circle
+							if inside_rect(self.image_rectangles[i][0], self.image_rectangles[i][1], self.image_w, self.image_h, int(x), int(y)):
+								try:
+									new_index[i] += 1
+								except KeyError:
+									new_index[i] = 1
+								continue
+
+
+			for rect in self.image_rectangles:
+				cv2.rectangle(frame, rect, (rect[0]+self.image_w, rect[1]+self.image_h), (0,0,255), 2)
+
+			cv2.imshow("camera", frame)
+			c = cv2.waitKey(1)
+
+			for key in new_index.keys():
+				if new_index[key] == 5:
+					self.board[key] = 1
+					running = False
+					#cv2.destroyAllWindows()
+
+
 	def run(self):
+		#Player is O: 1
+		#Edwin is X: 10
+		self.cap = cv2.VideoCapture(1)
+
 	 	running = True
 	 	turn = random.randint(0,1)
+	 	self.draw_the_board()
+
 	 	if turn == 0:
 	 		#TODO: Add player turn notification
 	 		print "Your turn first!"

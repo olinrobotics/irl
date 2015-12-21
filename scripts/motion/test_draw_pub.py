@@ -14,20 +14,20 @@ def run():
     time.sleep(1)
 
     while not rospy.is_shutdown():
-        # msg = Edwin_Shape()
-        # msg.shape = "board"
-        # msg.x = 0
-        # msg.y = 4000
-        # #note that Z should be a function of y.
-        # msg.z = int(-650 - ((msg.y - 2500)/8))
-        # pub.publish(msg)
-        # time.sleep(15)
+        msg = Edwin_Shape()
+        msg.shape = "board"
+        msg.x = 0
+        msg.y = 4000
+        #note that Z should be a function of y.
+        msg.z = int(-650 - ((msg.y - 2500)/8))
+        pub.publish(msg)
+        time.sleep(15)
 
-        motions = ["data: move_to:: 100, 2200, 500, 0", "sending:  data: rotate_wrist:: -100", "sending:  data: rotate_hand:: 50"]
-        for motion in motions:
-            print "pub: ", motion
-            arm_pub.publish(motion)
-            time.sleep(2)
+        # motions = ["data: move_to:: 100, 2200, 500, 0", "sending:  data: rotate_wrist:: -100", "sending:  data: rotate_hand:: 50"]
+        # for motion in motions:
+        #     print "pub: ", motion
+        #     arm_pub.publish(motion)
+        #     time.sleep(2)
 
 if __name__ == '__main__':
     run()

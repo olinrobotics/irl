@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
 	message_generation
 	rosserial_arduino
 	rosserial_client
+	cv_bridge
 )
 
 ## Generate messages in the 'msg' folder

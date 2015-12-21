@@ -67,6 +67,13 @@ class Drawer:
             self.arm_pub.publish(msg)
             time.sleep(1)
 
+            #pick marker off paper
+            msg = "data: move_to:: " + str(line[1][0]) + ", " + str(line[1
+                ][1]) + ", " + str(z+250) + ", " +str(0)
+            print "sending: ", msg
+            self.arm_pub.publish(msg)
+            time.sleep(1)
+
     def draw_square(self, x, y, z):
         i = 0
         width = 150
