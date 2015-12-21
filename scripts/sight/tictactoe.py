@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 import rospy
-from std_msgs.msg import String
-from edwin.msg import Edwin_Shape
 import copy
 import cv2
 import cv2.cv as cv
 import numpy as np
 import random
 import time
+from std_msgs.msg import String
+from sensor_msgs.msg import Image
+from edwin.msg import Edwin_Shape
+from cv_bridge import CvBridge, CvBridgeError
 
 def inside_rect(rx, ry, w, h, x, y):
 	# rx = rect[0]
@@ -26,6 +28,9 @@ class Game:
 		self.board_msg = Edwin_Shape()
 		self.draw_msg = Edwin_Shape()
 		self.draw_msg.shape = "square"
+
+		self.bridge = CvBridge()
+		self.image_sub = rospy.Subscriber("camera/rgb/image_color", Image, self.img_callback)
 
 		#Board X and Y positions
 		self.b_x = 0
@@ -63,6 +68,11 @@ class Game:
 		self.image_w = 117
 		self.image_h = 96
 
+	def img_callback(self, data):
+		try:
+			self.frame = self.bridge.imgmsg_to_cv2(data, "bgr8")
+		except CvBridgeError as e:
+			print(e)
 
 	def draw_the_board(self):
 		self.board_msg.shape = "board"
@@ -185,9 +195,7 @@ class Game:
 
 		running = True
 		while running:
-			ret, frame = self.cap.read()
-
-			imgray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
+			imgray = cv2.cvtColor(self.frame,cv2.COLOR_BGR2GRAY)
 			ret,thresh = cv2.threshold(imgray,115,255,0)
 			blur = cv2.blur(thresh, (2,2))
 
@@ -197,7 +205,7 @@ class Game:
 			if circles is not None:
 				circles = np.round(circles[0, :]).astype("int")
 				for (x, y, r) in circles:
-					cv2.circle(frame, (x, y), r, (0, 255, 0), 4)
+					cv2.circle(self.frame, (x, y), r, (0, 255, 0), 4)
 					for i in range(9):
 						if self.board[i] == 0:
 							#checks each section of box if it contains a circle
@@ -210,9 +218,9 @@ class Game:
 
 
 			for rect in self.image_rectangles:
-				cv2.rectangle(frame, rect, (rect[0]+self.image_w, rect[1]+self.image_h), (0,0,255), 2)
+				cv2.rectangle(self.frame, rect, (rect[0]+self.image_w, rect[1]+self.image_h), (0,0,255), 2)
 
-			cv2.imshow("camera", frame)
+			cv2.imshow("camera", self.frame)
 			c = cv2.waitKey(1)
 
 			for key in new_index.keys():
@@ -225,34 +233,34 @@ class Game:
 	def run(self):
 		#Player is O: 1
 		#Edwin is X: 10
-		self.cap = cv2.VideoCapture(1)
-
 	 	running = True
 	 	turn = random.randint(0,1)
-	 	self.draw_the_board()
+	 	#self.draw_the_board()
 
-	 	if turn == 0:
-	 		#TODO: Add player turn notification
-	 		print "Your turn first!"
+	 	# if turn == 0:
+	 	# 	#TODO: Add player turn notification
+	 	# 	print "Your turn first!"
 
 	 	while running:
-	 		if turn == 0: #Player turn.
-	 			self.field_scan()
-	 			turn = 1
-	 			if self.is_winner(self.board) == 2: #Checks if the player made a winning move.
-	 				#TODO: Add Edwin defeat notificaiton
-	 				print "PLAYER WINS"
-	 				running = False
+	 		self.field_scan()
+	 		print self.board
+	 		# if turn == 0: #Player turn.
+	 		# 	self.field_scan()
+	 		# 	turn = 1
+	 		# 	if self.is_winner(self.board) == 2: #Checks if the player made a winning move.
+	 		# 		#TODO: Add Edwin defeat notificaiton
+	 		# 		print "PLAYER WINS"
+	 		# 		running = False
 
-	 		elif turn == 1: #Edwin's turn
-	 			next_move_ind = self.next_move()
-	 			self.edwin_move(next_move_ind)
-	 			#TODO: Add player turn notification
-	 			turn = 0
-	 			if self.is_winner(self.board) == 1:
-	 				#TODO: Add winning motion
-	 				print "EDWIN WINS"
-	 				running = False
+	 		# elif turn == 1: #Edwin's turn
+	 		# 	next_move_ind = self.next_move()
+	 		# 	self.edwin_move(next_move_ind)
+	 		# 	#TODO: Add player turn notification
+	 		# 	turn = 0
+	 		# 	if self.is_winner(self.board) == 1:
+	 		# 		#TODO: Add winning motion
+	 		# 		print "EDWIN WINS"
+	 		# 		running = False
 
 
 
