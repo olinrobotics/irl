@@ -34,6 +34,8 @@ class Drawer:
             self.draw_circle(data.x, data.y, data.z)
         elif data.shape == "board":
             self.draw_board(data.x, data.y, data.z)
+        elif data.shape == "triangle":
+            self.draw_triangle(data.x, data.y, data.z)
         else:
             print "ERROR: I can't draw that."
 
@@ -73,6 +75,25 @@ class Drawer:
             print "sending: ", msg
             self.arm_pub.publish(msg)
             time.sleep(1)
+
+    def draw_triangle(self, x, y, z):
+        w = 150 #width of square
+        i = 0
+
+        for i in range(4):
+            if i == 0:
+                msg = "data: move_to:: " + str(x) + ", " + str(y) + ", " + str(z) + ", " +str(0)
+            elif i == 1:
+                msg = "data: move_to:: " + str(x) + ", " + str(y-w) + ", " + str(z) + ", " +str(0)
+            elif i == 2:
+                msg = "data: move_to:: " + str(x+w) + ", " + str(y-w) + ", " + str(z) + ", " +str(0)
+            elif i == 3:
+                msg = "data: move_to:: " + str(x) + ", " + str(y) + ", " + str(z) + ", " +str(0)
+
+            print "sending: ", msg
+            self.arm_pub.publish(msg)
+            time.sleep(1)
+
 
     def draw_square(self, x, y, z):
         i = 0
