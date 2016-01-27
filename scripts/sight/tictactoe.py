@@ -29,8 +29,8 @@ class Game:
 		self.board_msg = Edwin_Shape()
 		self.draw_msg = Edwin_Shape()
 
-		# self.bridge = CvBridge()
-		# self.image_sub = rospy.Subscriber("camera/rgb/image_color", Image, self.img_callback)
+		self.bridge = CvBridge()
+		self.image_sub = rospy.Subscriber("usb_cam/image_raw", Image, self.img_callback)
 
 		#Board X and Y positions
 		self.b_x = 0
@@ -64,11 +64,11 @@ class Game:
 		self.y_pos = 2500
 		self.ok = "n"
 
-	# def img_callback(self, data):
-	# 	try:
-	# 		self.frame = self.bridge.imgmsg_to_cv2(data, "bgr8")
-	# 	except CvBridgeError as e:
-	# 		print(e)
+	def img_callback(self, data):
+		try:
+			self.frame = self.bridge.imgmsg_to_cv2(data, "bgr8")
+		except CvBridgeError as e:
+			print(e)
 
 
 	def is_winner(self, board):
@@ -155,88 +155,88 @@ class Game:
 				if val_in == 1:
 					return
 
-	# def calibrate(self):
-	# 	time.sleep(5)
-	# 	running = True
+	def calibrate(self):
+		time.sleep(5)
+		running = True
 
-	# 	while "y" not in self.ok:
-	# 		self.y_pos = str(raw_input("Y position: "))
-	# 		motions = ["data: rotate_hand:: 50",
-	# 			"data: rotate_wrist:: -500",
-	# 			"data: move_to:: 200, "+self.y_pos+", 500, 0"]
+		while "y" not in self.ok:
+			self.y_pos = str(raw_input("Y position: "))
+			motions = ["data: rotate_hand:: 50",
+				"data: rotate_wrist:: -500",
+				"data: move_to:: 200, "+self.y_pos+", 500, 0"]
 
-	# 		for motion in motions:
-	# 			print "pub: ", motion
-	# 			self.arm_pub.publish(motion)
-	# 			time.sleep(2)
+			for motion in motions:
+				print "pub: ", motion
+				self.arm_pub.publish(motion)
+				time.sleep(2)
 
-	# 		ret, self.frame = self.cap.read()
-	# 		for rect in self.image_rectangles:
-	# 			cv2.rectangle(self.frame, rect, (rect[0]+self.image_w, rect[1]+self.image_h), (0,0,255), 2)
+			# ret, self.frame = self.cap.read()
+			for rect in self.image_rectangles:
+				cv2.rectangle(self.frame, rect, (rect[0]+self.image_w, rect[1]+self.image_h), (0,0,255), 2)
 
-	# 		cv2.imshow("camera", self.frame)
-	# 		c = cv2.waitKey(1)
-	# 		self.ok = str(raw_input("OK?"))
-
-
-	# def field_scan(self):
-	# 	time.sleep(5)
-	# 	motions = ["data: rotate_hand:: 50",
-	# 				"data: rotate_wrist:: -550",
-	# 				"data: move_to:: 200, "+self.y_pos+", 500, 0"]
-
-	# 	for motion in motions:
-	# 		print "pub: ", motion
-	# 		self.arm_pub.publish(motion)
-	# 		time.sleep(2)
-
-	# 	new_index = {}
-
-	# 	running = True
-	# 	while running:
-	# 		ret, self.frame = self.cap.read()
-
-	# 		imgray = cv2.cvtColor(self.frame,cv2.COLOR_BGR2GRAY)
-	# 		ret,thresh = cv2.threshold(imgray,115,255,0)
-	# 		blur = cv2.blur(thresh, (2,2))
-
-	# 		height, width, channels = self.frame.shape
-	# 		self.image_w = width/3
-	# 		self.image_h = height/3
-
-	# 		self.image_rectangles = [(0, 0), (self.image_w, 0), (2*self.image_w, 0),
-	# 							(0, self.image_h), (2*self.image_w, self.image_h), (2*self.image_w, self.image_h),
-	# 							(0, 2*self.image_h), (self.image_w, 2*self.image_h),(2*self.image_w, 2*self.image_h)]
+			cv2.imshow("camera", self.frame)
+			c = cv2.waitKey(1)
+			self.ok = str(raw_input("OK?"))
 
 
-	# 		contours,h = cv2.findContours(blur,cv2.RETR_CCOMP,cv2.CHAIN_APPROX_TC89_L1)
-	# 		circles = cv2.HoughCircles(imgray, cv.CV_HOUGH_GRADIENT,1, 100, param1=50,param2=30,minRadius=20,maxRadius=50)
+	def field_scan(self):
+		time.sleep(5)
+		motions = ["data: rotate_hand:: 50",
+					"data: rotate_wrist:: -550",
+					"data: move_to:: 200, "+self.y_pos+", 500, 0"]
 
-	# 		if circles is not None:
-	# 			circles = np.round(circles[0, :]).astype("int")
-	# 			for (x, y, r) in circles:
-	# 				cv2.circle(self.frame, (x, y), r, (0, 255, 0), 4)
-	# 				for i in range(9):
-	# 					if self.board[i] == 0:
-	# 						#checks each section of box if it contains a circle
-	# 						if inside_rect(self.image_rectangles[i][0], self.image_rectangles[i][1], self.image_w, self.image_h, int(x), int(y)):
-	# 							try:
-	# 								new_index[i] += 1
-	# 							except KeyError:
-	# 								new_index[i] = 1
-	# 							continue
+		for motion in motions:
+			print "pub: ", motion
+			self.arm_pub.publish(motion)
+			time.sleep(2)
+
+		new_index = {}
+
+		running = True
+		while running:
+			# ret, self.frame = self.cap.read()
+
+			imgray = cv2.cvtColor(self.frame,cv2.COLOR_BGR2GRAY)
+			ret,thresh = cv2.threshold(imgray,115,255,0)
+			blur = cv2.blur(thresh, (2,2))
+
+			height, width, channels = self.frame.shape
+			self.image_w = width/3
+			self.image_h = height/3
+
+			self.image_rectangles = [(0, 0), (self.image_w, 0), (2*self.image_w, 0),
+								(0, self.image_h), (2*self.image_w, self.image_h), (2*self.image_w, self.image_h),
+								(0, 2*self.image_h), (self.image_w, 2*self.image_h),(2*self.image_w, 2*self.image_h)]
 
 
-	# 		for rect in self.image_rectangles:
-	# 			cv2.rectangle(self.frame, rect, (rect[0]+self.image_w, rect[1]+self.image_h), (0,0,255), 2)
+			contours,h = cv2.findContours(blur,cv2.RETR_CCOMP,cv2.CHAIN_APPROX_TC89_L1)
+			circles = cv2.HoughCircles(imgray, cv.CV_HOUGH_GRADIENT,1, 100, param1=50,param2=30,minRadius=20,maxRadius=50)
 
-	# 		cv2.imshow("camera", self.frame)
-	# 		c = cv2.waitKey(1)
+			if circles is not None:
+				circles = np.round(circles[0, :]).astype("int")
+				for (x, y, r) in circles:
+					cv2.circle(self.frame, (x, y), r, (0, 255, 0), 4)
+					for i in range(9):
+						if self.board[i] == 0:
+							#checks each section of box if it contains a circle
+							if inside_rect(self.image_rectangles[i][0], self.image_rectangles[i][1], self.image_w, self.image_h, int(x), int(y)):
+								try:
+									new_index[i] += 1
+								except KeyError:
+									new_index[i] = 1
+								continue
 
-	# 		for key in new_index.keys():
-	# 			if new_index[key] == 5:
-	# 				self.board[key] = 1
-	# 				running = False
+
+			for rect in self.image_rectangles:
+				cv2.rectangle(self.frame, rect, (rect[0]+self.image_w, rect[1]+self.image_h), (0,0,255), 2)
+
+			cv2.imshow("camera", self.frame)
+			c = cv2.waitKey(1)
+
+			for key in new_index.keys():
+				if new_index[key] == 5:
+					self.board[key] = 1
+					running = False
 
 
 	def draw_the_board(self):
@@ -285,44 +285,43 @@ class Game:
 		#Edwin is X: 10
 		# self.cap = cv2.VideoCapture(1)
 	 	running = True
-	 	#turn = random.randint(0,1)
-	 	turn = 1
+	 	turn = random.randint(0,1)
 	 	time.sleep(5)
 	 	self.draw_the_board()
-	 	#self.calibrate()
-	 	self.y_pos = "2400"
-	 	print "running"
+	 	# self.calibrate()
+	 	# self.y_pos = "2400"
+	 	# print "running"
 
-	 	if turn == 0:
-	 		print "Your turn first!"
+	 	# if turn == 0:
+	 	# 	print "Your turn first!"
 
-	 	ai = True
-	 	while running:
-	 		# self.field_scan()
-	 		# print self.board
-	 		if turn == 0: #Player turn.
-	 			#self.behav_pub.publish("nudge")
-	 			#time.sleep(10)
-	 			if ai:
-	 				ai_next_move_ind = self.next_move()
-	 				self.ai_move(ai_next_move_ind)
-	 			else:
-	 				self.field_scan()
-	 			if self.is_winner(self.board) == 2: #Checks if the player made a winning move.
-	 				print "PLAYER WINS"
-	 				self.behav_pub("sad")
-	 				running = False
-	 			turn = 1
-	 			continue
+	 	# ai = True
+	 	# while running:
+	 	# 	# self.field_scan()
+	 	# 	# print self.board
+	 	# 	if turn == 0: #Player turn.
+	 	# 		#self.behav_pub.publish("nudge")
+	 	# 		#time.sleep(10)
+	 	# 		if ai:
+	 	# 			ai_next_move_ind = self.next_move()
+	 	# 			self.ai_move(ai_next_move_ind)
+	 	# 		else:
+	 	# 			self.field_scan()
+	 	# 		if self.is_winner(self.board) == 2: #Checks if the player made a winning move.
+	 	# 			print "PLAYER WINS"
+	 	# 			self.behav_pub("sad")
+	 	# 			running = False
+	 	# 		turn = 1
+	 	# 		continue
 
-	 		elif turn == 1: #Edwin's turn
-	 			next_move_ind = self.next_move()
-	 			self.edwin_move(next_move_ind)
-	 			turn = 0
-	 			if self.is_winner(self.board) == 1:
-	 				print "EDWIN WINS"
-	 				self.behav_pub("gloat")
-	 				running = False
+	 	# 	elif turn == 1: #Edwin's turn
+	 	# 		next_move_ind = self.next_move()
+	 	# 		self.edwin_move(next_move_ind)
+	 	# 		turn = 0
+	 	# 		if self.is_winner(self.board) == 1:
+	 	# 			print "EDWIN WINS"
+	 	# 			self.behav_pub("gloat")
+	 	# 			running = False
 
 
 
