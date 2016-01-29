@@ -4,7 +4,10 @@ from matplotlib import pyplot as plt
 import operator
 import math
 
-img = cv2.imread("test_imgs/5.jpg")
+def get_distance(pt1, pt2):
+	return math.sqrt((pt1[0]-pt2[0])**2 + (pt1[1]-pt2[1])**2)
+
+img = cv2.imread("test_imgs/2.jpg")
 h, w, ch = img.shape
 
 gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
@@ -28,8 +31,21 @@ pt2 = corners[pts[1][0]].ravel()
 pt3 = corners[pts[2][0]].ravel()
 pt4 = corners[pts[3][0]].ravel()
 
+pt_dists = []
+pt_dists.append((1, get_distance(pt1, pt2)))
+pt_dists.append((2, get_distance(pt1, pt3)))
+pt_dists.append((3, get_distance(pt1, pt4)))
+pt_dists.append((4, get_distance(pt2, pt3)))
+pt_dists.append((5, get_distance(pt2, pt4)))
+pt_dists.append((6, get_distance(pt3, pt4)))
+
+pt_dists = sorted(pt_dists, key=lambda x: x[1])
+print pt_dists
 
 cv2.line(img, tuple(pt1), tuple(pt2), (0,255,0))
+cv2.line(img, tuple(pt1), tuple(pt3), (0,255,0))
+cv2.line(img, tuple(pt2), tuple(pt4), (0,255,0))
+cv2.line(img, tuple(pt3), tuple(pt4), (0,255,0))
 
 # except Exception, e:
 # 	print "err"
