@@ -3,108 +3,106 @@ import numpy as np
 from matplotlib import pyplot as plt
 import operator
 import math
+import itertools
+
+def collinear(p0, p1, p2):
+    x1, y1 = p1[0] - p0[0], p1[1] - p0[1]
+    x2, y2 = p2[0] - p0[0], p2[1] - p0[1]
+    return x1 * y2 - x2 * y1 < 1e-12
 
 def get_distance(pt1, pt2):
 	return math.sqrt((pt1[0]-pt2[0])**2 + (pt1[1]-pt2[1])**2)
 
-img = cv2.imread("test_imgs/2.jpg")
-h, w, ch = img.shape
+def get_pt_x(pt1, pt2, d):
+	v = (pt1[0]-pt2[0], pt1[1]-pt2[1])
+	v_mag = get_distance(pt1, pt2)
 
-gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+	u = (v[0]/v_mag, v[1]/v_mag)
 
-corners = cv2.goodFeaturesToTrack(gray,25,0.01,70)
-corners = np.int0(corners)
+	return (int(pt1[0]+d*u[0]), int(pt1[1]+d*u[1]))
 
-dists = {}
-for num, i in enumerate(corners):
-    x,y = i.ravel()
-    dists[num] = math.sqrt((x-(w/2))**2 + (y-(h/2))**2)
+def get_box(ref_box, h, w):
+	pt0 = ref_box[0]
+	pt1 = ref_box[1]
+	pt2 = get_pt_x(ref_box[1], ref_box[2], h)
+	pt3 = get_pt_x(ref_box[0], ref_box[3], h)
 
-sorted_dists = sorted(dists.items(), key=operator.itemgetter(1))
-pts = []
-for i in range(4):
-	pts.append(sorted_dists[i])
+	return [pt0, pt1, pt2, pt3]
 
-# try:
-pt1 = corners[pts[0][0]].ravel()
-pt2 = corners[pts[1][0]].ravel()
-pt3 = corners[pts[2][0]].ravel()
-pt4 = corners[pts[3][0]].ravel()
+def get_grid(box):
+	grid_height = int(get_distance(box[0], box[1]))
+	grid_width = int(get_distance(box[1], box[3]))
 
-pt_dists = []
-pt_dists.append((1, get_distance(pt1, pt2)))
-pt_dists.append((2, get_distance(pt1, pt3)))
-pt_dists.append((3, get_distance(pt1, pt4)))
-pt_dists.append((4, get_distance(pt2, pt3)))
-pt_dists.append((5, get_distance(pt2, pt4)))
-pt_dists.append((6, get_distance(pt3, pt4)))
+	box2 = get_box([box[2], box[1], box[0], box[3]], grid_height, grid_width)
+	box4 = get_box(box, grid_height, grid_width)
+	box5 = get_box([box[3], box[2], box[1], box[0]], grid_height, grid_width)
+	box7 = get_box([box[3], box[0], box[1], box[2]], grid_height, grid_width)
 
-pt_dists = sorted(pt_dists, key=lambda x: x[1])
-print pt_dists
+	box1 = get_box([box4[2], box4[1], box4[0], box4[3]], grid_height, grid_width)
+	box6 = get_box([box4[3], box4[0], box4[1], box4[2]], grid_height, grid_width)
 
-cv2.line(img, tuple(pt1), tuple(pt2), (0,255,0))
-cv2.line(img, tuple(pt1), tuple(pt3), (0,255,0))
-cv2.line(img, tuple(pt2), tuple(pt4), (0,255,0))
-cv2.line(img, tuple(pt3), tuple(pt4), (0,255,0))
+	box3 = get_box([box5[2], box5[1], box5[0], box5[3]], grid_height, grid_width)
+	box8 = get_box([box5[3], box5[0], box5[1], box5[2]], grid_height, grid_width)
 
-# except Exception, e:
-# 	print "err"
-# 	pass
+	return [box1, box2, box3, box4, box5, box6, box7, box8]
 
-	# x,y = corners[point[0]].ravel()
-	# cv2.circle(img,(x,y),3,255,-1)
+def get_center_box(im_in):
+	img = cv2.imread(im_in)
+	h, w, ch = img.shape
+
+	gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+
+	corners = cv2.goodFeaturesToTrack(gray,25,0.01,70)
+	corners = np.int0(corners)
+
+	dists = {}
+	for num, i in enumerate(corners):
+	    x,y = i.ravel()
+	    dists[num] = math.sqrt((x-(w/2))**2 + (y-(h/2))**2)
+
+	sorted_dists = sorted(dists.items(), key=operator.itemgetter(1))
+	center_rect = []
+
+	pts_distances = []
+
+	for i in range(4):
+		pts_distances.append(sorted_dists[i])
+		center_rect.append(list(corners[pts_distances[i][0]].ravel()))
+
+	print center_rect
+
+	rect = cv2.minAreaRect(np.int0(center_rect))
+
+	box = cv2.cv.BoxPoints(rect)
+	box = np.int0(box)
+
+	boxes = get_grid(box)
+
+	for box in boxes:
+		box = np.int0(box)
+		cv2.drawContours(img,[box],0,(0,0,255),2)
 
 
-cv2.imshow("im", img)
-c = cv2.waitKey(0)
+	# cv2.drawContours(img,[box],0,(0,0,255),2)
+	# cv2.drawContours(img,[box4],0,(0,0,255),2)
 
-cv2.destroyAllWindows()
+	# for elem in box4:
+	# 	x,y = elem.ravel()
+	# 	cv2.circle(img,(x,y),3,255,-1)
+
+	# print len(corners)
+
+	# for corner in corners:
+	# 	x,y = corner.ravel()
+	# 	cv2.circle(img,(x,y),3,255,-1)
 
 
-# gray = np.float32(gray)
-# dst = cv2.cornerHarris(gray,2,3,0.04)
+	cv2.imshow("im", img)
+	c = cv2.waitKey(0)
 
-# #result is dilated for marking the corners, not important
-# dst = cv2.dilate(dst,None)
-# points = dst.getHarrisPoints()
+	cv2.destroyAllWindows()
 
-# # Threshold for an optimal value, it may vary depending on the image.
-# img[dst>0.01*dst.max()]=[0,0,255]
+	return box
 
-# cv2.imshow('dst', img)
-# if cv2.waitKey(0) & 0xff == 27:
-#     cv2.destroyAllWindows()
-
-# imgSplit = cv2.split(im)
-# flag,b = cv2.threshold(imgSplit[2],0,255,cv2.THRESH_OTSU)
-
-# element = cv2.getStructuringElement(cv2.MORPH_CROSS,(1,1))
-# cv2.erode(b,element)
-
-# edges = cv2.Canny(b,150,200,3,5)
-# img = im.copy()
-
-# lines = cv2.HoughLinesP(edges,1,np.pi/2,2, minLineLength = 200, maxLineGap = 100)[0]
-
-# for x1,y1,x2,y2 in lines:
-# 	for index, (x3,y3,x4,y4) in enumerate(lines):
-
-# 		if y1==y2 and y3==y4: # Horizontal Lines
-# 			diff = abs(y1-y3)
-# 		elif x1==x2 and x3==x4: # Vertical Lines
-# 			diff = abs(x1-x3)
-# 		else:
-# 			diff = 0
-
-# 		if diff < 10 and diff is not 0:
-# 			del lines[index]
-
-# gridsize = (len(lines) - 2) / 2
-
-# for x1,y1,x2,y2 in lines:
-# 	cv2.line(img,(x1,y1),(x2,y2),(0,255,0),1)
-
-# cv2.imshow('houghlines',img)
-# c = cv2.waitKey(0)
-
-# cv2.destroyAllWindows()
+im_in = "test_imgs/4.jpg"
+box = get_center_box(im_in)
