@@ -104,5 +104,12 @@ def get_center_box(im_in):
 
 	return box
 
-im_in = "test_imgs/4.jpg"
-box = get_center_box(im_in)
+def main():
+	cap = cv2.VideoCapture(1)
+	while True:
+		ret, frame = cap.read()
+		cv2.imshow("img", frame)
+		c = cv2.waitKey(1)
+
+if __name__ == "__main__":
+	main()
