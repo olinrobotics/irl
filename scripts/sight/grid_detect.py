@@ -47,18 +47,20 @@ def get_grid(box):
 	return [box1, box2, box3, box4, box5, box6, box7, box8]
 
 def get_center_box(im_in):
-	img = cv2.imread(im_in)
+	# img = cv2.imread(im_in)
+	img = im_in
 	h, w, ch = img.shape
 
 	gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
 
-	corners = cv2.goodFeaturesToTrack(gray,25,0.01,70)
+	corners = cv2.goodFeaturesToTrack(gray,25,0.01,100)
 	corners = np.int0(corners)
 
 	dists = {}
 	for num, i in enumerate(corners):
-	    x,y = i.ravel()
-	    dists[num] = math.sqrt((x-(w/2))**2 + (y-(h/2))**2)
+		x,y = i.ravel()
+		cv2.circle(img,(x,y),3,255,-1)
+		dists[num] = math.sqrt((x-(w/2))**2 + (y-(h/2))**2)
 
 	sorted_dists = sorted(dists.items(), key=operator.itemgetter(1))
 	center_rect = []
@@ -82,32 +84,13 @@ def get_center_box(im_in):
 		box = np.int0(box)
 		cv2.drawContours(img,[box],0,(0,0,255),2)
 
-
-	# cv2.drawContours(img,[box],0,(0,0,255),2)
-	# cv2.drawContours(img,[box4],0,(0,0,255),2)
-
-	# for elem in box4:
-	# 	x,y = elem.ravel()
-	# 	cv2.circle(img,(x,y),3,255,-1)
-
-	# print len(corners)
-
-	# for corner in corners:
-	# 	x,y = corner.ravel()
-	# 	cv2.circle(img,(x,y),3,255,-1)
-
-
-	cv2.imshow("im", img)
-	c = cv2.waitKey(0)
-
-	cv2.destroyAllWindows()
-
-	return box
+	return img
 
 def main():
 	cap = cv2.VideoCapture(1)
 	while True:
 		ret, frame = cap.read()
+		img = get_center_box(frame)
 		cv2.imshow("img", frame)
 		c = cv2.waitKey(1)
 
