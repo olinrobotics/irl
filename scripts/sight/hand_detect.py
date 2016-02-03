@@ -2,34 +2,27 @@ import numpy as np
 import cv2
 
 
-def main():
-    cap = cv2.VideoCapture(0)
-    first_frame = None
-    i = 0
+def main(im_in):
+    img = cv2.imread(im_in)
+    gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+    ret, thresh = cv2.threshold(gray,0,255,cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
 
-    while True:
-        ret, frame = cap.read()
-        gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
-        thresh = cv2.threshold(gray, 100, 255, cv2.THRESH_BINARY)[1]
+    # noise removal
+    kernel = np.ones((3,3),np.uint8)
+    opening = cv2.morphologyEx(thresh,cv2.MORPH_OPEN,kernel, iterations = 2)
 
-        # if i == 0:
-        #     first_frame = thresh
-        #     i += 1
-        #     continue
+    # sure background area
+    sure_bg = cv2.dilate(opening,kernel,iterations=3)
+    contours, hierarchy = cv2.findContours(sure_bg,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 
-        # while i < 20:
-        #     first_frame +=
-        #     first_frame = first_frame/i
-        #     i += 1
-        #     continue
-        if first_frame == None:
-            print "assigned first frame"
-            first_frame = thresh
-            continue
 
-        img = thresh - first_frame
-        cv2.imshow("img", img)
-        c = cv2.waitKey(1)
+    # Find the index of the largest contour
+    areas = [cv2.contourArea(c) for c in contours]
+    cv2.drawContours(img, contours, -1, (0,255,0), 2)
+
+    cv2.imshow('img', img)
+    c = cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-    main()
+    main("test_imgs/8a.jpg")

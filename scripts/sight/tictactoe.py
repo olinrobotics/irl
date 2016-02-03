@@ -12,8 +12,6 @@ from edwin.msg import Edwin_Shape
 from cv_bridge import CvBridge, CvBridgeError
 
 def inside_rect(rx, ry, w, h, x, y):
-	# rx = rect[0]
-	# ry = rect[1]
 	if rx < x < rx+w and ry < y < ry+h:
 		return True
 	else:
@@ -288,40 +286,40 @@ class Game:
 	 	turn = random.randint(0,1)
 	 	time.sleep(5)
 	 	self.draw_the_board()
-	 	# self.calibrate()
-	 	# self.y_pos = "2400"
-	 	# print "running"
+	 	self.calibrate()
+	 	self.y_pos = "2400"
+	 	print "running"
 
-	 	# if turn == 0:
-	 	# 	print "Your turn first!"
+	 	if turn == 0:
+	 		print "Your turn first!"
 
-	 	# ai = True
-	 	# while running:
-	 	# 	# self.field_scan()
-	 	# 	# print self.board
-	 	# 	if turn == 0: #Player turn.
-	 	# 		#self.behav_pub.publish("nudge")
-	 	# 		#time.sleep(10)
-	 	# 		if ai:
-	 	# 			ai_next_move_ind = self.next_move()
-	 	# 			self.ai_move(ai_next_move_ind)
-	 	# 		else:
-	 	# 			self.field_scan()
-	 	# 		if self.is_winner(self.board) == 2: #Checks if the player made a winning move.
-	 	# 			print "PLAYER WINS"
-	 	# 			self.behav_pub("sad")
-	 	# 			running = False
-	 	# 		turn = 1
-	 	# 		continue
+	 	ai = False
+	 	while running:
+	 		self.field_scan()
+	 		# print self.board
+	 		if turn == 0: #Player turn.
+	 			#self.behav_pub.publish("nudge")
+	 			#time.sleep(10)
+	 			if ai:
+	 				ai_next_move_ind = self.next_move()
+	 				self.ai_move(ai_next_move_ind)
+	 			else:
+	 				self.field_scan()
+	 			if self.is_winner(self.board) == 2: #Checks if the player made a winning move.
+	 				print "PLAYER WINS"
+	 				self.behav_pub("sad")
+	 				running = False
+	 			turn = 1
+	 			continue
 
-	 	# 	elif turn == 1: #Edwin's turn
-	 	# 		next_move_ind = self.next_move()
-	 	# 		self.edwin_move(next_move_ind)
-	 	# 		turn = 0
-	 	# 		if self.is_winner(self.board) == 1:
-	 	# 			print "EDWIN WINS"
-	 	# 			self.behav_pub("gloat")
-	 	# 			running = False
+	 		elif turn == 1: #Edwin's turn
+	 			next_move_ind = self.next_move()
+	 			self.edwin_move(next_move_ind)
+	 			turn = 0
+	 			if self.is_winner(self.board) == 1:
+	 				print "EDWIN WINS"
+	 				self.behav_pub("gloat")
+	 				running = False
 
 
 
