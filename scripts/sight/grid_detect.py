@@ -100,7 +100,10 @@ class GridFinder:
 		for box in boxes:
 			box = np.int0(box)
 			cv2.drawContours(img,[box],0,(0,0,255),2)
+			for i in range(3):
+				cv2.circle(img,(box[i][0],box[i][1]),3,255,-1)
 
+		print np.int0(boxes)
 		return img
 
 	def draw_the_board(self):
@@ -124,7 +127,7 @@ class GridFinder:
 	def run(self):
 		cap = cv2.VideoCapture(1)
 		time.sleep(5)
-		self.draw_the_board()
+		# self.draw_the_board()
 
 		# r = rospy.Rate(10)
 		while not rospy.is_shutdown():
