@@ -10,46 +10,100 @@ i.e. when I tap it. It must be able to recognize tapping
 even when the accelerator moves at a constant speed.
 */
 
-//Pin 0 is the Z output from the accelerometer, Pin 1 is the Y 
-// output, and Pin 2 is the X output.
-int pointZ = 1;
-int pointY = 2;
+
+#include <ros.h>
+#include <std_msgs/String.h>
+
+ros::NodeHandle nh;
+
+std_msgs::String str_msg;
+ros::Publisher accel("accel", &str_msg);
+
+
+//Pin A5 is the Z output from the accelerometer, Pin A4 is the Y 
+// output, and Pin A3 is the X output.
 int pointX = 3;
+int pointY = 4;
+int pointZ = 5;
 
 
-
-int test = 6;
+//Boolean
+boolean big_change = true;
 
 //Positions
-int x = 0;
-int y = 0;
-int z = 0;
+int current_x = 0;
+int current_y = 0;
+int current_z = 0;
+
+int old_x = 0;
+int old_y = 0;
+int old_z = 0;
+
+//Differences in positions
+int diff_z = 0;
+int diff_y = 0;
+int diff_x = 0;
+
+//Increment
+int i = 0;
 
 void setup(){
+  
+  nh.initNode();
+  nh.advertise(accel);
+  
   
   pinMode(pointZ, INPUT);
   pinMode(pointY, INPUT);
   pinMode(pointX, INPUT);
-  
-  pinMode(test,OUTPUT);
-    
+     
   Serial.begin(9600);
   
   
 }  
 
 void loop(){
+  if(i == 0){
   
-  x = digitalRead(pointX);
-  y = digitalRead(pointY);
-  z = digitalRead(pointZ);
+    old_x = analogRead(pointX);
+    old_y = analogRead(pointY);
+    old_z = analogRead(pointZ); 
+    i++;
   
+  }
+  else{
+    current_x = analogRead(pointX);
+    current_y = analogRead(pointY);
+    current_z = analogRead(pointZ);
+    
+    diff_z = current_z - old_z;
+    diff_y = current_y - old_y;
+    diff_x = current_x - old_x;
+  
+    if((abs(diff_z) > 20) || (abs(diff_y) > 20) || (abs(diff_x) > 20)){
+      Serial.println(big_change);
+      str_msg.data = "true";
+      accel.publish( &str_msg );
+      nh.spinOnce();
+      
+    }
+    
+    old_z = current_z;
+    old_y = current_y;
+    old_x = current_x;
+  
+  }  
+  
+  
+  /*
+  Serial.print("X = ");
   Serial.println(x);
+  Serial.print("Y = ");
   Serial.println(y);
+  Serial.print("Z = ");
   Serial.println(z);
-  
   Serial.println(" ");
- 
+ */
 
 }  
   
