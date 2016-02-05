@@ -211,10 +211,10 @@ class Game:
 
 			if circles is not None:
 				circles = np.uint16(np.around(circles))
-				
-				for j in circles[0,:]:
-					# draw the outer circle
-					cv2.circle(frame,(j[0],j[1]),j[2],(0,255,0),2) #Future repeat scans, average, accuracy+
+
+				circles = np.round(circles[0, :]).astype("int")
+				for (x, y, r) in circles:
+					cv2.circle(self.frame, (x, y), r, (0, 255, 0), 4)
 					for i in range(9):
 						if self.board[i] == 0:
 							#checks each section of box if it contains a circle
