@@ -22,11 +22,7 @@ def main(im_in):
         print im_in, ": FOUND HAND"
     else:
         print im_in, ": NO HAND"
-    # cv2.drawContours(img, contours, -1, (0,255,0), 2)
 
-    # cv2.imshow('img', img)
-    # c = cv2.waitKey(0)
-    # cv2.destroyAllWindows()
 
 if __name__ == "__main__":
     fn = "1, 2, 3, 4, 5, 6, 1a, 2a, 3a, 4a, 5a, 6a, 7a, 8a, 9a"
