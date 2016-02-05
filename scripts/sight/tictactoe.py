@@ -194,9 +194,8 @@ class Game:
 		while running:
 			# ret, self.frame = self.cap.read()
 
-			imgray = cv2.cvtColor(self.frame,cv2.COLOR_BGR2GRAY)
-			ret,thresh = cv2.threshold(imgray,115,255,0)
-			blur = cv2.blur(thresh, (2,2))
+			gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+			blur = cv2.GaussianBlur(gray, (5, 5), 0)
 
 			height, width, channels = self.frame.shape
 			self.image_w = width/3
@@ -208,12 +207,14 @@ class Game:
 
 
 			contours,h = cv2.findContours(blur,cv2.RETR_CCOMP,cv2.CHAIN_APPROX_TC89_L1)
-			circles = cv2.HoughCircles(imgray, cv.CV_HOUGH_GRADIENT,1, 100, param1=50,param2=30,minRadius=20,maxRadius=50)
+			circles = cv2.HoughCircles(blur, cv.CV_HOUGH_GRADIENT,1, 100, param1=50,param2=30,minRadius=20,maxRadius=50)
 
 			if circles is not None:
-				circles = np.round(circles[0, :]).astype("int")
-				for (x, y, r) in circles:
-					cv2.circle(self.frame, (x, y), r, (0, 255, 0), 4)
+				circles = np.uint16(np.around(circles))
+				
+				for j in circles[0,:]:
+					# draw the outer circle
+					cv2.circle(frame,(j[0],j[1]),j[2],(0,255,0),2) #Future repeat scans, average, accuracy+
 					for i in range(9):
 						if self.board[i] == 0:
 							#checks each section of box if it contains a circle
