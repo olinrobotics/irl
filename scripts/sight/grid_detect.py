@@ -21,22 +21,6 @@ def get_pt_x(pt1, pt2, d):
 
 	return (int(pt1[0]+d*u[0]), int(pt1[1]+d*u[1]))
 
-def center_running_avg(rect):
-
-	pt0_x = np.convolve(rect[0][0], np.ones(10)/10)
-	pt0_y = np.convolve(rect[0][1], np.ones(10)/10)
-
-	pt1_x = np.convolve(rect[1][0], np.ones(10)/10)
-	pt1_y = np.convolve(rect[1][1], np.ones(10)/10)
-
-	pt2_x = np.convolve(rect[2][0], np.ones(10)/10)
-	pt2_y = np.convolve(rect[2][1], np.ones(10)/10)
-
-	pt3_x = np.convolve(rect[3][0], np.ones(10)/10)
-	pt3_y = np.convolve(rect[3][1], np.ones(10)/10)
-
-	return [[pt0_x, pt0_y], [pt1_x, pt1_y], [pt2_x, pt2_y], [pt3_x, pt3_y]]
-
 def get_box(ref_box, h, w):
 	pt0 = ref_box[0]
 	pt1 = ref_box[1]
