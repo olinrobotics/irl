@@ -27,6 +27,7 @@ def inside_rect(pt1, pt2, pt3, x, y):
 	dax = pt3[0] - pt1[0]
 	day = pt3[1] - pt1[1]
 
+	print "bax: ", bax
 	if ((x - ax) * bax + (y - ay) * bay < 0.0):
 		return False
 	elif ((x - bx) * bax + (y - by) * bay > 0.0):
@@ -55,7 +56,7 @@ class GridDetector:
 
 		return (int(pt1[0]+d*u[0]), int(pt1[1]+d*u[1]))
 
-	def get_box(self, ref_box, h, w):
+	def get_box(self, ref_box, h, id_in):
 		pt0 = ref_box[0]
 		pt1 = ref_box[1]
 		pt2 = self.get_pt_x(ref_box[1], ref_box[2], h)
@@ -67,16 +68,16 @@ class GridDetector:
 		grid_height = int(self.get_distance(box[0], box[1]))
 		grid_width = int(self.get_distance(box[1], box[3]))
 
-		box2 = self.get_box([box[2], box[1], box[0], box[3]], grid_height, grid_width)
-		box4 = self.get_box(box, grid_height, grid_width)
-		box5 = self.get_box([box[3], box[2], box[1], box[0]], grid_height, grid_width)
-		box7 = self.get_box([box[3], box[0], box[1], box[2]], grid_height, grid_width)
+		box2 = self.get_box([box[2], box[1], box[0], box[3]], grid_height, 2)
+		box4 = self.get_box(box, grid_height, grid_width, 4)
+		box5 = self.get_box([box[3], box[2], box[1], box[0]], grid_height, 5)
+		box7 = self.get_box([box[3], box[0], box[1], box[2]], grid_height, 7)
 
-		box1 = self.get_box([box4[2], box4[1], box4[0], box4[3]], grid_height, grid_width)
-		box6 = self.get_box([box4[3], box4[0], box4[1], box4[2]], grid_height, grid_width)
+		box1 = self.get_box([box4[2], box4[1], box4[0], box4[3]], grid_height, 1)
+		box6 = self.get_box([box4[3], box4[0], box4[1], box4[2]], grid_height, 6)
 
-		box3 = self.get_box([box5[2], box5[1], box5[0], box5[3]], grid_height, grid_width)
-		box8 = self.get_box([box5[3], box5[0], box5[1], box5[2]], grid_height, grid_width)
+		box3 = self.get_box([box5[2], box5[1], box5[0], box5[3]], grid_height, 3)
+		box8 = self.get_box([box5[3], box5[0], box5[1], box5[2]], grid_height, 3)
 
 		return [box1, box2, box3, box4, box5, box6, box7, box8]
 
@@ -117,6 +118,7 @@ class GridDetector:
 
 			for box in boxes:
 				box = np.int0(box)
+
 				# cv2.drawContours(img,[box],0,(0,0,255),2)
 
 			self.boxes = np.int0(boxes)
@@ -217,10 +219,14 @@ class GridTester:
 			else:
 				running = False
 
-
 			for box in self.image_rectangles:
 				box = np.int0(box)
 				cv2.drawContours(self.frame,[box],0,(0,0,255),2)
+				for i in range(3):
+					pt = box[i]
+					x = pt[0]
+					y = pt[1]
+					cv2.circle(self.frame,(x,y),3,255,-1)
 
 			cv2.imshow("img", self.frame)
 			c = cv2.waitKey(1)
@@ -232,10 +238,9 @@ class GridTester:
 		self.board_msg.y = self.b_y
 		#note that Z should be a function of y.
 		self.board_msg.z = -670 - int((self.board_msg.y - 2500)/9)
-		# self.board_msg.z = -300
-		self.draw_pub.publish(self.board_msg)
-		print self.board_msg
-		time.sleep(25)
+		# self.draw_pub.publish(self.board_msg)
+		# print self.board_msg
+		# time.sleep(25)
 
 		#look at grid
 		# msg = "data: move_to:: 200, 2700, 1000, 0"
@@ -254,19 +259,6 @@ class GridTester:
 			for j in range(8):
 				elem = gd.boxes[j]
 				self.image_rectangles[j] = (self.image_rectangles[j] + elem)/2
-
-		# for box in self.image_rectangles:
-		# 	box = np.int0(box)
-		# 	cv2.drawContours(self.frame,[box],0,(0,0,255),2)
-
-		# for num, i in enumerate(corners):
-		# 	x,y = i.ravel()
-		# 	cv2.circle(self.frame,(x,y),3,255,-1)
-
-		# cv2.imshow("img", self.frame)
-		# c = cv2.waitKey(1)
-
-		# print self.image_rectangles
 
 	def run(self):
 		time.sleep(2)
