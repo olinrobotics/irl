@@ -24,7 +24,7 @@ class AudioObject:
 
         popen = subprocess.Popen(cmd, shell=True)
         popen.communicate()
-        return
+        return 1
         #popen.stdin.write("q")
 
     def update(self):
@@ -33,7 +33,7 @@ class AudioObject:
             print "playing sound file ", self.filename
             self.play_wave()
             self.playme = False
-        return
+        return 1
 
 class SoundBoard:
 	def __init__(self):
@@ -50,5 +50,5 @@ class SoundBoard:
     	call = data.msg #String indicating desired sound
 		command = (x for x in self.sound_library if x.name == call) #Find in sound library
 		command.play_wave()
-		return
+		return 1
 
