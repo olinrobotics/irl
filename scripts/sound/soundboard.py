@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import rospy
 from std_msgs.msg import String
 from edwin.msg import *
@@ -26,7 +27,9 @@ class AudioObject:
 
 class SoundBoard:
 	def __init__(self):
+		#self.Sound_pub = Rospy.Publisher('behaviors_cmd/sound_cmd', String, queue_size=10)
 		rospy.init_node('edwin_sounds', anonymous = True)
+		rospy.Subscriber('/sound_cmd', String, sound_callback)
 		self.sound_library =  self.create_objects()
 
 	def create_objects(self): #Reads all the files in media, instantiates them as audio_objects
@@ -43,4 +46,4 @@ class SoundBoard:
 
 if __name__ == '__main__':
 	sound = SoundBoard()
-	sound.sound_callback()
+	rospy.spin()
