@@ -27,7 +27,6 @@ def inside_rect(pt1, pt2, pt3, x, y):
 	dax = pt3[0] - pt1[0]
 	day = pt3[1] - pt1[1]
 
-	print "bax: ", bax
 	if ((x - ax) * bax + (y - ay) * bay < 0.0):
 		return False
 	elif ((x - bx) * bax + (y - by) * bay > 0.0):
@@ -62,14 +61,32 @@ class GridDetector:
 		pt2 = self.get_pt_x(ref_box[1], ref_box[2], h)
 		pt3 = self.get_pt_x(ref_box[0], ref_box[3], h)
 
-		return [pt0, pt1, pt2, pt3]
+		if id_in == 1:
+			return [pt0, pt3, pt2, pt1]
+		elif id_in == 2:
+			return [pt1, pt2, pt3, pt0]
+		elif id_in == 3:
+			return [pt1, pt2, pt3, pt0]
+		elif id_in == 4:
+			return [pt3, pt2, pt1, pt0]
+		elif id_in == 5:
+			return [pt0, pt1, pt2, pt3]
+		elif id_in == 6:
+			return [pt2, pt1, pt0, pt3]
+		elif id_in == 7:
+			return [pt2, pt1, pt0, pt3]
+		elif id_in == 8:
+			return [pt2, pt1, pt0, pt3]
+		else:
+			print "OUT OF BOUNDS"
+			return []
 
 	def get_grid(self, box):
 		grid_height = int(self.get_distance(box[0], box[1]))
 		grid_width = int(self.get_distance(box[1], box[3]))
 
 		box2 = self.get_box([box[2], box[1], box[0], box[3]], grid_height, 2)
-		box4 = self.get_box(box, grid_height, grid_width, 4)
+		box4 = self.get_box(box, grid_height, 4)
 		box5 = self.get_box([box[3], box[2], box[1], box[0]], grid_height, 5)
 		box7 = self.get_box([box[3], box[0], box[1], box[2]], grid_height, 7)
 
@@ -77,9 +94,11 @@ class GridDetector:
 		box6 = self.get_box([box4[3], box4[0], box4[1], box4[2]], grid_height, 6)
 
 		box3 = self.get_box([box5[2], box5[1], box5[0], box5[3]], grid_height, 3)
-		box8 = self.get_box([box5[3], box5[0], box5[1], box5[2]], grid_height, 3)
+		box8 = self.get_box([box5[3], box5[0], box5[1], box5[2]], grid_height, 8)
 
-		return [box1, box2, box3, box4, box5, box6, box7, box8]
+		return [box1, box2, box3,
+				box4, box, box5,
+				box6, box7, box8]
 
 	def get_center_box(self):
 		# img = cv2.imread(im_in)
@@ -107,8 +126,6 @@ class GridDetector:
 				pts_distances.append(sorted_dists[i])
 				center_rect.append(list(corners[pts_distances[i][0]].ravel()))
 
-			# print center_rect
-
 			rect = cv2.minAreaRect(np.int0(center_rect))
 
 			box = cv2.cv.BoxPoints(rect)
@@ -120,8 +137,8 @@ class GridDetector:
 				box = np.int0(box)
 
 				# cv2.drawContours(img,[box],0,(0,0,255),2)
-
 			self.boxes = np.int0(boxes)
+
 		return corners
 
 	def run(self, img):
@@ -144,7 +161,6 @@ class GridTester:
 
 		self.board_msg = Edwin_Shape()
 		self.draw_msg = Edwin_Shape()
-
 
 		#A blank space is represented by 0, an "O" is 1, and "X" is 10, we start with blank board
 		self.board =   [0, 0, 0,
@@ -200,7 +216,7 @@ class GridTester:
 				circles = np.round(circles[0, :]).astype("int")
 				for (x, y, r) in circles:
 					cv2.circle(self.frame, (x, y), r, (0, 255, 0), 4)
-					for i in range(8):
+					for i in range(9):
 						if self.board[i] == 0:
 							#checks each section of box if it contains a circle
 							if inside_rect(self.image_rectangles[i][0], self.image_rectangles[i][1], self.image_rectangles[i][3], int(x), int(y)):
@@ -228,6 +244,10 @@ class GridTester:
 					y = pt[1]
 					cv2.circle(self.frame,(x,y),3,255,-1)
 
+			for num, i in enumerate(self.corners):
+				x,y = i.ravel()
+				# cv2.circle(img,(x,y),3,255,-1)
+
 			cv2.imshow("img", self.frame)
 			c = cv2.waitKey(1)
 
@@ -237,7 +257,7 @@ class GridTester:
 		self.board_msg.x = self.b_x
 		self.board_msg.y = self.b_y
 		#note that Z should be a function of y.
-		self.board_msg.z = -670 - int((self.board_msg.y - 2500)/9)
+		self.board_msg.z = -640 - int((self.board_msg.y - 2500)/9)
 		# self.draw_pub.publish(self.board_msg)
 		# print self.board_msg
 		# time.sleep(25)
@@ -250,23 +270,66 @@ class GridTester:
 		time.sleep(1)
 
 		gd = GridDetector(self.frame)
-		corners = gd.get_center_box()
+		self.corners = gd.get_center_box()
 		self.image_rectangles = gd.boxes
 
 		for i in range(30):
 			gd.run(self.frame)
-			corners = gd.get_center_box()
-			for j in range(8):
+			self.corners = gd.get_center_box()
+			for j in range(9):
 				elem = gd.boxes[j]
 				self.image_rectangles[j] = (self.image_rectangles[j] + elem)/2
 
 	def run(self):
 		time.sleep(2)
+
+		# msg = "data: move_to:: 150, 2400, 1500, 0"
+		# print "sending: ", msg
+		# self.arm_pub.publish(msg)
+		# time.sleep(1)
+
 		# # r = rospy.Rate(10)
-		self.draw_the_board()
+		# self.draw_the_board()
+		gd = GridDetector(self.frame)
+		self.corners = gd.get_center_box()
+		self.image_rectangles = gd.boxes
+
+
 		while not rospy.is_shutdown():
-			self.field_scan()
-		# 	# ret, frame = cap.read()
+			for i in range(30):
+				gd.run(self.frame)
+				self.corners = gd.get_center_box()
+				for j in range(9):
+					elem = gd.boxes[j]
+					self.image_rectangles[j] = (self.image_rectangles[j] + elem)/2
+
+			for box in self.image_rectangles:
+				box = np.int0(box)
+				cv2.drawContours(self.frame,[box],0,(0,0,255),2)
+
+				box = self.image_rectangles[8]
+				#Identifying each of the three points in a box
+				for i in range(3):
+					pt = box[i]
+					x = pt[0]
+					y = pt[1]
+					if i == 0:
+						cv2.circle(self.frame,(x,y),3,(255, 0, 0),3)
+					elif i == 1:
+						cv2.circle(self.frame,(x,y),5,(0, 255, 0),3)
+					elif i == 2:
+						cv2.circle(self.frame,(x,y),10,(0, 0, 255),3)
+
+			for num, i in enumerate(self.corners):
+				x,y = i.ravel()
+				cv2.circle(self.frame,(x,y),3,255,-1)
+
+			cv2.imshow("img", self.frame)
+			c = cv2.waitKey(1)
+
+
+			# self.field_scan()
+			# ret, frame = cap.read()
 		# 	# img = self.get_center_box(frame)
 			# cv2.imshow("img", self.frame)
 			# c = cv2.waitKey(1)
