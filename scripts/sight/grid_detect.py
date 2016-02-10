@@ -182,19 +182,9 @@ class GridTester:
 		time.sleep(5)
 		#pick marker off paper
 		msg = "data: move_to:: 150, 2400, 1500, 0"
-		# msg = "data: move_to:: " + str(self.b_x) + ", " + str(self.b_y) + ", " + str(self.board_msg.z+250) + ", " + str(0)
 		print "sending: ", msg
 		self.arm_pub.publish(msg)
 		time.sleep(1)
-
-		# motions = ["data: rotate_hand:: 50",
-		# 			"data: rotate_wrist:: -550",
-		# 			"data: move_to:: 200, "+self.y_pos+", 500, 0"]
-
-		# for motion in motions:
-		# 	print "pub: ", motion
-		# 	self.arm_pub.publish(motion)
-		# 	time.sleep(2)
 
 		new_index = {}
 
@@ -214,24 +204,25 @@ class GridTester:
 			if circles is not None:
 				circles = np.uint16(np.around(circles))
 				circles = np.round(circles[0, :]).astype("int")
-				for (x, y, r) in circles:
-					cv2.circle(self.frame, (x, y), r, (0, 255, 0), 4)
-					for i in range(9):
-						if self.board[i] == 0:
-							#checks each section of box if it contains a circle
+				for i in range(9):
+					if self.board[i] == 0:
+						for (x, y, r) in circles:
 							if inside_rect(self.image_rectangles[i][0], self.image_rectangles[i][1], self.image_rectangles[i][3], int(x), int(y)):
 								try:
 									new_index[i] += 1
+									print "INSIDE RECT: ", i
 								except KeyError:
 									new_index[i] = 1
-								continue
-				print self.board
 
 				for key in new_index.keys():
 					if new_index[key] > 5:
 						self.board[key] = 1
 						running = False
 
+				print self.board
+
+
+			#if we detect no circles, exit loop
 			else:
 				running = False
 
@@ -244,10 +235,6 @@ class GridTester:
 					y = pt[1]
 					cv2.circle(self.frame,(x,y),3,255,-1)
 
-			for num, i in enumerate(self.corners):
-				x,y = i.ravel()
-				# cv2.circle(img,(x,y),3,255,-1)
-
 			cv2.imshow("img", self.frame)
 			c = cv2.waitKey(1)
 
@@ -258,12 +245,11 @@ class GridTester:
 		self.board_msg.y = self.b_y
 		#note that Z should be a function of y.
 		self.board_msg.z = -640 - int((self.board_msg.y - 2500)/9)
-		# self.draw_pub.publish(self.board_msg)
-		# print self.board_msg
-		# time.sleep(25)
+		self.draw_pub.publish(self.board_msg)
+		print self.board_msg
+		time.sleep(25)
 
 		#look at grid
-		# msg = "data: move_to:: 200, 2700, 1000, 0"
 		msg = "data: move_to:: 150, 2400, 1500, 0"
 		print "sending: ", msg
 		self.arm_pub.publish(msg)
@@ -282,59 +268,45 @@ class GridTester:
 
 	def run(self):
 		time.sleep(2)
-
-		# msg = "data: move_to:: 150, 2400, 1500, 0"
-		# print "sending: ", msg
-		# self.arm_pub.publish(msg)
-		# time.sleep(1)
-
-		# # r = rospy.Rate(10)
 		# self.draw_the_board()
 		gd = GridDetector(self.frame)
 		self.corners = gd.get_center_box()
 		self.image_rectangles = gd.boxes
 
-
 		while not rospy.is_shutdown():
-			for i in range(30):
+			for i in range(50):
 				gd.run(self.frame)
 				self.corners = gd.get_center_box()
 				for j in range(9):
 					elem = gd.boxes[j]
 					self.image_rectangles[j] = (self.image_rectangles[j] + elem)/2
 
-			for box in self.image_rectangles:
-				box = np.int0(box)
-				cv2.drawContours(self.frame,[box],0,(0,0,255),2)
+			self.field_scan()
 
-				box = self.image_rectangles[8]
-				#Identifying each of the three points in a box
-				for i in range(3):
-					pt = box[i]
-					x = pt[0]
-					y = pt[1]
-					if i == 0:
-						cv2.circle(self.frame,(x,y),3,(255, 0, 0),3)
-					elif i == 1:
-						cv2.circle(self.frame,(x,y),5,(0, 255, 0),3)
-					elif i == 2:
-						cv2.circle(self.frame,(x,y),10,(0, 0, 255),3)
+			# for box in self.image_rectangles:
+			# 	box = np.int0(box)
+			# 	cv2.drawContours(self.frame,[box],0,(0,0,255),2)
 
-			for num, i in enumerate(self.corners):
-				x,y = i.ravel()
-				cv2.circle(self.frame,(x,y),3,255,-1)
+			# 	box = self.image_rectangles[6]
+			# 	#Identifying each of the three points in a box
+			# 	for i in range(3):
+			# 		pt = box[i]
+			# 		x = pt[0]
+			# 		y = pt[1]
+			# 		if i == 0:
+			# 			cv2.circle(self.frame,(x,y),3,(255, 0, 0),3)
+			# 		elif i == 1:
+			# 			cv2.circle(self.frame,(x,y),5,(0, 255, 0),3)
+			# 		elif i == 2:
+			# 			cv2.circle(self.frame,(x,y),10,(0, 0, 255),3)
 
-			cv2.imshow("img", self.frame)
-			c = cv2.waitKey(1)
+			# for num, i in enumerate(self.corners):
+			# 	x,y = i.ravel()
+			# 	cv2.circle(self.frame,(x,y),3,255,-1)
 
-
-			# self.field_scan()
-			# ret, frame = cap.read()
-		# 	# img = self.get_center_box(frame)
 			# cv2.imshow("img", self.frame)
 			# c = cv2.waitKey(1)
-		# 	time.sleep(1)
-		# 	# r.sleep()
+
 
 if __name__ == "__main__":
 	gf = GridTester()
