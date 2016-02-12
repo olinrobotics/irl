@@ -5,10 +5,14 @@ from edwin.msg import *
 import time
 import subprocess
 
+
+
+
+
 class AudioObject:
 	def __init__(self, name):
 		self.name = name
-		self.path = "media" # TODO: fix this so it doesn't use '..'
+		self.path = "media"
 		self.filename = "{}/{}.wav".format(self.path, self.name)
 		self.player = 'mplayer'
 
@@ -23,24 +27,32 @@ class AudioObject:
 		popen = subprocess.Popen(cmd, shell=True)
 		popen.communicate()
 		return 1
-		#popen.stdin.write("q")
+		#popenj.stdin.write("q")
 
 class SoundBoard:
 	def __init__(self):
 		#self.Sound_pub = Rospy.Publisher('behaviors_cmd/sound_cmd', String, queue_size=10)
-		rospy.init_node('edwin_sounds', anonymous = True)
-		rospy.Subscriber('/sound_cmd', String, sound_callback)
+		rospy.init_node('edwin_sounds_callback', anonymous = True)
+		rospy.Subscriber('edwin_sounds', String, self.sound_callback)
 		self.sound_library =  self.create_objects()
 
 	def create_objects(self): #Reads all the files in media, instantiates them as audio_objects
 		AudioList = []
 		AudioList.append(AudioObject("Battlecry")) #Example/test file
+		AudioList.append(AudioObject("Dinosaur1"))
+		AudioList.append(AudioObject("Dinosaur_groan"))
+		AudioList.append(AudioObject("Dinosaur_Roar1"))
+		AudioList.append(AudioObject("Dinosaur_Roar2"))
+		AudioList.append(AudioObject("Dinosaur_snort"))
+		AudioList.append(AudioObject("Dragon"))
+		AudioList.append(AudioObject("Falcon"))
 		
 		return AudioList
 
 	def sound_callback(self, data):
-		call =  data.msg #String indicating desired sound
+		call =  data.data #String indicating desired sound
 		command = next((x for x in self.sound_library if x.name == call)) #Find in sound library
+		print "playing" + data.data
 		command.play_wave()
 		return 1
 
