@@ -48,7 +48,7 @@ int diff_x = 0;
 int i = 0;
 
 void setup(){
-  
+  nh.getHardware() -> setBaud(9600);
   nh.initNode();
   nh.advertise(accel);
   
@@ -57,7 +57,7 @@ void setup(){
   pinMode(pointY, INPUT);
   pinMode(pointX, INPUT);
      
-  Serial.begin(9600);
+  //Serial.begin(9600);
   
   
 }  
@@ -80,13 +80,21 @@ void loop(){
     diff_y = current_y - old_y;
     diff_x = current_x - old_x;
   
-    if((abs(diff_z) > 20) || (abs(diff_y) > 20) || (abs(diff_x) > 20)){
-      Serial.println(big_change);
+    if((abs(diff_z) > 75) || (abs(diff_y) > 75) || (abs(diff_x) > 75)){
+      //Serial.println(big_change);
       str_msg.data = "true";
-      accel.publish( &str_msg );
-      nh.spinOnce();
       
     }
+    else{
+      str_msg.data = "false";
+    }
+    
+    
+    accel.publish( &str_msg );
+    nh.spinOnce();
+    delay(100);
+
+
     
     old_z = current_z;
     old_y = current_y;
