@@ -10,8 +10,8 @@ find_package(catkin REQUIRED COMPONENTS
 	roslib
 	std_msgs
 	message_generation
-	rosserial_arduino
-	rosserial_client
+##	rosserial_arduino
+##	rosserial_client
 	cv_bridge
 )
 
