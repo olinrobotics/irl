@@ -14,31 +14,6 @@ from sensor_msgs.msg import Image
 from edwin.msg import Edwin_Shape
 from cv_bridge import CvBridge, CvBridgeError
 
-
-# def inside_rect(pt1, pt2, pt3, x, y):
-# 	ax = pt1[0]
-# 	ay = pt1[1]
-# 	bx = pt2[0]
-# 	by = pt2[1]
-# 	dx = pt1[0]
-# 	dy = pt2[0]
-# 	bax = pt2[0] - pt1[0]
-# 	bay = pt2[1] - pt1[1]
-# 	dax = pt3[0] - pt1[0]
-# 	day = pt3[1] - pt1[1]
-
-# 	if ((x - ax) * bax + (y - ay) * bay < 0.0):
-# 		return False
-# 	elif ((x - bx) * bax + (y - by) * bay > 0.0):
-# 		return False
-# 	elif ((x - ax) * dax + (y - ay) * day < 0.0):
-# 		return False
-# 	elif ((x - dx) * dax + (y - dy) * day > 0.0):
-# 		return False
-
-# 	return True
-
-
 def inside_rect(A, B, D, x, y):
 	AM_x = (x - A[0])
 	AM_y = (y - A[1])
@@ -255,7 +230,7 @@ class GridTester:
 						self.board[key] = 1
 						running = False
 
-				# print self.board
+				print self.board
 
 			#if we detect no circles, exit loop
 			else:
@@ -279,8 +254,8 @@ class GridTester:
 		self.board_msg.x = self.b_x
 		self.board_msg.y = self.b_y
 		#note that Z should be a function of y.
-		self.board_msg.z = -500 - int((self.board_msg.y - 2500)/9)
-		# self.board_msg.z = -640 - int((self.board_msg.y - 2500)/9)
+		# self.board_msg.z = -500 - int((self.board_msg.y - 2500)/9)
+		self.board_msg.z = -640 - int((self.board_msg.y - 2500)/9)
 		self.draw_pub.publish(self.board_msg)
 		print self.board_msg
 		time.sleep(25)
@@ -319,7 +294,6 @@ class GridTester:
 		fsc = True
 		# fsc = False
 		while not rospy.is_shutdown():
-			# self.field_scan()
 			if fsc:
 				self.field_scan()
 			else:
