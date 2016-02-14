@@ -117,7 +117,7 @@ class GridDetector:
 
 		gray = cv2.cvtColor(self.img,cv2.COLOR_BGR2GRAY)
 
-		corners = cv2.goodFeaturesToTrack(gray,25,0.09,100)
+		corners = cv2.goodFeaturesToTrack(gray,10,0.09,100)
 		corners = np.int0(corners)
 
 		dists = {}
@@ -187,6 +187,35 @@ class GridTester:
 		except CvBridgeError as e:
 			print(e)
 
+	def wait_for_hand(self):
+		running = True
+
+		hand_see = False
+		hand_gone = False
+
+		while running:
+			gray = cv2.cvtColor(self.frame,cv2.COLOR_BGR2GRAY)
+			ret, thresh = cv2.threshold(gray,0,255,cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
+
+			# noise removal
+			kernel = np.ones((3,3),np.uint8)
+			opening = cv2.morphologyEx(thresh,cv2.MORPH_OPEN,kernel, iterations = 2)
+
+			# sure background area
+			sure_bg = cv2.dilate(opening,kernel,iterations=3)
+			contours, hierarchy = cv2.findContours(sure_bg,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+
+			# Find the index of the largest contour
+			areas = [cv2.contourArea(c) for c in contours]
+			if max(areas) > 10000:
+				hand_see = True
+			else:
+				if hand_see:
+					hand_gone = True
+			if hand_see and hand_gone:
+				print "FINISHED DRAWING"
+				hand_see = False
+				hand_gone = False
 
 	def field_scan(self):
 		time.sleep(5)
@@ -198,6 +227,10 @@ class GridTester:
 
 		new_index = {}
 
+		while self.waiting_for_hand:
+			time.sleep(1)
+
+		self.waiting_for_hand = False
 		running = True
 		while running:
 			# ret, self.frame = self.cap.read()
@@ -254,8 +287,8 @@ class GridTester:
 		self.board_msg.x = self.b_x
 		self.board_msg.y = self.b_y
 		#note that Z should be a function of y.
-		# self.board_msg.z = -500 - int((self.board_msg.y - 2500)/9)
-		self.board_msg.z = -640 - int((self.board_msg.y - 2500)/9)
+		self.board_msg.z = -500 - int((self.board_msg.y - 2500)/9)
+		# self.board_msg.z = -640 - int((self.board_msg.y - 2500)/9)
 		self.draw_pub.publish(self.board_msg)
 		print self.board_msg
 		time.sleep(25)
@@ -277,6 +310,14 @@ class GridTester:
 				elem = gd.boxes[j]
 				self.image_rectangles[j] = (self.image_rectangles[j] + elem)/2
 
+	def find_lines(self):
+		gray = cv2.cvtColor(self.frame,cv2.COLOR_BGR2GRAY)
+		edges = cv2.Canny(gray,50,150,apertureSize = 3)
+		minLineLength = 100
+		maxLineGap = 10
+		lines = cv2.HoughLinesP(edges,1,np.pi/180,100,minLineLength,maxLineGap)
+		return lines
+
 	def run(self):
 		time.sleep(2)
 		# self.draw_the_board()
@@ -291,32 +332,43 @@ class GridTester:
 				elem = gd.boxes[j]
 				self.image_rectangles[j] = (self.image_rectangles[j] + elem)/2
 
-		fsc = True
-		# fsc = False
+		# fsc = True
+		fsc = False
+		# self.wait_for_hand()
+		# 		#pick marker off paper
+		# msg = "data: move_to:: 120, 2100, 1800, 0"
+		# print "sending: ", msg
+		# self.arm_pub.publish(msg)
+		# time.sleep(2)
+
 		while not rospy.is_shutdown():
 			if fsc:
 				self.field_scan()
 			else:
-				for box in self.image_rectangles:
-					box = np.int0(box)
-					cv2.drawContours(self.frame,[box],0,(0,0,255),2)
+				lines = self.find_lines()
+				if lines != None:
+					for x1,y1,x2,y2 in lines[0]:
+						cv2.line(self.frame,(x1,y1),(x2,y2),(0,255,0),2)
+				# for box in self.image_rectangles:
+				# 	box = np.int0(box)
+				# 	cv2.drawContours(self.frame,[box],0,(0,0,255),2)
 
-					box = self.image_rectangles[5]
-					#Identifying each of the three points in a box
-					for i in range(3):
-						pt = box[i]
-						x = pt[0]
-						y = pt[1]
-						if i == 0:
-							cv2.circle(self.frame,(x,y),3,(255, 0, 0),3)
-						elif i == 1:
-							cv2.circle(self.frame,(x,y),5,(0, 255, 0),3)
-						elif i == 2:
-							cv2.circle(self.frame,(x,y),10,(0, 0, 255),3)
+				# 	box = self.image_rectangles[5]
+				# 	#Identifying each of the three points in a box
+				# 	for i in range(3):
+				# 		pt = box[i]
+				# 		x = pt[0]
+				# 		y = pt[1]
+				# 		if i == 0:
+				# 			cv2.circle(self.frame,(x,y),3,(255, 0, 0),3)
+				# 		elif i == 1:
+				# 			cv2.circle(self.frame,(x,y),5,(0, 255, 0),3)
+				# 		elif i == 2:
+				# 			cv2.circle(self.frame,(x,y),10,(0, 0, 255),3)
 
-				for num, i in enumerate(self.corners):
-					x,y = i.ravel()
-					cv2.circle(self.frame,(x,y),3,255,-1)
+				# for num, i in enumerate(self.corners):
+				# 	x,y = i.ravel()
+				# 	cv2.circle(self.frame,(x,y),3,255,-1)
 
 				cv2.imshow("img", self.frame)
 				c = cv2.waitKey(1)
