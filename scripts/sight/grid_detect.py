@@ -117,7 +117,7 @@ class GridDetector:
 
 		gray = cv2.cvtColor(self.img,cv2.COLOR_BGR2GRAY)
 
-		corners = cv2.goodFeaturesToTrack(gray,10,0.09,100)
+		corners = cv2.goodFeaturesToTrack(gray,20,0.01,100)
 		corners = np.int0(corners)
 
 		dists = {}
@@ -131,7 +131,7 @@ class GridDetector:
 
 		pts_distances = []
 
-		if len(sorted_dists) > 4:
+		if len(sorted_dists) > 5:
 			for i in range(4):
 				pts_distances.append(sorted_dists[i])
 				center_rect.append(list(corners[pts_distances[i][0]].ravel()))
@@ -340,7 +340,7 @@ class GridTester:
 
 	def run(self):
 		time.sleep(2)
-		# self.draw_the_board()
+		self.draw_the_board()
 		gd = GridDetector(self.frame)
 		self.corners = gd.get_center_box()
 		self.image_rectangles = gd.boxes
@@ -366,42 +366,42 @@ class GridTester:
 			if fsc:
 				self.field_scan()
 			else:
-				lines = self.find_lines()
-				if lines != None:
-					for x1,y1,x2,y2 in lines[0]:
-						slope = (y1 - y2)/float(x1 - x2)
-						if slope > 0 and slope < 1000:
-							b = y1 - slope*x1
+				# lines = self.find_lines()
+				# if lines != None:
+				# 	for x1,y1,x2,y2 in lines[0]:
+				# 		slope = (y1 - y2)/float(x1 - x2)
+				# 		if slope > 0 and slope < 1000:
+				# 			b = y1 - slope*x1
 
-							p1_x = 0
-							p1_y = int(slope*p1_x + b)
+				# 			p1_x = 0
+				# 			p1_y = int(slope*p1_x + b)
 
-							p2_x = width
-							p2_y = int(slope*p2_x + b)
+				# 			p2_x = width
+				# 			p2_y = int(slope*p2_x + b)
 
-							cv2.line(self.frame,(p1_x,p1_y),(p2_x, p2_y),(0,255,0),2)
+				# 			cv2.line(self.frame,(p1_x,p1_y),(p2_x, p2_y),(0,255,0),2)
 
 
-				# for box in self.image_rectangles:
-				# 	box = np.int0(box)
-				# 	cv2.drawContours(self.frame,[box],0,(0,0,255),2)
+				for box in self.image_rectangles:
+					box = np.int0(box)
+					cv2.drawContours(self.frame,[box],0,(0,0,255),2)
 
-				# 	box = self.image_rectangles[5]
-				# 	#Identifying each of the three points in a box
-				# 	for i in range(3):
-				# 		pt = box[i]
-				# 		x = pt[0]
-				# 		y = pt[1]
-				# 		if i == 0:
-				# 			cv2.circle(self.frame,(x,y),3,(255, 0, 0),3)
-				# 		elif i == 1:
-				# 			cv2.circle(self.frame,(x,y),5,(0, 255, 0),3)
-				# 		elif i == 2:
-				# 			cv2.circle(self.frame,(x,y),10,(0, 0, 255),3)
+					box = self.image_rectangles[5]
+					#Identifying each of the three points in a box
+					for i in range(3):
+						pt = box[i]
+						x = pt[0]
+						y = pt[1]
+						if i == 0:
+							cv2.circle(self.frame,(x,y),3,(255, 0, 0),3)
+						elif i == 1:
+							cv2.circle(self.frame,(x,y),5,(0, 255, 0),3)
+						elif i == 2:
+							cv2.circle(self.frame,(x,y),10,(0, 0, 255),3)
 
-				# for num, i in enumerate(self.corners):
-				# 	x,y = i.ravel()
-				# 	cv2.circle(self.frame,(x,y),3,255,-1)
+				for num, i in enumerate(self.corners):
+					x,y = i.ravel()
+					cv2.circle(self.frame,(x,y),3,255,-1)
 
 				cv2.imshow("img", self.frame)
 				c = cv2.waitKey(1)

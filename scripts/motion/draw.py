@@ -99,7 +99,7 @@ class Drawer:
         i = 0
         width = 150
 
-        for i in range(5):
+        for i in range(7):
             if i == 0:
                 msg = "data: move_to:: " + str(x+width) + ", " + str(y+width) + ", " + str(z) + ", " +str(0)
             elif i == 1:
@@ -109,7 +109,12 @@ class Drawer:
             elif i == 3:
                 msg = "data: move_to:: " + str(x+width) + ", " + str(y-width) + ", " + str(z) + ", " +str(0)
             elif i == 4:
+                #pick marker off paper
+                msg = "data: move_to:: " + str(x+width) + ", " + str(y-width) + ", " + str(z+250) + ", " +str(0)
+            elif i == 5:
                 msg = "data: move_to:: " + str(x+width) + ", " + str(y+width) + ", " + str(z) + ", " +str(0)
+            elif i == 6:
+                msg = "data: move_to:: " + str(x+width) + ", " + str(y-width) + ", " + str(z) + ", " +str(0)
 
             print "sending: ", msg
             self.arm_pub.publish(msg)

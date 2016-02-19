@@ -118,7 +118,7 @@ class GridDetector:
 
 		gray = cv2.cvtColor(self.img,cv2.COLOR_BGR2GRAY)
 
-		corners = cv2.goodFeaturesToTrack(gray,25,0.09,100)
+		corners = cv2.goodFeaturesToTrack(gray,20,0.01,100)
 		corners = np.int0(corners)
 
 		dists = {}
@@ -177,7 +177,7 @@ class Game:
 		#Sector centroids
 		self.b_centers = {}
 		self.b_centers[0] = (self.b_x - 2.25*self.b_w, self.b_y + 1.5*self.b_w)
-		self.b_centers[1] = (self.b_x, self.b_y + 2*self.b_w)
+		self.b_centers[1] = (self.b_x, self.b_y + 1.5*self.b_w)
 		self.b_centers[2] = (self.b_x + 2*self.b_w, self.b_y + 1.5*self.b_w)
 
 		self.b_centers[3] = (self.b_x - 2*self.b_w, self.b_y)
@@ -310,11 +310,11 @@ class Game:
 			areas = [cv2.contourArea(c) for c in contours]
 			if max(areas) > 10000:
 				hand_see = True
-			    print "FOUND HAND"
+				print "FOUND HAND"
 			else:
 				if hand_see:
 					hand_gone = True
-			    print "NO HAND"
+				print "NO HAND"
 
 			if hand_see and hand_gone:
 				running = False
@@ -435,7 +435,7 @@ class Game:
 		self.draw_msg.x = center[0]
 		self.draw_msg.y = center[1]
 		#note that Z should be a function of y.
-		self.draw_msg.z = self.z_depth - ((self.draw_msg.y - 2500)/12)
+		self.draw_msg.z = self.z_depth - ((self.draw_msg.y - 2500)/9)
 		self.draw_pub.publish(self.draw_msg)
 
 	 	self.board[index] = 10
@@ -464,7 +464,10 @@ class Game:
 	 	# turn = random.randint(0,1)
 	 	turn = 0
 	 	time.sleep(5)
+	 	print "running"
+		self.z_depth = -680
 	 	self.draw_the_board()
+
 		gd = GridDetector(self.frame)
 		self.corners = gd.get_center_box()
 		self.image_rectangles = gd.boxes
@@ -475,9 +478,6 @@ class Game:
 			for j in range(9):
 				elem = gd.boxes[j]
 				self.image_rectangles[j] = (self.image_rectangles[j] + elem)/2
-
-	 	print "running"
-		self.z_depth = -640
 
 	 	if turn == 0:
 	 		print "Your turn first!"
