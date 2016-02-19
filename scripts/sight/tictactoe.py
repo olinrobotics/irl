@@ -310,11 +310,11 @@ class Game:
 			areas = [cv2.contourArea(c) for c in contours]
 			if max(areas) > 10000:
 				hand_see = True
-			    # print "FOUND HAND"
+			    print "FOUND HAND"
 			else:
 				if hand_see:
 					hand_gone = True
-			    # print "NO HAND"
+			    print "NO HAND"
 
 			if hand_see and hand_gone:
 				running = False

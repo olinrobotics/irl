@@ -287,17 +287,24 @@ class GridTester:
 		self.board_msg.x = self.b_x
 		self.board_msg.y = self.b_y
 		#note that Z should be a function of y.
-		self.board_msg.z = -500 - int((self.board_msg.y - 2500)/9)
+		self.board_msg.z = -400 - int((self.board_msg.y - 2500)/9)
 		# self.board_msg.z = -640 - int((self.board_msg.y - 2500)/9)
 		self.draw_pub.publish(self.board_msg)
 		print self.board_msg
 		time.sleep(25)
 
 		#look at grid
-		msg = "data: move_to:: 150, 2400, 1500, 0"
+		# msg = "data: move_to:: 150, 2400, 1500, 0"
+		# print "sending: ", msg
+		# self.arm_pub.publish(msg)
+		# time.sleep(1)
+
+		#look at grid
+		msg = "data: move_to:: 120, 2100, 1800, 0"
 		print "sending: ", msg
 		self.arm_pub.publish(msg)
 		time.sleep(1)
+
 
 		gd = GridDetector(self.frame)
 		self.corners = gd.get_center_box()
@@ -312,6 +319,19 @@ class GridTester:
 
 	def find_lines(self):
 		gray = cv2.cvtColor(self.frame,cv2.COLOR_BGR2GRAY)
+		# gray = np.float32(gray)
+
+		# dst = cv2.cornerHarris(gray,2,3,0.04)
+		# dst = cv2.dilate(dst,None)
+
+		# self.frame[dst>0.01*dst.max()]=[0,0,255]
+
+		# im_split = cv2.split(self.frame)
+		# flag,b = cv2.threshold(im_split[2],0,255,cv2.THRESH_OTSU)
+
+		# element = cv2.getStructuringElement(cv2.MORPH_CROSS,(1,1))
+		# cv2.erode(b,element)
+
 		edges = cv2.Canny(gray,50,150,apertureSize = 3)
 		minLineLength = 100
 		maxLineGap = 10
@@ -342,13 +362,26 @@ class GridTester:
 		# time.sleep(2)
 
 		while not rospy.is_shutdown():
+			height, width, channels = self.frame.shape
 			if fsc:
 				self.field_scan()
 			else:
 				lines = self.find_lines()
 				if lines != None:
 					for x1,y1,x2,y2 in lines[0]:
-						cv2.line(self.frame,(x1,y1),(x2,y2),(0,255,0),2)
+						slope = (y1 - y2)/float(x1 - x2)
+						if slope > 0 and slope < 1000:
+							b = y1 - slope*x1
+
+							p1_x = 0
+							p1_y = int(slope*p1_x + b)
+
+							p2_x = width
+							p2_y = int(slope*p2_x + b)
+
+							cv2.line(self.frame,(p1_x,p1_y),(p2_x, p2_y),(0,255,0),2)
+
+
 				# for box in self.image_rectangles:
 				# 	box = np.int0(box)
 				# 	cv2.drawContours(self.frame,[box],0,(0,0,255),2)

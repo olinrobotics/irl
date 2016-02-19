@@ -1,64 +1,53 @@
-# loop over the frames of the video
-while True:
-	# grab the current frame and initialize the occupied/unoccupied
-	# text
-	(grabbed, frame) = camera.read()
-	text = "Unoccupied"
+import cv2
+import numpy as np
 
-	# if the frame could not be grabbed, then we have reached the end
-	# of the video
-	if not grabbed:
-		break
+im = cv2.imread('photo2.JPG')
+gray = cv2.cvtColor(im,cv2.COLOR_BGR2GRAY)
 
-	# resize the frame, convert it to grayscale, and blur it
-	frame = imutils.resize(frame, width=500)
-	gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-	gray = cv2.GaussianBlur(gray, (21, 21), 0)
+imgSplit = cv2.split(im)
+flag,b = cv2.threshold(imgSplit[2],0,255,cv2.THRESH_OTSU)
 
-	# if the first frame is None, initialize it
-	if firstFrame is None:
-		firstFrame = gray
-		continue
+element = cv2.getStructuringElement(cv2.MORPH_CROSS,(1,1))
+cv2.erode(b,element)
 
-	# compute the absolute difference between the current frame and
-	# first frame
-	frameDelta = cv2.absdiff(firstFrame, gray)
-	thresh = cv2.threshold(frameDelta, 25, 255, cv2.THRESH_BINARY)[1]
+edges = cv2.Canny(b,150,200,3,5)
 
-	# dilate the thresholded image to fill in holes, then find contours
-	# on thresholded image
-	thresh = cv2.dilate(thresh, None, iterations=2)
-	(cnts, _) = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
-		cv2.CHAIN_APPROX_SIMPLE)
+while(True):
 
-	# loop over the contours
-	for c in cnts:
-		# if the contour is too small, ignore it
-		if cv2.contourArea(c) < args["min_area"]:
-			continue
+    img = im.copy()
 
-		# compute the bounding box for the contour, draw it on the frame,
-		# and update the text
-		(x, y, w, h) = cv2.boundingRect(c)
-		cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-		text = "Occupied"
+    lines = cv2.HoughLinesP(edges,1,np.pi/2,2, minLineLength = 620, maxLineGap = 100)[0]
 
-		# draw the text and timestamp on the frame
-	cv2.putText(frame, "Room Status: {}".format(text), (10, 20),
-		cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-	cv2.putText(frame, datetime.datetime.now().strftime("%A %d %B %Y %I:%M:%S%p"),
-		(10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
+    for x1,y1,x2,y2 in lines:
+        cv2.line(img,(x1,y1),(x2,y2),(0,255,0),1)
 
-	# show the frame and record if the user presses a key
-	cv2.imshow("Security Feed", frame)
-	cv2.imshow("Thresh", thresh)
-	cv2.imshow("Frame Delta", frameDelta)
-	key = cv2.waitKey(1) & 0xFF
+    cv2.imshow('houghlines',img)
 
-	# if the `q` key is pressed, break from the lop
-	if key == ord("q"):
-		break
+    if k == 27:
+        break
 
-# cleanup the camera and close any open windows
-camera.release()
 cv2.destroyAllWindows()
+
+filename = 'chessboard.png'
+    5 img = cv2.imread(filename)
+    6 gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+    7
+    8 gray = np.float32(gray)
+    9 dst = cv2.cornerHarris(gray,2,3,0.04)
+   10
+   11 #result is dilated for marking the corners, not important
+   12 dst = cv2.dilate(dst,None)
+   13
+   14 # Threshold for an optimal value, it may vary depending on the image.
+   15 img[dst>0.5*dst.max()]=[0,0,255]
+   16
+   17 cv2.imshow('dst',img)
+   18 if cv2.waitKey(0) & 0xff == 27:
+   19     cv2.destroyAllWindows()
+
+
+
+
+
+
+
