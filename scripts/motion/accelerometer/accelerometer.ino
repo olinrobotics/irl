@@ -8,6 +8,7 @@ will then read the values and then output a boolean when the
 accelerometer detects that there is a sudden surge in movement,
 i.e. when I tap it. It must be able to recognize tapping
 even when the accelerator moves at a constant speed.
+It also utilizes RosSerial as a Publisher to tell Edwin whether it moves.
 */
 
 
