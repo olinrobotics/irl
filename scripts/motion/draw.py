@@ -99,7 +99,7 @@ class Drawer:
         i = 0
         width = 150
 
-        for i in range(5):
+        for i in range(7):
             if i == 0:
                 msg = "data: move_to:: " + str(x+width) + ", " + str(y+width) + ", " + str(z) + ", " +str(0)
             elif i == 1:
@@ -109,7 +109,12 @@ class Drawer:
             elif i == 3:
                 msg = "data: move_to:: " + str(x+width) + ", " + str(y-width) + ", " + str(z) + ", " +str(0)
             elif i == 4:
+                #pick marker off paper
+                msg = "data: move_to:: " + str(x+width) + ", " + str(y-width) + ", " + str(z+250) + ", " +str(0)
+            elif i == 5:
                 msg = "data: move_to:: " + str(x+width) + ", " + str(y+width) + ", " + str(z) + ", " +str(0)
+            elif i == 6:
+                msg = "data: move_to:: " + str(x+width) + ", " + str(y-width) + ", " + str(z) + ", " +str(0)
 
             print "sending: ", msg
             self.arm_pub.publish(msg)
@@ -152,6 +157,60 @@ class Drawer:
     #             self.armpub.publish(msg)
     #             time.sleep(.5)
 
+    def draw_line(self, x, y, z):  #this is a test function to figure out straight lines and the algorithm for making them with edwin
+
+        #getting into position
+
+    
+
+        msg = "data: move_to:: " + str(x) + ", " + str(y) + ", " + str(z+25.0) + ", " + str(0)
+        print "sending: ", msg
+        self.arm_pub.publish(msg)
+        time.sleep(2)
+
+        #orienting head
+
+        msg = "data: rotate_hand:: " + str(200)
+        print "sending: ", msg
+        self.arm_pub.publish(msg)
+        time.sleep(.5)
+        msg = "data: rotate_wrist:: " + str(1000)
+        print "sending: ", msg
+        self.arm_pub.publish(msg)
+        time.sleep(2)
+
+        #drawing line
+
+        msg = "data: move_to:: " + str(x) + ", " + str(y) + ", " + str(z) + ", " + str(0)
+        print "sending: ", msg
+        self.arm_pub.publish(msg)
+        time.sleep(.5)
+
+
+        msg = "data: move_to:: " + str(x-100) + ", " + str(y) + ", " + str(z) + ", " + str(0)
+        print "sending: ", msg
+        self.arm_pub.publish(msg)
+        time.sleep(.5)
+
+        
+        msg = "data: move_to:: " + str(x+100) + ", " + str(y) + ", " + str(z) + ", " + str(0)
+        print "sending: ", msg
+        self.arm_pub.publish(msg)
+        time.sleep(.5)
+
+        #returning to starting point
+
+
+        msg = "data: move_to:: " + str(x) + ", " + str(y) + ", " + str(z+25.0) + ", " + str(0)
+        print "sending: ", msg
+        self.arm_pub.publish(msg)
+        time.sleep(.5)
+
+
+
+
+
+
 
     def run(self):
         print "running"
@@ -161,4 +220,5 @@ class Drawer:
 
 if __name__ == "__main__":
     draw = Drawer()
+    draw.draw_line(0.0,430.0,-97.2)
     draw.run()
