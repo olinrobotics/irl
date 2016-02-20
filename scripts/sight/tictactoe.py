@@ -329,12 +329,20 @@ class Game:
 		# self.arm_pub.publish(msg)
 		# time.sleep(1)
 
-		#pick marker off paper
+		# #getting into position
+		# motions = ["data: rotate_hand:: " + str(200),
+		# 		"data: rotate_wrist:: " + str(1000)]
+
+		# for motion in motions:
+		# 	print "sending: ", motion
+		# 	self.arm_pub.publish(motion)
+		# 	time.sleep(1)
+
+		#look at grid
 		msg = "data: move_to:: 120, 2100, 1800, 0"
 		print "sending: ", msg
 		self.arm_pub.publish(msg)
-		time.sleep(2)
-
+		time.sleep(1)
 
 		new_index = {}
 
@@ -432,8 +440,24 @@ class Game:
 
 	def grid_callback(self, msg):
 		print "GRID INFO IS: ", msg.data
+		data = msg.data
+		if "ok" in msg.data:
+			print "OK FOUND"
+			self.calib_grid = False
+		elif "re" in msg.data:
+			print "RECALIB FOUND"
+			gd = GridDetector(self.frame)
+			self.corners = gd.get_center_box()
+			self.image_rectangles = gd.boxes
 
-	def calib_grid(self):
+			for i in range(100):
+				gd.run(self.frame)
+				self.corners = gd.get_center_box()
+				for j in range(9):
+					elem = gd.boxes[j]
+					self.image_rectangles[j] = (self.image_rectangles[j] + elem)/2
+
+	def calib_grid_img(self):
 		while self.calib_grid:
 			for box in self.image_rectangles:
 				box = np.int0(box)
@@ -460,11 +484,25 @@ class Game:
 		self.draw_msg.x = center[0]
 		self.draw_msg.y = center[1]
 		#note that Z should be a function of y.
-		self.draw_msg.z = self.z_depth - ((self.draw_msg.y - 2500)/9)
+		# self.draw_msg.z = self.z_depth - ((self.draw_msg.y - 2500)/9)
+		self.draw_msg.z = self.z_depth - int((self.board_msg.y - 2500)/9.5)
 		self.draw_pub.publish(self.draw_msg)
 
 	 	self.board[index] = 10
 	 	time.sleep(10)
+
+		#center grid
+		msg = "data: move_to:: " + str(self.b_x) + ", " + str(self.b_y) + ", " + str(self.draw_msg.z+250) + ", " + str(0)
+		print "sending: ", msg
+		self.arm_pub.publish(msg)
+		time.sleep(1)
+
+		#look at grid
+		msg = "data: move_to:: 120, 2100, 1800, 0"
+		print "sending: ", msg
+		self.arm_pub.publish(msg)
+		time.sleep(1)
+
 
 	def ai_move(self, index):
 		#edwin moves to desired location and draws
@@ -503,6 +541,9 @@ class Game:
 			for j in range(9):
 				elem = gd.boxes[j]
 				self.image_rectangles[j] = (self.image_rectangles[j] + elem)/2
+
+		self.calib_grid = True
+		self.calib_grid_img()
 
 	 	if turn == 0:
 	 		print "Your turn first!"
