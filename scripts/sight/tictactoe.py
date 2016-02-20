@@ -169,6 +169,9 @@ class Game:
 		self.bridge = CvBridge()
 		self.image_sub = rospy.Subscriber("usb_cam/image_raw", Image, self.img_callback)
 
+		self.grid_stat_sub = rospy.Subscriber("grid_status", String , self.grid_callback)
+
+
 		#Board X and Y positions
 		self.b_x = 0
 		self.b_y = 4000
@@ -426,6 +429,28 @@ class Game:
 			for j in range(9):
 				elem = gd.boxes[j]
 				self.image_rectangles[j] = (self.image_rectangles[j] + elem)/2
+
+	def grid_callback(self, msg):
+		print "GRID INFO IS: ", msg.data
+
+	def calib_grid(self):
+		while self.calib_grid:
+			for box in self.image_rectangles:
+				box = np.int0(box)
+				cv2.drawContours(self.frame,[box],0,(0,0,255),2)
+				for i in range(3):
+					pt = box[i]
+					x = pt[0]
+					y = pt[1]
+					cv2.circle(self.frame,(x,y),3,255,-1)
+
+			for num, i in enumerate(self.corners):
+					x,y = i.ravel()
+					cv2.circle(self.frame,(x,y),3,255,-1)
+
+			cv2.imshow("img", self.frame)
+			c = cv2.waitKey(1)
+
 
 	def edwin_move(self, index):
 		#edwin moves to desired location and draws
