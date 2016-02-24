@@ -351,71 +351,53 @@ class GridTester:
 
 	def run(self):
 		time.sleep(2)
-		# self.draw_the_board()
-		# gd = GridDetector(self.frame)
-		# self.corners = gd.get_center_box()
-		# self.image_rectangles = gd.boxes
+		self.draw_the_board()
+		gd = GridDetector(self.frame)
+		self.corners = gd.get_center_box()
+		self.image_rectangles = gd.boxes
 
-		# for i in range(50):
-		# 	gd.run(self.frame)
-		# 	self.corners = gd.get_center_box()
-		# 	for j in range(9):
-		# 		elem = gd.boxes[j]
-		# 		self.image_rectangles[j] = (self.image_rectangles[j] + elem)/2
+		for i in range(50):
+			gd.run(self.frame)
+			self.corners = gd.get_center_box()
+			for j in range(9):
+				elem = gd.boxes[j]
+				self.image_rectangles[j] = (self.image_rectangles[j] + elem)/2
 
 		# # fsc = True
-		# fsc = False
-		self.wait_for_hand()
-		# 		#pick marker off paper
+		fsc = False
 		# msg = "data: move_to:: 120, 2100, 1800, 0"
 		# print "sending: ", msg
 		# self.arm_pub.publish(msg)
 		# time.sleep(2)
 
-		while not rospy.is_shutdown():
-			height, width, channels = self.frame.shape
-			if fsc:
-				self.field_scan()
-			else:
-				# lines = self.find_lines()
-				# if lines != None:
-				# 	for x1,y1,x2,y2 in lines[0]:
-				# 		slope = (y1 - y2)/float(x1 - x2)
-				# 		if slope > 0 and slope < 1000:
-				# 			b = y1 - slope*x1
+		# while not rospy.is_shutdown():
+		# 	height, width, channels = self.frame.shape
+		# 	if fsc:
+		# 		self.field_scan()
+		# 	else:
+		# 		for box in self.image_rectangles:
+		# 			box = np.int0(box)
+		# 			cv2.drawContours(self.frame,[box],0,(0,0,255),2)
 
-				# 			p1_x = 0
-				# 			p1_y = int(slope*p1_x + b)
+		# 			box = self.image_rectangles[5]
+		# 			#Identifying each of the three points in a box
+		# 			for i in range(3):
+		# 				pt = box[i]
+		# 				x = pt[0]
+		# 				y = pt[1]
+		# 				if i == 0:
+		# 					cv2.circle(self.frame,(x,y),3,(255, 0, 0),3)
+		# 				elif i == 1:
+		# 					cv2.circle(self.frame,(x,y),5,(0, 255, 0),3)
+		# 				elif i == 2:
+		# 					cv2.circle(self.frame,(x,y),10,(0, 0, 255),3)
 
-				# 			p2_x = width
-				# 			p2_y = int(slope*p2_x + b)
+		# 		for num, i in enumerate(self.corners):
+		# 			x,y = i.ravel()
+		# 			cv2.circle(self.frame,(x,y),3,255,-1)
 
-				# 			cv2.line(self.frame,(p1_x,p1_y),(p2_x, p2_y),(0,255,0),2)
-
-
-				for box in self.image_rectangles:
-					box = np.int0(box)
-					cv2.drawContours(self.frame,[box],0,(0,0,255),2)
-
-					box = self.image_rectangles[5]
-					#Identifying each of the three points in a box
-					for i in range(3):
-						pt = box[i]
-						x = pt[0]
-						y = pt[1]
-						if i == 0:
-							cv2.circle(self.frame,(x,y),3,(255, 0, 0),3)
-						elif i == 1:
-							cv2.circle(self.frame,(x,y),5,(0, 255, 0),3)
-						elif i == 2:
-							cv2.circle(self.frame,(x,y),10,(0, 0, 255),3)
-
-				for num, i in enumerate(self.corners):
-					x,y = i.ravel()
-					cv2.circle(self.frame,(x,y),3,255,-1)
-
-				cv2.imshow("img", self.frame)
-				c = cv2.waitKey(1)
+		# 		cv2.imshow("img", self.frame)
+		# 		c = cv2.waitKey(1)
 
 
 if __name__ == "__main__":

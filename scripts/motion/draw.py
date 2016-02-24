@@ -70,11 +70,11 @@ class Drawer:
             time.sleep(1)
 
             #pick marker off paper
-            msg = "data: move_to:: " + str(line[1][0]) + ", " + str(line[1
-                ][1]) + ", " + str(z+250) + ", " +str(0)
+            msg = "data: move_to:: " + str(line[1][0]) + ", " + str(line[1][1]) + ", " + str(z+250) + ", " +str(0)
             print "sending: ", msg
             self.arm_pub.publish(msg)
             time.sleep(1)
+
 
     def draw_triangle(self, x, y, z):
         w = 150 #width of square

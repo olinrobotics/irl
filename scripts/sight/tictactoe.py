@@ -473,17 +473,17 @@ class Game:
 		self.draw_msg.y = center[1]
 		#note that Z should be a function of y.
 		# self.draw_msg.z = self.z_depth - ((self.draw_msg.y - 2500)/9)
-		self.draw_msg.z = self.z_depth - int((self.board_msg.y - 2500)/10)
+		self.draw_msg.z = self.z_depth - int((self.draw_msg.y - 2500)/9.5)
 		self.draw_pub.publish(self.draw_msg)
 
 	 	self.board[index] = 10
 	 	time.sleep(10)
 
 		#center grid
-		msg = "data: move_to:: " + str(self.b_x) + ", " + str(self.b_y) + ", " + str(self.draw_msg.z+250) + ", " + str(0)
+		msg = "data: move_to:: " + str(self.b_x+3*250) + ", " + str(self.b_y-250) + ", " + str(self.draw_msg.z+250) + ", " +str(0)
 		print "sending: ", msg
 		self.arm_pub.publish(msg)
-		time.sleep(1)
+		time.sleep(2)
 
 		#look at grid
 		msg = "data: move_to:: 200, 2400, 1800, 0"
@@ -537,7 +537,6 @@ class Game:
 
 	 	ai = False
 	 	while running:
-	 		# self.field_scan()
 	 		print self.board
 	 		if turn == 0: #Player turn.
 	 			#self.behav_pub.publish("nudge")
