@@ -197,6 +197,7 @@ class Game:
 						0, 0, 0,
 						0, 0, 0]
 
+
 		self.corners = [0,2,6,8] #indices of the corner locations
 		self.sides = [1,3,5,7]
 		self.middle = 4
@@ -219,14 +220,16 @@ class Game:
 		board_sums[0] = board[0] + board[1] + board[2] #Top Horizontal Line
 		board_sums[1] = board[3] + board[4] + board[5] #Middle Horizontal Line
 		board_sums[2] = board[6] + board[7] + board[8] #Bottom Horizontal Line
+
 		board_sums[3] = board[0] + board[3] + board[6] #Left Vertical Line
 		board_sums[4] = board[1] + board[4] + board[7] #Middle Vertical Line
 		board_sums[5] = board[2] + board[5] + board[8] #Right Vertical Line
+
 		board_sums[6] = board[0] + board[4] + board[8] #LR Diagonal Line
 		board_sums[7] = board[2] + board[4] + board[6] #RL Diagonal Line
+
 		#There are 4 cases - NoWin, EdWin, Player Win and Tie, Tie is accounted for
 		#in a piece of code further down.
-
 		for b_sum in board_sums:
 			if b_sum == 30:
 				return 1
@@ -250,9 +253,9 @@ class Game:
 	def next_move(self):
 		#Returns index of next move
 		#Checks if Edwin can win on this move
-		board_copy = copy.deepcopy(self.board)
 
 		for i in range(9): #don't use len(self.board), it's a numpy array
+			board_copy = copy.deepcopy(self.board)
 			if self.is_free(board_copy, i):
 				board_copy[i] = 10
 				if self.is_winner(board_copy) == 1:
@@ -260,6 +263,7 @@ class Game:
 
 		#Checks if player can win the next turn
 		for i in range(9):
+			board_copy = copy.deepcopy(self.board)
 			if self.is_free(board_copy, i):
 				board_copy[i] = 1
 				if self.is_winner(board_copy) == 2:
@@ -267,18 +271,20 @@ class Game:
 
 		#Otherwise, prioritizes grabbing corners.
 		for i in range(4):
+			board_copy = copy.deepcopy(self.board)
 			if self.is_free(board_copy, self.corners[i]):
 				return self.corners[i]
 
 		#Otherwise, get the middle.
 		if self.is_free(board_copy, self.middle):
+			board_copy = copy.deepcopy(self.board)
 			return self.middle
 
 		#Otherwise, get a side.
 		for i in range(4):
+			board_copy = copy.deepcopy(self.board)
 			if self.is_free(board_copy, self.sides[i]):
 				return self.sides[i]
-
 
 
 	def manual_field_scan(self):
@@ -302,7 +308,7 @@ class Game:
 			ret, thresh = cv2.threshold(gray,0,255,cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
 
 			# noise removal
-			kernel = np.ones((3,3),np.uint8)
+			kernel = np.ones((5,5),np.uint8)
 			opening = cv2.morphologyEx(thresh,cv2.MORPH_OPEN,kernel, iterations = 2)
 
 			# sure background area
@@ -339,7 +345,7 @@ class Game:
 		# 	time.sleep(1)
 
 		#look at grid
-		msg = "data: move_to:: 120, 2100, 1800, 0"
+		msg = "data: move_to:: 200, 2400, 1800, 0"
 		print "sending: ", msg
 		self.arm_pub.publish(msg)
 		time.sleep(1)
@@ -418,14 +424,14 @@ class Game:
 		time.sleep(25)
 
 		#look at grid
-		msg = "data: move_to:: 120, 2100, 1800, 0"
+		msg = "data: move_to:: 200, 2400, 1800, 0"
 		print "sending: ", msg
 		self.arm_pub.publish(msg)
 		time.sleep(1)
 
 		print "DRAW IN GUIDE DOTS"
 		time.sleep(5)
-		print "DONE"
+		print "SEND OK COMMAND TO CONTINUE"
 
 		gd = GridDetector(self.frame)
 		self.corners = gd.get_center_box()
@@ -485,7 +491,7 @@ class Game:
 		self.draw_msg.y = center[1]
 		#note that Z should be a function of y.
 		# self.draw_msg.z = self.z_depth - ((self.draw_msg.y - 2500)/9)
-		self.draw_msg.z = self.z_depth - int((self.board_msg.y - 2500)/9.5)
+		self.draw_msg.z = self.z_depth - int((self.board_msg.y - 2400)/10)
 		self.draw_pub.publish(self.draw_msg)
 
 	 	self.board[index] = 10
@@ -498,7 +504,7 @@ class Game:
 		time.sleep(1)
 
 		#look at grid
-		msg = "data: move_to:: 120, 2100, 1800, 0"
+		msg = "data: move_to:: 200, 2400, 1800, 0"
 		print "sending: ", msg
 		self.arm_pub.publish(msg)
 		time.sleep(1)
@@ -522,8 +528,7 @@ class Game:
 	def run(self):
 		#Player is O: 1
 		#Edwin is X: 10
-		# self.cap = cv2.VideoCapture(1)
-	 	running = True
+		running = True
 	 	# turn = random.randint(0,1)
 	 	turn = 0
 	 	time.sleep(5)
@@ -577,7 +582,6 @@ class Game:
 	 				print "EDWIN WINS"
 	 				# self.behav_pub("gloat")
 	 				running = False
-
 
 
 if __name__ == '__main__':

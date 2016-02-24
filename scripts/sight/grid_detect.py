@@ -198,24 +198,35 @@ class GridTester:
 			ret, thresh = cv2.threshold(gray,0,255,cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
 
 			# noise removal
-			kernel = np.ones((3,3),np.uint8)
+			kernel = np.ones((5,5),np.uint8)
 			opening = cv2.morphologyEx(thresh,cv2.MORPH_OPEN,kernel, iterations = 2)
 
 			# sure background area
 			sure_bg = cv2.dilate(opening,kernel,iterations=3)
 			contours, hierarchy = cv2.findContours(sure_bg,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 
-			# Find the index of the largest contour
 			areas = [cv2.contourArea(c) for c in contours]
-			if max(areas) > 10000:
-				hand_see = True
-			else:
-				if hand_see:
-					hand_gone = True
-			if hand_see and hand_gone:
-				print "FINISHED DRAWING"
-				hand_see = False
-				hand_gone = False
+			print max(areas)
+
+			# Find the index of the largest contour
+			cv2.drawContours(self.frame, contours, -1, (0,255,0), 3)
+
+			cv2.imshow("img", self.frame)
+			cv2.imshow("thresh", sure_bg)
+			c = cv2.waitKey(1)
+
+			# if max(areas) > 10000:
+			# 	print "FOUND HAND"
+			# else:
+			# 	print "NO HAND"
+			# # 	hand_see = True
+			# else:
+			# 	if hand_see:
+			# 		hand_gone = True
+			# if hand_see and hand_gone:
+			# 	print "FINISHED DRAWING"
+			# 	hand_see = False
+			# 	hand_gone = False
 
 	def field_scan(self):
 		time.sleep(5)
@@ -340,21 +351,21 @@ class GridTester:
 
 	def run(self):
 		time.sleep(2)
-		self.draw_the_board()
-		gd = GridDetector(self.frame)
-		self.corners = gd.get_center_box()
-		self.image_rectangles = gd.boxes
+		# self.draw_the_board()
+		# gd = GridDetector(self.frame)
+		# self.corners = gd.get_center_box()
+		# self.image_rectangles = gd.boxes
 
-		for i in range(50):
-			gd.run(self.frame)
-			self.corners = gd.get_center_box()
-			for j in range(9):
-				elem = gd.boxes[j]
-				self.image_rectangles[j] = (self.image_rectangles[j] + elem)/2
+		# for i in range(50):
+		# 	gd.run(self.frame)
+		# 	self.corners = gd.get_center_box()
+		# 	for j in range(9):
+		# 		elem = gd.boxes[j]
+		# 		self.image_rectangles[j] = (self.image_rectangles[j] + elem)/2
 
-		# fsc = True
-		fsc = False
-		# self.wait_for_hand()
+		# # fsc = True
+		# fsc = False
+		self.wait_for_hand()
 		# 		#pick marker off paper
 		# msg = "data: move_to:: 120, 2100, 1800, 0"
 		# print "sending: ", msg

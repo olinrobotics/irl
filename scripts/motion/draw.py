@@ -161,7 +161,7 @@ class Drawer:
 
         #getting into position
 
-    
+
 
         msg = "data: move_to:: " + str(x) + ", " + str(y) + ", " + str(z+25.0) + ", " + str(0)
         print "sending: ", msg
@@ -192,25 +192,17 @@ class Drawer:
         self.arm_pub.publish(msg)
         time.sleep(.5)
 
-        
+
         msg = "data: move_to:: " + str(x+100) + ", " + str(y) + ", " + str(z) + ", " + str(0)
         print "sending: ", msg
         self.arm_pub.publish(msg)
         time.sleep(.5)
 
         #returning to starting point
-
-
         msg = "data: move_to:: " + str(x) + ", " + str(y) + ", " + str(z+25.0) + ", " + str(0)
         print "sending: ", msg
         self.arm_pub.publish(msg)
         time.sleep(.5)
-
-
-
-
-
-
 
     def run(self):
         print "running"
@@ -220,5 +212,4 @@ class Drawer:
 
 if __name__ == "__main__":
     draw = Drawer()
-    draw.draw_line(0.0,430.0,-97.2)
     draw.run()
