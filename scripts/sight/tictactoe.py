@@ -171,7 +171,6 @@ class Game:
 
 		self.grid_stat_sub = rospy.Subscriber("grid_status", String , self.grid_callback)
 
-
 		#Board X and Y positions
 		self.b_x = 0
 		self.b_y = 4000
@@ -198,9 +197,9 @@ class Game:
 						0, 0, 0]
 
 
-		self.corners = [0,2,6,8] #indices of the corner locations
-		self.sides = [1,3,5,7]
-		self.middle = 4
+		self.grid_corners = [0,2,6,8] #indices of the corner locations
+		self.grid_sides = [1,3,5,7]
+		self.grid_middle = 4
 
 		self.z_depth = -630
 
@@ -215,7 +214,6 @@ class Game:
 		"""
 		Computes whether board will win
 		"""
-
 		board_sums = [0, 0, 0, 0, 0, 0, 0, 0] #These are the 8 different lines.
 		board_sums[0] = board[0] + board[1] + board[2] #Top Horizontal Line
 		board_sums[1] = board[3] + board[4] + board[5] #Middle Horizontal Line
@@ -253,7 +251,6 @@ class Game:
 	def next_move(self):
 		#Returns index of next move
 		#Checks if Edwin can win on this move
-
 		for i in range(9): #don't use len(self.board), it's a numpy array
 			board_copy = copy.deepcopy(self.board)
 			if self.is_free(board_copy, i):
@@ -272,19 +269,19 @@ class Game:
 		#Otherwise, prioritizes grabbing corners.
 		for i in range(4):
 			board_copy = copy.deepcopy(self.board)
-			if self.is_free(board_copy, self.corners[i]):
-				return self.corners[i]
+			if self.is_free(board_copy, self.grid_corners[i]):
+				return self.grid_corners[i]
 
 		#Otherwise, get the middle.
-		if self.is_free(board_copy, self.middle):
+		if self.is_free(board_copy, self.grid_middle):
 			board_copy = copy.deepcopy(self.board)
-			return self.middle
+			return self.grid_middle
 
 		#Otherwise, get a side.
 		for i in range(4):
 			board_copy = copy.deepcopy(self.board)
-			if self.is_free(board_copy, self.sides[i]):
-				return self.sides[i]
+			if self.is_free(board_copy, self.grid_sides[i]):
+				return self.grid_sides[i]
 
 
 	def manual_field_scan(self):
@@ -330,19 +327,6 @@ class Game:
 
 	def field_scan(self):
 		time.sleep(5)
-		# msg = "data: rotate_wrist:: 2000"
-		# print "sending: ", msg
-		# self.arm_pub.publish(msg)
-		# time.sleep(1)
-
-		# #getting into position
-		# motions = ["data: rotate_hand:: " + str(200),
-		# 		"data: rotate_wrist:: " + str(1000)]
-
-		# for motion in motions:
-		# 	print "sending: ", motion
-		# 	self.arm_pub.publish(motion)
-		# 	time.sleep(1)
 
 		#look at grid
 		msg = "data: move_to:: 200, 2400, 1800, 0"
@@ -357,8 +341,6 @@ class Game:
 
 		running = True
 		while running:
-			# ret, self.frame = self.cap.read()
-
 			gray = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
 
 			height, width, channels = self.frame.shape
@@ -429,7 +411,7 @@ class Game:
 		self.arm_pub.publish(msg)
 		time.sleep(1)
 
-		print "DRAW IN GUIDE DOTS"
+		print "DRAW IN GUIDES IF NECESSARY"
 		time.sleep(5)
 		print "SEND OK COMMAND TO CONTINUE"
 
@@ -491,7 +473,7 @@ class Game:
 		self.draw_msg.y = center[1]
 		#note that Z should be a function of y.
 		# self.draw_msg.z = self.z_depth - ((self.draw_msg.y - 2500)/9)
-		self.draw_msg.z = self.z_depth - int((self.board_msg.y - 2400)/10)
+		self.draw_msg.z = self.z_depth - int((self.board_msg.y - 2500)/10)
 		self.draw_pub.publish(self.draw_msg)
 
 	 	self.board[index] = 10
