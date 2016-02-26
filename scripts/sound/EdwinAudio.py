@@ -6,6 +6,8 @@ import time
 import subprocess
 import alsaaudio, time, audioop
 
+#Edwin Audio basically detects and publishes the peak volume and length of a soundbite.  
+
 class EdwinAudioDetection():
 	def __init__(self):
 			# Open the device in nonblocking capture mode. The last argument could
@@ -26,13 +28,13 @@ class EdwinAudioDetection():
 		# or 0 bytes of data. The latter is possible because we are in nonblocking
 		# mode.
 		pub = rospy.Publisher('Edwin_Sound_Detection', String, queue_size=10)
-		rospy.init_node('Edwin_Sound_Detection_Executable', anonymous=True)
-		rospy.Subscriber('Edwin_Sound_Detection_Runner', String, self.run)
+		rospy.init_node('Edwin_Sound_Detector', anonymous=True)
+		#rospy.Subscriber('Edwin_Sound_Detection_Runner', String, self.run)
 		#The subscriber tells whether or not to run the Run script, which listens to one sound
 		#And then as of now, returns the length of the soundbite.  
-	def test_publish():
-		test_pub = rospy.Publisher('Edwin_Sound_Detection_Runner', String, queue_size=10)
-		test_pub.publish('run') #TestScript that gives the command to run the audio length
+	#def test_publish():
+	#	test_pub = rospy.Publisher('Edwin_Sound_Detection_Runner', String, queue_size=10)
+	#	test_pub.publish('run') #TestScript that gives the command to run the audio length
 
 	def calibrate():
 		print 'calibrating'
@@ -51,12 +53,17 @@ class EdwinAudioDetection():
 		return thresh
 
 	def run(self, data):
+		absolute_threshold = 2030 #If above this level, then will recalibrate
+
 		if data.data == 'run': #If Edwin wants to listen
 			threshold = calibrate()
+			if threshold > absolute_threshold:
+				print 'Threshold too high.  Recalibrating'
+				threshold = calibrate()
 			soundbite = 0 #The number of the soundbite.
 			bite_length = 0 #How long the soundbite is
 			peak_volume = 0 #Self explanatory.
-			cont = False
+			cont = False #So continue
 			while (cont == False) or peak_volume == 0: #make sure something said
 				l,data = mic.read() # Read data from device
 				if l:
@@ -72,10 +79,11 @@ class EdwinAudioDetection():
 						cont = True
 
 				time.sleep(.01)
-				bite_length += .01
-			pub.publish(tuple(bite_length, peak_volume)) #Maybe shouldn't be a Tuple.
+				if peak_volume > 0:
+					bite_length += .01
+			pub.publish(str(bite_length) + ' ' + str(peak_volume)) #Maybe shouldn't be a Tuple.
 			return True
 
 if __name__ == '__main__':
-	test_publish()
+	#test_publish()
 	rospy.spin()
