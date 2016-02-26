@@ -328,11 +328,15 @@ class Game:
 	def field_scan(self):
 		time.sleep(5)
 
-		#look at grid
-		msg = "data: move_to:: 200, 2400, 1800, 0"
+		msg = "data: R_ttt"
 		print "sending: ", msg
 		self.arm_pub.publish(msg)
-		time.sleep(1)
+		time.sleep(2)
+
+		msg = "data: R_ttt"
+		print "sending: ", msg
+		self.arm_pub.publish(msg)
+		time.sleep(2)
 
 		new_index = {}
 
@@ -405,11 +409,27 @@ class Game:
 		print self.board_msg
 		time.sleep(25)
 
-		#look at grid
-		msg = "data: move_to:: 200, 2400, 1800, 0"
+		msg = "data: R_ttt"
 		print "sending: ", msg
 		self.arm_pub.publish(msg)
-		time.sleep(1)
+		time.sleep(2)
+
+		# msg = "data: run_route:: R_ttt"
+		# print "sending: ", msg
+		# self.arm_pub.publish(msg)
+		# time.sleep(2)
+
+		# #look at grid
+		# msg = "data: move_to:: 180, 2600, 1800, 0"
+		# print "sending: ", msg
+		# self.arm_pub.publish(msg)
+		# time.sleep(2)
+
+		# msg = "data: run_route:: R_ttt"
+		# print "sending: ", msg
+		# self.arm_pub.publish(msg)
+		# time.sleep(2)
+
 
 		print "DRAW IN GUIDES IF NECESSARY"
 		time.sleep(5)
@@ -473,23 +493,23 @@ class Game:
 		self.draw_msg.y = center[1]
 		#note that Z should be a function of y.
 		# self.draw_msg.z = self.z_depth - ((self.draw_msg.y - 2500)/9)
-		self.draw_msg.z = self.z_depth - int((self.draw_msg.y - 2500)/9.5)
+		self.draw_msg.z = self.z_depth - int((self.draw_msg.y - 2500)/9.4)
 		self.draw_pub.publish(self.draw_msg)
 
 	 	self.board[index] = 10
-	 	time.sleep(10)
+	 	time.sleep(5)
 
-		#center grid
-		msg = "data: move_to:: " + str(self.b_x+3*250) + ", " + str(self.b_y-250) + ", " + str(self.draw_msg.z+250) + ", " +str(0)
-		print "sending: ", msg
-		self.arm_pub.publish(msg)
-		time.sleep(2)
 
-		#look at grid
-		msg = "data: move_to:: 200, 2400, 1800, 0"
-		print "sending: ", msg
-		self.arm_pub.publish(msg)
-		time.sleep(1)
+		# msg = "data: run_route:: R_ttt"
+		# print "sending: ", msg
+		# self.arm_pub.publish(msg)
+		# time.sleep(10)
+
+		# #look at grid
+		# msg = "data: move_to:: 200, 2400, 1800, 0"
+		# print "sending: ", msg
+		# self.arm_pub.publish(msg)
+		# time.sleep(1)
 
 
 	def ai_move(self, index):

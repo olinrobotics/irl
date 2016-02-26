@@ -161,8 +161,6 @@ class Drawer:
 
         #getting into position
 
-
-
         msg = "data: move_to:: " + str(x) + ", " + str(y) + ", " + str(z+25.0) + ", " + str(0)
         print "sending: ", msg
         self.arm_pub.publish(msg)
