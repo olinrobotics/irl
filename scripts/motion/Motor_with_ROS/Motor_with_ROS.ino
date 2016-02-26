@@ -14,24 +14,38 @@ use RosSerial as a Subscriber to take inputs from ROS to move the Servo.
 
 //ROS stuff
 #include <ros.h>
-#include <std_msgs/UInt16.h>
+#include <std_msgs/String.h>
 
 
-ros::NodeHandle nh;
+ros::NodeHandle edwin_head;
+String attitude = "";
 
-void inc_message( const std_msgs::UInt16& setpos){
-  SetPosition(1, setpos.data);
+void inc_message( const std_msgs::String& mood){
+  
+  attitude = mood.data;
+  if(attitude == "happy"){
+    for(int i=0; i<3;i++){
+      delay(300);
+      SetPosition(1, 4000);
+      delay(300);
+      SetPosition(1, 2050);
+    } 
+    delay(1000);
+  }  
+
+    
+  
 }
 
 
-ros::Subscriber<std_msgs::UInt16> sub("motor", &inc_message);
+ros::Subscriber<std_msgs::String> motor("edwin_emotion", &inc_message);
 
 
 
 void setup(){
-  nh.getHardware() -> setBaud(9600);
-  nh.initNode();
-  nh.subscribe(sub);
+  edwin_head.getHardware() -> setBaud(9600);
+  edwin_head.initNode();
+  edwin_head.subscribe(motor);
   delay(1000);
   SetPosition(1,2050);
 
@@ -39,7 +53,7 @@ void setup(){
 }
 
 void loop(){
-  nh.spinOnce();
+  edwin_head.spinOnce();
   delay(1);
 }  
 

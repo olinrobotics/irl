@@ -8,17 +8,17 @@ will then read the values and then output a boolean when the
 accelerometer detects that there is a sudden surge in movement,
 i.e. when I tap it. It must be able to recognize tapping
 even when the accelerator moves at a constant speed.
-It also utilizes RosSerial as a Publisher to tell Edwin whether it moves.
+It also utilizes RosSerial as a Publisher to tell Edwin whether it moves or was touched.
 */
 
 
 #include <ros.h>
 #include <std_msgs/String.h>
 
-ros::NodeHandle nh;
+ros::NodeHandle edwin_head;
 
 std_msgs::String str_msg;
-ros::Publisher accel("accel", &str_msg);
+ros::Publisher accel("robot_state", &str_msg);
 
 
 //Pin A5 is the Z output from the accelerometer, Pin A4 is the Y 
@@ -45,13 +45,13 @@ int diff_z = 0;
 int diff_y = 0;
 int diff_x = 0;
 
-//Increment
+//Increment for initialization of first data set
 int i = 0;
 
 void setup(){
-  nh.getHardware() -> setBaud(9600);
-  nh.initNode();
-  nh.advertise(accel);
+  edwin_head.getHardware() -> setBaud(9600);
+  edwin_head.initNode();
+  edwin_head.advertise(accel);
   
   
   pinMode(pointZ, INPUT);
@@ -81,18 +81,18 @@ void loop(){
     diff_y = current_y - old_y;
     diff_x = current_x - old_x;
   
-    if((abs(diff_z) > 75) || (abs(diff_y) > 75) || (abs(diff_x) > 75)){
+    if((abs(diff_z) > 60) || (abs(diff_y) > 60) || (abs(diff_x) > 60)){
       //Serial.println(big_change);
-      str_msg.data = "true";
+      str_msg.data = "IMU:true";
       
     }
     else{
-      str_msg.data = "false";
+      str_msg.data = "IMU:false";
     }
     
     
     accel.publish( &str_msg );
-    nh.spinOnce();
+    edwin_head.spinOnce();
     delay(100);
 
 
@@ -104,15 +104,6 @@ void loop(){
   }  
   
   
-  /*
-  Serial.print("X = ");
-  Serial.println(x);
-  Serial.print("Y = ");
-  Serial.println(y);
-  Serial.print("Z = ");
-  Serial.println(z);
-  Serial.println(" ");
- */
 
 }  
   
