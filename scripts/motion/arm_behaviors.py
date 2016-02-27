@@ -22,6 +22,7 @@ class ArmBehaviors:
         self.routes = ["R_look", "R_playful", "R_sleep", "R_wakeup", "R_leaving, R_greet1", "R_curious"]
 
     def behavior_callback(self, cmdin):
+        print "RECEIVED CMD: ", cmdin
         cmd = str(cmdin).replace("data: ", "")
         if cmd in self.behaviors.keys():
             cmd_list = self.behaviors[cmd].split(", ")
