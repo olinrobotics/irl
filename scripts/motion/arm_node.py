@@ -9,16 +9,18 @@ import time
 class ArmCommands:
     def __init__(self):
         rospy.init_node('robot_arm', anonymous=True)
-        #self.arm.pub_arm = rospy.Publisher('/arm_debug', Twist, queue_size=10)
-        rospy.Subscriber('/arm_cmd', String, self.arm_callback, queue_size=10)
 
+        rospy.Subscriber('/arm_cmd', String, self.arm_callback, queue_size=10)
         self.pub = rospy.Publisher('arm_debug', String, queue_size=10)
 
         self.debug = False
         self.plan = []
         self.arm = st.StArm()
         self.arm.start()
+        print "ARM SPD IS: ", self.arm.get_speed()
+        print "CALIBRATING"
         self.arm.calibrate()
+        print "HOMING"
         self.arm.home()
         self.behaviors = {}
 
@@ -33,9 +35,11 @@ class ArmCommands:
         self.arm.create_route("R_sleep", [[0, 1891, 1732, 48, 0, 0]])
         self.arm.create_route("R_wakeup", [[0, 3523, 5032, 1, 0, 0]])
         self.arm.create_route("R_leaving", [[-2689, 2612, 375, 27, 0, 18]])
-        self.arm.create_route("R_drawr", [[0, 2740, -700, 810, 0, 0]])
         self.arm.create_route("R_greet1", [[3665, 1774, 3013, 0, 0, 0]])
         self.arm.create_route("R_curious", [[3664, 1774, 3013, 0, 0, 0]])
+
+
+
         self.routes = ["R_ttt", "R_look", "R_playful", "R_sleep", "R_wakeup", "R_leaving, R_greet1", "R_curious"]
 
     def arm_callback(self, cmdin):

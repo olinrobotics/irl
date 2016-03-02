@@ -11,7 +11,6 @@ class ArmBehaviors:
         rospy.init_node('behavior_arm', anonymous=True)
         rospy.Subscriber('/behaviors_cmd', String, self.behavior_callback, queue_size=10)
         self.pub = rospy.Publisher('/arm_cmd', String, queue_size=10)
-
         self.routes = []
         self.behaviors = {}
 

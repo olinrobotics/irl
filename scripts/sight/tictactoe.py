@@ -340,7 +340,6 @@ class Game:
 
 		#blocks field_scan until hand is out of the way
 		self.wait_for_hand()
-
 		running = True
 		while running:
 			gray = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
