@@ -33,7 +33,7 @@ class IdleBehaviors:
 
     def run(self):
         r = rospy.Rate(10)
-        joints = ["H", "WR", "E", "WA"]
+        joints = ["H", "WR", "E", "WA", "BEHAV"]
         while not rospy.is_shutdown():
             if time.time() - self.last_interaction > random.randint(3, 7):
                 joint = random.choice(joints)
@@ -45,7 +45,14 @@ class IdleBehaviors:
                     msg = "data: rotate_elbow:: " + str(random.randint(11000, 13000))
                 elif joint == "WA":
                     msg = "data: rotate_waist:: " + str(random.randint(4000, 6000))
-                self.arm_pub.publish(msg)
+                elif joint == "BEHAV":
+                    msg = random.choice(self.behaviors.keys())
+                    print "PUBLISHING: ", msg
+                    self.behav_pub.publish(msg)
+
+                if joint != "BEHAV":
+                    print "PUBLISHING: ", msg
+                    self.arm_pub.publish(msg)
             r.sleep()
 
 if __name__ == '__main__':

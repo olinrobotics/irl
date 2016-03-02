@@ -112,8 +112,6 @@ class GridDetector:
 				box6, box7, box8]
 
 	def get_center_box(self):
-		# img = cv2.imread(im_in)
-		# img = im_in
 		h, w, ch = self.img.shape
 
 		gray = cv2.cvtColor(self.img,cv2.COLOR_BGR2GRAY)
@@ -342,7 +340,6 @@ class Game:
 
 		#blocks field_scan until hand is out of the way
 		self.wait_for_hand()
-
 		running = True
 		while running:
 			gray = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
@@ -414,23 +411,6 @@ class Game:
 		self.arm_pub.publish(msg)
 		time.sleep(2)
 
-		# msg = "data: run_route:: R_ttt"
-		# print "sending: ", msg
-		# self.arm_pub.publish(msg)
-		# time.sleep(2)
-
-		# #look at grid
-		# msg = "data: move_to:: 180, 2600, 1800, 0"
-		# print "sending: ", msg
-		# self.arm_pub.publish(msg)
-		# time.sleep(2)
-
-		# msg = "data: run_route:: R_ttt"
-		# print "sending: ", msg
-		# self.arm_pub.publish(msg)
-		# time.sleep(2)
-
-
 		print "DRAW IN GUIDES IF NECESSARY"
 		time.sleep(5)
 		print "SEND OK COMMAND TO CONTINUE"
@@ -500,18 +480,6 @@ class Game:
 	 	time.sleep(5)
 
 
-		# msg = "data: run_route:: R_ttt"
-		# print "sending: ", msg
-		# self.arm_pub.publish(msg)
-		# time.sleep(10)
-
-		# #look at grid
-		# msg = "data: move_to:: 200, 2400, 1800, 0"
-		# print "sending: ", msg
-		# self.arm_pub.publish(msg)
-		# time.sleep(1)
-
-
 	def ai_move(self, index):
 		#edwin moves to desired location and draws
 		print "MOVING TO: ", index
@@ -559,8 +527,8 @@ class Game:
 	 	while running:
 	 		print self.board
 	 		if turn == 0: #Player turn.
-	 			#self.behav_pub.publish("nudge")
-	 			#time.sleep(10)
+	 			# self.behav_pub.publish("nudge")
+	 			# time.sleep(10)
 	 			if ai:
 	 				ai_next_move_ind = self.next_move()
 	 				self.ai_move(ai_next_move_ind)
@@ -568,7 +536,8 @@ class Game:
 	 				self.field_scan()
 	 			if self.is_winner(self.board) == 2: #Checks if the player made a winning move.
 	 				print "PLAYER WINS"
-	 				# self.behav_pub("sad")
+	 				self.behav_pub("sad")
+	 				time.sleep(1)
 	 				running = False
 	 			turn = 1
 	 			print "DETECTED CIRCLE, WAITING FOR TURN"
@@ -581,7 +550,8 @@ class Game:
 	 			turn = 0
 	 			if self.is_winner(self.board) == 1:
 	 				print "EDWIN WINS"
-	 				# self.behav_pub("gloat")
+	 				self.behav_pub("gloat")
+	 				time.sleep(1)
 	 				running = False
 
 

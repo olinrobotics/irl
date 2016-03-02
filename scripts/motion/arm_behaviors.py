@@ -11,7 +11,6 @@ class ArmBehaviors:
         rospy.init_node('behavior_arm', anonymous=True)
         rospy.Subscriber('/behaviors_cmd', String, self.behavior_callback, queue_size=10)
         self.pub = rospy.Publisher('/arm_cmd', String, queue_size=10)
-
         self.routes = []
         self.behaviors = {}
 
@@ -22,6 +21,7 @@ class ArmBehaviors:
         self.routes = ["R_look", "R_playful", "R_sleep", "R_wakeup", "R_leaving, R_greet1", "R_curious"]
 
     def behavior_callback(self, cmdin):
+        print "RECEIVED CMD: ", cmdin
         cmd = str(cmdin).replace("data: ", "")
         if cmd in self.behaviors.keys():
             cmd_list = self.behaviors[cmd].split(", ")
