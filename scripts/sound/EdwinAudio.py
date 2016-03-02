@@ -27,8 +27,8 @@ class EdwinAudioDetection():
 		# This means that the reads below will return either 320 bytes of data
 		# or 0 bytes of data. The latter is possible because we are in nonblocking
 		# mode.
-		pub = rospy.Publisher('Edwin_Sound_Detection', String, queue_size=10)
-		rospy.init_node('Edwin_Sound_Detector', anonymous=True)
+		pub = rospy.Publisher('Edwin_Audio_Detection', String, queue_size=10)
+		rospy.init_node('Edwin_Audio_Detector', anonymous=True)
 		#rospy.Subscriber('Edwin_Sound_Detection_Runner', String, self.run)
 		#The subscriber tells whether or not to run the Run script, which listens to one sound
 		#And then as of now, returns the length of the soundbite.  
@@ -81,7 +81,7 @@ class EdwinAudioDetection():
 				time.sleep(.01)
 				if peak_volume > 0:
 					bite_length += .01
-			pub.publish(str(bite_length) + ' ' + str(peak_volume)) #Maybe shouldn't be a Tuple.
+			pub.publish(str(bite_length) + ' ' + str(peak_volume)) #Publishes length/volume as data
 			return True
 
 if __name__ == '__main__':
