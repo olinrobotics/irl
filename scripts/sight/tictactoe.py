@@ -112,8 +112,6 @@ class GridDetector:
 				box6, box7, box8]
 
 	def get_center_box(self):
-		# img = cv2.imread(im_in)
-		# img = im_in
 		h, w, ch = self.img.shape
 
 		gray = cv2.cvtColor(self.img,cv2.COLOR_BGR2GRAY)
@@ -328,11 +326,15 @@ class Game:
 	def field_scan(self):
 		time.sleep(5)
 
-		#look at grid
-		msg = "data: move_to:: 200, 2400, 1800, 0"
+		msg = "data: R_ttt"
 		print "sending: ", msg
 		self.arm_pub.publish(msg)
-		time.sleep(1)
+		time.sleep(2)
+
+		msg = "data: R_ttt"
+		print "sending: ", msg
+		self.arm_pub.publish(msg)
+		time.sleep(2)
 
 		new_index = {}
 
@@ -405,11 +407,10 @@ class Game:
 		print self.board_msg
 		time.sleep(25)
 
-		#look at grid
-		msg = "data: move_to:: 200, 2400, 1800, 0"
+		msg = "data: R_ttt"
 		print "sending: ", msg
 		self.arm_pub.publish(msg)
-		time.sleep(1)
+		time.sleep(2)
 
 		print "DRAW IN GUIDES IF NECESSARY"
 		time.sleep(5)
@@ -473,23 +474,11 @@ class Game:
 		self.draw_msg.y = center[1]
 		#note that Z should be a function of y.
 		# self.draw_msg.z = self.z_depth - ((self.draw_msg.y - 2500)/9)
-		self.draw_msg.z = self.z_depth - int((self.draw_msg.y - 2500)/9.5)
+		self.draw_msg.z = self.z_depth - int((self.draw_msg.y - 2500)/9.4)
 		self.draw_pub.publish(self.draw_msg)
 
 	 	self.board[index] = 10
-	 	time.sleep(10)
-
-		#center grid
-		msg = "data: move_to:: " + str(self.b_x+3*250) + ", " + str(self.b_y-250) + ", " + str(self.draw_msg.z+250) + ", " +str(0)
-		print "sending: ", msg
-		self.arm_pub.publish(msg)
-		time.sleep(2)
-
-		#look at grid
-		msg = "data: move_to:: 200, 2400, 1800, 0"
-		print "sending: ", msg
-		self.arm_pub.publish(msg)
-		time.sleep(1)
+	 	time.sleep(5)
 
 
 	def ai_move(self, index):
@@ -539,8 +528,8 @@ class Game:
 	 	while running:
 	 		print self.board
 	 		if turn == 0: #Player turn.
-	 			#self.behav_pub.publish("nudge")
-	 			#time.sleep(10)
+	 			# self.behav_pub.publish("nudge")
+	 			# time.sleep(10)
 	 			if ai:
 	 				ai_next_move_ind = self.next_move()
 	 				self.ai_move(ai_next_move_ind)
@@ -548,7 +537,8 @@ class Game:
 	 				self.field_scan()
 	 			if self.is_winner(self.board) == 2: #Checks if the player made a winning move.
 	 				print "PLAYER WINS"
-	 				# self.behav_pub("sad")
+	 				self.behav_pub("sad")
+	 				time.sleep(1)
 	 				running = False
 	 			turn = 1
 	 			print "DETECTED CIRCLE, WAITING FOR TURN"
@@ -561,7 +551,8 @@ class Game:
 	 			turn = 0
 	 			if self.is_winner(self.board) == 1:
 	 				print "EDWIN WINS"
-	 				# self.behav_pub("gloat")
+	 				self.behav_pub("gloat")
+	 				time.sleep(1)
 	 				running = False
 
 

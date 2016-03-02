@@ -23,10 +23,11 @@ class ArmCommands:
         self.behaviors = {}
 
         self.create_routes()
-        self.arm.run_route("R_look")
+        self.arm.run_route("R_ttt")
 
     def create_routes(self):
         #Moves in units of thousands
+        self.arm.create_route("R_ttt", [[200, 2400, 1800, 720, 240, 2.1]])
         self.arm.create_route("R_look", [[3664, 1774, 3013, 11, 0, 21]])
         self.arm.create_route("R_playful", [[2027, 981, 98, -11, 0, 72]])
         self.arm.create_route("R_sleep", [[0, 1891, 1732, 48, 0, 0]])
@@ -35,7 +36,7 @@ class ArmCommands:
         self.arm.create_route("R_drawr", [[0, 2740, -700, 810, 0, 0]])
         self.arm.create_route("R_greet1", [[3665, 1774, 3013, 0, 0, 0]])
         self.arm.create_route("R_curious", [[3664, 1774, 3013, 0, 0, 0]])
-        self.routes = ["R_look", "R_playful", "R_sleep", "R_wakeup", "R_leaving, R_greet1", "R_curious"]
+        self.routes = ["R_ttt", "R_look", "R_playful", "R_sleep", "R_wakeup", "R_leaving, R_greet1", "R_curious"]
 
     def arm_callback(self, cmdin):
         self.arm.joint()
@@ -46,6 +47,9 @@ class ArmCommands:
         print cmd
         if cmd == "de_energize":
             self.arm.de_energize()
+        elif cmd == "R_ttt":
+            print "MOVING TO TTT HOME POSITION"
+            self.arm.run_route("R_ttt")
         elif cmd == "energize":
             self.arm.energize()
         elif cmd == "where":
