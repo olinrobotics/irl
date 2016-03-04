@@ -605,6 +605,8 @@ class Game:
 	 			if next_move_ind == "TIE":
 	 				print "IT'S A TIE"
 	 				self.behav_pub.publish("pout")
+	 				running = False
+	 				continue
 	 			self.edwin_move(next_move_ind)
 	 			winner = self.is_winner(self.board)
 	 			if winner[0] == 1:
