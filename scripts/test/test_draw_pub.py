@@ -16,10 +16,10 @@ def run():
     while not rospy.is_shutdown():
         msg = Edwin_Shape()
         msg.shape = "line"
-        msg.x = 0
-        msg.y = 4000
+        msg.x = (0, 4000)
+        msg.y = (250, 3000)
         #note that Z should be a function of y.
-        msg.z = int(-770 - ((msg.y - 2500)/10))
+        msg.z = int(-770 - ((msg.x[1] - 2500)/10))
         pub.publish(msg)
         time.sleep(30)
 

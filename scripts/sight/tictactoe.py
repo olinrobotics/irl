@@ -473,32 +473,70 @@ class Game:
 	 	time.sleep(5)
 
 	def draw_win_line(self, win_line):
-		print "MOVING TO: ", index
-		center = self.b_centers[index]
-		self.draw_msg.shape = "line"
-		self.draw_msg.x = center[0]
-		self.draw_msg.y = center[1]
-		#note that Z should be a function of y.
+		msg = "data: R_ttt"
+		print "sending: ", msg
+		self.arm_pub.publish(msg)
+		time.sleep(2)
 
-		self.draw_msg.z = self.z_depth - int((self.draw_msg.y - 2500)/9.4)
-		self.draw_pub.publish(self.draw_msg)
+		msg = "data: R_ttt"
+		print "sending: ", msg
+		self.arm_pub.publish(msg)
+		time.sleep(2)
+
+
+		print "DRAWING WIN LINE: ", win_line
 
 		if win_line == 0:
-			pass
+			line = [self.b_centers[0], self.b_centers[2]]
 		elif win_line == 1:
-			pass
+			line = [self.b_centers[3], self.b_centers[5]]
 		elif win_line == 2:
-			pass
+			line = [self.b_centers[6], self.b_centers[8]]
 		elif win_line == 3:
-			pass
+			line = [self.b_centers[0], self.b_centers[6]]
 		elif win_line == 4:
-			pass
+			line = [self.b_centers[1], self.b_centers[7]]
 		elif win_line == 5:
-			pass
+			line = [self.b_centers[2], self.b_centers[8]]
 		elif win_line == 6:
-			pass
+			line = [self.b_centers[0], self.b_centers[8]]
 		elif win_line == 7:
-			pass
+			line = [self.b_centers[2], self.b_centers[6]]
+
+		z = self.z_depth - int((line[0][1] - 2500)/9.4)
+		# z = self.z_depth - int((self.draw_msg.y - 2500)/9.4)
+
+		#getting into position
+		motions = ["data: move_to:: " + str(int(line[0][0])) + ", " + str(int(line[0][1])) + ", " + str(z+250)+ ", " + str(0),
+		"data: rotate_hand:: " + str(200),
+		"data: rotate_wrist:: " + str(1000)]
+
+		for motion in motions:
+			print "sending: ", motion
+			self.arm_pub.publish(motion)
+			time.sleep(1)
+
+		#pick marker off paper
+		msg = "data: move_to:: " + str(int(line[0][0])) + ", " + str(int(line[0][1])) + ", " + str(z+250) + ", " +str(0)
+		print "sending: ", msg
+		self.arm_pub.publish(msg)
+		time.sleep(1)
+
+		msg = "data: move_to:: " + str(int(line[0][0])) + ", " + str(int(line[0][1])) + ", " + str(z) + ", " +str(0)
+		print "sending: ", msg
+		self.arm_pub.publish(msg)
+		time.sleep(1)
+
+		msg = "data: move_to:: " + str(int(line[1][0])) + ", " + str(int(line[1][1])) + ", " + str(z) + ", " +str(0)
+		print "sending: ", msg
+		self.arm_pub.publish(msg)
+		time.sleep(1)
+
+		#pick marker off paper
+		msg = "data: move_to:: " + str(int(line[1][0])) + ", " + str(int(line[1][1])) + ", " + str(z+250) + ", " +str(0)
+		print "sending: ", msg
+		self.arm_pub.publish(msg)
+		time.sleep(1)
 
 	def ai_move(self, index):
 		#edwin moves to desired location and draws
@@ -513,7 +551,6 @@ class Game:
 
 	 	self.board[index] = 1
 	 	time.sleep(10)
-
 
 	def run(self):
 		#Player is O: 1
@@ -573,7 +610,6 @@ class Game:
 	 			if winner[0] == 1:
 	 				print "EDWIN WINS"
 	 				self.draw_win_line(winner[1])
-
 	 				self.behav_pub.publish("gloat")
 	 				time.sleep(1)
 	 				running = False
