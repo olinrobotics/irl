@@ -58,12 +58,22 @@ void setup(){
   pinMode(pointY, INPUT);
   pinMode(pointX, INPUT);
      
-  //Serial.begin(9600);
+  Serial.begin(9600);
   
   
 }  
 
 void loop(){
+  /*
+  Serial.println(analogRead(pointX));
+  Serial.println(analogRead(pointY));
+  Serial.println(analogRead(pointZ));
+  
+  delay(500);
+  */
+  
+  
+  
   if(i == 0){
   
     old_x = analogRead(pointX);
@@ -81,19 +91,24 @@ void loop(){
     diff_y = current_y - old_y;
     diff_x = current_x - old_x;
   
-    if((abs(diff_z) > 60) || (abs(diff_y) > 60) || (abs(diff_x) > 60)){
-      //Serial.println(big_change);
-      str_msg.data = "IMU:true";
+    if((abs(diff_z) <= 70 && abs(diff_z) > 15) || (abs(diff_y) <= 70 && abs(diff_y) > 15) || (abs(diff_x) <= 70 && abs(diff_x) > 15)){
+     
+      str_msg.data = "IMU: He got patted on the head";
+      
+    }
+    else if((abs(diff_z) > 70) || (abs(diff_y) > 70) || (abs(diff_x) > 70)){
+     
+      str_msg.data = "IMU: He got slapped";
       
     }
     else{
-      str_msg.data = "IMU:false";
+      str_msg.data = "IMU: No touch";
     }
     
     
     accel.publish( &str_msg );
     edwin_head.spinOnce();
-    delay(100);
+    delay(200);
 
 
     
