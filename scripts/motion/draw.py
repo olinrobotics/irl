@@ -36,6 +36,8 @@ class Drawer:
             self.draw_board(data.x, data.y, data.z)
         elif data.shape == "triangle":
             self.draw_triangle(data.x, data.y, data.z)
+        elif data.shape == "line":
+            self.draw_line(data.x, data.y, data.z)
         else:
             print "ERROR: I can't draw that."
 
@@ -75,6 +77,8 @@ class Drawer:
             self.arm_pub.publish(msg)
             time.sleep(1)
 
+    def draw_smiley(self, x, y, z):
+        pass
 
     def draw_triangle(self, x, y, z):
         w = 150 #width of square
@@ -157,50 +161,31 @@ class Drawer:
     #             self.armpub.publish(msg)
     #             time.sleep(.5)
 
-    def draw_line(self, x, y, z):  #this is a test function to figure out straight lines and the algorithm for making them with edwin
+    def draw_line(self, pt1, pt2, z):  #this is a test function to figure out straight lines and the algorithm for making them with edwin
+        line = [pt1, pt2]
 
-        #getting into position
-
-        msg = "data: move_to:: " + str(x) + ", " + str(y) + ", " + str(z+25.0) + ", " + str(0)
+        #pick marker off paper
+        msg = "data: move_to:: " + str(line[0][0]) + ", " + str(line[0][1]) + ", " + str(z+250) + ", " +str(0)
         print "sending: ", msg
         self.arm_pub.publish(msg)
-        time.sleep(2)
+        time.sleep(1)
 
-        #orienting head
-
-        msg = "data: rotate_hand:: " + str(200)
+        msg = "data: move_to:: " + str(line[0][0]) + ", " + str(line[0][1]) + ", " + str(z) + ", " +str(0)
         print "sending: ", msg
         self.arm_pub.publish(msg)
-        time.sleep(.5)
-        msg = "data: rotate_wrist:: " + str(1000)
+        time.sleep(1)
+
+        msg = "data: move_to:: " + str(line[1][0]) + ", " + str(line[1][1]) + ", " + str(z) + ", " +str(0)
         print "sending: ", msg
         self.arm_pub.publish(msg)
-        time.sleep(2)
+        time.sleep(1)
 
-        #drawing line
-
-        msg = "data: move_to:: " + str(x) + ", " + str(y) + ", " + str(z) + ", " + str(0)
+        #pick marker off paper
+        msg = "data: move_to:: " + str(line[1][0]) + ", " + str(line[1][1]) + ", " + str(z+250) + ", " +str(0)
         print "sending: ", msg
         self.arm_pub.publish(msg)
-        time.sleep(.5)
+        time.sleep(1)
 
-
-        msg = "data: move_to:: " + str(x-100) + ", " + str(y) + ", " + str(z) + ", " + str(0)
-        print "sending: ", msg
-        self.arm_pub.publish(msg)
-        time.sleep(.5)
-
-
-        msg = "data: move_to:: " + str(x+100) + ", " + str(y) + ", " + str(z) + ", " + str(0)
-        print "sending: ", msg
-        self.arm_pub.publish(msg)
-        time.sleep(.5)
-
-        #returning to starting point
-        msg = "data: move_to:: " + str(x) + ", " + str(y) + ", " + str(z+25.0) + ", " + str(0)
-        print "sending: ", msg
-        self.arm_pub.publish(msg)
-        time.sleep(.5)
 
     def run(self):
         print "running"

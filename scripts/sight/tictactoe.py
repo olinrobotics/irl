@@ -226,12 +226,12 @@ class Game:
 
 		#There are 4 cases - NoWin, EdWin, Player Win and Tie, Tie is accounted for
 		#in a piece of code further down.
-		for b_sum in board_sums:
+		for i, b_sum in enumerate(board_sums):
 			if b_sum == 30:
-				return 1
+				return (1, i)
 			elif b_sum == 3:
-				return 2
-		return False
+				return (2, i)
+		return (None, None)
 
 	def is_free(self, board, index):
 	 	#Function is to check whether a space is occupied or not.
@@ -253,7 +253,7 @@ class Game:
 			board_copy = copy.deepcopy(self.board)
 			if self.is_free(board_copy, i):
 				board_copy[i] = 10
-				if self.is_winner(board_copy) == 1:
+				if self.is_winner(board_copy)[0] == 1:
 					return i
 
 		#Checks if player can win the next turn
@@ -261,7 +261,7 @@ class Game:
 			board_copy = copy.deepcopy(self.board)
 			if self.is_free(board_copy, i):
 				board_copy[i] = 1
-				if self.is_winner(board_copy) == 2:
+				if self.is_winner(board_copy)[0] == 2:
 					return i
 
 		#Otherwise, prioritizes grabbing corners.
@@ -281,6 +281,8 @@ class Game:
 			if self.is_free(board_copy, self.grid_sides[i]):
 				return self.grid_sides[i]
 
+		#if tie, return TIE
+		return "TIE"
 
 	def manual_field_scan(self):
 		#TODO: Update board with current values
@@ -293,35 +295,24 @@ class Game:
 					return
 
 	def wait_for_hand(self):
-		running = True
+		gray = cv2.cvtColor(self.frame,cv2.COLOR_BGR2GRAY)
+		ret, thresh = cv2.threshold(gray,0,255,cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
 
-		hand_see = False #seen hand for the first time (beginning to draw)
-		hand_gone = False #hand has left the viusal field (finished draw)
+		# noise removal
+		kernel = np.ones((5,5),np.uint8)
+		opening = cv2.morphologyEx(thresh,cv2.MORPH_OPEN,kernel, iterations = 2)
 
-		while running:
-			gray = cv2.cvtColor(self.frame,cv2.COLOR_BGR2GRAY)
-			ret, thresh = cv2.threshold(gray,0,255,cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
+		# sure background area
+		sure_bg = cv2.dilate(opening,kernel,iterations=3)
+		contours, hierarchy = cv2.findContours(sure_bg,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 
-			# noise removal
-			kernel = np.ones((5,5),np.uint8)
-			opening = cv2.morphologyEx(thresh,cv2.MORPH_OPEN,kernel, iterations = 2)
-
-			# sure background area
-			sure_bg = cv2.dilate(opening,kernel,iterations=3)
-			contours, hierarchy = cv2.findContours(sure_bg,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
-
-			# Find the index of the largest contour
-			areas = [cv2.contourArea(c) for c in contours]
-			if max(areas) > 10000:
-				hand_see = True
-				print "FOUND HAND"
-			else:
-				if hand_see:
-					hand_gone = True
-				print "NO HAND"
-
-			if hand_see and hand_gone:
-				running = False
+		# Find the index of the largest contour
+		areas = [cv2.contourArea(c) for c in contours]
+		if max(areas) > 10000:
+			print "FOUND HAND"
+			return True
+		else:
+			return False
 
 	def field_scan(self):
 		time.sleep(5)
@@ -339,9 +330,11 @@ class Game:
 		new_index = {}
 
 		#blocks field_scan until hand is out of the way
-		self.wait_for_hand()
 		running = True
 		while running:
+			if self.wait_for_hand():
+				continue
+
 			gray = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
 
 			height, width, channels = self.frame.shape
@@ -479,6 +472,71 @@ class Game:
 	 	self.board[index] = 10
 	 	time.sleep(5)
 
+	def draw_win_line(self, win_line):
+		msg = "data: R_ttt"
+		print "sending: ", msg
+		self.arm_pub.publish(msg)
+		time.sleep(2)
+
+		msg = "data: R_ttt"
+		print "sending: ", msg
+		self.arm_pub.publish(msg)
+		time.sleep(2)
+
+
+		print "DRAWING WIN LINE: ", win_line
+
+		if win_line == 0:
+			line = [self.b_centers[0], self.b_centers[2]]
+		elif win_line == 1:
+			line = [self.b_centers[3], self.b_centers[5]]
+		elif win_line == 2:
+			line = [self.b_centers[6], self.b_centers[8]]
+		elif win_line == 3:
+			line = [self.b_centers[0], self.b_centers[6]]
+		elif win_line == 4:
+			line = [self.b_centers[1], self.b_centers[7]]
+		elif win_line == 5:
+			line = [self.b_centers[2], self.b_centers[8]]
+		elif win_line == 6:
+			line = [self.b_centers[0], self.b_centers[8]]
+		elif win_line == 7:
+			line = [self.b_centers[2], self.b_centers[6]]
+
+		z = self.z_depth - int((line[0][1] - 2500)/9.4)
+		# z = self.z_depth - int((self.draw_msg.y - 2500)/9.4)
+
+		#getting into position
+		motions = ["data: move_to:: " + str(int(line[0][0])) + ", " + str(int(line[0][1])) + ", " + str(z+250)+ ", " + str(0),
+		"data: rotate_hand:: " + str(200),
+		"data: rotate_wrist:: " + str(1000)]
+
+		for motion in motions:
+			print "sending: ", motion
+			self.arm_pub.publish(motion)
+			time.sleep(1)
+
+		#pick marker off paper
+		msg = "data: move_to:: " + str(int(line[0][0])) + ", " + str(int(line[0][1])) + ", " + str(z+250) + ", " +str(0)
+		print "sending: ", msg
+		self.arm_pub.publish(msg)
+		time.sleep(1)
+
+		msg = "data: move_to:: " + str(int(line[0][0])) + ", " + str(int(line[0][1])) + ", " + str(z) + ", " +str(0)
+		print "sending: ", msg
+		self.arm_pub.publish(msg)
+		time.sleep(1)
+
+		msg = "data: move_to:: " + str(int(line[1][0])) + ", " + str(int(line[1][1])) + ", " + str(z) + ", " +str(0)
+		print "sending: ", msg
+		self.arm_pub.publish(msg)
+		time.sleep(1)
+
+		#pick marker off paper
+		msg = "data: move_to:: " + str(int(line[1][0])) + ", " + str(int(line[1][1])) + ", " + str(z+250) + ", " +str(0)
+		print "sending: ", msg
+		self.arm_pub.publish(msg)
+		time.sleep(1)
 
 	def ai_move(self, index):
 		#edwin moves to desired location and draws
@@ -494,13 +552,12 @@ class Game:
 	 	self.board[index] = 1
 	 	time.sleep(10)
 
-
 	def run(self):
 		#Player is O: 1
 		#Edwin is X: 10
 		running = True
-	 	# turn = random.randint(0,1)
-	 	turn = 0
+	 	turn = random.randint(0,1)
+	 	# turn = 1
 	 	time.sleep(5)
 	 	print "running"
 		self.z_depth = -680
@@ -527,16 +584,15 @@ class Game:
 	 	while running:
 	 		print self.board
 	 		if turn == 0: #Player turn.
-	 			# self.behav_pub.publish("nudge")
-	 			# time.sleep(10)
 	 			if ai:
 	 				ai_next_move_ind = self.next_move()
 	 				self.ai_move(ai_next_move_ind)
 	 			else:
 	 				self.field_scan()
-	 			if self.is_winner(self.board) == 2: #Checks if the player made a winning move.
+
+	 			if self.is_winner(self.board)[0] == 2: #Checks if the player made a winning move.
 	 				print "PLAYER WINS"
-	 				self.behav_pub("sad")
+	 				self.behav_pub.publish("sad")
 	 				time.sleep(1)
 	 				running = False
 	 			turn = 1
@@ -546,14 +602,20 @@ class Game:
 
 	 		elif turn == 1: #Edwin's turn
 	 			next_move_ind = self.next_move()
+	 			if next_move_ind == "TIE":
+	 				print "IT'S A TIE"
+	 				self.behav_pub.publish("pout")
+	 				running = False
+	 				continue
 	 			self.edwin_move(next_move_ind)
-	 			turn = 0
-	 			if self.is_winner(self.board) == 1:
+	 			winner = self.is_winner(self.board)
+	 			if winner[0] == 1:
 	 				print "EDWIN WINS"
-	 				self.behav_pub("gloat")
+	 				self.draw_win_line(winner[1])
+	 				self.behav_pub.publish("gloat")
 	 				time.sleep(1)
 	 				running = False
-
+	 			turn = 0
 
 if __name__ == '__main__':
 	gm = Game()
