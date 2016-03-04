@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import rospy
 import math
-import st
+# import st
 import numpy as np
 from std_msgs.msg import String
 from edwin.msg import *
@@ -15,7 +15,7 @@ def run():
 
     while not rospy.is_shutdown():
         msg = Edwin_Shape()
-        msg.shape = "triangle"
+        msg.shape = "line"
         msg.x = 0
         msg.y = 4000
         #note that Z should be a function of y.
@@ -44,21 +44,21 @@ def run():
 
 
 
-        msg.shape = "circle"
-        msg.x = 0
-        msg.y = 4000
-        #note that Z should be a function of y.
-        msg.z = int(-760 - ((msg.y - 2500)/10))
-        pub.publish(msg)
-        time.sleep(30)
+        # msg.shape = "circle"
+        # msg.x = 0
+        # msg.y = 4000
+        # #note that Z should be a function of y.
+        # msg.z = int(-760 - ((msg.y - 2500)/10))
+        # pub.publish(msg)
+        # time.sleep(30)
 
-        msg.shape = "square"
-        msg.x = 0
-        msg.y = 4000
-        #note that Z should be a function of y.
-        msg.z = int(-760 - ((msg.y - 2500)/10))
-        pub.publish(msg)
-        time.sleep(30)
+        # msg.shape = "square"
+        # msg.x = 0
+        # msg.y = 4000
+        # #note that Z should be a function of y.
+        # msg.z = int(-760 - ((msg.y - 2500)/10))
+        # pub.publish(msg)
+        # time.sleep(30)
 
 
 

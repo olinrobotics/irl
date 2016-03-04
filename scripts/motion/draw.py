@@ -36,6 +36,8 @@ class Drawer:
             self.draw_board(data.x, data.y, data.z)
         elif data.shape == "triangle":
             self.draw_triangle(data.x, data.y, data.z)
+        elif data.shape == "line":
+            self.draw_line(data.x, data.y, data.z)
         else:
             print "ERROR: I can't draw that."
 
@@ -158,9 +160,7 @@ class Drawer:
     #             time.sleep(.5)
 
     def draw_line(self, x, y, z):  #this is a test function to figure out straight lines and the algorithm for making them with edwin
-
         #getting into position
-
         msg = "data: move_to:: " + str(x) + ", " + str(y) + ", " + str(z+25.0) + ", " + str(0)
         print "sending: ", msg
         self.arm_pub.publish(msg)
