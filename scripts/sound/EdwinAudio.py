@@ -27,7 +27,7 @@ class EdwinAudioDetection():
 		# This means that the reads below will return either 320 bytes of data
 		# or 0 bytes of data. The latter is possible because we are in nonblocking
 		# mode.
-		pub = rospy.Publisher('Edwin_Audio_Detection', String, queue_size=10)
+		pub = rospy.Publisher('edwin_sound', String, queue_size=10)
 		rospy.init_node('Edwin_Audio_Detector', anonymous=True)
 		#rospy.Subscriber('Edwin_Sound_Detection_Runner', String, self.run)
 		#The subscriber tells whether or not to run the Run script, which listens to one sound
@@ -55,7 +55,7 @@ class EdwinAudioDetection():
 	def run(self, data):
 		absolute_threshold = 2030 #If above this level, then will recalibrate
 
-		if data.data == 'run': #If Edwin wants to listen
+		while not rospy.is_shutdown(): #If Edwin wants to listen
 			threshold = calibrate()
 			if threshold > absolute_threshold:
 				print 'Threshold too high.  Recalibrating'
@@ -82,7 +82,6 @@ class EdwinAudioDetection():
 				if peak_volume > 0:
 					bite_length += .01
 			pub.publish(str(bite_length) + ' ' + str(peak_volume)) #Publishes length/volume as data
-			return True
 
 if __name__ == '__main__':
 	#test_publish()
