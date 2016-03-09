@@ -33,7 +33,10 @@ class EdwinBrain:
         """
         state = data.data.replace("IMU: ", "")
         print "STATE IS: ", state
-        if state == "pat":
+        if state == "notouch":
+            return
+
+        elif state == "pat":
             emote_msg = "HAPPY"
             behav_msg = "butt_wiggle"
         elif state == "slap":
