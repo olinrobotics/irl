@@ -30,18 +30,20 @@ class EdwinAudioDetection():
 			timer += .01
 
 		if len(average_list) == 0:
-			average_list = [0]
+			print 'Your microphone does not seem to be working.  Retrying'
+			thresh = self.calibrate()
 
-		thresh = int(sum(average_list)/float(len(average_list))) #average volume.
+		else:
+			thresh = int(sum(average_list)/float(len(average_list))) #average volume.
 
 		print thresh, "ready"
 		return thresh
 
 	def run(self):
 		absolute_threshold = 2030
-
+		threshold = self.calibrate()
 		while not rospy.is_shutdown():
-			threshold = self.calibrate()
+
 			if threshold > absolute_threshold:
 				print 'Threshold too high.  Recalibrating'
 				threshold = self.calibrate()
@@ -57,7 +59,6 @@ class EdwinAudioDetection():
 				if l:
 					level = audioop.max(data, 2)
 					if level > threshold:
-						print "Listening Session:", str(soundbite)
 						if cont:
 							soundbite += 1
 							cont = False
