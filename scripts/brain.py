@@ -4,7 +4,6 @@ import random
 import math
 import numpy as np
 from std_msgs.msg import String
-import time
 
 class EdwinBrain:
     def __init__(self):
@@ -14,8 +13,7 @@ class EdwinBrain:
 
         self.arm_pub = rospy.Publisher('/arm_cmd', String, queue_size=10)
         self.behav_pub = rospy.Publisher('/behaviors_cmd', String, queue_size=10)
-
-        self.last_interaction = time.time()
+        self.emotion_pub = rospy.Publisher('/edwin_emotion', String, queue_size=10)
 
         self.routes = ["R_look", "R_playful", "R_sleep", "R_wakeup", "R_leaving, R_greet1", "R_curious"]
         self.behaviors = {}
@@ -27,6 +25,7 @@ class EdwinBrain:
         """
         print "heard a loud noise!"
         self.behav_pub.publish("R_curious")
+        self.emotion_pub("STARTLE")
 
     def imu_callback(self, data):
         """
@@ -34,13 +33,15 @@ class EdwinBrain:
         """
         state = data.data.replace("IMU: ", "")
         print "STATE IS: ", state
-        if state == "no touch":
-            print "nothing"
-        elif state == "patted":
-            msg = "butt_wiggle"
-        elif state == "slapped":
-            msg = "sleep"
-        self.behav_pub.publish(msg)
+        if state == "pat":
+            emote_msg = "HAPPY"
+            behav_msg = "butt_wiggle"
+        elif state == "slap":
+            emote_msg = "ANGRY"
+            behav_msg = "sleep"
+
+        self.behav_pub.publish(behav_msg)
+        self.emotion_pub.publish(emote_msg)
 
     def create_behaviors(self):
         self.behaviors["butt_wiggle"] = "R_leaving, WA: 1000, WA: 800, WA: 1000"
