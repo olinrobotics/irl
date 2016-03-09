@@ -23,7 +23,7 @@ class EdwinAudioDetection():
 		timer = 0
 		average_list = []
 		while timer < 3.0:
-			l,data = mic.read()
+			l,data = self.mic.read()
 			test_sound = audioop.max(data, 2)
 			if test_sound != 0:
 				average_list.append(test_sound) #sampling sound in 2 second interval
@@ -38,10 +38,10 @@ class EdwinAudioDetection():
 		absolute_threshold = 2030
 
 		while not rospy.is_shutdown():
-			threshold = calibrate()
+			threshold = self.calibrate()
 			if threshold > absolute_threshold:
 				print 'Threshold too high.  Recalibrating'
-				threshold = calibrate()
+				threshold = self.calibrate()
 
 			soundbite = 0
 			bite_length = 0
@@ -50,7 +50,7 @@ class EdwinAudioDetection():
 			cont = False
 			while (cont == False) or peak_volume == 0:
 				#only breaks out of loop when peak volume conditions are met
-				l,data = mic.read()
+				l,data = self.mic.read()
 				if l:
 					level = audioop.max(data, 2)
 					if level > threshold:
@@ -66,7 +66,7 @@ class EdwinAudioDetection():
 				if peak_volume > 0:
 					bite_length += .01
 
-			pub.publish(str(bite_length) + ' ' + str(peak_volume))
+			self.pub.publish(str(bite_length) + ' ' + str(peak_volume))
 
 if __name__ == '__main__':
 	audio_eng = EdwinAudioDetection()
