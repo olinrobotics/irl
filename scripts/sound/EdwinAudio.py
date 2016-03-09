@@ -6,7 +6,7 @@ import time
 import subprocess
 import alsaaudio, time, audioop
 
-#Edwin Audio basically detects and publishes the peak volume and length of a soundbite.  
+#Edwin Audio basically detects and publishes the peak volume and length of a soundbite.
 
 class EdwinAudioDetection():
 	def __init__(self):
@@ -31,7 +31,7 @@ class EdwinAudioDetection():
 		rospy.init_node('Edwin_Audio_Detector', anonymous=True)
 		#rospy.Subscriber('Edwin_Sound_Detection_Runner', String, self.run)
 		#The subscriber tells whether or not to run the Run script, which listens to one sound
-		#And then as of now, returns the length of the soundbite.  
+		#And then as of now, returns the length of the soundbite.
 	#def test_publish():
 	#	test_pub = rospy.Publisher('Edwin_Sound_Detection_Runner', String, queue_size=10)
 	#	test_pub.publish('run') #TestScript that gives the command to run the audio length
@@ -47,7 +47,7 @@ class EdwinAudioDetection():
 				average_list.append(test_sound) #sampling sound in 2 second interval
 			timer += .01
 
-		thresh = int(sum(average_list)/float(len(average_list))) #average volume.  
+		thresh = int(sum(average_list)/float(len(average_list))) #average volume.
 
 		print thresh, "ready"
 		return thresh

@@ -5,10 +5,6 @@ from edwin.msg import *
 import time
 import subprocess
 
-
-
-
-
 class AudioObject:
 	def __init__(self, name):
 		self.name = name
@@ -46,7 +42,7 @@ class SoundBoard:
 		AudioList.append(AudioObject("Dinosaur_snort"))
 		AudioList.append(AudioObject("Dragon"))
 		AudioList.append(AudioObject("Falcon"))
-		
+
 		return AudioList
 
 	def sound_callback(self, data):
