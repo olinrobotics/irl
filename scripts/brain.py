@@ -2,7 +2,6 @@
 import rospy
 import random
 import math
-import st
 import numpy as np
 from std_msgs.msg import String
 import time
@@ -26,20 +25,21 @@ class EdwinBrain:
         """
         format in "byte_length peak_volume"
         """
-        self.last_interaction = time.time()
+        print "heard a loud noise!"
+        self.behav_pub.publish("R_curious")
 
     def imu_callback(self, data):
         """
         IMU: no touch/patted/slapped
         """
         state = data.data.replace("IMU: ", "")
+        print "STATE IS: ", state
         if state == "no touch":
             print "nothing"
         elif state == "patted":
-            print "pat response"
+            msg = "butt_wiggle"
         elif state == "slapped":
-            print "got slapped :("
-
+            msg = "sleep"
         self.behav_pub.publish(msg)
 
     def create_behaviors(self):
@@ -50,29 +50,9 @@ class EdwinBrain:
 
     def run(self):
         r = rospy.Rate(10)
-        joints = ["H", "WR", "E", "WA", "BEHAV"]
         while not rospy.is_shutdown():
-            if time.time() - self.last_interaction > random.randint(3, 7):
-                joint = random.choice(joints)
-                if joint == "H":
-                    msg = "data: rotate_hand:: " + str(random.randint(-900, 900))
-                elif joint == "WR":
-                    msg = "data: rotate_wrist:: " + str(random.randint(-500, 2500))
-                elif joint == "E":
-                    msg = "data: rotate_elbow:: " + str(random.randint(11000, 13000))
-                elif joint == "WA":
-                    msg = "data: rotate_waist:: " + str(random.randint(4000, 6000))
-                elif joint == "BEHAV":
-                    msg = random.choice(self.behaviors.keys())
-                    print "PUBLISHING: ", msg
-                    self.behav_pub.publish(msg)
-
-                if joint != "BEHAV":
-                    print "PUBLISHING: ", msg
-                    self.arm_pub.publish(msg)
             r.sleep()
 
 if __name__ == '__main__':
-    idle_eng = IdleBehaviors()
-    idle_eng.run()
-    rospy.spin()
+    brain_eng = EdwinBrain()
+    brain_eng.run()
