@@ -9,16 +9,16 @@ import alsaaudio, time, audioop
 class EdwinAudioDetection():
 	def __init__(self):
 		rospy.init_node('edwin_audio_node', anonymous=True)
-		pub = rospy.Publisher('edwin_sound', String, queue_size=10)
+		self.pub = rospy.Publisher('edwin_sound', String, queue_size=10)
 
-		mic = alsaaudio.PCM(alsaaudio.PCM_CAPTURE,alsaaudio.PCM_NONBLOCK)
+		self.mic = alsaaudio.PCM(alsaaudio.PCM_CAPTURE,alsaaudio.PCM_NONBLOCK)
 		# Set attributes: Mono, 8000 Hz, 16 bit little endian samples
-		mic.setchannels(1)
-		mic.setrate(8000)
-		mic.setformat(alsaaudio.PCM_FORMAT_S16_LE)
-		mic.setperiodsize(160)
+		self.mic.setchannels(1)
+		self.mic.setrate(8000)
+		self.mic.setformat(alsaaudio.PCM_FORMAT_S16_LE)
+		self.mic.setperiodsize(160)
 
-	def calibrate():
+	def calibrate(self):
 		print 'calibrating'
 		timer = 0
 		average_list = []
@@ -28,6 +28,9 @@ class EdwinAudioDetection():
 			if test_sound != 0:
 				average_list.append(test_sound) #sampling sound in 2 second interval
 			timer += .01
+
+		if len(average_list) == 0:
+			average_list = [0]
 
 		thresh = int(sum(average_list)/float(len(average_list))) #average volume.
 
