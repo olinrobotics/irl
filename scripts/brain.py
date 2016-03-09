@@ -9,12 +9,12 @@ from std_msgs.msg import String
 class EdwinBrain:
     def __init__(self):
         rospy.init_node('edwin_brain', anonymous=True)
-        rospy.Subscriber('/edwin_sound', String, self.sound_callback, queue_size=10)
-        rospy.Subscriber('/edwin_imu', String, self.imu_callback, queue_size=10)
+        rospy.Subscriber('/edwin_sound', String, self.sound_callback, queue_size=0)
+        rospy.Subscriber('/edwin_imu', String, self.imu_callback, queue_size=0)
 
-        self.arm_pub = rospy.Publisher('/arm_cmd', String, queue_size=10)
-        self.behav_pub = rospy.Publisher('/behaviors_cmd', String, queue_size=10)
-        self.emotion_pub = rospy.Publisher('/edwin_emotion', String, queue_size=10)
+        self.arm_pub = rospy.Publisher('/arm_cmd', String, queue_size=2)
+        self.behav_pub = rospy.Publisher('/behaviors_cmd', String, queue_size=2)
+        self.emotion_pub = rospy.Publisher('/edwin_emotion', String, queue_size=2)
 
         self.routes = ["R_look", "R_playful", "R_sleep", "R_wakeup", "R_leaving, R_greet1", "R_curious"]
         self.behaviors = {}
