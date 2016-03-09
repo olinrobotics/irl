@@ -40,7 +40,7 @@ class EdwinAudioDetection():
 		return thresh
 
 	def run(self):
-		absolute_threshold = 2030
+		absolute_threshold = 10030
 		threshold = self.calibrate()
 		while not rospy.is_shutdown():
 
