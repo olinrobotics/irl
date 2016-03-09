@@ -30,9 +30,11 @@ class EdwinAudioDetection():
 			timer += .01
 
 		if len(average_list) == 0:
-			average_list = [0]
+			print 'Your microphone does not seem to be working.  Retrying'
+			thresh = self.calibrate()
 
-		thresh = int(sum(average_list)/float(len(average_list))) #average volume.
+		else:
+			thresh = int(sum(average_list)/float(len(average_list))) #average volume.
 
 		print thresh, "ready"
 		return thresh
