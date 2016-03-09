@@ -8,31 +8,31 @@ from std_msgs.msg import String
 from espeak import espeak
 from jimmy.msg import *
 
-def say(something):
+def say(something): #I'll give it up for you.
     espeak.synth(something)
-    
+
 def remote_say(data):
     print "in remote_say"
     raw = str(data).lower()
     sentance = raw.split(' ',1)[1]
     print sentance
     say(sentance)
-    
+
 def callback(data):
 #    while not rospy.is_shutdown():
     raw = str(data).lower()
     sentance = raw.split(' ',1)[1]
     print sentance
 #    say(sentance)
-    if 'hello' in sentance:      
+    if 'hello' in sentance:
         movegesture(16)
-        sleep(2)                                                                                                                                                                                                                                                                                                                                                                                                                
+        sleep(2)
         say("Hello! How are you.")
         return
     if 'thank' in sentance:
         movegesture(18)
         sleep(2)
-        say("You're welcome.")    
+        say("You're welcome.")
         return
     if 'your name' in sentance:
         movegesture(random.randint(2,6))
@@ -67,7 +67,7 @@ def move(servo, position):
     pub.publish(msg)
 #    rospy.spin()
     print "Message published!"
-   
+
 def movegesture(gesture):
     pub = rospy.Publisher("jimmy_send_gesture", jimmy_gesture)
     r = rospy.Rate(10)
@@ -75,7 +75,7 @@ def movegesture(gesture):
     msg.cmd = gesture
     pub.publish(msg)
     print "Gesture published"
-    
+
 def listener():
     rospy.init_node('listener', anonymous=True)
     rospy.Subscriber("conversation", String, callback)
