@@ -8,7 +8,7 @@ from std_msgs.msg import String
 from espeak import espeak
 from jimmy.msg import *
 
-def say(something):
+def say(something): #I'll give it up for you.
     espeak.synth(something)
 
 def remote_say(data):
