@@ -2,6 +2,7 @@
 import rospy
 import random
 import math
+import time
 import numpy as np
 from std_msgs.msg import String
 
@@ -24,14 +25,14 @@ class EdwinBrain:
         format in "byte_length peak_volume"
         """
         print "heard a loud noise!"
-        self.behav_pub.publish("R_curious")
-        self.emotion_pub("STARTLE")
+        self.behav_pub.publish("sleep")
+        self.emotion_pub.publish("STARTLE")
 
     def imu_callback(self, data):
         """
         IMU: no touch/patted/slapped
         """
-        state = data.data.replace("IMU: ", "")
+        #state = data.data.replace("IMU: ", "")
         print "STATE IS: ", state
         if state == "notouch":
             return
@@ -45,6 +46,7 @@ class EdwinBrain:
 
         self.behav_pub.publish(behav_msg)
         self.emotion_pub.publish(emote_msg)
+        time.sleep(10)
 
     def create_behaviors(self):
         self.behaviors["butt_wiggle"] = "R_leaving, WA: 1000, WA: 800, WA: 1000"
