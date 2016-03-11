@@ -1,3 +1,13 @@
+"""
+To run all the necessary components for the brain_eng
+
+rosrun edwin arm_node.py
+rosrun edwin arm_behaviors.py
+rosrun edwin edwin_audio.py
+rosrun edwin soundboard.py
+rosrun rosserial_python serial_node.py _port:=/dev/ttyUSB1 _baud:=9600
+"""
+
 #!/usr/bin/env python
 import rospy
 import random
@@ -25,6 +35,7 @@ class EdwinBrain:
         format in "byte_length peak_volume"
         """
         print "heard a loud noise!"
+        print data
         self.behav_pub.publish("sleep")
         self.emotion_pub.publish("STARTLE")
 
@@ -36,7 +47,6 @@ class EdwinBrain:
         #print "STATE IS: ", state
         if state == "notouch":
             return
-
         elif state == "pat":
             emote_msg = "HAPPY"
             behav_msg = "butt_wiggle"
