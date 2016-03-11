@@ -18,6 +18,7 @@ class ArmCommands:
         self.arm = st.StArm()
         self.arm.start()
         print "ARM SPD IS: ", self.arm.get_speed()
+        # self.arm.set_speed(10000)
         print "CALIBRATING"
         self.arm.calibrate()
         print "HOMING"
@@ -29,6 +30,7 @@ class ArmCommands:
 
     def create_routes(self):
         #Moves in units of thousands
+        self.arm.create_route("R_stare", [[3296, 2308, 999, 0, 0, 0]])
         self.arm.create_route("R_ttt", [[200, 2400, 1800, 720, 240, 2.1]])
         self.arm.create_route("R_look", [[3664, 1774, 3013, 11, 0, 21]])
         self.arm.create_route("R_playful", [[2027, 981, 98, -11, 0, 72]])
@@ -38,9 +40,7 @@ class ArmCommands:
         self.arm.create_route("R_greet1", [[3665, 1774, 3013, 0, 0, 0]])
         self.arm.create_route("R_curious", [[3664, 1774, 3013, 0, 0, 0]])
 
-
-
-        self.routes = ["R_ttt", "R_look", "R_playful", "R_sleep", "R_wakeup", "R_leaving, R_greet1", "R_curious"]
+        self.routes = ["R_stare", "R_ttt", "R_look", "R_playful", "R_sleep", "R_wakeup", "R_leaving, R_greet1", "R_curious"]
 
     def arm_callback(self, cmdin):
         self.arm.joint()
@@ -71,8 +71,10 @@ class ArmCommands:
         elif cmd == "get_speed":
             speed = self.arm.get_speed()
         elif cmd == "set_speed":
+            #SPD is also in units of 1000
             print "setting speed to ", param
             self.arm.set_speed(float(param))
+            print "ARM SPD IS: ", self.arm.get_speed()
         elif cmd == "set_point":
             self.arm.set_point(param)
         elif cmd == "get_accel":
