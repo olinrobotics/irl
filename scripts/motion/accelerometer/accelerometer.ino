@@ -142,8 +142,8 @@ void loop(){
     diff_y = current_y - last_avg_y;
     diff_x = current_x - last_avg_x;
   
-    if((abs(diff_z) <= 60 && abs(diff_z) > 15) || (abs(diff_y) <= 60 && abs(diff_y) > 15) ||
-    (abs(diff_x) <= 60 && abs(diff_x) > 15)){
+    if((abs(diff_z) <= 40 && abs(diff_z) > 15) || (abs(diff_y) <= 40 && abs(diff_y) > 15) ||
+    (abs(diff_x) <= 40 && abs(diff_x) > 15)){
      
       str_msg.data = "IMU: pat";
       accel.publish( &str_msg );

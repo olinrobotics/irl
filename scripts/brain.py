@@ -19,8 +19,8 @@ from std_msgs.msg import String
 class EdwinBrain:
     def __init__(self):
         rospy.init_node('edwin_brain', anonymous=True)
-        rospy.Subscriber('/edwin_sound', String, self.sound_callback, queue_size=0)
-        rospy.Subscriber('/edwin_imu', String, self.imu_callback, queue_size=0)
+        rospy.Subscriber('/edwin_sound', String, self.sound_callback, queue_size=1)
+        rospy.Subscriber('/edwin_imu', String, self.imu_callback, queue_size=1)
 
         self.arm_pub = rospy.Publisher('/arm_cmd', String, queue_size=2)
         self.behav_pub = rospy.Publisher('/behaviors_cmd', String, queue_size=2)
@@ -43,8 +43,8 @@ class EdwinBrain:
         """
         IMU: no touch/patted/slapped
         """
-        #state = data.data.replace("IMU: ", "")
-        print "STATE IS: ", state
+        state = data.data.replace("IMU: ", "")
+        #print "STATE IS: ", state
         if state == "notouch":
             return
         elif state == "pat":
