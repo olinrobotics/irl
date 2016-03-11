@@ -89,39 +89,37 @@ void setup(){
 }  
 
 void loop(){
-  /*
-  Serial.println(analogRead(pointX));
-  Serial.println(analogRead(pointY));
-  Serial.println(analogRead(pointZ));
-  
-  delay(500);
-  */
-  
-  
+
+    
   
   if(i < 6){
   
     if(i == 1){
+      
       old1_x = analogRead(pointX);
       old1_y = analogRead(pointY);
       old1_z = analogRead(pointZ);
     }
     else if(i == 2){
+      
        old2_x = analogRead(pointX);
        old2_y = analogRead(pointY);
        old2_z = analogRead(pointZ);
     }    
     else if(i == 3){
+      
        old3_x = analogRead(pointX);
        old3_y = analogRead(pointY);
        old3_z = analogRead(pointZ);
     }
     else if(i == 4){
+      
        old4_x = analogRead(pointX);
        old4_y = analogRead(pointY);
        old4_z = analogRead(pointZ);
     }
     else if(i == 5){
+      
        old5_x = analogRead(pointX);
        old5_y = analogRead(pointY);
        old5_z = analogRead(pointZ);
@@ -129,7 +127,10 @@ void loop(){
     i++;
   
   }
-  else{
+  else{  
+
+    
+      
     current_x = analogRead(pointX);
     current_y = analogRead(pointY);
     current_z = analogRead(pointZ);
@@ -142,8 +143,8 @@ void loop(){
     diff_y = current_y - last_avg_y;
     diff_x = current_x - last_avg_x;
   
-    if((abs(diff_z) <= 40 && abs(diff_z) > 15) || (abs(diff_y) <= 40 && abs(diff_y) > 15) ||
-    (abs(diff_x) <= 40 && abs(diff_x) > 15)){
+    if((abs(diff_z) <= 70 && abs(diff_z) > 25) || (abs(diff_y) <= 70 && abs(diff_y) > 25) ||
+    (abs(diff_x) <= 70 && abs(diff_x) > 25)){
      
       str_msg.data = "IMU: pat";
       accel.publish( &str_msg );
@@ -172,7 +173,7 @@ void loop(){
 
       
     }
-    else if((abs(diff_z) > 60) || (abs(diff_y) > 60) || (abs(diff_x) > 60)){
+    else if((abs(diff_z) > 70) || (abs(diff_y) > 70) || (abs(diff_x) > 70)){
      
       str_msg.data = "IMU: slap";
       accel.publish( &str_msg );
@@ -235,6 +236,8 @@ void loop(){
     old5_x = current_x;
   
   }  
+  
+  
   
   
 
