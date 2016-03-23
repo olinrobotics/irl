@@ -35,7 +35,7 @@ class IdleBehaviors:
         r = rospy.Rate(10)
         joints = ["H", "WR", "E", "WA", "BEHAV"]
         while not rospy.is_shutdown():
-            if time.time() - self.last_interaction > random.randint(3, 7):
+            if time.time() - self.last_interaction > random.randint(5, 15):
                 joint = random.choice(joints)
                 if joint == "H":
                     msg = "data: rotate_hand:: " + str(random.randint(-900, 900))

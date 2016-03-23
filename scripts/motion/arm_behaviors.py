@@ -11,14 +11,9 @@ class ArmBehaviors:
         rospy.init_node('behavior_arm', anonymous=True)
         rospy.Subscriber('/behaviors_cmd', String, self.behavior_callback, queue_size=10)
         self.pub = rospy.Publisher('/arm_cmd', String, queue_size=10)
-        self.routes = []
         self.behaviors = {}
 
-        self.create_routes()
         self.create_behaviors()
-
-    def create_routes(self):
-        self.routes = ["R_look", "R_playful", "R_sleep", "R_wakeup", "R_leaving, R_greet1", "R_curious"]
 
     def behavior_callback(self, cmdin):
         print "RECEIVED CMD: ", cmdin
@@ -28,6 +23,8 @@ class ArmBehaviors:
             for elem in cmd_list:
                 if "R_" in elem:
                     msg = "data: run_route:: " + str(elem)
+                elif "SPD" in elem:
+                    msg = "data: set_speed:: " + str(elem.split("SPD: ")[1])
                 else:
                     joint = elem.split(":")[0]
                     pos = int(elem.split(":")[1])
@@ -46,13 +43,14 @@ class ArmBehaviors:
                 self.pub.publish(msg)
 
     def create_behaviors(self):
-        self.behaviors["butt_wiggle"] = "R_leaving, WA: 1000, WA: 800, WA: 1000"
-        self.behaviors["curiosity"] =  "R_curious, H: 0, WR: 800, H: 100, WR: 2000"
-        self.behaviors["greet"] = "R_greet1, WR:1500, H: 100, H: 0, H: 300, H: 100"
-        self.behaviors["sleep"] = "R_sleep, H: 700, R: 1000"
-        self.behaviors["nudge"] = "WA: -1000, E: 12000, E: 13000, E: 12000, WA: 1000"
-        self.behaviors["sad"] = "WA: -1000, H: 1000, WR: -250, WR: 250, WR: -250, H:50, WA: 1000"
-        self.behaviors["gloat"] = "E: 12000, WA: -4000, H: 500, H: 0, E: 14000, WA: 1000"
+        self.behaviors["butt_wiggle"] = "WA: 500, WA: 1000"
+        self.behaviors["curiosity"] =  "R_curious, WR: 800, H: 0"
+        self.behaviors["greet"] = "R_greet1, WR:1500, H: 100, H: 0"
+        self.behaviors["sad"] = "R_sleep, H: 1000, R: 700"
+        self.behaviors["nudge"] = "R_ttt, E: 12000, E: 12500"
+        self.behaviors["nod"] = "R_stare, E:13000, E:12000"
+        self.behaviors["gloat"] = "R_playful, WA:6000, WA:7000"
+        self.behaviors["angry"] = "SPD: 200, R_stare, SPD: 1000"
 
     def run(self):
         r = rospy.Rate(10)

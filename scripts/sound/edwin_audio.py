@@ -40,10 +40,10 @@ class EdwinAudioDetection():
 		return thresh
 
 	def run(self):
-		absolute_threshold = 2030
-
+		absolute_threshold = 10030
+		threshold = self.calibrate()
 		while not rospy.is_shutdown():
-			threshold = self.calibrate()
+
 			if threshold > absolute_threshold:
 				print 'Threshold too high.  Recalibrating'
 				threshold = self.calibrate()
@@ -59,7 +59,6 @@ class EdwinAudioDetection():
 				if l:
 					level = audioop.max(data, 2)
 					if level > threshold:
-						print "Listening Session:", str(soundbite)
 						if cont:
 							soundbite += 1
 							cont = False
