@@ -37,7 +37,7 @@ void inc_message( const std_msgs::String& stat){
 }
     
 
-ros::Subscriber<std_msgs::String> arm_status("arm_status", &inc_message);
+ros::Subscriber<std_msgs::String> sub("arm_status", &inc_message);
 
 
 //Pin A5 is the Z output from the accelerometer, Pin A4 is the Y 
@@ -80,14 +80,14 @@ void setup(){
   edwin_head.getHardware() -> setBaud(9600);
   edwin_head.initNode();
   edwin_head.advertise(accel);
-  edwin_head.subscribe(arm_status);
+  edwin_head.subscribe(sub);
   
   
   pinMode(pointZ, INPUT);
   pinMode(pointY, INPUT);
   pinMode(pointX, INPUT);
      
-  Serial.begin(9600);
+  //Serial.begin(9600);
   
   
 }  
@@ -168,7 +168,7 @@ void loop(){
         }
         
         i = 0;
-        delay(2000);
+      //  delay(2000);
   
         
       }
@@ -185,7 +185,7 @@ void loop(){
         
         i = 0;
         
-        delay(2000);
+      //  delay(2000);
   
         
       }
@@ -196,9 +196,7 @@ void loop(){
   
       }
       
-      
-      edwin_head.spinOnce();
-      delay(200);
+     
   
   
       if(oldest >= 5){
@@ -217,7 +215,9 @@ void loop(){
     }  
     
   }
-    
+     
+      edwin_head.spinOnce();
+      //delay(500);
   
   
   
