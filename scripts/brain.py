@@ -1,20 +1,24 @@
+#!/usr/bin/env python
+
 """
 To run all the necessary components for the brain_eng
 
 rosrun edwin arm_node.py
 rosrun edwin arm_behaviors.py
+rosrun edwin draw.py
 rosrun edwin edwin_audio.py
 rosrun edwin soundboard.py
 rosrun rosserial_python serial_node.py _port:=/dev/ttyUSB1 _baud:=9600
 """
 
-#!/usr/bin/env python
 import rospy
 import random
 import math
 import time
 import numpy as np
 from std_msgs.msg import String
+
+from InteractiveDemos import TicTacToe as ttt
 
 class EdwinBrain:
     def __init__(self):
@@ -67,7 +71,9 @@ class EdwinBrain:
     def run(self):
         r = rospy.Rate(10)
         while not rospy.is_shutdown():
-            r.sleep()
+            ttt_gm = ttt.Game()
+            ttt_gm.run()
+            # r.sleep()
 
 if __name__ == '__main__':
     brain_eng = EdwinBrain()
