@@ -1,9 +1,9 @@
 
 
 /*
-This code is for the Arbotix-M accelerometer. It is designed 
-to be powered and grounded by the Arbotix-M, and has its Xo, Yo, 
-and Zo pins connected to data pins on the Arbotix-M. This program 
+This code is for the Arbotix-M accelerometer. It is designed
+to be powered and grounded by the Arbotix-M, and has its Xo, Yo,
+and Zo pins connected to data pins on the Arbotix-M. This program
 will then read the values and then output a boolean when the
 accelerometer detects that there is a sudden surge in movement,
 i.e. when I tap it. It must be able to recognize tapping
@@ -22,7 +22,7 @@ std_msgs::String str_msg;
 ros::Publisher accel("edwin_imu", &str_msg);
 
 
-//Pin A5 is the Z output from the accelerometer, Pin A4 is the Y 
+//Pin A5 is the Z output from the accelerometer, Pin A4 is the Y
 // output, and Pin A3 is the X output.
 int pointX = 3;
 int pointY = 4;
@@ -77,30 +77,30 @@ void setup(){
   edwin_head.getHardware() -> setBaud(9600);
   edwin_head.initNode();
   edwin_head.advertise(accel);
-  
-  
+
+
   pinMode(pointZ, INPUT);
   pinMode(pointY, INPUT);
   pinMode(pointX, INPUT);
-     
+
   Serial.begin(9600);
-  
-  
-}  
+
+
+}
 
 void loop(){
   /*
   Serial.println(analogRead(pointX));
   Serial.println(analogRead(pointY));
   Serial.println(analogRead(pointZ));
-  
+
   delay(500);
   */
-  
-  
-  
+
+
+
   if(i < 6){
-  
+
     if(i == 1){
       old1_x = analogRead(pointX);
       old1_y = analogRead(pointY);
@@ -110,7 +110,7 @@ void loop(){
        old2_x = analogRead(pointX);
        old2_y = analogRead(pointY);
        old2_z = analogRead(pointZ);
-    }    
+    }
     else if(i == 3){
        old3_x = analogRead(pointX);
        old3_y = analogRead(pointY);
@@ -125,118 +125,117 @@ void loop(){
        old5_x = analogRead(pointX);
        old5_y = analogRead(pointY);
        old5_z = analogRead(pointZ);
-    }    
+    }
     i++;
-  
+
   }
   else{
     current_x = analogRead(pointX);
     current_y = analogRead(pointY);
     current_z = analogRead(pointZ);
-    
+
     last_avg_x = (old1_x + old2_x + old3_x + old4_x + old5_x)/5.0;
     last_avg_y = (old1_y + old2_y + old3_y + old4_y + old5_y)/5.0;
     last_avg_z = (old1_z + old2_z + old3_z + old4_z + old5_z)/5.0;
-    
+
     diff_z = current_z - last_avg_z;
     diff_y = current_y - last_avg_y;
     diff_x = current_x - last_avg_x;
-  
+
     if((abs(diff_z) <= 40 && abs(diff_z) > 15) || (abs(diff_y) <= 40 && abs(diff_y) > 15) ||
     (abs(diff_x) <= 40 && abs(diff_x) > 15)){
-     
+
       str_msg.data = "IMU: pat";
       accel.publish( &str_msg );
       old5_x = 0;
       old5_y = 0;
       old5_z = 0;
-      
+
       old4_x = 0;
       old4_y = 0;
       old4_z = 0;
-      
+
       old3_x = 0;
       old3_y = 0;
       old3_z = 0;
-      
+
       old2_x = 0;
       old2_y = 0;
       old2_z = 0;
-      
+
       old1_x = 0;
       old1_y = 0;
       old1_z = 0;
-      
+
       i = 0;
       delay(2000);
 
-      
+
     }
     else if((abs(diff_z) > 60) || (abs(diff_y) > 60) || (abs(diff_x) > 60)){
-     
+
       str_msg.data = "IMU: slap";
       accel.publish( &str_msg );
       old5_x = 0;
       old5_y = 0;
       old5_z = 0;
-      
+
       old4_x = 0;
       old4_y = 0;
       old4_z = 0;
-      
+
       old3_x = 0;
       old3_y = 0;
       old3_z = 0;
-      
+
       old2_x = 0;
       old2_y = 0;
       old2_z = 0;
-      
+
       old1_x = 0;
       old1_y = 0;
       old1_z = 0;
-      
+
       i = 0;
-      
+
       delay(2000);
 
-      
+
     }
     else{
       str_msg.data = "IMU: notouch";
       accel.publish( &str_msg );
 
     }
-    
-    
+
+
     edwin_head.spinOnce();
     delay(200);
 
 
-    
+
     old1_z = old2_z;
     old1_y = old2_y;
     old1_x = old2_x;
-    
+
     old2_z = old3_z;
     old2_y = old3_y;
     old2_x = old3_x;
-    
+
     old3_z = old4_z;
     old3_y = old4_y;
     old3_x = old4_x;
-    
+
     old4_z = old5_z;
     old4_y = old5_y;
     old4_x = old5_x;
-    
+
     old5_z = current_z;
     old5_y = current_y;
     old5_x = current_x;
-  
-  }  
-  
-  
 
-}  
-  
+  }
+
+
+
+}

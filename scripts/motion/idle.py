@@ -24,6 +24,7 @@ class IdleBehaviors:
         self.create_behaviors()
 
         self.idling = True
+        self.idle_time = random.randint(5, 10)
         print "Starting idle node"
 
     def idle_callback(self, data):
@@ -34,7 +35,6 @@ class IdleBehaviors:
             self.idling = True
 
     def callback(self, data):
-        print "callback"
         self.last_interaction = time.time()
 
     def create_behaviors(self):
@@ -48,7 +48,8 @@ class IdleBehaviors:
         joints = ["H", "WR", "E", "WA", "BEHAV"]
         while not rospy.is_shutdown():
             if self.idling:
-                if time.time() - self.last_interaction > random.randint(5, 15):
+                if int(time.time() - self.last_interaction) > self.idle_time:
+                    self.idle_time = random.randint(5, 10)
                     print "IDLE"
                     joint = random.choice(joints)
                     if joint == "H":
