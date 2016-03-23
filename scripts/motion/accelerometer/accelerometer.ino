@@ -28,7 +28,7 @@ boolean moving = false;
 void inc_message( const std_msgs::String& stat){
   
   arm = stat.data;
-  if(arm == "GOING"){
+  if(arm == 1){
     moving = true;
   }
   else if(arm  == "STOPPING"){

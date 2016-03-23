@@ -14,6 +14,7 @@ It also utilizes RosSerial as a Publisher to tell Edwin whether it moves or was 
 
 #include <ros.h>
 #include <std_msgs/String.h>
+#include <std_msgs/Int16.h>
 #include <math.h>
 
 ros::NodeHandle edwin_head;
@@ -22,22 +23,22 @@ std_msgs::String str_msg;
 ros::Publisher accel("edwin_imu", &str_msg);
 
 //String that keeps track of whether an arm is moving or being touched, and Boolean for the loop
-String arm = "";
+int arm = 0;
 boolean moving = false;
 
-void inc_message( const std_msgs::String& stat){
+void inc_message( const std_msgs::Int16& stat){
   
   arm = stat.data;
-  if(arm == "GOING"){
+  if(arm == 1){
     moving = true;
   }
-  else if(arm  == "STOPPED"){
+  else if(arm  == 0){
     moving = false;
   }
 }
     
 
-ros::Subscriber<std_msgs::String> sub("arm_status", &inc_message);
+ros::Subscriber<std_msgs::Int16> sub("arm_status", &inc_message);
 
 
 //Pin A5 is the Z output from the accelerometer, Pin A4 is the Y 

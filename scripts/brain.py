@@ -56,8 +56,6 @@ class EdwinBrain:
             return
         elif state == "pat":
             if self.idling:
-                behav_msg = "butt_wiggle"
-                emote_msg = "HAPPY"
                 self.start_game = "TTT"
                 self.idling = False
                 self.idle_pub.publish("stop_idle")

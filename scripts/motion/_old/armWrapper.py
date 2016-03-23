@@ -86,8 +86,8 @@ class ArmWrapper():
 			self.y = 7000
 		self.arm.move_to(self.x,self.y,z)
 		self.rotate_gripper(th)
-		self.printOut.publish('lowlevel: sending /inPosition "Stopped"')
-		self.donePub.publish("stopped")
+		self.printOut.publish('lowlevel: sending /inPosition 0')
+		self.donePub.publish(0)
 
 
 	def down(self, data):
