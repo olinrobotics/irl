@@ -12,6 +12,7 @@ class ArmCommands:
 
         rospy.Subscriber('/arm_cmd', String, self.arm_callback, queue_size=10)
         self.pub = rospy.Publisher('arm_debug', String, queue_size=10)
+        self.pub2 = rospy.Publisher('arm_status', String, queue_size=10)
 
         self.debug = False
         self.plan = []
@@ -82,7 +83,9 @@ class ArmCommands:
         elif cmd == "set_accel":
             self.arm.set_accel(param)
         elif cmd == "run_route":
+            self.pub2.publish("GOING")
             self.arm.run_route(param)
+            self.pub2.publish("STOPPED")
         elif cmd == "move_to":
             #NOTE: move_to is in units of mm
             temp = param.split(", ")
@@ -90,8 +93,9 @@ class ArmCommands:
             y = temp[1]
             z = temp[2]
             pitch = temp[3]
+            self.pub2.publish("GOING")
             self.arm.move_to(x,y,z,self.arm.debug)
-            self.pub.publish("done")
+            self.pub2.publish("STOPPED")
         elif cmd == "rotate_wrist":
             self.arm.rotate_wrist(param)
         elif cmd == "rotate_wrist_rel":
@@ -116,6 +120,3 @@ if __name__ == "__main__":
     arm_eng = ArmCommands()
     arm_eng.run()
     rospy.spin()
-
-
-
