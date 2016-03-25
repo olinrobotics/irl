@@ -11,7 +11,7 @@ class EdwinAudioDetection():
 		rospy.init_node('edwin_audio_node', anonymous=True)
 		self.pub = rospy.Publisher('edwin_sound', String, queue_size=10)
 
-		self.mic = alsaaudio.PCM(alsaaudio.PCM_CAPTURE,alsaaudio.PCM_NONBLOCK)
+		self.mic = alsaaudio.PCM(alsaaudio.PCM_CAPTURE,alsaaudio.PCM_NONBLOCK, device=plughw:2,0)
 		# Set attributes: Mono, 8000 Hz, 16 bit little endian samples
 		self.mic.setchannels(1)
 		self.mic.setrate(8000)

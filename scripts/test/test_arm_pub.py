@@ -20,12 +20,12 @@ class ArmGui:
     def route_move(self, num):
         msg = "data: run_route:: " + str(self.route_s.get())
         print "sending: ", msg
-        self.pub2.publish(msg)
+        self.pub.publish(msg)
 
     def behave_move(self, num):
-        msg = "data: run_route:: " + str(self.behav_s.get())
+        msg = str(self.behav_s.get())
         print "sending: ", msg
-        self.pub.publish(msg)
+        self.pub2.publish(msg)
 
     def xyz_move(self):
         msg = "data: move_to:: " + self.x.get() + ", " + self.y.get() + ", " + self.z.get() + ", " + self.pitch.get()
