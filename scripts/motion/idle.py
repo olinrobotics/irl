@@ -49,7 +49,7 @@ class IdleBehaviors:
         while not rospy.is_shutdown():
             if self.idling:
                 if int(time.time() - self.last_interaction) > self.idle_time:
-                    self.idle_time = random.randint(5, 10)
+                    self.idle_time = random.randint(3, 7)
                     print "IDLE"
                     joint = random.choice(joints)
                     if joint == "H":
