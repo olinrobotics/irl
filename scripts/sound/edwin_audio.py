@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import rospy
-from std_msgs.msg import String
+from std_msgs.msg import String, Int16
 from edwin.msg import *
 import time
 import subprocess
@@ -11,15 +11,27 @@ class EdwinAudioDetection():
 		rospy.init_node('edwin_audio_node', anonymous=True)
 		self.pub = rospy.Publisher('edwin_sound', String, queue_size=10)
 
-		self.mic = alsaaudio.PCM(alsaaudio.PCM_CAPTURE,alsaaudio.PCM_NONBLOCK, device=plughw:2,0)
+		rospy.Subscriber('/arm_status', Int16, self.arm_status_callback, queue_size=1)
+		self.arm_moving = False
+
+		self.mic = alsaaudio.PCM(alsaaudio.PCM_CAPTURE, alsaaudio.PCM_NONBLOCK) #, device=plughw:2,0)
 		# Set attributes: Mono, 8000 Hz, 16 bit little endian samples
 		self.mic.setchannels(1)
 		self.mic.setrate(8000)
 		self.mic.setformat(alsaaudio.PCM_FORMAT_S16_LE)
 		self.mic.setperiodsize(160)
 
+		self.treshold = 0
+
+	def arm_status_callback(self, data):
+		print "RECEIVED ARM_STATUS: ", data.data
+		if data.data == 0:
+			self.arm_moving = False
+		elif data.data == 1:
+			self.arm_moving = True
+
 	def calibrate(self):
-		print 'calibrating'
+		print 'Calibrating'
 		timer = 0
 		average_list = []
 		while timer < 3.0:
@@ -30,23 +42,22 @@ class EdwinAudioDetection():
 			timer += .01
 
 		if len(average_list) == 0:
-			print 'Your microphone does not seem to be working.  Retrying'
-			thresh = self.calibrate()
-
+			print 'Microphone is not working.  Retrying'
+			self.threshold = self.calibrate()
 		else:
-			thresh = int(sum(average_list)/float(len(average_list))) #average volume.
-
-		print thresh, "ready"
-		return thresh
+			self.threshold = int(sum(average_list)/float(len(average_list))) #average volume.
+		print "Threshold set as: ", self.threshold
 
 	def run(self):
 		absolute_threshold = 10030
-		threshold = self.calibrate()
+		self.calibrate()
 		while not rospy.is_shutdown():
+			if self.arm_moving:
+				continue
 
-			if threshold > absolute_threshold:
+			if self.threshold > absolute_threshold:
 				print 'Threshold too high.  Recalibrating'
-				threshold = self.calibrate()
+				self.calibrate()
 
 			soundbite = 0
 			bite_length = 0
@@ -58,13 +69,13 @@ class EdwinAudioDetection():
 				l,data = self.mic.read()
 				if l:
 					level = audioop.max(data, 2)
-					if level > threshold:
+					if level > self.threshold:
 						if cont:
 							soundbite += 1
 							cont = False
 						if level > peak_volume:
 							peak_volume = level
-					elif level < threshold: #Once hit under threshold, it will recognize next sound.
+					elif level < self.threshold: #Once hit under threshold, it will recognize next sound.
 						cont = True
 				time.sleep(.01)
 				if peak_volume > 0:
