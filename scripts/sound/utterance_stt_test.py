@@ -15,7 +15,7 @@ import math
 class SpeechDetector:
     def __init__(self):
         # rospy.init_node('speech_to_text', anonymous=True)
-        # self.pub = rospy.Publisher("conversation", String)
+        # self.pub = rospy.Publisher("edwin_decoded_speech", String)
 
         # Microphone stream config.
         self.CHUNK = 1024  # CHUNKS of bytes to read each time from mic
@@ -25,16 +25,17 @@ class SpeechDetector:
 
         self.SILENCE_LIMIT = 1  # Silence limit in seconds. The max ammount of seconds where
                            # only silence is recorded. When this time passes the
-                           # recording finishes and the file is delivered.
+                           # recording finishes and the file is decoded
 
         self.PREV_AUDIO = 0.5  # Previous audio (in seconds) to prepend. When noise
                           # is detected, how much of previously recorded audio is
-                          # prepended. This helps to prevent chopping the beggining
+                          # prepended. This helps to prevent chopping the beginning
                           # of the phrase.
 
         self.THRESHOLD = 4500
         self.num_phrases = -1
 
+        # These will need to be modified according to where the pocketsphinx folder is
         MODELDIR = "../../tools/pocketsphinx/model"
         DATADIR = "../../tools/pocketsphinx/test/data"
 
@@ -44,7 +45,7 @@ class SpeechDetector:
         config.set_string('-lm', os.path.join(MODELDIR, 'en-us/en-us.lm.bin'))
         config.set_string('-dict', os.path.join(MODELDIR, 'en-us/cmudict-en-us.dict'))
 
-        # Decode streaming data.
+        # Creaders decoder object for streaming data.
         self.decoder = Decoder(config)
 
     def setup_mic(self, num_samples=50):
@@ -52,7 +53,6 @@ class SpeechDetector:
             average intensities while you're talking and/or silent. The average
             is the avg of the .2 of the largest intensities recorded.
         """
-
         print "Getting intensity values from mic."
         p = pyaudio.PyAudio()
         stream = p.open(format=self.FORMAT, channels=self.CHANNELS, rate=self.RATE, input=True, frames_per_buffer=self.CHUNK)
@@ -72,9 +72,10 @@ class SpeechDetector:
             self.THRESHOLD = r + 100
 
     def save_speech(self, data, p):
-        """ Saves mic data to temporary WAV file. Returns filename of saved
-            file """
-
+        """
+        Saves mic data to temporary WAV file. Returns filename of saved
+        file
+        """
         filename = 'output_'+str(int(time.time()))
         # writes data to WAV file
         data = ''.join(data)
@@ -86,10 +87,8 @@ class SpeechDetector:
         wf.close()
         return filename + '.wav'
 
-
     def decode_phrase(self, wav_file):
         self.decoder.start_utt()
-        # stream = open(path.join(DATADIR, 'goforward.raw'), 'rb')
         stream = open(wav_file, "rb")
         while True:
           buf = stream.read(1024)
@@ -99,7 +98,6 @@ class SpeechDetector:
             break
         self.decoder.end_utt()
         words = []
-        # print ('Best hypothesis segments: ', [seg.word for seg in self.decoder.seg()])
         [words.append(seg.word) for seg in self.decoder.seg()]
         return words
 
@@ -108,65 +106,51 @@ class SpeechDetector:
         Listens to Microphone, extracts phrases from it and calls pocketsphinx
         to decode the sound
         """
-
         self.setup_mic()
 
         #Open stream
         p = pyaudio.PyAudio()
         stream = p.open(format=self.FORMAT, channels=self.CHANNELS, rate=self.RATE, input=True, frames_per_buffer=self.CHUNK)
-        print "* Listening mic. "
+        print "* Mic set up and listening. "
+
+        audio2send = []
+        cur_data = ''  # current chunk of audio data
+        rel = self.RATE/self.CHUNK
+        slid_win = deque(maxlen=self.SILENCE_LIMIT * rel)
+        #Prepend audio from 0.5 seconds before noise was detected
+        prev_audio = deque(maxlen=self.PREV_AUDIO * rel)
+        started = False
 
         # while not rospy.is_shutdown():
         while True:
-            audio2send = []
-            cur_data = ''  # current chunk  of audio data
-            rel = self.RATE/self.CHUNK
-            slid_win = deque(maxlen=self.SILENCE_LIMIT * rel)
-            #Prepend audio from 0.5 seconds before noise was detected
-            prev_audio = deque(maxlen=self.PREV_AUDIO * rel)
-            started = False
-            n = self.num_phrases
-            response = []
+            cur_data = stream.read(self.CHUNK)
+            slid_win.append(math.sqrt(abs(audioop.avg(cur_data, 4))))
 
-            while (self.num_phrases == -1 or n > 0):
-                cur_data = stream.read(self.CHUNK)
-                slid_win.append(math.sqrt(abs(audioop.avg(cur_data, 4))))
-                #print slid_win[-1]
-                if(sum([x > self.THRESHOLD for x in slid_win]) > 0):
-                    if(not started):
-                        print "Starting record of phrase"
-                        started = True
-                    audio2send.append(cur_data)
-                elif (started is True):
-                    print "Finished"
-                    # The limit was reached, finish capture and deliver.
-                    filename = self.save_speech(list(prev_audio) + audio2send, p)
-                    # Send file to Google and get response
-                    r = self.decode_phrase(filename)
-                    if self.num_phrases == -1:
-                        if type(r) == list and len(r) > 0:
-                            print r
-                            # res = r[0]
-                            # speech_result = res['utterance']
-                            # print "Most confident result", speech_result
-                            # self.pub.publish(speech_result)
-                        print "Total response", r
+            if sum([x > self.THRESHOLD for x in slid_win]) > 0:
+                if started == False:
+                    print "Starting recording of phrase"
+                    started = True
+                audio2send.append(cur_data)
 
-                    else:
-                        response.append(r)
-                    # Remove temp file. Comment line to review.
-                    os.remove(filename)
-                    # Reset all
-                    started = False
-                    slid_win = deque(maxlen=self.SILENCE_LIMIT * rel)
-                    prev_audio = deque(maxlen=0.5 * rel)
-                    audio2send = []
-                    n -= 1
-                    print "Listening ..."
-                else:
-                    prev_audio.append(cur_data)
+            elif started:
+                print "Finished recording, decoding phrase"
+                filename = self.save_speech(list(prev_audio) + audio2send, p)
+                r = self.decode_phrase(filename)
+                print "DETECTED: ", r
 
-        print "* Done recording"
+                # Removes temp audio file
+                os.remove(filename)
+                # Reset all
+                started = False
+                slid_win = deque(maxlen=self.SILENCE_LIMIT * rel)
+                prev_audio = deque(maxlen=0.5 * rel)
+                audio2send = []
+                print "Listening ..."
+
+            else:
+                prev_audio.append(cur_data)
+
+        print "* Done listening"
         stream.close()
         p.terminate()
 
