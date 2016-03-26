@@ -9,13 +9,14 @@ import audioop
 from collections import deque
 import time
 import math
-# import rospy
-# from std_msgs.msg import String
+import rospy
+from std_msgs.msg import String
 
 class SpeechDetector:
     def __init__(self):
-        # rospy.init_node('speech_to_text', anonymous=True)
-        # self.pub = rospy.Publisher("edwin_decoded_speech", String)
+        rospy.init_node('speech_to_text', anonymous=True)
+        self.speech_pub = rospy.Publisher("edwin_decoded_speech", String)
+        self.speech_status_pub = rospy.Publisher("edwin_stt_status", String)
 
         # Microphone stream config.
         self.CHUNK = 1024  # CHUNKS of bytes to read each time from mic
@@ -121,22 +122,28 @@ class SpeechDetector:
         prev_audio = deque(maxlen=self.PREV_AUDIO * rel)
         started = False
 
-        # while not rospy.is_shutdown():
-        while True:
+        while not rospy.is_shutdown():
             cur_data = stream.read(self.CHUNK)
             slid_win.append(math.sqrt(abs(audioop.avg(cur_data, 4))))
 
             if sum([x > self.THRESHOLD for x in slid_win]) > 0:
                 if started == False:
                     print "Starting recording of phrase"
+                    self.speech_status_pub.publish("LISTENING")
                     started = True
                 audio2send.append(cur_data)
 
             elif started:
                 print "Finished recording, decoding phrase"
+                self.speech_status_pub.publish("DONE")
                 filename = self.save_speech(list(prev_audio) + audio2send, p)
                 r = self.decode_phrase(filename)
                 print "DETECTED: ", r
+                speech_string = ""
+                for word in r:
+                    if word[0] != "<":
+                        speech_string += " " + word
+                self.speech_pub.publish(speech_string)
 
                 # Removes temp audio file
                 os.remove(filename)
