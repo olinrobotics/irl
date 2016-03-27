@@ -9,7 +9,9 @@ import audioop
 from collections import deque
 import time
 import math
+
 import rospy
+import rospkg
 from std_msgs.msg import String
 
 class SpeechDetector:
@@ -34,11 +36,14 @@ class SpeechDetector:
                           # of the phrase.
 
         self.THRESHOLD = 4500
-        self.num_phrases = -1
+        self.DEV_INDEX = False
+
+        rospack = rospkg.RosPack()
+        PACKAGE_PATH = rospack.get_path("edwin")
 
         # These will need to be modified according to where the pocketsphinx folder is
-        MODELDIR = "../../tools/pocketsphinx/model"
-        DATADIR = "../../tools/pocketsphinx/test/data"
+        MODELDIR = os.path.join(PACKAGE_PATH, "tools/pocketsphinx/model")
+        DATADIR = os.path.join(PACKAGE_PATH, "tools/pocketsphinx/test/data")
 
         # Create a decoder with certain model
         config = Decoder.default_config()
@@ -53,6 +58,10 @@ class SpeechDetector:
         """ Gets average audio intensity of your mic sound. You can use it to get
             average intensities while you're talking and/or silent. The average
             is the avg of the .2 of the largest intensities recorded.
+
+            FOR COMPUTER MIC: MIN threshold is around 3000.
+            FOR USB MIC: MIN threshold is around 350
+                -change the required values on line 80
         """
         print "Getting intensity values from mic."
         p = pyaudio.PyAudio()
@@ -67,8 +76,9 @@ class SpeechDetector:
         stream.close()
         p.terminate()
 
-        if r < 3000:
-            self.THRESHOLD = 3500
+        print "THRESHOLD IS: ", r
+        if r < 350:
+            self.THRESHOLD = 350
         else:
             self.THRESHOLD = r + 100
 
