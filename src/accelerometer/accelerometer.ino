@@ -1,5 +1,3 @@
-
-
 /*
 This code is for the Arbotix-M accelerometer. It is designed
 to be powered and grounded by the Arbotix-M, and has its Xo, Yo,
@@ -21,24 +19,6 @@ ros::NodeHandle edwin_head;
 
 std_msgs::String str_msg;
 ros::Publisher accel("edwin_imu", &str_msg);
-
-//String that keeps track of whether an arm is moving or being touched, and Boolean for the loop
-//int16_t arm = 0;
-//boolean moving = false;
-//
-//void inc_message( const std_msgs::Int16& stat){
-//
-//  arm = stat.data;
-//  if(arm == 1){
-//    moving = true;
-//  }
-//  else if(arm  == 0){
-//    moving = false;
-//  }
-//}
-//
-//
-//ros::Subscriber<std_msgs::Int16> sub("arm_status", &inc_message);
 
 
 //Pin A5 is the Z output from the accelerometer, Pin A4 is the Y
@@ -81,27 +61,17 @@ void setup(){
   edwin_head.getHardware() -> setBaud(9600);
   edwin_head.initNode();
   edwin_head.advertise(accel);
- // edwin_head.subscribe(sub);
 
 
   pinMode(pointZ, INPUT);
   pinMode(pointY, INPUT);
   pinMode(pointX, INPUT);
 
-  //Serial.begin(9600);
-
 
 }
 
 void loop(){
   
-//  if(moving == true){
-//    str_msg.data = "IMU: Moving";
-//    accel.publish( &str_msg );
-//  }
-//    
-//
-//  else if(moving == false){
 
     if(i < 5){
 
@@ -113,9 +83,6 @@ void loop(){
 
     }
     else{
-
-
-
       current_x = analogRead(pointX);
       current_y = analogRead(pointY);
       current_z = analogRead(pointZ);
@@ -170,15 +137,11 @@ void loop(){
 
 
       }
-      else{
-
-        str_msg.data = "IMU: notouch";
-        accel.publish( &str_msg );
-
-      }
-
-
-
+//      else{
+//        str_msg.data = "IMU: notouch";
+//        accel.publish( &str_msg );
+//
+//      }
 
       if(oldest >= 5){
         oldest = 0;
@@ -195,13 +158,7 @@ void loop(){
 
     }
 
-  //}
-
-
    edwin_head.spinOnce();
    delay(200);
-
-
-
 
 }
