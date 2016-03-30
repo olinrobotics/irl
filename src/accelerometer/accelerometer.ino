@@ -103,8 +103,8 @@ void loop(){
       diff_y = current_y - last_avg_y;
       diff_x = current_x - last_avg_x;
 
-      if((abs(diff_z) <= 60 && abs(diff_z) > 20) || (abs(diff_y) <= 60 && abs(diff_y) > 20) ||
-      (abs(diff_x) <= 60 && abs(diff_x) > 20)){
+      if((abs(diff_z) <= 100 && abs(diff_z) > 30) || (abs(diff_y) <= 100 && abs(diff_y) > 30) ||
+      (abs(diff_x) <= 100 && abs(diff_x) > 30)){
 
         str_msg.data = "IMU: pat";
         accel.publish( &str_msg );
@@ -116,11 +116,11 @@ void loop(){
         }
 
         i = 0;
-        //delay(2000);
+        delay(2000);
 
 
       }
-      else if((abs(diff_z) > 60) || (abs(diff_y) > 60) || (abs(diff_x) > 60)){
+      else if((abs(diff_z) > 100) || (abs(diff_y) > 100) || (abs(diff_x) > 100)){
 
         str_msg.data = "IMU: slap";
         accel.publish( &str_msg );
@@ -133,7 +133,7 @@ void loop(){
 
         i = 0;
 
-        //delay(2000);
+        delay(2000);
 
 
       }
