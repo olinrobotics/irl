@@ -17,11 +17,10 @@ class ArmCommands:
         self.debug = False
         self.plan = []
         self.arm = st.StArm()
+        print "CALIBRATING"
         self.arm.start()
         print "ARM SPD IS: ", self.arm.get_speed()
-        # self.arm.set_speed(10000)
-        print "CALIBRATING"
-        # self.arm.calibrate()
+        self.arm.set_speed(10000)
         print "HOMING"
         self.arm.home()
         self.behaviors = {}
@@ -32,7 +31,7 @@ class ArmCommands:
 
     def create_routes(self):
         #Moves in units of thousands
-        self.arm.create_route("R_mv2", [[3296, 2308, 999, 0, 0, 0], [200, 2400, 1800, 720, 240, 2.1]])
+        self.arm.create_route("R_mv2", [[3296, 2308, 999, 0, 0, 0], [200, 2400, 1800, 720, 240, 2.1],[3296, 2308, 999, 0, 0, 0], [200, 2400, 1800, 720, 240, 2.1]] )
         self.arm.create_route("R_stare", [[3296, 2308, 999, 0, 0, 0]])
         self.arm.create_route("R_ttt", [[200, 2400, 1800, 720, 240, 2.1]])
         self.arm.create_route("R_look", [[3664, 1774, 3013, 11, 0, 21]])

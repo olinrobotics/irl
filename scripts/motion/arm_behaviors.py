@@ -46,6 +46,14 @@ class ArmBehaviors:
                 self.pub.publish(msg)
 
     def create_behaviors(self):
+
+        
+        """
+        Need to add:
+            -look_around
+            -impatient
+            -nudge
+        """
         self.behaviors["butt_wiggle"] = "WA: 500, WA: 1000, WA: 500, WA: 1000"
         self.behaviors["curiosity"] =  "R_curious, WR: 800, H: 0"
         self.behaviors["greet"] = "R_greet1, WR:1500, H: 100, H: 0"

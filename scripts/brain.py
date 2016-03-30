@@ -38,6 +38,7 @@ class EdwinBrain:
         self.idling = True
         self.moving = False
 
+
         self.behaviors = {}
         self.create_behaviors()
         self.categorized_behaviors = {}
@@ -56,7 +57,13 @@ class EdwinBrain:
         categorized_behaviors['pretentious']  = ['gloat'] 
         categorized_behaviors['calm'] = ['sleep', 'nudge', 'nod']    
     
-        
+
+        self.pat = False
+        self.slap = False
+
+        self.exit = False #should be catch all to exit all long running commands
+        self.start_game = None
+
 
     def arm_mvmt_callback(self, data):
         if data.data == 1:
@@ -78,6 +85,9 @@ class EdwinBrain:
             self.behav_pub.publish(random.choice(categorized_behaviors['happy_emotions']))
         elif "game" in speech:
             self.start_game = "TTT"
+        elif "exit" in speech:
+            self.behav_pub.publish("nod")
+            self.exit = True
         elif "bye" in speech:
             self.behav_pub(random.choice(categorized_behaviors['calm']))
 
@@ -101,13 +111,10 @@ class EdwinBrain:
 
         if self.moving == False:
             if state == "pat":
-                self.behav_pub.publish("nod")
-                time.sleep(5)
-                # if self.idling:
-                #     self.start_game = "TTT"
-                #     self.idling = False
-                #     self.idle_pub.publish("stop_idle")
+                self.pat = True
+                self.slap = False
             elif state == "slap":
+
                 emote_msg = "ANGRY"
                 behav_msg = random.choice(categorized_behaviors['negative_emotions'])
 
@@ -116,18 +123,39 @@ class EdwinBrain:
                 self.emotion_pub.publish(emote_msg)
                 time.sleep(5)
 
+                self.pat = False
+                self.slap = True
+
+
     def run_game(self):
+        self.idle_pub.publish("stop_idle")
+        self.idling = False
+
         if self.start_game == "TTT":
+            self.behav_pub.publish("get_marker")
+            start_marker_wait = time.time()
+            while self.pat != True:
+                #if Edwin has to wait too long for a marker, get impatient
+                if int(start_marker_wait - time.time()) > 10:
+                    self.behav_pub.publish("impatient")
+                if self.slap:
+                    self.behav_pub.publish("angry")
+                elif self.exit:
+                    self.exit = False
+                    return
+            self.pat = False
+            time.sleep(5)
             ttt_gm = ttt.Game()
             ttt_gm.run()
-            self.idle_pub.publish("go_idle")
-            self.idling = True
+
+        self.idle_pub.publish("go_idle")
+        self.idling = True
 
     def run(self):
         r = rospy.Rate(10)
         while not rospy.is_shutdown():
-            # if self.start_game != None:
-            #     self.run_game()
+            if self.start_game != None:
+                self.run_game()
             r.sleep()
 
 if __name__ == '__main__':

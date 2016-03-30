@@ -215,10 +215,6 @@ class StArm():
         print "LEN COMMANDS IS: ", len(commands)
         cmd += ' ' + str(len(commands)) + ' ' + RESERVE + ' ' + route_name
 
-        # if len(commands) > 1:
-        #     cmd += ' ' + str(len(commands)+1) + ' ' + RESERVE + ' ' + route_name
-        # else:
-        #     cmd += ' ' + str(len(commands)) + ' ' + RESERVE + ' ' + route_name
         # Put arm in Learning mode
         cmd += ' ' +route_name + ' ' + LEARN + ' ' + DECIMAL + ' CF'
 
@@ -228,11 +224,9 @@ class StArm():
         self.cxn.write(cmd + CR)
         self.block_on_result(cmd, debug)
 
-        ##TODO: Not sure if necessary, figure out what this
-        # save space
+        # Required to run more than one pose at once
         for x in range(len(commands)-1):
             cmd = route_name + ' ' + str(x+1) + ' INSERT DECIMAL CF'
-            # cmd = route_name + ' 1 INSERT DECIMAL CF'
 
             self.cxn.flushInput()
             self.cxn.write(cmd + CR)

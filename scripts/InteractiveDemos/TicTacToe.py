@@ -307,6 +307,11 @@ class Game:
 
 		# Find the index of the largest contour
 		areas = [cv2.contourArea(c) for c in contours]
+		gesture_select = random.randint(0, 25)
+		#there's a one in 25 chance that edwin will get bored and start looking around
+		if gesture_select == 1:
+			self.behav_pub("look_around")
+			time.sleep(5)
 		if max(areas) > 10000:
 			print "FOUND HAND"
 			return True
@@ -327,10 +332,11 @@ class Game:
 		time.sleep(2)
 
 		new_index = {}
-
+		start_user_turn = time.time()
 		#blocks field_scan until hand is out of the way
 		running = True
 		while running:
+			#if Edwin detects a large contour, he won't look for circles
 			if self.wait_for_hand():
 				continue
 
@@ -364,10 +370,10 @@ class Game:
 
 				print self.board
 
-			#TODO: ADD TIMEOUT FOR WHEN NO CIRCLES ARE DRAWN
-			# #if we detect no circles, exit loop
-			# else:
-			# 	running = False
+			#if we detect no circles for 15 seconds, publish impatient gesture
+			if int(start_user_turn - time.time()) > 15:
+				start_user_turn = time.time()
+				self.behav_pub.publish("impatient")
 
 			for box in self.image_rectangles:
 				box = np.int0(box)
@@ -458,6 +464,7 @@ class Game:
 
 	def z_calculation(self, input_y):
 		scaler = int((input_y - 2500)/9.4)
+		return scaler
 
 	def edwin_move(self, index):
 		#edwin moves to desired location and draws
@@ -485,7 +492,6 @@ class Game:
 		print "sending: ", msg
 		self.arm_pub.publish(msg)
 		time.sleep(2)
-
 
 		print "DRAWING WIN LINE: ", win_line
 
@@ -564,6 +570,7 @@ class Game:
 	 	# turn = 1
 	 	time.sleep(5)
 	 	print "running"
+
 		self.z_depth = -680
 	 	self.draw_the_board()
 
@@ -582,7 +589,7 @@ class Game:
 		self.calib_grid_img()
 
 	 	if turn == 0:
-	 		print "Your turn first!"
+			self.behav_pub.publish("nudge")
 
 	 	ai = False
 	 	while running:
