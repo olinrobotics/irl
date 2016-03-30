@@ -3,7 +3,7 @@ import rospy
 import math
 import st
 import numpy as np
-from std_msgs.msg import String
+from std_msgs.msg import String, Int16
 import time
 
 class ArmCommands:
@@ -12,6 +12,7 @@ class ArmCommands:
 
         rospy.Subscriber('/arm_cmd', String, self.arm_callback, queue_size=10)
         self.pub = rospy.Publisher('arm_debug', String, queue_size=10)
+        self.pub2 = rospy.Publisher('arm_status', Int16, queue_size=10)
 
         self.debug = False
         self.plan = []
@@ -82,7 +83,9 @@ class ArmCommands:
         elif cmd == "set_accel":
             self.arm.set_accel(param)
         elif cmd == "run_route":
+            self.pub2.publish(1)
             self.arm.run_route(param)
+            self.pub2.publish(0)
         elif cmd == "move_to":
             #NOTE: move_to is in units of mm
             temp = param.split(", ")
@@ -90,22 +93,37 @@ class ArmCommands:
             y = temp[1]
             z = temp[2]
             pitch = temp[3]
+            self.pub2.publish(1)
             self.arm.move_to(x,y,z,self.arm.debug)
-            self.pub.publish("done")
+            self.pub2.publish(0)
         elif cmd == "rotate_wrist":
+            # self.pub2.publish(1)
             self.arm.rotate_wrist(param)
+            # self.pub2.publish(0)
         elif cmd == "rotate_wrist_rel":
+            # self.pub2.publish(1)
             self.arm.rotate_wrist_rel(param)
+            # self.pub2.publish(0)
         elif cmd == "rotate_hand":
+            # self.pub2.publish(1)
             self.arm.rotate_hand(param)
+            # self.pub2.publish(0)
         elif cmd == "rotate_elbow":
+            # self.pub2.publish(1)
             self.arm.rotate_elbow(param)
+            # self.pub2.publish(0)
         elif cmd == "rotate_shoulder":
+            # self.pub2.publish(1)
             self.arm.rotate_shoulder(param)
+            # self.pub2.publish(0)
         elif cmd == "rotate_waist":
+            # self.pub2.publish(1)
             self.arm.rotate_waist(param)
+            # self.pub2.publish(0)
         elif cmd == "rotate_hand_rel":
+            # self.pub2.publish(1)
             self.arm.rotate_hand_rel(param)
+            # self.pub2.publish(0)
 
     def run(self):
         r = rospy.Rate(10)
@@ -115,7 +133,3 @@ class ArmCommands:
 if __name__ == "__main__":
     arm_eng = ArmCommands()
     arm_eng.run()
-    rospy.spin()
-
-
-

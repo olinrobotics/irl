@@ -14,6 +14,7 @@ class ArmBehaviors:
         self.behaviors = {}
 
         self.create_behaviors()
+        print "Starting behavior node"
 
     def behavior_callback(self, cmdin):
         print "RECEIVED CMD: ", cmdin
