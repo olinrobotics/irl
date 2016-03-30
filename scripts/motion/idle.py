@@ -18,6 +18,7 @@ class IdleBehaviors:
         self.behav_pub = rospy.Publisher('/behaviors_cmd', String, queue_size=10)
 
         self.last_interaction = time.time()
+        self.stop_idle_time = time.time()
 
         self.routes = ["R_look", "R_playful", "R_sleep", "R_wakeup", "R_leaving, R_greet1", "R_curious"]
         self.behaviors = {}
@@ -31,6 +32,7 @@ class IdleBehaviors:
         print "IDLE CMD: ", data.data
         if "stop_idle" in data.data:
             self.idling = False
+            self.stop_idle_time = time.time()
         elif "go_idle" in data.data:
             self.idling = True
 
@@ -47,6 +49,8 @@ class IdleBehaviors:
         r = rospy.Rate(10)
         joints = ["H", "WR", "E", "WA", "BEHAV"]
         while not rospy.is_shutdown():
+            if int(time.time() - self.stop_idle_time) > 1500: #if we've stopped interacting for 20 mins, start again
+                self.idling = True
             if self.idling:
                 if int(time.time() - self.last_interaction) > self.idle_time:
                     self.idle_time = random.randint(3, 7)
