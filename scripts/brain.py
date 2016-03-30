@@ -16,7 +16,7 @@ import random
 import math
 import time
 import numpy as np
-from std_msgs.msg import String
+from std_msgs.msg import String, Int16
 
 from InteractiveDemos import TicTacToe as ttt
 
@@ -26,6 +26,7 @@ class EdwinBrain:
         rospy.Subscriber('/edwin_sound', String, self.sound_callback, queue_size=1)
         rospy.Subscriber('/edwin_imu', String, self.imu_callback, queue_size=1)
         rospy.Subscriber('/edwin_decoded_speech', String, self.speech_callback, queue_size=1)
+        rospy.Subscriber('/arm_status', Int16, self.arm_mvmt_callback, queue_size=1)
 
         self.arm_pub = rospy.Publisher('/arm_cmd', String, queue_size=2)
         self.behav_pub = rospy.Publisher('/behaviors_cmd', String, queue_size=2)
@@ -33,6 +34,13 @@ class EdwinBrain:
         self.idle_pub = rospy.Publisher('/idle_cmd', String, queue_size=2)
 
         self.idling = True
+        self.moving = False
+
+    def arm_mvmt_callback(self, data):
+        if data.data == 1:
+            self.moving = True
+        elif data.data == 0:
+            self.moving = False
 
     def speech_callback(self, data):
         """
@@ -41,16 +49,16 @@ class EdwinBrain:
         self.idle_pub.publish("stop_idle")
         speech = data.data
         print "RECEIVED SPEECH: ", speech
-
         if "hello" in speech:
             self.behav_pub.publish("greet")
         elif "happy" in speech:
             self.behav_pub.publish("nod")
         elif "game" in speech:
             self.start_game = "TTT"
-        elif "goodbye" in speech:
+        elif "bye" in speech:
             self.behav_pub("butt_wiggle")
             self.idle_pub("go_idle")
+
     def sound_callback(self, data):
         """
         format in "byte_length peak_volume"
@@ -62,24 +70,25 @@ class EdwinBrain:
 
     def imu_callback(self, data):
         """
-        IMU: no touch/patted/slapped
+        IMU: no patted/slapped
         """
         state = data.data.replace("IMU: ", "")
         #print "STATE IS: ", state
-        if state == "notouch":
-            return
-        elif state == "pat":
-            if self.idling:
-                self.start_game = "TTT"
-                self.idling = False
-                self.idle_pub.publish("stop_idle")
-        elif state == "slap":
-            emote_msg = "ANGRY"
-            behav_msg = "sleep"
+        if self.moving == False:
+            if state == "pat":
+                self.behav_pub.publish("nod")
+                time.sleep(5)
+                # if self.idling:
+                #     self.start_game = "TTT"
+                #     self.idling = False
+                #     self.idle_pub.publish("stop_idle")
+            elif state == "slap":
+                emote_msg = "ANGRY"
+                behav_msg = "sleep"
 
-        self.behav_pub.publish(behav_msg)
-        self.emotion_pub.publish(emote_msg)
-        time.sleep(10)
+                self.behav_pub.publish(behav_msg)
+                self.emotion_pub.publish(emote_msg)
+                time.sleep(5)
 
     def run_game(self):
         if self.start_game == "TTT":
@@ -91,8 +100,8 @@ class EdwinBrain:
     def run(self):
         r = rospy.Rate(10)
         while not rospy.is_shutdown():
-            if self.start_game != None:
-                self.run_game()
+            # if self.start_game != None:
+            #     self.run_game()
             r.sleep()
 
 if __name__ == '__main__':

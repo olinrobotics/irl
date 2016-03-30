@@ -14,13 +14,13 @@ import shlex
 
 #Robofourth manual
 #http://www.strobotics.com/manuals/manual15.htm
-
-'''
-Speed may be changed during the progress of a route with 'LEARN e.g. 'LEARN SPEED 7500 (or other value or other variable)
-Associated commands are:
-(line number) 'REPLACE SPEED (new value)
-(line number) 'INSERT SPEED (new value)
-'''
+#
+# """
+# Speed may be changed during the progress of a route with \'LEARN e.g. \'LEARN SPEED 7500 (or other value or other variable)
+# Associated commands are:
+# (line number) \'REPLACE SPEED (new value)
+# (line number) \'INSERT SPEED (new value)
+# """
 
 # Use this one for PC
 DEFAULT_DEV = '/dev/ttyUSB0'
@@ -212,7 +212,13 @@ class StArm():
         # Initiaze in Cartesian mode and declare new route
         cmd = '  ' + CARTESIAN + ' ' + NEW + ' ' + ROUTE + ' ' + route_name
         # Reserve correct ammount of memory since default is 20
+        print "LEN COMMANDS IS: ", len(commands)
         cmd += ' ' + str(len(commands)) + ' ' + RESERVE + ' ' + route_name
+
+        # if len(commands) > 1:
+        #     cmd += ' ' + str(len(commands)+1) + ' ' + RESERVE + ' ' + route_name
+        # else:
+        #     cmd += ' ' + str(len(commands)) + ' ' + RESERVE + ' ' + route_name
         # Put arm in Learning mode
         cmd += ' ' +route_name + ' ' + LEARN + ' ' + DECIMAL + ' CF'
 
@@ -223,13 +229,14 @@ class StArm():
         self.block_on_result(cmd, debug)
 
         ##TODO: Not sure if necessary, figure out what this
-        # # save space
-        # for x in range(len(commands)):
-        #     cmd = route_name + ' 1 INSERT DECIMAL CF'
+        # save space
+        for x in range(len(commands)-1):
+            cmd = route_name + ' ' + str(x+1) + ' INSERT DECIMAL CF'
+            # cmd = route_name + ' 1 INSERT DECIMAL CF'
 
-        #     self.cxn.flushInput()
-        #     self.cxn.write(cmd + CR)
-        #     self.block_on_result(cmd, debug)
+            self.cxn.flushInput()
+            self.cxn.write(cmd + CR)
+            self.block_on_result(cmd, debug)
 
         index = 0
         for cmd in commands:

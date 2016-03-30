@@ -1,5 +1,3 @@
-
-
 /*
 This code is for the Arbotix-M accelerometer. It is designed
 to be powered and grounded by the Arbotix-M, and has its Xo, Yo,
@@ -14,32 +12,13 @@ It also utilizes RosSerial as a Publisher to tell Edwin whether it moves or was 
 
 #include <ros.h>
 #include <std_msgs/String.h>
-#include <std_msgs/Int16.h>
+//#include <std_msgs/Int16.h>
 #include <math.h>
 
 ros::NodeHandle edwin_head;
 
 std_msgs::String str_msg;
 ros::Publisher accel("edwin_imu", &str_msg);
-
-//String that keeps track of whether an arm is moving or being touched, and Boolean for the loop
-int arm = 0;
-boolean moving = false;
-
-void inc_message( const std_msgs::Int16& stat){
-
-  arm = stat.data;
-  if(arm == 1){
-    moving = true;
-  }
-  else if(arm  == 0){
-    moving = false;
-  }
-}
-
-
-ros::Subscriber<std_msgs::Int16> sub("arm_status", &inc_message);
-
 
 //Pin A5 is the Z output from the accelerometer, Pin A4 is the Y
 // output, and Pin A3 is the X output.
@@ -81,61 +60,26 @@ void setup(){
   edwin_head.getHardware() -> setBaud(9600);
   edwin_head.initNode();
   edwin_head.advertise(accel);
-  edwin_head.subscribe(sub);
-
 
   pinMode(pointZ, INPUT);
   pinMode(pointY, INPUT);
   pinMode(pointX, INPUT);
 
-  //Serial.begin(9600);
-
 
 }
 
 void loop(){
-
-  if(moving == false){
-
+  
     if(i < 5){
 
-      if(i == 0){
+        old_x[i] = analogRead(pointX);
+        old_y[i] = analogRead(pointY);
+        old_z[i] = analogRead(pointZ);
 
-        old_x[0] = analogRead(pointX);
-        old_y[0] = analogRead(pointY);
-        old_z[0] = analogRead(pointZ);
-      }
-      else if(i == 1){
-
-        old_x[1] = analogRead(pointX);
-        old_y[1] = analogRead(pointY);
-        old_z[1] = analogRead(pointZ);
-      }
-      else if(i == 2){
-
-        old_x[2] = analogRead(pointX);
-        old_y[2] = analogRead(pointY);
-        old_z[2] = analogRead(pointZ);
-      }
-      else if(i == 3){
-
-        old_x[3] = analogRead(pointX);
-        old_y[3] = analogRead(pointY);
-        old_z[3] = analogRead(pointZ);;
-      }
-      else if(i == 4){
-
-        old_x[4] = analogRead(pointX);
-        old_y[4] = analogRead(pointY);
-        old_z[4] = analogRead(pointZ);
-      }
       i++;
 
     }
     else{
-
-
-
       current_x = analogRead(pointX);
       current_y = analogRead(pointY);
       current_z = analogRead(pointZ);
@@ -169,7 +113,7 @@ void loop(){
         }
 
         i = 0;
-      //  delay(2000);
+        //delay(2000);
 
 
       }
@@ -186,19 +130,15 @@ void loop(){
 
         i = 0;
 
-      //  delay(2000);
+        //delay(2000);
 
 
       }
-      else{
-
-        str_msg.data = "IMU: notouch";
-        accel.publish( &str_msg );
-
-      }
-
-
-
+//      else{
+//        str_msg.data = "IMU: notouch";
+//        accel.publish( &str_msg );
+//
+//      }
 
       if(oldest >= 5){
         oldest = 0;
@@ -215,12 +155,6 @@ void loop(){
 
     }
 
-  }
-
-      edwin_head.spinOnce();
-      //delay(500);
-
-
-
-
+   edwin_head.spinOnce();
+   delay(200);
 }
