@@ -17,6 +17,7 @@ import math
 import time
 import numpy as np
 from std_msgs.msg import String
+import pickle, os, sys
 
 from InteractiveDemos import TicTacToe as ttt
 
@@ -33,6 +34,23 @@ class EdwinBrain:
         self.idle_pub = rospy.Publisher('/idle_cmd', String, queue_size=2)
 
         self.idling = True
+        self.behaviors = {}
+        self.create_behaviors()
+        self.categorized_behaviors = {}
+        self.categorize_behaviors()
+
+
+    def create_behaviors(self):
+        curr_dir = os.path.dirname(os.path.realpath(__file__))
+        if os.path.exists(curr_dir+'/storage.txt'):
+            self.behaviors = pickle.load(open(curr_dir+'/storage.txt', 'rb')) 
+    def categorize_behaviors(self):
+        categorized_behaviors['negative_emotions'] = ['angry', 'sad']
+        categorized_behaviors['happy_emotions'] = ['nod', 'butt_wiggle']
+        categorized_behaviors['greeting'] = ['greet', 'nudge', 'curiosity']
+        categorized_behaviors['pretentious']  = ['gloat'] 
+        categorized_behaviors['calm'] = ['sleep', 'nudge', 'nod']    
+    
 
     def speech_callback(self, data):
         """
@@ -43,13 +61,13 @@ class EdwinBrain:
         print "RECEIVED SPEECH: ", speech
 
         if "hello" in speech:
-            self.behav_pub.publish("greet")
+            self.behav_pub.publish(random.choice(categorized_behaviors['greeting']))
         elif "happy" in speech:
-            self.behav_pub.publish("nod")
+            self.behav_pub.publish(random.choice(categorized_behaviors['happy_emotions']))
         elif "game" in speech:
             self.start_game = "TTT"
         elif "goodbye" in speech:
-            self.behav_pub("butt_wiggle")
+            self.behav_pub(random.choice(categorized_behaviors['calm']))
             self.idle_pub("go_idle")
     def sound_callback(self, data):
         """
@@ -75,7 +93,7 @@ class EdwinBrain:
                 self.idle_pub.publish("stop_idle")
         elif state == "slap":
             emote_msg = "ANGRY"
-            behav_msg = "sleep"
+            behav_msg = random.choice(categorized_behaviors['negative_emotions'])
 
         self.behav_pub.publish(behav_msg)
         self.emotion_pub.publish(emote_msg)

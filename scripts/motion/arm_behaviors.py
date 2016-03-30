@@ -5,6 +5,8 @@ import st
 import numpy as np
 from std_msgs.msg import String
 import time
+import pickle
+import os, sys
 
 class ArmBehaviors:
     def __init__(self):
@@ -44,7 +46,7 @@ class ArmBehaviors:
                 self.pub.publish(msg)
 
     def create_behaviors(self):
-        self.behaviors["butt_wiggle"] = "WA: 500, WA: 1000"
+        self.behaviors["butt_wiggle"] = "WA: 500, WA: 1000, WA: 500, WA: 1000"
         self.behaviors["curiosity"] =  "R_curious, WR: 800, H: 0"
         self.behaviors["greet"] = "R_greet1, WR:1500, H: 100, H: 0"
         self.behaviors["sad"] = "R_sleep, H: 1000, R: 700"
@@ -52,6 +54,11 @@ class ArmBehaviors:
         self.behaviors["nod"] = "R_stare, E:13000, E:12000"
         self.behaviors["gloat"] = "R_playful, WA:6000, WA:7000"
         self.behaviors["angry"] = "SPD: 200, R_stare, SPD: 1000"
+        self.behaviors["sleep"] = "R_sleep"
+
+        curr_dir = os.path.dirname(os.path.realpath(__file__))
+        pickle.dump(self.behaviors, open(curr_dir+ '/storage.txt', 'wb'))
+
 
     def run(self):
         r = rospy.Rate(10)
@@ -62,3 +69,6 @@ if __name__ == '__main__':
     behavior_eng = ArmBehaviors()
     behavior_eng.run()
     rospy.spin()
+
+from InteractiveDemos import TicTacToe as ttt
+
