@@ -291,6 +291,8 @@ class StArm():
                     print('Command ' + cmd + ' completed without ' +
                           'verification of success.')
                 self.pub.publish(cmd + "FAILED: " + s)
+                if "TOO TIGHT" in s:
+                    
                 raise Exception('Arm command failed to execute as expected.', s)
             s += self.cxn.read(self.cxn.inWaiting())
 
