@@ -36,6 +36,9 @@ class EdwinBrain:
         self.idling = True
         self.moving = False
 
+        self.pat = False
+        self.slap = True
+
     def arm_mvmt_callback(self, data):
         if data.data == 1:
             self.moving = True
@@ -76,6 +79,8 @@ class EdwinBrain:
         #print "STATE IS: ", state
         if self.moving == False:
             if state == "pat":
+                self.pat = True
+                self.slap = False
                 self.behav_pub.publish("nod")
                 time.sleep(5)
                 # if self.idling:
