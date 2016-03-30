@@ -307,6 +307,11 @@ class Game:
 
 		# Find the index of the largest contour
 		areas = [cv2.contourArea(c) for c in contours]
+		gesture_select = random.randint(0, 25)
+		#there's a one in 25 chance that edwin will get bored and start looking around
+		if gesture_select == 1:
+			self.behav_pub("look_around")
+			time.sleep(5)
 		if max(areas) > 10000:
 			print "FOUND HAND"
 			return True
@@ -584,7 +589,7 @@ class Game:
 		self.calib_grid_img()
 
 	 	if turn == 0:
-	 		print "Your turn first!"
+			self.behav_pub.publish("nudge")
 
 	 	ai = False
 	 	while running:
