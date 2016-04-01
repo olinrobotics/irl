@@ -48,6 +48,7 @@ class EdwinBrain:
     def create_behaviors(self):
         rospack = rospkg.RosPack()
         PACKAGE_PATH = rospack.get_path("edwin")
+        
         if os.path.exists(PACKAGE_PATH+'/params/behaviors.txt'):
             self.behaviors = pickle.load(open(PACKAGE_PATH+'/params/behaviors.txt', 'rb')) 
 
