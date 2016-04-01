@@ -47,7 +47,7 @@ class ArmBehaviors:
 
     def create_behaviors(self):
 
-        
+
         """
         Need to add:
             -look_around
@@ -76,7 +76,3 @@ class ArmBehaviors:
 if __name__ == '__main__':
     behavior_eng = ArmBehaviors()
     behavior_eng.run()
-    rospy.spin()
-
-from InteractiveDemos import TicTacToe as ttt
-
