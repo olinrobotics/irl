@@ -6,9 +6,11 @@ import st
 import numpy as np
 from std_msgs.msg import String
 import time
+import pickle, os, sys
 
 class IdleBehaviors:
-    def __init__(self):
+    def __init__(self):rospack = rospkg.RosPack()
+        PACKAGE_PATH = rospack.get_path("edwin")
         rospy.init_node('idle', anonymous=True)
         rospy.Subscriber('/behaviors_cmd', String, self.callback, queue_size=10)
         rospy.Subscriber('/arm_cmd', String, self.callback, queue_size=10)
@@ -20,9 +22,15 @@ class IdleBehaviors:
         self.last_interaction = time.time()
         self.stop_idle_time = time.time()
 
+        curr_dir = os.path.dirname(os.path.realpath(__file__)) 
+
         self.routes = ["R_look", "R_playful", "R_sleep", "R_wakeup", "R_leaving, R_greet1", "R_curious"]
-        self.behaviors = {}
-        self.create_behaviors()
+
+        rospack = rospkg.RosPack()
+        PACKAGE_PATH = rospack.get_path("edwin")
+
+        if os.path.exists(PACKAGE_PATH+'/params/behaviors.txt'):
+            self.behaviors = pickle.load(open(PACKAGE_PATH +  "/params/behaviors.txt", 'rb'))
 
         self.idling = True
         self.idle_time = random.randint(5, 10)
@@ -39,11 +47,6 @@ class IdleBehaviors:
     def callback(self, data):
         self.last_interaction = time.time()
 
-    def create_behaviors(self):
-        self.behaviors["butt_wiggle"] = "R_leaving, WA: 1000, WA: 800, WA: 1000"
-        self.behaviors["curiosity"] =  "R_curious, H: 0, WR: 800, H: 100, WR: 2000"
-        self.behaviors["greet"] = "R_greet1, WR:1500, H: 100, H: 0, H: 300, H: 100"
-        self.behaviors["sleep"] = "R_sleep, H: 700, R: 1000"
 
     def run(self):
         r = rospy.Rate(10)

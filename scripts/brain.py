@@ -46,9 +46,10 @@ class EdwinBrain:
 
 
     def create_behaviors(self):
-        curr_dir = os.path.dirname(os.path.realpath(__file__))
-        if os.path.exists(curr_dir+'/storage.txt'):
-            self.behaviors = pickle.load(open(curr_dir+'/storage.txt', 'rb')) 
+        rospack = rospkg.RosPack()
+        PACKAGE_PATH = rospack.get_path("edwin")
+        if os.path.exists(PACKAGE_PATH+'/params/behaviors.txt'):
+            self.behaviors = pickle.load(open(PACKAGE_PATH+'/params/behaviors.txt', 'rb')) 
 
     def categorize_behaviors(self):
         categorized_behaviors['negative_emotions'] = ['angry', 'sad']

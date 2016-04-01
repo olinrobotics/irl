@@ -64,8 +64,10 @@ class ArmBehaviors:
         self.behaviors["angry"] = "SPD: 200, R_stare, SPD: 1000"
         self.behaviors["sleep"] = "R_sleep"
 
-        curr_dir = os.path.dirname(os.path.realpath(__file__))
-        pickle.dump(self.behaviors, open(curr_dir+ '/storage.txt', 'wb'))
+        rospack = rospkg.RosPack()
+        PACKAGE_PATH = rospack.get_path("edwin")
+
+        pickle.dump(self.behaviors, open(PACKAGE_PATH + '/params/behaviors.txt', 'wb'))
 
 
     def run(self):

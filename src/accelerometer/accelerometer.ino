@@ -114,6 +114,9 @@ void loop(){
           old_y[i] = 0;
           old_z[i] = 0;
         }
+        last_avg_x = 0;
+        last_avg_y = 0;
+        last_avg_z = 0;
 
         i = 0;
         delay(2000);
@@ -130,6 +133,10 @@ void loop(){
           old_y[i] = 0;
           old_z[i] = 0;
         }
+        
+         last_avg_x = 0;
+         last_avg_y = 0;
+         last_avg_z = 0;
 
         i = 0;
 
@@ -137,11 +144,7 @@ void loop(){
 
 
       }
-//      else{
-//        str_msg.data = "IMU: notouch";
-//        accel.publish( &str_msg );
-//
-//      }
+
 
       if(oldest >= 5){
         oldest = 0;
@@ -152,9 +155,7 @@ void loop(){
       old_z[oldest] = current_z;
       oldest++;
 
-      last_avg_x = 0;
-      last_avg_y = 0;
-      last_avg_z = 0;
+
 
     }
 
