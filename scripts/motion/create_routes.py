@@ -16,6 +16,8 @@ class RouteCreator:
 
     def create(self):
         r1 = "R_mv2; 3296, 2308, 999, 0, 0, 0, 200, 2400, 1800, 720, 240, 2, 3296, 2308, 999, 0, 0, 0"
+        r2 = "R_nudge; 3296, 2308, 999, 0, 0, 0, 2027, 981, 98, -11, 0, 72, 3296, 2308, 999, 0, 0, 0"
+        r3 = "R_impat; 0, 3621, 4860, 545, 120, 21, 576, 3574, 4860, 275, 120, 21, 0, 3621, 4860, 545, 120, 21"
         # self.arm.create_route("R_stare", [[3296, 2308, 999, 0, 0, 0]])
         # self.arm.create_route("R_ttt", [[200, 2400, 1800, 720, 240, 2.1]])
         # self.arm.create_route("R_look", [[3664, 1774, 3013, 11, 0, 21]])
@@ -26,9 +28,13 @@ class RouteCreator:
         # self.arm.create_route("R_greet1", [[3665, 1774, 3013, 0, 0, 0]])
         # self.arm.create_route("R_curious", [[3664, 1774, 3013, 0, 0, 0]])
 
-        msg = "create_route:: " + r1
-        print "Sending message: ", msg
-        self.arm_pub.publish(msg)
+        routes = [r1, r2, r3]
+
+        for r in routes:
+            msg = "create_route:: " + r
+            print "Sending message: ", msg
+            self.arm_pub.publish(msg)
+            time.sleep(1)
 
     def run(self):
         self.create()
