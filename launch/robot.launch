@@ -1,8 +1,4 @@
 <launch>
-	<arg name="marker_size" default="23" /> #marker size needs to be changed according to real world size of tag in cm
-	<arg name="max_new_marker_error" default="0.08" />
-	<arg name="max_track_error" default="0.2" />
-
 	<node pkg="tf" type="static_transform_publisher" name="world_to_cam"
 	    args="0 0 0 0 0 0 world usb_cam 100" />
 	<node name="usb_cam" pkg="usb_cam" type="usb_cam_node" output="screen" >
@@ -22,5 +18,10 @@
 	<arg name="cam_info_topic" default="/usb_cam/camera_info" />
 	<arg name="output_frame" default="/usb_cam" />
 
-	<node name="ar_track_alvar" pkg="ar_track_alvar" type="individualMarkersNoKinect" respawn="false" output="screen" args="$(arg marker_size) $(arg max_new_marker_error) $(arg max_track_error) $(arg cam_image_topic) $(arg cam_info_topic) $(arg output_frame)" />
-</launch>
+	<node name="edwin_arm_node" pkg="edwin" type="arm_node.py" />
+	<node name="edwin_behavior_node" pkg="edwin" type="arm_behaviors.py" />
+	<node name="edwin_draw_node" pkg="edwin" type="arm_draw.py" />
+	<node name="edwin_idle" pkg="edwin" type="idle.py" />
+	<node name="edwin_brain" pkg="edwin" type="brain.py" />
+
+	</launch>
