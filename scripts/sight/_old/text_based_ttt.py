@@ -18,6 +18,8 @@ class Game:
 		self.corners = [0,2,6,8] #indices of the corner locations
 		self.sides = [1,3,5,7]
 		self.middle = 4
+		self.difficulty = 10
+
 
 
 	def is_winner(self, board):
@@ -39,7 +41,7 @@ class Game:
 
 		#There are 4 cases - NoWin, EdWin, Player Win and Tie, Tie is accounted for
 		#in a piece of code further down.
-		print board_sums
+		#print board_sums
 		for b_sum in board_sums:
 			if b_sum == 30:
 				print "WINNER 1"
@@ -69,37 +71,62 @@ class Game:
 		# print "BOARD COPY IS"
 		# print board_copy
 
-		for i in range(9): #don't use len(self.board), it's a numpy array
-			board_copy = copy.deepcopy(self.board)
-			if self.is_free(board_copy, i):
-				board_copy[i] = 10
-				if self.is_winner(board_copy) == 1:
-					return i
+		legal_moves = []
+		corner_moves = []
+		side_moves = []
+		difficulty = self.difficulty #From 0 to 10.  10 being Perfect playing.  
+		difficulty_rand = random.randrange(0,10,1)
+		board_copy = copy.deepcopy(self.board)
 
-		#Checks if player can win the next turn
 		for i in range(9):
-			board_copy = copy.deepcopy(self.board)
 			if self.is_free(board_copy, i):
-				board_copy[i] = 1
-				if self.is_winner(board_copy) == 2:
-					return i
+				legal_moves.append(i)
+		if difficulty < difficulty_rand: #Random chance if difficulty is less than 10.  
+			return legal_moves[random.randint(0,len(legal_moves)-1, 1)]
 
-		#Otherwise, prioritizes grabbing corners.
-		for i in range(4):
-			board_copy = copy.deepcopy(self.board)
-			if self.is_free(board_copy, self.corners[i]):
-				return self.corners[i]
+		else:
 
-		#Otherwise, get the middle.
-		if self.is_free(board_copy, self.middle):
-			board_copy = copy.deepcopy(self.board)
-			return self.middle
+			for i in range(9): #don't use len(self.board), it's a numpy array
+				board_copy = copy.deepcopy(self.board)
+				if self.is_free(board_copy, i):
+					board_copy[i] = 10
+					if self.is_winner(board_copy) == 1:
+						return i
+			#Checks if player can win the next turn
+			for i in range(9):
+				board_copy = copy.deepcopy(self.board)
+				if self.is_free(board_copy, i):
+					board_copy[i] = 1
+					if self.is_winner(board_copy) == 2:
+						return i
+			#Otherwise, prioritizes grabbing corners.
+			for i in range(4):
+				board_copy = copy.deepcopy(self.board)
+				if self.is_free(board_copy, self.corners[i]):
+					corner_moves.append(self.corners[i])
+					print "corner " + str(i) + " is free"
+			print corner_moves
+			if len(corner_moves) > 1:
+				return corner_moves[random.randint(0,len(corner_moves)-1)]
+			elif len(corner_moves) == 1: 
+				return corner_moves[0]
 
-		#Otherwise, get a side.
-		for i in range(4):
-			board_copy = copy.deepcopy(self.board)
-			if self.is_free(board_copy, self.sides[i]):
-				return self.sides[i]
+			#Otherwise, get the middle.
+			if self.is_free(board_copy, self.middle):
+				board_copy = copy.deepcopy(self.board)
+				return self.middle
+
+			#Otherwise, get a side.
+			for i in range(4):
+				board_copy = copy.deepcopy(self.board)
+				if self.is_free(board_copy, self.sides[i]):
+					sides_moves.append(self.sides[i])
+			if len(side_moves) > 1:
+				return sides_moves[random.randint(0,len(side_moves)-1)]
+			elif len(side_moves) == 1: 
+				return side_moves[0]
+
+			return None
 
 	def manual_field_scan(self):
 		print "USER TURN, CURRENT BOARD:"
