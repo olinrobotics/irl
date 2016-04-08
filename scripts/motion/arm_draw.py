@@ -86,20 +86,24 @@ class Drawer:
     	i = 0
     	width = 150 #width of the x
 
-    	fori in range(6):    
+    	for i in range(8):    
 
-    		if i == 0:
-                msg = "data: move_to:: " + str(x + width) + ", " + str(y + width) + ", " + str(z) + ", " +str(0)
+            if i == 0:
+                msg = "data: move_to:: " + str(x + width) + ", " + str(y + width) + ", " + str(z) + ", " + str(0)
             elif i == 1:
-                msg = "data: move_to:: " + str(x - width) + ", " + str(y - width) + ", " + str(z) + ", " +str(0)
+                msg = "data: move_to:: " + str(x - width) + ", " + str(y - width) + ", " + str(z) + ", " + str(0)
             elif i == 2:   #picks up marker
-                msg = "data: move_to:: " + str(x - width) + ", " + str(y - width) + ", " + str(z +250) + ", " +str(0)
-            elif i == 3:
-                msg = "data: move_to:: " + str(x - width) + ", " + str(y + width) + ", " + str(z) + ", " +str(0)
+                msg = "data: move_to:: " + str(x - width) + ", " + str(y - width) + ", " + str(z +250) + ", " + str(0)
+            elif i == 3:  
+                msg = "data: move_to:: " + str(x - width) + ", " + str(y + width) + ", " + str(z +250) + ", " + str(0)    
             elif i == 4:
-                msg = "data: move_to:: " + str(x + width) + ", " + str(y - width) + ", " + str(z) + ", " +str(0)    
-            elif i == 5:   #picks up marker
-                msg = "data: move_to:: " + str(x + width) + ", " + str(y - width) + ", " + str(z + 250) + ", " +str(0)        
+                msg = "data: move_to:: " + str(x - width) + ", " + str(y + width) + ", " + str(z) + ", " + str(0)
+            elif i == 5:
+                msg = "data: move_to:: " + str(x + width) + ", " + str(y - width) + ", " + str(z) + ", " + str(0)    
+            elif i == 6:   #picks up marker
+                msg = "data: move_to:: " + str(x + width) + ", " + str(y - width) + ", " + str(z + 250) + ", " + str(0)        
+            elif i == 7: 
+                msg = "data: move_to:: " + str(x) + ", " + str(y) + ", " + str(z + 250) + ", " + str(0)       
 
             print "sending: ", msg
             self.arm_pub.publish(msg)
@@ -224,4 +228,6 @@ class Drawer:
 
 if __name__ == "__main__":
     draw = Drawer()
+    #time.sleep(2)
+   # draw.draw_x(0, 4000, -780)
     draw.run()

@@ -102,6 +102,15 @@ void loop(){
       diff_z = current_z - last_avg_z;
       diff_y = current_y - last_avg_y;
       diff_x = current_x - last_avg_x;
+      
+//      char Strdiff_x = String(diff_x);
+      
+//      str_msg.data = Strdiff_x; 
+      accel.publish( char(diff_x));
+      str_msg.data = String(diff_y);
+      accel.publish( &str_msg);
+      str_msg.data = String(diff_z);
+      accel.publish( &str_msg);
 
       if((abs(diff_z) <= 100 && abs(diff_z) > 30) || (abs(diff_y) <= 100 && abs(diff_y) > 30) ||
       (abs(diff_x) <= 100 && abs(diff_x) > 30)){
@@ -114,10 +123,7 @@ void loop(){
           old_y[i] = 0;
           old_z[i] = 0;
         }
-        last_avg_x = 0;
-        last_avg_y = 0;
-        last_avg_z = 0;
-
+        
         i = 0;
         delay(2000);
 
@@ -125,7 +131,7 @@ void loop(){
       }
       else if((abs(diff_z) > 100) || (abs(diff_y) > 100) || (abs(diff_x) > 100)){
 
-        str_msg.data = "IMU: slap";
+        str_msg.data = "IMU: slap" ;
         accel.publish( &str_msg );
 
         for(i = 0; i < 5; i++){
@@ -134,9 +140,6 @@ void loop(){
           old_z[i] = 0;
         }
         
-         last_avg_x = 0;
-         last_avg_y = 0;
-         last_avg_z = 0;
 
         i = 0;
 
@@ -149,7 +152,8 @@ void loop(){
       if(oldest >= 5){
         oldest = 0;
       }
-
+      
+      
       old_x[oldest] = current_x;
       old_y[oldest] = current_y;
       old_z[oldest] = current_z;
@@ -158,7 +162,11 @@ void loop(){
 
 
     }
-
+    
+    last_avg_x = 0;
+    last_avg_y = 0;
+    last_avg_z = 0;
+    
    edwin_head.spinOnce();
    delay(200);
 
