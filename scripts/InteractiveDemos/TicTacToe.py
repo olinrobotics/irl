@@ -197,7 +197,6 @@ class Game:
 		self.grid_corners = [0,2,6,8] #indices of the corner locations
 		self.grid_sides = [1,3,5,7]
 		self.grid_middle = 4
-
 		self.z_depth = -630
 
 	def img_callback(self, data):
@@ -307,6 +306,12 @@ class Game:
 
 		# Find the index of the largest contour
 		areas = [cv2.contourArea(c) for c in contours]
+		gesture_select = random.randint(0, 2000)
+		#there's a one in 500 chance that edwin will get bored and start looking around
+		if gesture_select == 1:
+			self.behav_pub.publish("look_around")
+			time.sleep(5)
+
 		if max(areas) > 10000:
 			print "FOUND HAND"
 			return True
@@ -327,10 +332,12 @@ class Game:
 		time.sleep(2)
 
 		new_index = {}
+		start_user_turn = time.time()
 
 		#blocks field_scan until hand is out of the way
 		running = True
 		while running:
+			#if Edwin detects a large contour, he won't look for circles
 			if self.wait_for_hand():
 				continue
 
@@ -364,10 +371,10 @@ class Game:
 
 				print self.board
 
-			#TODO: ADD TIMEOUT FOR WHEN NO CIRCLES ARE DRAWN
-			# #if we detect no circles, exit loop
-			# else:
-			# 	running = False
+			#if we detect no circles for 15 seconds, publish impatient gesture
+			if int(time.time() - start_user_turn) > 15:
+				start_user_turn = time.time()
+				self.behav_pub.publish("impatient")
 
 			for box in self.image_rectangles:
 				box = np.int0(box)
@@ -406,7 +413,7 @@ class Game:
 
 		print "DRAW IN GUIDES IF NECESSARY"
 		time.sleep(5)
-		print "SEND OK COMMAND TO CONTINUE"
+		# print "SEND OK COMMAND TO CONTINUE"
 
 		gd = GridDetector(self.frame)
 		self.corners = gd.get_center_box()
@@ -424,7 +431,7 @@ class Game:
 		data = msg.data
 		if "ok" in msg.data:
 			print "OK FOUND"
-			self.calib_grid = False
+			self.id = False
 		elif "re" in msg.data:
 			print "RECALIB FOUND"
 			gd = GridDetector(self.frame)
@@ -438,7 +445,8 @@ class Game:
 					elem = gd.boxes[j]
 					self.image_rectangles[j] = (self.image_rectangles[j] + elem)/2
 
-	def calib_grid_img(self):
+	def id_img(self):
+		self.calib_grid = True
 		while self.calib_grid:
 			for box in self.image_rectangles:
 				box = np.int0(box)
@@ -455,9 +463,11 @@ class Game:
 
 			cv2.imshow("img", self.frame)
 			c = cv2.waitKey(1)
+			self.calib_grid = False
 
 	def z_calculation(self, input_y):
 		scaler = int((input_y - 2500)/9.4)
+		return scaler
 
 	def edwin_move(self, index):
 		#edwin moves to desired location and draws
@@ -485,7 +495,6 @@ class Game:
 		print "sending: ", msg
 		self.arm_pub.publish(msg)
 		time.sleep(2)
-
 
 		print "DRAWING WIN LINE: ", win_line
 
@@ -557,13 +566,9 @@ class Game:
 	 	time.sleep(10)
 
 	def run(self):
-		#Player is O: 1
-		#Edwin is X: 10
-		running = True
-	 	turn = random.randint(0,1)
-	 	# turn = 1
 	 	time.sleep(5)
 	 	print "running"
+
 		self.z_depth = -680
 	 	self.draw_the_board()
 
@@ -578,11 +583,17 @@ class Game:
 				elem = gd.boxes[j]
 				self.image_rectangles[j] = (self.image_rectangles[j] + elem)/2
 
-		self.calib_grid = True
-		self.calib_grid_img()
+		self.id = True
+		self.id_img()
 
+		#Player is O: 1
+		#Edwin is X: 10
+		running = True
+	 	turn = random.randint(0,1)
+	 	# turn = 1
 	 	if turn == 0:
-	 		print "Your turn first!"
+			print "YOUR TURN"
+			self.behav_pub.publish("nudge")
 
 	 	ai = False
 	 	while running:

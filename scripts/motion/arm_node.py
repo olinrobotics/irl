@@ -17,20 +17,21 @@ class ArmCommands:
         self.debug = False
         self.plan = []
         self.arm = st.StArm()
+        print "CALIBRATING"
         self.arm.start()
         print "ARM SPD IS: ", self.arm.get_speed()
-        # self.arm.set_speed(10000)
-        print "CALIBRATING"
-        self.arm.calibrate()
+        self.arm.set_speed(10000)
         print "HOMING"
         self.arm.home()
         self.behaviors = {}
 
         self.create_routes()
+        # self.arm.run_route("R_mv2")
         self.arm.run_route("R_ttt")
 
     def create_routes(self):
         #Moves in units of thousands
+        # self.arm.create_route("R_mv2", [[3296, 2308, 999, 0, 0, 0], [200, 2400, 1800, 720, 240, 2.1],[3296, 2308, 999, 0, 0, 0]] )
         self.arm.create_route("R_stare", [[3296, 2308, 999, 0, 0, 0]])
         self.arm.create_route("R_ttt", [[200, 2400, 1800, 720, 240, 2.1]])
         self.arm.create_route("R_look", [[3664, 1774, 3013, 11, 0, 21]])
@@ -41,10 +42,11 @@ class ArmCommands:
         self.arm.create_route("R_greet1", [[3665, 1774, 3013, 0, 0, 0]])
         self.arm.create_route("R_curious", [[3664, 1774, 3013, 0, 0, 0]])
 
-        self.routes = ["R_stare", "R_ttt", "R_look", "R_playful", "R_sleep", "R_wakeup", "R_leaving, R_greet1", "R_curious"]
+        # self.routes = ["R_mv2", "R_stare", "R_ttt", "R_look", "R_playful", "R_sleep", "R_wakeup", "R_leaving, R_greet1", "R_curious"]
 
     def arm_callback(self, cmdin):
         self.arm.joint()
+        cmd = cmdin.data
         cmd = str(cmdin).replace("data: ", "")
         if len(cmd.split(':: ')) > 1:
             param = cmd.split(':: ')[1]
@@ -61,10 +63,31 @@ class ArmCommands:
             location = self.arm.where()
             print location
         elif cmd == "create_route":
-            #TODO: Implement this
-            route_name = "TEST"
-            commands = "NOTHING"
-            self.arm.create_route(route_name, commands, self.arm.debug)
+            print "CREATING NEW ROUTE"
+            param = param.split("; ")
+            route_name = param[0]
+
+            commands = []
+            numbers = param[1].split(", ")
+
+            if len(numbers)%6 != 0:
+                print "INVALID ROUTE"
+                return
+
+            i = 0
+            while i < len(numbers):
+                route = []
+                j = 0
+                while j < 6:
+                    route.append(int(numbers[i+j]))
+                    j += 1
+                commands.append(route)
+                i += j
+
+            print "CREATING ROUTE: ", route_name
+            print "CMDS: ", commands
+            self.arm.create_route(route_name, commands)
+
         elif cmd == "calibrate":
             self.arm.calibrate()
         elif cmd == "home":
@@ -97,33 +120,33 @@ class ArmCommands:
             self.arm.move_to(x,y,z,self.arm.debug)
             self.pub2.publish(0)
         elif cmd == "rotate_wrist":
-            # self.pub2.publish(1)
+            self.pub2.publish(1)
             self.arm.rotate_wrist(param)
-            # self.pub2.publish(0)
+            self.pub2.publish(0)
         elif cmd == "rotate_wrist_rel":
-            # self.pub2.publish(1)
+            self.pub2.publish(1)
             self.arm.rotate_wrist_rel(param)
-            # self.pub2.publish(0)
+            self.pub2.publish(0)
         elif cmd == "rotate_hand":
-            # self.pub2.publish(1)
+            self.pub2.publish(1)
             self.arm.rotate_hand(param)
-            # self.pub2.publish(0)
+            self.pub2.publish(0)
         elif cmd == "rotate_elbow":
-            # self.pub2.publish(1)
+            self.pub2.publish(1)
             self.arm.rotate_elbow(param)
-            # self.pub2.publish(0)
+            self.pub2.publish(0)
         elif cmd == "rotate_shoulder":
-            # self.pub2.publish(1)
+            self.pub2.publish(1)
             self.arm.rotate_shoulder(param)
-            # self.pub2.publish(0)
+            self.pub2.publish(0)
         elif cmd == "rotate_waist":
-            # self.pub2.publish(1)
+            self.pub2.publish(1)
+            self.pub2.publish(0)
             self.arm.rotate_waist(param)
-            # self.pub2.publish(0)
         elif cmd == "rotate_hand_rel":
-            # self.pub2.publish(1)
+            self.pub2.publish(1)
             self.arm.rotate_hand_rel(param)
-            # self.pub2.publish(0)
+            self.pub2.publish(0)
 
     def run(self):
         r = rospy.Rate(10)

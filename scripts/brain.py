@@ -16,7 +16,9 @@ import random
 import math
 import time
 import numpy as np
-from std_msgs.msg import String
+import pickle, os, sys
+from std_msgs.msg import String, Int16
+
 
 from InteractiveDemos import TicTacToe as ttt
 
@@ -26,6 +28,7 @@ class EdwinBrain:
         rospy.Subscriber('/edwin_sound', String, self.sound_callback, queue_size=1)
         rospy.Subscriber('/edwin_imu', String, self.imu_callback, queue_size=1)
         rospy.Subscriber('/edwin_decoded_speech', String, self.speech_callback, queue_size=1)
+        rospy.Subscriber('/arm_status', Int16, self.arm_mvmt_callback, queue_size=1)
 
         self.arm_pub = rospy.Publisher('/arm_cmd', String, queue_size=2)
         self.behav_pub = rospy.Publisher('/behaviors_cmd', String, queue_size=2)
@@ -33,6 +36,41 @@ class EdwinBrain:
         self.idle_pub = rospy.Publisher('/idle_cmd', String, queue_size=2)
 
         self.idling = True
+        self.moving = False
+
+
+        self.behaviors = {}
+        self.create_behaviors()
+        self.categorized_behaviors = {}
+        self.categorize_behaviors()
+
+
+    def create_behaviors(self):
+        curr_dir = os.path.dirname(os.path.realpath(__file__))
+        if os.path.exists(curr_dir+'/storage.txt'):
+            self.behaviors = pickle.load(open(curr_dir+'/storage.txt', 'rb')) 
+
+    def categorize_behaviors(self):
+        categorized_behaviors['negative_emotions'] = ['angry', 'sad']
+        categorized_behaviors['happy_emotions'] = ['nod', 'butt_wiggle']
+        categorized_behaviors['greeting'] = ['greet', 'nudge', 'curiosity']
+        categorized_behaviors['pretentious']  = ['gloat'] 
+        categorized_behaviors['calm'] = ['sleep', 'nudge', 'nod']    
+    
+
+        self.pat = False
+        self.slap = False
+
+        self.exit = False #should be catch all to exit all long running commands
+        self.start_game = None
+
+
+    def arm_mvmt_callback(self, data):
+        if data.data == 1:
+            self.moving = True
+        elif data.data == 0:
+            self.moving = False
+
 
     def speech_callback(self, data):
         """
@@ -41,16 +79,20 @@ class EdwinBrain:
         self.idle_pub.publish("stop_idle")
         speech = data.data
         print "RECEIVED SPEECH: ", speech
-
         if "hello" in speech:
-            self.behav_pub.publish("greet")
+            self.behav_pub.publish(random.choice(categorized_behaviors['greeting']))
         elif "happy" in speech:
-            self.behav_pub.publish("nod")
+            self.behav_pub.publish(random.choice(categorized_behaviors['happy_emotions']))
         elif "game" in speech:
             self.start_game = "TTT"
-        elif "goodbye" in speech:
-            self.behav_pub("butt_wiggle")
+        elif "exit" in speech:
+            self.behav_pub.publish("nod")
+            self.exit = True
+        elif "bye" in speech:
+            self.behav_pub(random.choice(categorized_behaviors['calm']))
+
             self.idle_pub("go_idle")
+
     def sound_callback(self, data):
         """
         format in "byte_length peak_volume"
@@ -62,31 +104,52 @@ class EdwinBrain:
 
     def imu_callback(self, data):
         """
-        IMU: no touch/patted/slapped
+        IMU: no patted/slapped
         """
         state = data.data.replace("IMU: ", "")
         #print "STATE IS: ", state
-        if state == "notouch":
-            return
-        elif state == "pat":
-            if self.idling:
-                self.start_game = "TTT"
-                self.idling = False
-                self.idle_pub.publish("stop_idle")
-        elif state == "slap":
-            emote_msg = "ANGRY"
-            behav_msg = "sleep"
 
-        self.behav_pub.publish(behav_msg)
-        self.emotion_pub.publish(emote_msg)
-        time.sleep(10)
+        if self.moving == False:
+            if state == "pat":
+                self.pat = True
+                self.slap = False
+            elif state == "slap":
+
+                emote_msg = "ANGRY"
+                behav_msg = random.choice(categorized_behaviors['negative_emotions'])
+
+
+                self.behav_pub.publish(behav_msg)
+                self.emotion_pub.publish(emote_msg)
+                time.sleep(5)
+
+                self.pat = False
+                self.slap = True
+
 
     def run_game(self):
+        self.idle_pub.publish("stop_idle")
+        self.idling = False
+
         if self.start_game == "TTT":
+            self.behav_pub.publish("get_marker")
+            start_marker_wait = time.time()
+            while self.pat != True:
+                #if Edwin has to wait too long for a marker, get impatient
+                if int(start_marker_wait - time.time()) > 10:
+                    self.behav_pub.publish("impatient")
+                if self.slap:
+                    self.behav_pub.publish("angry")
+                elif self.exit:
+                    self.exit = False
+                    return
+            self.pat = False
+            time.sleep(5)
             ttt_gm = ttt.Game()
             ttt_gm.run()
-            self.idle_pub.publish("go_idle")
-            self.idling = True
+
+        self.idle_pub.publish("go_idle")
+        self.idling = True
 
     def run(self):
         r = rospy.Rate(10)

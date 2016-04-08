@@ -153,7 +153,8 @@ class SpeechDetector:
                 for word in r:
                     if word[0] != "<":
                         speech_string += " " + word
-                self.speech_pub.publish(speech_string)
+                if len(speech_string) > 0:
+                    self.speech_pub.publish(speech_string)
 
                 # Removes temp audio file
                 os.remove(filename)

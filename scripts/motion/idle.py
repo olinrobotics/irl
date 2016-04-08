@@ -49,7 +49,7 @@ class IdleBehaviors:
         r = rospy.Rate(10)
         joints = ["H", "WR", "E", "WA", "BEHAV"]
         while not rospy.is_shutdown():
-            if int(time.time() - self.stop_idle_time) > 1500: #if we've stopped interacting for 20 mins, start again
+            if int(time.time() - self.stop_idle_time) > 1000: #if we've stopped interacting for 15 mins, start again
                 self.idling = True
             if self.idling:
                 if int(time.time() - self.last_interaction) > self.idle_time:
