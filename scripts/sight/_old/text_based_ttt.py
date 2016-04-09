@@ -10,9 +10,9 @@ import itertools
 class Game:
 	def __init__(self):
 		#A blank space is represented by 0, an "O" is 1, and "X" is 10, we start with blank board
-		self.board =   [0, 0, 0,
-						0, 0, 0,
-						0, 0, 0]
+		self.board =   [1, 10, 10,
+						10, 1, 1,
+						1, 0, 10]
 
 		self.corners = [0,2,6,8] #indices of the corner locations
 		self.sides = [1,3,5,7]
@@ -103,7 +103,8 @@ class Game:
 				board_copy = copy.deepcopy(self.board)
 				if self.is_free(board_copy, self.corners[i]):
 					corner_moves.append(self.corners[i])
-			return random.choice(corner_moves)
+			if len(corner_moves) != 0:
+				return random.choice(corner_moves)
 
 			#Otherwise, get the middle.
 			if self.is_free(board_copy, self.middle):
@@ -115,7 +116,8 @@ class Game:
 				board_copy = copy.deepcopy(self.board)
 				if self.is_free(board_copy, self.sides[i]):
 					side_moves.append(self.sides[i])
-			return random.choice(side_moves)
+			if len(side_moves) != 0:
+				return random.choice(side_moves)
 
 			return "TIE"
 
@@ -162,6 +164,10 @@ class Game:
 				continue
 			elif turn == 1: #Edwin's turn
 				next_move_ind = self.next_move()
+				if next_move_ind == "TIE":
+					print "TIE"
+					running = False
+					continue
 				self.edwin_move(next_move_ind)
 				turn = 0
 				if self.is_winner(self.board) == 1:
