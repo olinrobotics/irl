@@ -199,6 +199,8 @@ class Game:
 		self.grid_middle = 4
 		self.z_depth = -630
 
+		self.difficulty = 11 #0 = easiest, 10 = hardest
+
 	def img_callback(self, data):
 		try:
 			self.frame = self.bridge.imgmsg_to_cv2(data, "bgr8")
@@ -247,40 +249,59 @@ class Game:
 	def next_move(self):
 		#Returns index of next move
 		#Checks if Edwin can win on this move
-		for i in range(9): #don't use len(self.board), it's a numpy array
-			board_copy = copy.deepcopy(self.board)
-			if self.is_free(board_copy, i):
-				board_copy[i] = 10
-				if self.is_winner(board_copy)[0] == 1:
-					return i
 
-		#Checks if player can win the next turn
-		for i in range(9):
-			board_copy = copy.deepcopy(self.board)
-			if self.is_free(board_copy, i):
-				board_copy[i] = 1
-				if self.is_winner(board_copy)[0] == 2:
-					return i
+		legal_moves = []
+		corner_moves = []
+		side_moves = []
+		difficulty_rand = random.randint(0,10)
 
-		#Otherwise, prioritizes grabbing corners.
-		for i in range(4):
+		#if randomly generated number is > difficulty, make a random move
+		if difficulty_rand > self.difficulty:
 			board_copy = copy.deepcopy(self.board)
-			if self.is_free(board_copy, self.grid_corners[i]):
-				return self.grid_corners[i]
+			for i in range(9):
+				if self.is_free(board_copy, i):
+					legal_moves.append(i)
+			return random.choice(legal_moves)
 
-		#Otherwise, get the middle.
-		if self.is_free(board_copy, self.grid_middle):
-			board_copy = copy.deepcopy(self.board)
-			return self.grid_middle
+		else:
+			#Checks if Edwin wins this turn
+			for i in range(9): #don't use len(self.board), it's a numpy array
+				board_copy = copy.deepcopy(self.board)
+				if self.is_free(board_copy, i):
+					board_copy[i] = 10
+					if self.is_winner(board_copy) == 1:
+						return i
 
-		#Otherwise, get a side.
-		for i in range(4):
-			board_copy = copy.deepcopy(self.board)
-			if self.is_free(board_copy, self.grid_sides[i]):
-				return self.grid_sides[i]
+			#Checks if player can win the next turn
+			for i in range(9):
+				board_copy = copy.deepcopy(self.board)
+				if self.is_free(board_copy, i):
+					board_copy[i] = 1
+					if self.is_winner(board_copy) == 2:
+						return i
 
-		#if tie, return TIE
-		return "TIE"
+			#Otherwise, prioritizes grabbing corners.
+			for i in range(4):
+				board_copy = copy.deepcopy(self.board)
+				if self.is_free(board_copy, self.corners[i]):
+					corner_moves.append(self.corners[i])
+			if len(corner_moves) != 0:
+				return random.choice(corner_moves)
+
+			#Otherwise, get the middle.
+			if self.is_free(board_copy, self.middle):
+				board_copy = copy.deepcopy(self.board)
+				return self.middle
+
+			#Otherwise, get a side.
+			for i in range(4):
+				board_copy = copy.deepcopy(self.board)
+				if self.is_free(board_copy, self.sides[i]):
+					side_moves.append(self.sides[i])
+			if len(side_moves) != 0:
+				return random.choice(side_moves)
+
+			return "TIE"
 
 	def manual_field_scan(self):
 		#TODO: Update board with current values
