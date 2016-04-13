@@ -13,6 +13,7 @@ class ArmBehaviors:
         rospy.init_node('behavior_arm', anonymous=True)
         rospy.Subscriber('/behaviors_cmd', String, self.behavior_callback, queue_size=10)
         self.pub = rospy.Publisher('/arm_cmd', String, queue_size=10)
+        self.sound_pub = rospy.Publisher('/edwin_sound', String, queue_size=10)
         self.behaviors = {}
 
         self.create_behaviors()
@@ -44,6 +45,10 @@ class ArmBehaviors:
                     elif joint == "SL":
                         print "Sleeping: " + pos
                         time.sleep(float(pos))
+                        continue
+                    elif joint == "PLAY":
+                        print "PLAYING SOUND: " + pos
+                        self.sound_pub.publish(pos)
                         continue
                 print "Publishing: ", msg
                 time.sleep(1)

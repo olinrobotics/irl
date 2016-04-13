@@ -38,7 +38,7 @@ class SoundBoard:
 			self.sound_library[f] = AudioObject(MEDIADIR, f)
 
 	def sound_callback(self, data):
-		sound_play = data.data
+		sound_play = data.data + ".wav"
 		print "PLAYING: ", sound_play
 		self.sound_library[sound_play].play()
 
