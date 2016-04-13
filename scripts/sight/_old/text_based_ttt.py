@@ -10,10 +10,9 @@ import itertools
 class Game:
 	def __init__(self):
 		#A blank space is represented by 0, an "O" is 1, and "X" is 10, we start with blank board
-		self.board =   [0, 0, 0,
-						0, 0, 0,
-						0, 0, 0]
-
+		self.board =   [1, 10, 10,
+						10, 1, 1,
+						1, 0, 10]
 
 		self.corners = [0,2,6,8] #indices of the corner locations
 		self.sides = [1,3,5,7]
@@ -58,40 +57,39 @@ class Game:
 	 	else:
 	 		return False
 
-	def is_board_full(self):
-	 	for i in range(8):
-	 		if self.is_free(self.board, i):
-	 			return False
-	 	return True
+	##CURRENTLY UNUSED TODO: Figure out why
+	# def is_board_full(self):
+	#  	for i in range(9):
+	# 		if self.is_free(self.board, i):
+	#  			return False
+	#  	return True
 
 	def next_move(self):
 		#Returns index of next move
 		#Checks if Edwin can win on this move
-		# board_copy = copy.deepcopy(self.board)
-		# print "BOARD COPY IS"
-		# print board_copy
 
 		legal_moves = []
 		corner_moves = []
 		side_moves = []
-		difficulty = self.difficulty #From 0 to 10.  10 being Perfect playing.  
-		difficulty_rand = random.randrange(0,10,1)
-		board_copy = copy.deepcopy(self.board)
+		difficulty_rand = random.randint(0,10)
 
-		for i in range(9):
-			if self.is_free(board_copy, i):
-				legal_moves.append(i)
-		if difficulty < difficulty_rand: #Random chance if difficulty is less than 10.  
-			return legal_moves[random.randint(0,len(legal_moves)-1, 1)]
+		#if randomly generated number is > difficulty, make a random move
+		if self.difficulty < difficulty_rand:
+			board_copy = copy.deepcopy(self.board)
+			for i in range(9):
+				if self.is_free(board_copy, i):
+					legal_moves.append(i)
+			return random.choice(legal_moves)
 
 		else:
-
+			#Checks if Edwin wins this turn
 			for i in range(9): #don't use len(self.board), it's a numpy array
 				board_copy = copy.deepcopy(self.board)
 				if self.is_free(board_copy, i):
 					board_copy[i] = 10
 					if self.is_winner(board_copy) == 1:
 						return i
+
 			#Checks if player can win the next turn
 			for i in range(9):
 				board_copy = copy.deepcopy(self.board)
@@ -99,17 +97,14 @@ class Game:
 					board_copy[i] = 1
 					if self.is_winner(board_copy) == 2:
 						return i
+
 			#Otherwise, prioritizes grabbing corners.
 			for i in range(4):
 				board_copy = copy.deepcopy(self.board)
 				if self.is_free(board_copy, self.corners[i]):
 					corner_moves.append(self.corners[i])
-					print "corner " + str(i) + " is free"
-			print corner_moves
-			if len(corner_moves) > 1:
-				return corner_moves[random.randint(0,len(corner_moves)-1)]
-			elif len(corner_moves) == 1: 
-				return corner_moves[0]
+			if len(corner_moves) != 0:
+				return random.choice(corner_moves)
 
 			#Otherwise, get the middle.
 			if self.is_free(board_copy, self.middle):
@@ -120,13 +115,11 @@ class Game:
 			for i in range(4):
 				board_copy = copy.deepcopy(self.board)
 				if self.is_free(board_copy, self.sides[i]):
-					sides_moves.append(self.sides[i])
-			if len(side_moves) > 1:
-				return sides_moves[random.randint(0,len(side_moves)-1)]
-			elif len(side_moves) == 1: 
-				return side_moves[0]
+					side_moves.append(self.sides[i])
+			if len(side_moves) != 0:
+				return random.choice(side_moves)
 
-			return None
+			return "TIE"
 
 	def manual_field_scan(self):
 		print "USER TURN, CURRENT BOARD:"
@@ -153,30 +146,33 @@ class Game:
  		# print self.board[6:9]
 
 	def run(self):
-	 	running = True
-	 	# turn = random.randint(0,1)
-	 	turn = 0
-	 	print "running"
+		running = True
+		# turn = random.randint(0,1)
+		turn = 0
+		print "running"
 
-	 	if turn == 0:
-	 		print "Your turn first!"
+		if turn == 0:
+			print "Your turn first!"
 
-	 	while running:
-	 		if turn == 0: #Player turn.
-	 			self.manual_field_scan()
-	 			if self.is_winner(self.board) == 2:
-	 				print "USER WINS"
-	 				running = False
-	 			turn = 1
-	 			continue
-
-	 		elif turn == 1: #Edwin's turn
-	 			next_move_ind = self.next_move()
-	 			self.edwin_move(next_move_ind)
-	 			turn = 0
-	 			if self.is_winner(self.board) == 1:
-	 				print "EDWIN WINS"
-	 				running = False
+		while running:
+			if turn == 0: #Player turn.
+				self.manual_field_scan()
+				if self.is_winner(self.board) == 2:
+					print "USER WINS"
+					running = False
+				turn = 1
+				continue
+			elif turn == 1: #Edwin's turn
+				next_move_ind = self.next_move()
+				if next_move_ind == "TIE":
+					print "TIE"
+					running = False
+					continue
+				self.edwin_move(next_move_ind)
+				turn = 0
+				if self.is_winner(self.board) == 1:
+					print "EDWIN WINS"
+					running = False
 
 
 if __name__ == '__main__':
