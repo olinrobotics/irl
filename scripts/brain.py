@@ -48,15 +48,15 @@ class EdwinBrain:
     def create_behaviors(self):
         curr_dir = os.path.dirname(os.path.realpath(__file__))
         if os.path.exists(curr_dir+'/storage.txt'):
-            self.behaviors = pickle.load(open(curr_dir+'/storage.txt', 'rb')) 
+            self.behaviors = pickle.load(open(curr_dir+'/storage.txt', 'rb'))
 
     def categorize_behaviors(self):
         categorized_behaviors['negative_emotions'] = ['angry', 'sad']
         categorized_behaviors['happy_emotions'] = ['nod', 'butt_wiggle']
         categorized_behaviors['greeting'] = ['greet', 'nudge', 'curiosity']
-        categorized_behaviors['pretentious']  = ['gloat'] 
-        categorized_behaviors['calm'] = ['sleep', 'nudge', 'nod']    
-    
+        categorized_behaviors['pretentious']  = ['gloat']
+        categorized_behaviors['calm'] = ['sleep', 'nudge', 'nod']
+
 
         self.pat = False
         self.slap = False
