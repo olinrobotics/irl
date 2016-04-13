@@ -3,27 +3,40 @@ import rospy
 import math
 import st
 import numpy as np
-from std_msgs.msg import String
+from std_msgs.msg import String, Int16
 import time
 import pickle
 import os, sys
+import rospkg
 
 class ArmBehaviors:
     def __init__(self):
         rospy.init_node('behavior_arm', anonymous=True)
         rospy.Subscriber('/behaviors_cmd', String, self.behavior_callback, queue_size=10)
+        rospy.Subscriber('arm_status', Int16, self.status_callback, queue_size=10)
         self.pub = rospy.Publisher('/arm_cmd', String, queue_size=10)
         self.behaviors = {}
+        self.moving = False
 
         self.create_behaviors()
         print "Starting behavior node"
+
+
+    def status_callback(self, armstatus):
+    	if armstatus == 1:
+    		self.moving = True
+    	else:
+    		self.moving = False    
 
     def behavior_callback(self, cmdin):
         print "RECEIVED CMD: ", cmdin
         cmd = str(cmdin).replace("data: ", "")
         if cmd in self.behaviors.keys():
+
             cmd_list = self.behaviors[cmd].split(", ")
             for elem in cmd_list:
+            	while self.moving == True:
+            		continue
                 if "R_" in elem:
                     msg = "data: run_route:: " + str(elem)
                 elif "SPD" in elem:
@@ -42,9 +55,8 @@ class ArmBehaviors:
                     elif joint == "WA":
                         msg = "data: rotate_waist:: " + pos
                     elif joint == "SL":
-                        print "Sleeping: " + pos
-                        time.sleep(float(pos))
-                        continue
+                        msg = "data: sleeping:: " + pos
+
                 print "Publishing: ", msg
                 time.sleep(1)
                 self.pub.publish(msg)
@@ -63,7 +75,7 @@ class ArmBehaviors:
         self.behaviors["sad"] = "R_sleep, H: 1000, WA: -3000, WA: -2000, WA: -3000"
         self.behaviors["nudge"] = "R_ttt, E: 12000, E: 12500"
         self.behaviors["nod"] = "R_stare, E:13000, E:12000"
-        self.behaviors["gloat"] = "R_playful, WA:6000, WA:7000"
+        self.behaviors["gloat"] = "H: 1000, WR: 1700, SPD: 350, R_laugh, SPD: 500, H: 0, W: 900, R_look, WR: 1500, SL: 1, WR: 1800, SL: 1, WR: 2100, SL: 1, WR: 2400"
         self.behaviors["angry"] = "SPD: 200, R_stare, SPD: 1000"
         self.behaviors["sleep"] = "R_sleep"
 

@@ -147,6 +147,8 @@ class ArmCommands:
             self.pub2.publish(1)
             self.arm.rotate_hand_rel(param)
             self.pub2.publish(0)
+        elif cmd == "sleeping":
+            time.sleep(float(param))     
 
     def run(self):
         r = rospy.Rate(10)
