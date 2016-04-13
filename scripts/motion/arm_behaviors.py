@@ -61,7 +61,7 @@ class ArmBehaviors:
         self.behaviors["curiosity"] =  "R_curious, WR: 800, H: 0"
         self.behaviors["greet"] = "R_greet1, WR:1500, H: 100, H: 0"
         self.behaviors["sad"] = "R_sleep, H: 1000, WA: -3000, WA: -2000, WA: -3000"
-        self.behaviors["nudge"] = "R_ttt, E: 12000, E: 12500"
+        self.behaviors["nudge"] = "R_ttt, R_nudge, E: 12000, SPD: 500, R_ttt, SPD: 750"
         self.behaviors["nod"] = "R_stare, E:13000, E:12000"
         self.behaviors["gloat"] = "R_playful, WA:6000, WA:7000"
         self.behaviors["angry"] = "SPD: 200, R_stare, SPD: 1000"
