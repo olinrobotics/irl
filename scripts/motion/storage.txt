@@ -5,7 +5,7 @@ S'WA: 500, WA: 1000, WA: 500, WA: 1000'
 p2
 sS'nudge'
 p3
-S'R_ttt, E: 12000, E: 12500'
+S'R_ttt, R_nudge, E: 12000, SPD: 500, R_ttt, SPD: 750'
 p4
 sS'gloat'
 p5

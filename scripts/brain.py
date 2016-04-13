@@ -52,13 +52,14 @@ class EdwinBrain:
         if os.path.exists(PACKAGE_PATH+'/params/behaviors.txt'):
             self.behaviors = pickle.load(open(PACKAGE_PATH+'/params/behaviors.txt', 'rb')) 
 
+
     def categorize_behaviors(self):
         categorized_behaviors['negative_emotions'] = ['angry', 'sad']
         categorized_behaviors['happy_emotions'] = ['nod', 'butt_wiggle']
         categorized_behaviors['greeting'] = ['greet', 'nudge', 'curiosity']
-        categorized_behaviors['pretentious']  = ['gloat'] 
-        categorized_behaviors['calm'] = ['sleep', 'nudge', 'nod']    
-    
+        categorized_behaviors['pretentious']  = ['gloat']
+        categorized_behaviors['calm'] = ['sleep', 'nudge', 'nod']
+
 
         self.pat = False
         self.slap = False

@@ -1,22 +1,18 @@
 #!/usr/bin/env python
 import rospy
+import rospkg
+import os
 from std_msgs.msg import String
 from edwin.msg import *
 import time
 import subprocess
 
 class AudioObject:
-	def __init__(self, name):
-		self.name = name
-		self.path = "media"
-		self.filename = "{}/{}.wav".format(self.path, self.name)
+	def __init__(self, path, name):
+		self.filename = "{}/{}".format(path, name)
 		self.player = 'mplayer'
 
-	def play_wave(self):
-		"""
-		plays an inputted wav file
-		"""
-		print self.filename
+	def play(self):
 		cmd = '{} {}'.format(self.player, self.filename)
 		#popen = subprocess.Popen([self.player, self.filename, "-ss", "30"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
@@ -27,30 +23,24 @@ class AudioObject:
 
 class SoundBoard:
 	def __init__(self):
-		#self.Sound_pub = Rospy.Publisher('behaviors_cmd/sound_cmd', String, queue_size=10)
-		rospy.init_node('edwin_sounds_callback', anonymous = True)
-		rospy.Subscriber('edwin_emotion', String, self.sound_callback)
-		self.sound_library =  self.create_objects()
+		rospy.init_node('edwin_soundboard', anonymous = True)
+		rospy.Subscriber('edwin_sound', String, self.sound_callback)
+		self.sound_library = {}
+		self.create_sound_library()
 
-	def create_objects(self): #Reads all the files in media, instantiates them as audio_objects
-		AudioList = []
-		AudioList.append(AudioObject("Battlecry")) #Example/test file
-		AudioList.append(AudioObject("Dinosaur1"))
-		AudioList.append(AudioObject("Dinosaur_groan"))
-		AudioList.append(AudioObject("Dinosaur_Roar1"))
-		AudioList.append(AudioObject("Dinosaur_Roar2"))
-		AudioList.append(AudioObject("Dinosaur_snort"))
-		AudioList.append(AudioObject("Dragon"))
-		AudioList.append(AudioObject("Falcon"))
+	def create_sound_library(self): #Reads all the files in media, instantiates them as audio_objects
+		rospack = rospkg.RosPack()
+		PACKAGE_PATH = rospack.get_path("edwin")
+		MEDIADIR = os.path.join(PACKAGE_PATH, "scripts/sound/media")
 
-		return AudioList
+		files = os.listdir(MEDIADIR)
+		for f in files:
+			self.sound_library[f] = AudioObject(MEDIADIR, f)
 
 	def sound_callback(self, data):
-		call =  data.data #String indicating desired sound
-		command = next((x for x in self.sound_library if x.name == call)) #Find in sound library
-		print "playing" + data.data
-		command.play_wave()
-		return 1
+		sound_play = data.data + ".wav"
+		print "PLAYING: ", sound_play
+		self.sound_library[sound_play].play()
 
 if __name__ == '__main__':
 	sound = SoundBoard()

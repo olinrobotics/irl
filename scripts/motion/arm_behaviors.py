@@ -15,6 +15,7 @@ class ArmBehaviors:
         rospy.Subscriber('/behaviors_cmd', String, self.behavior_callback, queue_size=10)
         rospy.Subscriber('arm_status', Int16, self.status_callback, queue_size=10)
         self.pub = rospy.Publisher('/arm_cmd', String, queue_size=10)
+        self.sound_pub = rospy.Publisher('/edwin_sound', String, queue_size=10)
         self.behaviors = {}
         self.moving = False
 
@@ -55,8 +56,18 @@ class ArmBehaviors:
                     elif joint == "WA":
                         msg = "data: rotate_waist:: " + pos
                     elif joint == "SL":
+<<<<<<< HEAD
                         msg = "data: sleeping:: " + pos
 
+=======
+                        print "Sleeping: " + pos
+                        time.sleep(float(pos))
+                        continue
+                    elif joint == "PLAY":
+                        print "PLAYING SOUND: " + pos
+                        self.sound_pub.publish(pos)
+                        continue
+>>>>>>> master
                 print "Publishing: ", msg
                 time.sleep(1)
                 self.pub.publish(msg)
@@ -73,7 +84,7 @@ class ArmBehaviors:
         self.behaviors["curiosity"] =  "R_curious, WR: 800, H: 0"
         self.behaviors["greet"] = "R_greet1, WR:1500, H: 100, H: 0"
         self.behaviors["sad"] = "R_sleep, H: 1000, WA: -3000, WA: -2000, WA: -3000"
-        self.behaviors["nudge"] = "R_ttt, E: 12000, E: 12500"
+        self.behaviors["nudge"] = "R_ttt, R_nudge, E: 12000, SPD: 500, R_ttt, SPD: 750"
         self.behaviors["nod"] = "R_stare, E:13000, E:12000"
         self.behaviors["gloat"] = "H: 1000, WR: 1700, SPD: 350, R_laugh, SPD: 500, H: 0, W: 900, R_look, WR: 1500, SL: 1, WR: 1800, SL: 1, WR: 2100, SL: 1, WR: 2400"
         self.behaviors["angry"] = "SPD: 200, R_stare, SPD: 1000"

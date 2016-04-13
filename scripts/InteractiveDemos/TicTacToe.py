@@ -199,7 +199,7 @@ class Game:
 		self.grid_middle = 4
 		self.z_depth = -630
 
-		self.difficulty = 11 #0 = easiest, 10 = hardest
+		self.difficulty = 0 #0 = easiest, 10 = hardest
 
 	def img_callback(self, data):
 		try:
@@ -241,7 +241,7 @@ class Game:
 	 		return False
 
 	def is_board_full(self):
-	 	for i in range(8):
+	 	for i in range(9):
 	 		if self.is_free(self.board, i):
 	 			return False
 	 	return True
@@ -257,6 +257,7 @@ class Game:
 
 		#if randomly generated number is > difficulty, make a random move
 		if difficulty_rand > self.difficulty:
+			print "PLAYING RANDOM MOVE"
 			board_copy = copy.deepcopy(self.board)
 			for i in range(9):
 				if self.is_free(board_copy, i):
@@ -283,21 +284,21 @@ class Game:
 			#Otherwise, prioritizes grabbing corners.
 			for i in range(4):
 				board_copy = copy.deepcopy(self.board)
-				if self.is_free(board_copy, self.corners[i]):
-					corner_moves.append(self.corners[i])
+				if self.is_free(board_copy, self.grid_corners[i]):
+					corner_moves.append(self.grid_corners[i])
 			if len(corner_moves) != 0:
 				return random.choice(corner_moves)
 
 			#Otherwise, get the middle.
-			if self.is_free(board_copy, self.middle):
+			if self.is_free(board_copy, self.grid_middle):
 				board_copy = copy.deepcopy(self.board)
-				return self.middle
+				return self.grid_middle
 
-			#Otherwise, get a side.
+			#Otherwise, get a side.\
 			for i in range(4):
 				board_copy = copy.deepcopy(self.board)
-				if self.is_free(board_copy, self.sides[i]):
-					side_moves.append(self.sides[i])
+				if self.is_free(board_copy, self.grid_sides[i]):
+					side_moves.append(self.grid_sides[i])
 			if len(side_moves) != 0:
 				return random.choice(side_moves)
 
@@ -327,8 +328,9 @@ class Game:
 
 		# Find the index of the largest contour
 		areas = [cv2.contourArea(c) for c in contours]
-		gesture_select = random.randint(0, 2000)
-		#there's a one in 500 chance that edwin will get bored and start looking around
+		gesture_select = random.randint(0, 1000)
+
+		#there's a one in 1000 chance that edwin will get bored and start looking around
 		if gesture_select == 1:
 			self.behav_pub.publish("look_around")
 			time.sleep(5)
@@ -390,7 +392,7 @@ class Game:
 						self.board[key] = 1
 						running = False
 
-				print self.board
+				# print self.board
 
 			#if we detect no circles for 15 seconds, publish impatient gesture
 			if int(time.time() - start_user_turn) > 15:
@@ -507,6 +509,7 @@ class Game:
 	 	time.sleep(5)
 
 	def draw_win_line(self, win_line):
+		#TODO: Put this in arm_draw
 		msg = "data: R_ttt"
 		print "sending: ", msg
 		self.arm_pub.publish(msg)
