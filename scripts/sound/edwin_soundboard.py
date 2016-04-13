@@ -13,10 +13,6 @@ class AudioObject:
 		self.player = 'mplayer'
 
 	def play(self):
-		"""
-		plays an inputted wav file
-		"""
-		print self.filename
 		cmd = '{} {}'.format(self.player, self.filename)
 		#popen = subprocess.Popen([self.player, self.filename, "-ss", "30"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
@@ -43,6 +39,7 @@ class SoundBoard:
 
 	def sound_callback(self, data):
 		sound_play = data.data
+		print "PLAYING: ", sound_play
 		self.sound_library[sound_play].play()
 
 if __name__ == '__main__':
