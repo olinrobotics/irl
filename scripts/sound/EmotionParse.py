@@ -1,5 +1,7 @@
 import numpy as np
 import wave
+from scipy.io import wavfile
+import pyaudio
 
 def speedx(sound_array, factor):
     """ Multiplies the sound's speed by some `factor` """
@@ -34,9 +36,49 @@ def stretch(sound_array, f, window_size, h):
 
     return result.astype('int16')
 
-def pitchshift(snd_array, n, window_size=2**13, h=2**11):
+def pitchshift(sound_array, n, window_size=2**13, h=2**11):
     """ Changes the pitch of a sound by ``n`` semitones. """
     factor = 2**(1.0 * n / 12.0)
     stretched = stretch(snd_array, 1.0/factor, window_size, h)
     return speedx(stretched[window_size:], factor)
+
+
+def volumeshift(sound_array, factor):
+	#Increases or decreases the volume of the array.  
+	pass
+
+def load(sound_file):
+	w = wave.open(sound_file, "rb")
+
+	return w
+
+def play(sound):
+	#define stream chunk
+	chunk = 1024  
+	p = pyaudio.PyAudio() 
+
+	params = sound.getparams()
+	f = params[3] # number of frames
+	
+	#open stream  
+	stream = p.open(format = p.get_format_from_width(params[1]),  
+                channels = params[0],  
+                rate = params[2],  
+                output = True)
+
+	data = sound.readframes(chunk) 
+
+	#Play stream
+	while data != '':  
+		stream.write(data)  
+		data = sound.readframes(chunk)  
+
+
+	sound.close()
+
+
+if __name__ == '__main__':
+	sound = load("r2d2.wav")
+	play(sound)
+
 
