@@ -54,6 +54,7 @@ class ArmBehaviors:
                 time.sleep(1)
                 self.pub.publish(msg)
 
+
     def create_behaviors(self):
         """
         Need to add:
@@ -68,12 +69,14 @@ class ArmBehaviors:
         self.behaviors["sad"] = "R_sleep, H: 1000, WA: -3000, WA: -2000, WA: -3000"
         self.behaviors["nudge"] = "R_ttt, R_nudge, E: 12000, SPD: 500, R_ttt, SPD: 750"
         self.behaviors["nod"] = "R_stare, E:13000, E:12000"
-        self.behaviors["gloat"] = "R_playful, WA:6000, WA:7000"
+        self.behaviors["gloat"] = "H: 1000, WR: 1700, SPD: 350, R_laugh, SPD: 500, H: 0, W: 900, R_look, WR: 1500, SL: 1, WR: 1800, SL: 1, WR: 2100, SL: 1, WR: 2400"
         self.behaviors["angry"] = "SPD: 200, R_stare, SPD: 1000"
         self.behaviors["sleep"] = "R_sleep"
 
-        curr_dir = os.path.dirname(os.path.realpath(__file__))
-        pickle.dump(self.behaviors, open(curr_dir+ '/storage.txt', 'wb'))
+        rospack = rospkg.RosPack()
+        PACKAGE_PATH = rospack.get_path("edwin")
+
+        pickle.dump(self.behaviors, open(PACKAGE_PATH + '/params/behaviors.txt', 'wb'))
 
 
     def run(self):
