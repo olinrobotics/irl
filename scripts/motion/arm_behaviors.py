@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import rospy
+import rospkg
 import math
 import st
 import numpy as np
@@ -22,6 +23,8 @@ class ArmBehaviors:
     def behavior_callback(self, cmdin):
         print "RECEIVED CMD: ", cmdin
         cmd = str(cmdin).replace("data: ", "")
+        if cmd == "random":
+            cmd = "impatient"
         if cmd in self.behaviors.keys():
             cmd_list = self.behaviors[cmd].split(", ")
             for elem in cmd_list:
@@ -72,6 +75,7 @@ class ArmBehaviors:
         self.behaviors["gloat"] = "H: 1000, WR: 1700, SPD: 350, R_laugh, SPD: 500, H: 0, W: 900, R_look, WR: 1500, SL: 1, WR: 1800, SL: 1, WR: 2100, SL: 1, WR: 2400"
         self.behaviors["angry"] = "SPD: 200, R_stare, SPD: 1000"
         self.behaviors["sleep"] = "R_sleep"
+        self.behaviors["laugh"] = "SPD: 500, R_laugh1, SPD: 700, R_laugh, SPD: 1000"
 
         rospack = rospkg.RosPack()
         PACKAGE_PATH = rospack.get_path("edwin")
