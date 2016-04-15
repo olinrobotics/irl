@@ -3,8 +3,14 @@ import wave
 from scipy.io import wavfile
 import pyaudio
 
-def speedx(sound_array, factor):
+
+def speedx(sound_array, f_in):
     """ Multiplies the sound's speed by some `factor` """
+    if f_in <= 0:
+        print "Please use valid factor"
+        return
+    factor = 1./f_in
+    print "FACTOR: ", factor
     indices = np.round( np.arange(0, len(sound_array), factor) )
     indices = indices[indices < len(sound_array)].astype(int)
     return sound_array[ indices.astype(int) ]
@@ -52,28 +58,15 @@ def load(sound_file):
 
 	return w
 
-def play(sound):
-	#define stream chunk
-	chunk = 1024
-	p = pyaudio.PyAudio()
+def play(filename):
+    fs, data = wavfile.read(filename)
+    spd2 = speedx(data, 4)
 
-	params = sound.getparams()
-	f = params[3] # number of frames
-
-	#open stream
-	stream = p.open(format = p.get_format_from_width(params[1]),
-                channels = params[0],
-                rate = params[2],
-                output = True)
-
-	data = sound.readframes(chunk)
-
-	#Play stream
-	while data != '':
-		stream.write(data)
-		data = sound.readframes(chunk)
-	sound.close()
+    # scaled = np.int16(data/np.max(np.abs(data)) * 32767)
+    wavfile.write('test.wav', len(data), data)
+    wavfile.write('spd2.wav', len(spd2), spd2)
 
 if __name__ == '__main__':
-	sound = load("r2d2.wav")
-	play(sound)
+	# sound = load("r2d2.wav")
+    fn = "./media/sad.wav"
+    play(fn)
