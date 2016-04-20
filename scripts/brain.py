@@ -34,9 +34,17 @@ class EdwinBrain:
         self.behav_pub = rospy.Publisher('/behaviors_cmd', String, queue_size=2)
         self.emotion_pub = rospy.Publisher('/edwin_emotion', String, queue_size=2)
         self.idle_pub = rospy.Publisher('/idle_cmd', String, queue_size=2)
+        self.control_pub = rospy.Publisher('/all_control', String, queue_size=2)
 
         self.idling = True
         self.moving = False
+
+        self.pat = False
+        self.slap = False
+        self.ok = False
+
+        self.exit = False #should be catch all to exit all long running commands
+        self.start_game = None
 
         self.behaviors = {}
         self.create_behaviors()
@@ -55,14 +63,6 @@ class EdwinBrain:
         categorized_behaviors['pretentious']  = ['gloat']
         categorized_behaviors['calm'] = ['sleep', 'nudge', 'nod']
 
-        self.pat = False
-        self.slap = False
-
-        self.ok = False
-
-        self.exit = False #should be catch all to exit all long running commands
-        self.start_game = None
-
     def arm_mvmt_callback(self, data):
         if data.data == 1:
             self.moving = True
@@ -73,10 +73,12 @@ class EdwinBrain:
         """
         Generates response based on speech input
         """
-        self.idle_pub.publish("stop_idle")
         speech = data.data
         print "RECEIVED SPEECH: ", speech
         if "hello" or "hi" in speech:
+            if self.idling:
+                self.idle_pub("stop_idle")
+                self.control_pub("ft go")
             self.behav_pub.publish(random.choice(categorized_behaviors['greeting']))
         elif "game" in speech:
             self.start_game = "TTT"

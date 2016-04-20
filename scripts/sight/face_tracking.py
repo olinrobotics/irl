@@ -24,6 +24,7 @@ class FaceTracker:
         rospy.Subscriber("usb_cam/image_raw", Image, self.img_callback)
 
         self.detect = True
+        self.started_tracking = time.time()
         self.face_cascade = cv2.CascadeClassifier('/usr/share/opencv/haarcascades/haarcascade_frontalface_default.xml')
 
         self.ideal_x = 640/2
@@ -41,6 +42,7 @@ class FaceTracker:
         if "ft stop" in data.data:
             self.detect = False
         elif "ft go" in data.data:
+            self.started_tracking = time.time()
             self.detect = True
 
     def face_tracking(self):
@@ -70,6 +72,9 @@ class FaceTracker:
         while not rospy.is_shutdown():
             if self.detect:
                 self.face_tracking()
+                if time.time - self.started_tracking > 10:
+                    print "GOT BORED, STOPPED TRACKING"
+                    self.detect = False
             r.sleep()
 
 if __name__ == '__main__':
