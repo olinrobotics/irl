@@ -1,24 +1,45 @@
 import numpy as np
 from scipy.io import wavfile
+import wave
 
 class SoundManipulator:
-    def __init__(self):
-        self.soundfile = ""
-
-    def speedx(self, f_in):
+    def __init__(self, filename):
+        self.filename = filename
+    
+    def speedx(self, data, factor):
         """ Multiplies the sound's speed by some `factor` """
-        if f_in <= 0:
-            print "Please use valid factor"
-            return
-        factor = 1./f_in
-        print "FACTOR: ", factor
-        indices = np.round( np.arange(0, len(sound_array), factor) )
-        indices = indices[indices < len(sound_array)].astype(int)
+        sound_array = data
+        #if f_in <= 0:
+        #    print "Please use valid factor"
+        #    return
+        #factor = 1./f_in
+        #print "FACTOR: ", factor
+        
+        indices = np.round( np.arange(0, len(sound_array), factor) ) #creates a list of indices in the
+        #Sound array to either skip or duplicate.  
+        indices = indices[indices < len(sound_array)].astype(int) #Takes those indices and then 
+        #cast all of them less than the length of the sound array as int.  
         return sound_array[ indices.astype(int) ]
 
-    def stretch(self, f, window_size, h):
-        """ Stretches the sound by a factor `f` """
+    def time_accel(self, filename, factor): #The Emiya Family Magic now as a code function! jk.
+        CHANNELS = 1
+        swidth = 2
+        Change_RATE = factor
 
+        spf = wave.open(filename, 'rb')
+        RATE=spf.getframerate()
+        signal = spf.readframes(-1)
+
+        wf = wave.open("alter", 'wb')
+        wf.setnchannels(CHANNELS)
+        wf.setsampwidth(swidth)
+        wf.setframerate(RATE*Change_RATE)
+        wf.writeframes(signal)
+        wf.close()
+
+    def stretch(self, data, f, window_size=8192, h=2048):
+        """ Stretches the sound by a factor `f` """
+        sound_array = data
         phase  = np.zeros(window_size)
         hanning_window = np.hanning(window_size)
         result = np.zeros( len(sound_array) /f + window_size)
@@ -58,13 +79,18 @@ class SoundManipulator:
 
     def play(self, filename):
         fs, data = wavfile.read(filename)
-        spd2 = speedx(data, 4)
+        #scaled = np.int16(data/np.max(np.abs(data)) * 32767)
 
-        # scaled = np.int16(data/np.max(np.abs(data)) * 32767)
         wavfile.write('test.wav', len(data), data)
-        wavfile.write('spd2.wav', len(spd2), spd2)
+
+
+        #spd2 = self.stretch(data, 5)
+        #wavfile.write('spd2.wav', len(spd2), spd2)
 
 if __name__ == '__main__':
 	# sound = load("r2d2.wav")
-    fn = "./media/sad.wav"
-    play(fn)
+    #testfile = wave.open("./media/sad.wav", 'r')
+    #print testfile.getnchannels()
+    sound = SoundManipulator("./media/sad.wav")
+    sound.time_accel("./media/sad.wav", .5)
+    sound.play(sound.filename)
