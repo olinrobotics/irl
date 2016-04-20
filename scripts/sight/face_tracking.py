@@ -26,12 +26,13 @@ class FaceTracker:
         self.detect = True
         self.face_cascade = cv2.CascadeClassifier('/usr/share/opencv/haarcascades/haarcascade_frontalface_default.xml')
 
-        self.ideal_x = 0
-        self.ideal_y = 0
+        self.ideal_x = 640/2
+        self.ideal_y = 480/2
 
     def img_callback(self, data):
         try:
             self.frame = self.bridge.imgmsg_to_cv2(data, "bgr8")
+            h, w = self.frame.shape[:2]
         except CvBridgeError as e:
             print(e)
 
@@ -52,9 +53,13 @@ class FaceTracker:
             roi_color = self.frame[y:y+h, x:x+w]
 
             if w*h > largest_face[2]*largest_face[3]:
-                largest_face = (x, y, w, h)
+                largest_face = (x+(0.5*w), y+(0.5*h), w, h)
 
-
+        print "LF: ", largest_face
+        if abs(largest_face[0] - self.ideal_x) > 20:
+            print "MOVING SHOULDER UP/DOWN"
+        elif abs(largest_face[1] - self.ideal_y) > 20:
+            print "MOVING BASE"
 
         cv2.imshow("fr", self.frame)
         cv2.waitKey(1)
