@@ -144,7 +144,7 @@ class SpeechDetector:
         started = False
 
         while not rospy.is_shutdown():
-            if detect == False:
+            if self.detect == False:
                 continue
             cur_data = stream.read(self.CHUNK)
             slid_win.append(math.sqrt(abs(audioop.avg(cur_data, 4))))

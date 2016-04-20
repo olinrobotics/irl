@@ -38,12 +38,10 @@ class EdwinBrain:
         self.idling = True
         self.moving = False
 
-
         self.behaviors = {}
         self.create_behaviors()
         self.categorized_behaviors = {}
         self.categorize_behaviors()
-
 
     def create_behaviors(self):
         curr_dir = os.path.dirname(os.path.realpath(__file__))
@@ -57,20 +55,19 @@ class EdwinBrain:
         categorized_behaviors['pretentious']  = ['gloat']
         categorized_behaviors['calm'] = ['sleep', 'nudge', 'nod']
 
-
         self.pat = False
         self.slap = False
 
+        self.ok = False
+
         self.exit = False #should be catch all to exit all long running commands
         self.start_game = None
-
 
     def arm_mvmt_callback(self, data):
         if data.data == 1:
             self.moving = True
         elif data.data == 0:
             self.moving = False
-
 
     def speech_callback(self, data):
         """
@@ -79,19 +76,14 @@ class EdwinBrain:
         self.idle_pub.publish("stop_idle")
         speech = data.data
         print "RECEIVED SPEECH: ", speech
-        if "hello" in speech:
+        if "hello" or "hi" in speech:
             self.behav_pub.publish(random.choice(categorized_behaviors['greeting']))
-        elif "happy" in speech:
-            self.behav_pub.publish(random.choice(categorized_behaviors['happy_emotions']))
         elif "game" in speech:
             self.start_game = "TTT"
-        elif "exit" in speech:
-            self.behav_pub.publish("nod")
-            self.exit = True
         elif "bye" in speech:
-            self.behav_pub(random.choice(categorized_behaviors['calm']))
-
             self.idle_pub("go_idle")
+        elif "okay" in speech:
+            self.ok = True
 
     def sound_callback(self, data):
         """
@@ -107,17 +99,14 @@ class EdwinBrain:
         IMU: no patted/slapped
         """
         state = data.data.replace("IMU: ", "")
-        #print "STATE IS: ", state
 
         if self.moving == False:
             if state == "pat":
                 self.pat = True
                 self.slap = False
             elif state == "slap":
-
                 emote_msg = "ANGRY"
                 behav_msg = random.choice(categorized_behaviors['negative_emotions'])
-
 
                 self.behav_pub.publish(behav_msg)
                 self.emotion_pub.publish(emote_msg)
@@ -126,15 +115,15 @@ class EdwinBrain:
                 self.pat = False
                 self.slap = True
 
-
     def run_game(self):
         self.idle_pub.publish("stop_idle")
         self.idling = False
 
         if self.start_game == "TTT":
+            self.ok = False
             self.behav_pub.publish("get_marker")
             start_marker_wait = time.time()
-            while self.pat != True:
+            while self.ok != True:
                 #if Edwin has to wait too long for a marker, get impatient
                 if int(start_marker_wait - time.time()) > 10:
                     self.behav_pub.publish("impatient")
@@ -143,11 +132,12 @@ class EdwinBrain:
                 elif self.exit:
                     self.exit = False
                     return
-            self.pat = False
+            self.ok = False
             time.sleep(5)
             ttt_gm = ttt.Game()
             ttt_gm.run()
 
+        self.start_game = None
         self.idle_pub.publish("go_idle")
         self.idling = True
 
