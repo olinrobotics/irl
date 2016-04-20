@@ -17,8 +17,12 @@ from std_msgs.msg import String
 class SpeechDetector:
     def __init__(self):
         rospy.init_node('speech_to_text', anonymous=True)
+
+        rospy.Subscriber("all_control", String, self.cmd_callback)
         self.speech_pub = rospy.Publisher("edwin_decoded_speech", String)
         self.speech_status_pub = rospy.Publisher("edwin_stt_status", String)
+
+        self.detect = True
 
         # Microphone stream config.
         self.CHUNK = 1024  # CHUNKS of bytes to read each time from mic
@@ -53,6 +57,13 @@ class SpeechDetector:
 
         # Creaders decoder object for streaming data.
         self.decoder = Decoder(config)
+
+    def cmd_callback(self, data):
+        print "GOT: ", data.data
+        if "stt stop" in data.data:
+            self.detect = False
+        elif "stt go" in data.data:
+            self.detect = True
 
     def setup_mic(self, num_samples=50):
         """ Gets average audio intensity of your mic sound. You can use it to get
@@ -133,6 +144,8 @@ class SpeechDetector:
         started = False
 
         while not rospy.is_shutdown():
+            if self.detect == False:
+                continue
             cur_data = stream.read(self.CHUNK)
             slid_win.append(math.sqrt(abs(audioop.avg(cur_data, 4))))
 

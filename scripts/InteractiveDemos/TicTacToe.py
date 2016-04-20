@@ -319,25 +319,42 @@ class Game:
 		ret, thresh = cv2.threshold(gray,0,255,cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
 
 		# noise removal
-		kernel = np.ones((5,5),np.uint8)
+		kernel = np.ones((5, 5),np.uint8)
 		opening = cv2.morphologyEx(thresh,cv2.MORPH_OPEN,kernel, iterations = 2)
 
 		# sure background area
 		sure_bg = cv2.dilate(opening,kernel,iterations=3)
-		contours, hierarchy = cv2.findContours(sure_bg,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 
+		contours, hierarchy = cv2.findContours(sure_bg,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+ 		cv2.drawContours(self.frame, contours, -1, (0,255,0), 3)
 		# Find the index of the largest contour
 		areas = [cv2.contourArea(c) for c in contours]
-		gesture_select = random.randint(0, 1000)
 
-		#there's a one in 1000 chance that edwin will get bored and start looking around
+		gesture_select = random.randint(0, 10000)
+		#there's a one in 5000 chance that edwin will get bored and start looking around
 		if gesture_select == 1:
-			self.behav_pub.publish("look_around")
+			self.behav_pub.publish("random")
 			time.sleep(5)
+			self.arm_pub.publish("data: R_ttt")
+			time.sleep(2)
+			self.arm_pub.publish("data: R_ttt")
 
-		if max(areas) > 10000:
+		# cv2.imshow("bg2", sure_bg)
+		# cv2.imshow("bg", gray)
+		# cv2.imshow("frame", self.frame)
+		# c = cv2.waitKey(1)
+
+		if len(areas) == 0:
+			areas = [0]
+
+		#TODO: Fix so this isn't necessary. Why is thresh working across half the screen?
+		if max(areas) > 100000:
+			return False
+		elif max(areas) > 10000:
+			print "LEN: ", len(areas)
+			print "AREA: ", max(areas)
 			print "FOUND HAND"
-			return True
+			return False
 		else:
 			return False
 
@@ -394,10 +411,14 @@ class Game:
 
 				# print self.board
 
-			#if we detect no circles for 15 seconds, publish impatient gesture
-			if int(time.time() - start_user_turn) > 15:
+			if we detect no circles for 15 seconds, publish impatient gesture
+			if int(time.time() - start_user_turn) > 10:
 				start_user_turn = time.time()
 				self.behav_pub.publish("impatient")
+				time.sleep(4)
+				self.arm_pub.publish("data: R_ttt")
+				time.sleep(2)
+				self.arm_pub.publish("data: R_ttt")
 
 			for box in self.image_rectangles:
 				box = np.int0(box)
@@ -593,6 +614,9 @@ class Game:
 	 	time.sleep(5)
 	 	print "running"
 
+		self.arm_pub.publish("data: set_speed:: 1000")
+		print "set speed to 1000"
+		time.sleep(1)
 		self.z_depth = -680
 	 	self.draw_the_board()
 

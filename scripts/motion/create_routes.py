@@ -44,19 +44,15 @@ class RouteCreator:
 
         routes = [r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14]
 
+
         for r in routes:
             msg = "create_route:: " + r
             print "Sending message: ", msg
             self.arm_pub.publish(msg)
-            time.sleep(1)
+            time.sleep(1.5)
 
     def run(self):
         self.create()
-        # time.sleep(3)
-        # r = rospy.Rate(10)
-        # while not rospy.is_shutdown():
-        #     self.create()
-        #     r.sleep()
 
 if __name__ == '__main__':
     rc = RouteCreator()
