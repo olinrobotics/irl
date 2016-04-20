@@ -319,15 +319,11 @@ class Game:
 		ret, thresh = cv2.threshold(gray,0,255,cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
 
 		# noise removal
-		kernel = np.ones((7, 7),np.uint8)
+		kernel = np.ones((5, 5),np.uint8)
 		opening = cv2.morphologyEx(thresh,cv2.MORPH_OPEN,kernel, iterations = 2)
-		# gray = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
 
 		# sure background area
-		sure_bg = cv2.dilate(gray,kernel,iterations=3)
-
-		cv2.imshow("bg", sure_bg)
-		c = cv2.waitKey(1)
+		sure_bg = cv2.dilate(opening,kernel,iterations=3)
 
 		contours, hierarchy = cv2.findContours(sure_bg,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
  		cv2.drawContours(self.frame, contours, -1, (0,255,0), 3)
@@ -342,11 +338,18 @@ class Game:
 		# 	self.arm_pub.publish("data: R_ttt")
 		# 	time.sleep(2)
 		# 	self.arm_pub.publish("data: R_ttt")
+		#
+		# cv2.imshow("bg2", sure_bg)
+		# cv2.imshow("bg", gray)
+		# cv2.imshow("frame", self.frame)
+		# c = cv2.waitKey(1)
 
 		if len(areas) == 0:
 			areas = [0]
 
-		if max(areas) > 10000:
+		if max(areas) > 100000:
+			return False
+		elif max(areas) > 10000:
 			print "LEN: ", len(areas)
 			print "AREA: ", max(areas)
 			print "FOUND HAND"
