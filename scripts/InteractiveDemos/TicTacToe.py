@@ -332,13 +332,13 @@ class Game:
 
 		gesture_select = random.randint(0, 10000)
 		#there's a one in 5000 chance that edwin will get bored and start looking around
-		# if gesture_select == 1:
-		# 	self.behav_pub.publish("random")
-		# 	time.sleep(5)
-		# 	self.arm_pub.publish("data: R_ttt")
-		# 	time.sleep(2)
-		# 	self.arm_pub.publish("data: R_ttt")
-		#
+		if gesture_select == 1:
+			self.behav_pub.publish("random")
+			time.sleep(5)
+			self.arm_pub.publish("data: R_ttt")
+			time.sleep(2)
+			self.arm_pub.publish("data: R_ttt")
+
 		# cv2.imshow("bg2", sure_bg)
 		# cv2.imshow("bg", gray)
 		# cv2.imshow("frame", self.frame)
@@ -347,6 +347,7 @@ class Game:
 		if len(areas) == 0:
 			areas = [0]
 
+		#TODO: Fix so this isn't necessary. Why is thresh working across half the screen?
 		if max(areas) > 100000:
 			return False
 		elif max(areas) > 10000:
@@ -410,15 +411,14 @@ class Game:
 
 				# print self.board
 
-			#if we detect no circles for 15 seconds, publish impatient gesture
-			# if int(time.time() - start_user_turn) > 10:
-			# 	start_user_turn = time.time()
-			# 	self.behav_pub.publish("impatient")
-			# 	time.sleep(4)
-			# 	self.arm_pub.publish("data: R_ttt")
-			# 	time.sleep(2)
-			# 	self.arm_pub.publish("data: R_ttt")
-
+			if we detect no circles for 15 seconds, publish impatient gesture
+			if int(time.time() - start_user_turn) > 10:
+				start_user_turn = time.time()
+				self.behav_pub.publish("impatient")
+				time.sleep(4)
+				self.arm_pub.publish("data: R_ttt")
+				time.sleep(2)
+				self.arm_pub.publish("data: R_ttt")
 
 			for box in self.image_rectangles:
 				box = np.int0(box)
@@ -613,22 +613,8 @@ class Game:
 	def run(self):
 	 	time.sleep(5)
 	 	print "running"
-		gd = GridDetector(self.frame)
-		self.corners = gd.get_center_box()
-		self.image_rectangles = gd.boxes
-
-		for i in range(50):
-			gd.run(self.frame)
-			self.corners = gd.get_center_box()
-			for j in range(9):
-				elem = gd.boxes[j]
-				self.image_rectangles[j] = (self.image_rectangles[j] + elem)/2
-
-		while True:
-			self.wait_for_hand()
 
 		self.arm_pub.publish("data: set_speed:: 1000")
-
 		print "set speed to 1000"
 		time.sleep(1)
 		self.z_depth = -680
