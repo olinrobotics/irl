@@ -12,7 +12,7 @@ class IdleBehaviors:
         rospy.init_node('idle', anonymous=True)
         rospy.Subscriber('/behaviors_cmd', String, self.callback, queue_size=10)
         rospy.Subscriber('/arm_cmd', String, self.callback, queue_size=10)
-        rospy.Subscriber('/idle_cmd', String, self.idle_callback, queue_size=10)
+        rospy.Subscriber('/all_control', String, self.control_callback, queue_size=10)
 
         self.arm_pub = rospy.Publisher('/arm_cmd', String, queue_size=10)
         self.behav_pub = rospy.Publisher('/behaviors_cmd', String, queue_size=10)
@@ -20,30 +20,28 @@ class IdleBehaviors:
         self.last_interaction = time.time()
         self.stop_idle_time = time.time()
 
-        self.routes = ["R_look", "R_playful", "R_sleep", "R_wakeup", "R_leaving, R_greet1", "R_curious"]
-        self.behaviors = {}
-        self.create_behaviors()
+        rospack = rospkg.RosPack()
+        PACKAGE_PATH = rospack.get_path("edwin")
+
+        self.routes = pickle.load(open(PACKAGE_PATH + '/params/routes.txt', 'rb'))
+        self.idle_behaviors = pickle.load(open(PACKAGE_PATH + '/params/behaviors.txt', 'rb'))
+        self.idle_behaviors = {key: value for key, value in self.idle_behaviors.items()
+             if "idle" in value}
 
         self.idling = True
         self.idle_time = random.randint(5, 10)
         print "Starting idle node"
 
-    def idle_callback(self, data):
+    def control_callback(self, data):
         print "IDLE CMD: ", data.data
-        if "stop_idle" in data.data:
+        if "idle stop" in data.data:
             self.idling = False
             self.stop_idle_time = time.time()
-        elif "go_idle" in data.data:
+        elif "idle go" in data.data:
             self.idling = True
 
     def callback(self, data):
         self.last_interaction = time.time()
-
-    def create_behaviors(self):
-        self.behaviors["butt_wiggle"] = "R_leaving, WA: 1000, WA: 800, WA: 1000"
-        self.behaviors["curiosity"] =  "R_curious, H: 0, WR: 800, H: 100, WR: 2000"
-        self.behaviors["greet"] = "R_greet1, WR:1500, H: 100, H: 0, H: 300, H: 100"
-        self.behaviors["sleep"] = "R_sleep, H: 700, R: 1000"
 
     def run(self):
         r = rospy.Rate(10)
@@ -65,7 +63,7 @@ class IdleBehaviors:
                     elif joint == "WA":
                         msg = "data: rotate_waist:: " + str(random.randint(4000, 6000))
                     elif joint == "BEHAV":
-                        msg = random.choice(self.behaviors.keys())
+                        msg = random.choice(self.idle_behaviors.keys())
                         print "PUBLISHING: ", msg
                         self.behav_pub.publish(msg)
 
