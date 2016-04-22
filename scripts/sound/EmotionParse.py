@@ -6,9 +6,9 @@ import pyaudio
 def speedx(sound_array, factor):
     """ Multiplies the sound's speed by some `factor` """
     indices = np.round( np.arange(0, len(sound_array), factor) ) #creates a list of indices in the
-    #Sound array to either skip or duplicate.  
-    indices = indices[indices < len(sound_array)].astype(int) #Takes those indices and then 
-    #cast all of them less than the length of the sound array as int.  
+    #Sound array to either skip or duplicate.
+    indices = indices[indices < len(sound_array)].astype(int) #Takes those indices and then
+    #cast all of them less than the length of the sound array as int.
     return sound_array[ indices.astype(int) ]
 
 def stretch(sound_array, f, window_size=8192, h=2048):

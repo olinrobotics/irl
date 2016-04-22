@@ -12,6 +12,7 @@ rosrun rosserial_python serial_node.py _port:=/dev/ttyUSB1 _baud:=9600
 """
 
 import rospy
+import rospkg
 import random
 import math
 import time
@@ -33,7 +34,6 @@ class EdwinBrain:
         self.arm_pub = rospy.Publisher('/arm_cmd', String, queue_size=2)
         self.behav_pub = rospy.Publisher('/behaviors_cmd', String, queue_size=2)
         self.emotion_pub = rospy.Publisher('/edwin_emotion', String, queue_size=2)
-        self.idle_pub = rospy.Publisher('/idle_cmd', String, queue_size=2)
         self.control_pub = rospy.Publisher('/all_control', String, queue_size=2)
 
         self.idling = True
@@ -46,17 +46,14 @@ class EdwinBrain:
         self.exit = False #should be catch all to exit all long running commands
         self.start_game = None
 
-        self.behaviors = {}
-        self.create_behaviors()
-        self.categorized_behaviors = {}
-        self.categorize_behaviors()
-
-    def create_behaviors(self):
         rospack = rospkg.RosPack()
         PACKAGE_PATH = rospack.get_path("edwin")
-        
-        if os.path.exists(PACKAGE_PATH+'/params/behaviors.txt'):
-            self.behaviors = pickle.load(open(PACKAGE_PATH+'/params/behaviors.txt', 'rb')) 
+
+        self.behaviors = pickle.load(open(PACKAGE_PATH + '/params/behaviors.txt', 'rb'))
+        self.routes = pickle.load(open(PACKAGE_PATH + '/params/routes.txt', 'rb'))
+
+        self.categorized_behaviors = {}
+        self.categorize_behaviors()
 
 
     def categorize_behaviors(self):
@@ -80,13 +77,12 @@ class EdwinBrain:
         print "RECEIVED SPEECH: ", speech
         if "hello" or "hi" in speech:
             if self.idling:
-                self.idle_pub("stop_idle")
-                self.control_pub("ft go")
+                self.control_pub("ft go; idle stop")
             self.behav_pub.publish(random.choice(categorized_behaviors['greeting']))
         elif "game" in speech:
             self.start_game = "TTT"
         elif "bye" in speech:
-            self.idle_pub("go_idle")
+            self.control_pub("idle stop")
         elif "okay" in speech:
             self.ok = True
 
@@ -121,7 +117,7 @@ class EdwinBrain:
                 self.slap = True
 
     def run_game(self):
-        self.idle_pub.publish("stop_idle")
+        self.control_pub.publish("idle stop")
         self.idling = False
 
         if self.start_game == "TTT":
@@ -143,7 +139,7 @@ class EdwinBrain:
             ttt_gm.run()
 
         self.start_game = None
-        self.idle_pub.publish("go_idle")
+        self.control_pub.publish("idle stop")
         self.idling = True
 
     def run(self):

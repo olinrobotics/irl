@@ -14,7 +14,7 @@ class IdleBehaviors:
         rospy.init_node('idle', anonymous=True)
         rospy.Subscriber('/behaviors_cmd', String, self.callback, queue_size=10)
         rospy.Subscriber('/arm_cmd', String, self.callback, queue_size=10)
-        rospy.Subscriber('/idle_cmd', String, self.idle_callback, queue_size=10)
+        rospy.Subscriber('/all_control', String, self.control_callback, queue_size=10)
 
         self.arm_pub = rospy.Publisher('/arm_cmd', String, queue_size=10)
         self.behav_pub = rospy.Publisher('/behaviors_cmd', String, queue_size=10)
@@ -22,26 +22,25 @@ class IdleBehaviors:
         self.last_interaction = time.time()
         self.stop_idle_time = time.time()
 
-        curr_dir = os.path.dirname(os.path.realpath(__file__)) 
-
-        self.routes = ["R_look", "R_playful", "R_sleep", "R_wakeup", "R_leaving, R_greet1", "R_curious"]
 
         rospack = rospkg.RosPack()
         PACKAGE_PATH = rospack.get_path("edwin")
 
-        if os.path.exists(PACKAGE_PATH+'/params/behaviors.txt'):
-            self.behaviors = pickle.load(open(PACKAGE_PATH +  "/params/behaviors.txt", 'rb'))
+        self.routes = pickle.load(open(PACKAGE_PATH + '/params/routes.txt', 'rb'))
+        self.idle_behaviors = pickle.load(open(PACKAGE_PATH + '/params/behaviors.txt', 'rb'))
+        self.idle_behaviors = {key: value for key, value in self.idle_behaviors.items()
+             if "idle" in value}
 
         self.idling = True
         self.idle_time = random.randint(5, 10)
         print "Starting idle node"
 
-    def idle_callback(self, data):
+    def control_callback(self, data):
         print "IDLE CMD: ", data.data
-        if "stop_idle" in data.data:
+        if "idle stop" in data.data:
             self.idling = False
             self.stop_idle_time = time.time()
-        elif "go_idle" in data.data:
+        elif "idle go" in data.data:
             self.idling = True
 
     def callback(self, data):
@@ -68,7 +67,7 @@ class IdleBehaviors:
                     elif joint == "WA":
                         msg = "data: rotate_waist:: " + str(random.randint(4000, 6000))
                     elif joint == "BEHAV":
-                        msg = random.choice(self.behaviors.keys())
+                        msg = random.choice(self.idle_behaviors.keys())
                         print "PUBLISHING: ", msg
                         self.behav_pub.publish(msg)
 
