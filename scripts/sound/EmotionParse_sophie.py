@@ -56,6 +56,7 @@ class SoundManipulator:
             s1 =  np.fft.fft(hanning_window * a1)
             s2 =  np.fft.fft(hanning_window * a2)
             phase = (phase + np.angle(s2/s1)) % 2*np.pi
+            #a2_rephased = np.fft.ifft(np.abs(s2)*np.exp(1j*phase))
             a2_rephased = np.fft.ifft(np.abs(s2)*np.exp(1j*phase))
 
             # add to result
@@ -67,16 +68,63 @@ class SoundManipulator:
         
         wavfile.write('pitchshift.wav', len(result), result) #write
 
+
+    def stretch_alternate(self, filename, factor, window_size=2048, h=512):
+		fs, data = wavfile.read(filename)
+		#Conversions for the method copy
+		signalin = data
+		N = window_size
+		H = N/4
+		L = len(signalin)
+		tscale = 1.0/factor
+
+		# signal blocks for processing and output
+		phi  = np.zeros(N)
+		out = np.zeros(N, dtype=complex)
+		sigout = np.zeros(L/tscale+N)
+
+		# max input amp, window
+		amp = max(signalin)
+		win = np.hanning(N)
+		p = 0
+		pp = 0
+
+		while p < L-(N+H):
+
+			# take the spectra of two consecutive windows
+			p1 = int(p)
+			spec1 =  np.fft.fft(win*signalin[p1:p1+N])
+			spec2 =  np.fft.fft(win*signalin[p1+H:p1+N+H])
+			# take their phase difference and integrate
+			phi += (np.angle(spec2) - np.angle(spec1))
+
+			# bring the phase back to between pi and -pi
+			while (phi < -np.pi): 
+				phi += 2*np.pi
+			while (phi >= np.pi): 
+				phi -= 2*np.pi
+			out.real, out.imag = cos(phi), sin(phi)
+			# inverse FFT and overlap-add
+			sigout[pp:pp+N] += win*np.fft.ifft(abs(spec2)*out)
+			pp += H
+			p += H*tscale
+
+		wavfile.write("pitchshift",sr,array(amp*sigout/max(sigout), dtype='int16'))
+
     def pitchshift(self, n, filename, window_size=2**13, h=2**11):
         """ Changes the pitch of a sound by ``n`` semitones. """
         factor = 2**(1.0 * n / 12.0)
         self.time_accel(filename, factor) #Write it.
-        stretched = self.stretch("alter", 1.0/factor, window_size, h)
-         
+        #stretched = self.stretch_alternate("alter", 1.0/factor, window_size, h)
+        #self.volumeshift("alter", 1.0)
 
-    def volumeshift(self, factor):
+    def volumeshift(self, filename, factor):
     	#Increases or decreases the volume of the array.
-    	pass
+    	factor = 10**(factor/20.0)
+    	fs, data = wavfile.read(filename)
+    	data = np.multiply(data, factor)
+    	print factor
+    	wavfile.write("volume_shift", fs, data)
 
     def load(self, sound_file):
     	w = wave.open(sound_file, "rb")
@@ -85,7 +133,7 @@ class SoundManipulator:
         fs, data = wavfile.read(filename)
         #scaled = np.int16(data/np.max(np.abs(data)) * 32767)
 
-        wavfile.write('test.wav', len(data), data)
+        wavfile.write('test.wav', fs, data)
 
 
         #spd2 = self.stretch(data, 5)
