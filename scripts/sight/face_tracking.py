@@ -17,7 +17,7 @@ import cv2.cv as cv
 class FaceTracker:
     def __init__(self):
         rospy.init_node('face_tracking', anonymous=True)
-        self.pub = rospy.Publisher('/arm_cmd', String, queue_size=10)
+        self.pub = rospy.Publisher('/face_location', String, queue_size=10)
         rospy.Subscriber("all_control", String, self.cmd_callback)
 
         self.bridge = CvBridge()
@@ -57,14 +57,15 @@ class FaceTracker:
             if w*h > largest_face[2]*largest_face[3]:
                 largest_face = (x+(0.5*w), y+(0.5*h), w, h)
 
+        #TODO: Publish a list of faces by their relative "largeness" so edwin
+        #can track multiple people at once
         print "LF: ", largest_face
-        if abs(largest_face[0] - self.ideal_x) > 20:
-            print "MOVING SHOULDER UP/DOWN"
-        elif abs(largest_face[1] - self.ideal_y) > 20:
-            print "MOVING BASE"
+        loc_x = largest_face[0] - self.ideal_x
+        loc_y = largest_face[1] - self.ideal_y
 
-        cv2.imshow("fr", self.frame)
-        cv2.waitKey(1)
+        self.pub.publish(str(loc_x)+":"str(loc_y))
+        # cv2.imshow("fr", self.frame)
+        # cv2.waitKey(1)
 
     def run(self):
         r = rospy.Rate(10)
