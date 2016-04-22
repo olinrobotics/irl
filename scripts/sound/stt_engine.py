@@ -23,7 +23,7 @@ class SpeechDetector:
         self.speech_status_pub = rospy.Publisher("edwin_stt_status", String)
 
         self.keyword_detect = True
-        self.detect = False
+        self.detect = True
 
         # Microphone stream config.
         self.CHUNK = 1024  # CHUNKS of bytes to read each time from mic
@@ -64,7 +64,7 @@ class SpeechDetector:
         kw_config.set_string('-hmm', os.path.join(MODELDIR, 'en-us/en-us'))
         # kw_config.set_string('-lm', os.path.join(MODELDIR, 'en-us/en-us.lm.bin'))
         kw_config.set_string('-dict', os.path.join(MODELDIR, 'en-us/cmudict-en-us.dict'))
-        kw_config.set_string('-keyphrase', 'oh mighty computer')
+        kw_config.set_string('-keyphrase', 'okay edwin')
         kw_config.set_float('-kws_threshold', 1e+20)
 
         self.kw_decoder = Decoder(kw_config)
@@ -123,18 +123,35 @@ class SpeechDetector:
         return filename + '.wav'
 
     def decode_phrase(self, wav_file):
-        self.decoder.start_utt()
-        stream = open(wav_file, "rb")
-        while True:
-          buf = stream.read(1024)
-          if buf:
-            self.decoder.process_raw(buf, False, False)
-          else:
-            break
-        self.decoder.end_utt()
-        words = []
-        [words.append(seg.word) for seg in self.decoder.seg()]
-        return words
+        if self.keyword_detect:
+            print "Looking for keyword"
+            self.kw_decoder.start_utt()
+            stream = open(wav_file, "rb")
+            while True:
+                buf = stream.read(1024)
+                if buf:
+                    self.kw_decoder.process_raw(buf, False, False)
+                else:
+                    self.kw_decoder.end_utt()
+                    return []
+                if self.kw_decoder.hyp() != None:
+                    print ([(seg.word, seg.prob, seg.start_frame, seg.end_frame) for seg in self.kw_decoder.seg()])
+                    print ("Detected keyword, restarting search")
+                    self.kw_decoder.end_utt()
+                    return ["keyword", "detected"]
+        else:
+            self.decoder.start_utt()
+            stream = open(wav_file, "rb")
+            while True:
+              buf = stream.read(1024)
+              if buf:
+                self.decoder.process_raw(buf, False, False)
+              else:
+                break
+            self.decoder.end_utt()
+            words = []
+            [words.append(seg.word) for seg in self.decoder.seg()]
+            return words
 
     def run(self):
         """
@@ -157,21 +174,6 @@ class SpeechDetector:
         started = False
 
         while not rospy.is_shutdown():
-            if self.keyword_detect:
-                print "Looking for keyword"
-                self.kw_decoder.start_utt()
-                while True:
-                    buf = stream.read(1024)
-                    if buf:
-                        self.kw_decoder.process_raw(buf, False, False)
-                    else:
-                        break
-                    if self.kw_decoder.hyp() != None:
-                        print ([(seg.word, seg.prob, seg.start_frame, seg.end_frame) for seg in self.kw_decoder.seg()])
-                        print ("Detected keyword, restarting search")
-                        self.kw_decoder.end_utt()
-                        self.kw_decoder.start_utt()
-
             if self.detect == False:
                 continue
             cur_data = stream.read(self.CHUNK)
