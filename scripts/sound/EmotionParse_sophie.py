@@ -6,20 +6,20 @@ class SoundManipulator:
     def __init__(self, filename):
         self.filename = filename
     
-    def speedx(self, data, factor):
-        """ Multiplies the sound's speed by some `factor` """
-        sound_array = data
+    #def speedx(self, data, factor):
+     #   """ Multiplies the sound's speed by some `factor` """
+      #  sound_array = data
         #if f_in <= 0:
         #    print "Please use valid factor"
         #    return
         #factor = 1./f_in
         #print "FACTOR: ", factor
         
-        indices = np.round( np.arange(0, len(sound_array), factor) ) #creates a list of indices in the
+        #indices = np.round( np.arange(0, len(sound_array), factor) ) #creates a list of indices in the
         #Sound array to either skip or duplicate.  
-        indices = indices[indices < len(sound_array)].astype(int) #Takes those indices and then 
+        #indices = indices[indices < len(sound_array)].astype(int) #Takes those indices and then 
         #cast all of them less than the length of the sound array as int.  
-        return sound_array[ indices.astype(int) ]
+        #return sound_array[ indices.astype(int) ]
 
     def time_accel(self, filename, factor): #The Emiya Family Magic now as a code function! jk.
         CHANNELS = 1
@@ -37,14 +37,16 @@ class SoundManipulator:
         wf.writeframes(signal)
         wf.close()
 
-    def stretch(self, data, f, window_size=8192, h=2048):
-        """ Stretches the sound by a factor `f` """
+    def stretch(self, filename, factor, window_size=2048, h=512):
+        """ Stretches the sound by a factor """
+        fs, data = wavfile.read(filename)
         sound_array = data
+
         phase  = np.zeros(window_size)
         hanning_window = np.hanning(window_size)
-        result = np.zeros( len(sound_array) /f + window_size)
+        result = np.zeros( len(sound_array) /factor + window_size)
 
-        for i in np.arange(0, len(sound_array)-(window_size+h), h*f):
+        for i in np.arange(0, len(sound_array)-(window_size+h), h*factor):
 
             # two potentially overlapping subarrays
             a1 = sound_array[i: i + window_size]
@@ -57,18 +59,20 @@ class SoundManipulator:
             a2_rephased = np.fft.ifft(np.abs(s2)*np.exp(1j*phase))
 
             # add to result
-            i2 = int(i/f)
+            i2 = int(i/factor)
             result[i2 : i2 + window_size] += hanning_window*a2_rephased
 
         result = ((2**(16-4)) * result/result.max()) # normalize (16bit)
+        result = result.astype('int16')
+        
+        wavfile.write('pitchshift.wav', len(result), result) #write
 
-        return result.astype('int16')
-
-    def pitchshift(self, n, window_size=2**13, h=2**11):
+    def pitchshift(self, n, filename, window_size=2**13, h=2**11):
         """ Changes the pitch of a sound by ``n`` semitones. """
         factor = 2**(1.0 * n / 12.0)
-        stretched = stretch(snd_array, 1.0/factor, window_size, h)
-        return speedx(stretched[window_size:], factor)
+        self.time_accel(filename, factor) #Write it.
+        stretched = self.stretch("alter", 1.0/factor, window_size, h)
+         
 
     def volumeshift(self, factor):
     	#Increases or decreases the volume of the array.
@@ -92,5 +96,6 @@ if __name__ == '__main__':
     #testfile = wave.open("./media/sad.wav", 'r')
     #print testfile.getnchannels()
     sound = SoundManipulator("./media/sad.wav")
-    sound.time_accel("./media/sad.wav", .5)
-    sound.play(sound.filename)
+    #sound.time_accel(sound.filename, .5)
+    sound.pitchshift(12, sound.filename)
+    #sound.play(sound.filename)
