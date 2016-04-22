@@ -64,6 +64,7 @@ class SpeechDetector:
         kw_config.set_string('-hmm', os.path.join(MODELDIR, 'en-us/en-us'))
         # kw_config.set_string('-lm', os.path.join(MODELDIR, 'en-us/en-us.lm.bin'))
         kw_config.set_string('-dict', os.path.join(MODELDIR, 'en-us/cmudict-en-us.dict'))
+        # kw_config.set_string('-keyword', os.path.join(PACKAGE_PATH, "params/stt_keywords.txt"))
         kw_config.set_string('-keyphrase', 'okay edwin')
         kw_config.set_float('-kws_threshold', 1e+20)
 
@@ -123,10 +124,10 @@ class SpeechDetector:
         return filename + '.wav'
 
     def decode_phrase(self, wav_file):
+        stream = open(wav_file, "rb")
         if self.keyword_detect:
             print "Looking for keyword"
             self.kw_decoder.start_utt()
-            stream = open(wav_file, "rb")
             while True:
                 buf = stream.read(1024)
                 if buf:
@@ -139,9 +140,9 @@ class SpeechDetector:
                     print ("Detected keyword, restarting search")
                     self.kw_decoder.end_utt()
                     return ["keyword", "detected"]
+
         else:
             self.decoder.start_utt()
-            stream = open(wav_file, "rb")
             while True:
               buf = stream.read(1024)
               if buf:
