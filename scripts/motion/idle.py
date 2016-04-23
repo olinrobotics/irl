@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import rospy
+import rospkg
 import random
 import math
 import st
@@ -9,7 +10,8 @@ import time
 import pickle, os, sys
 
 class IdleBehaviors:
-    def __init__(self):rospack = rospkg.RosPack()
+    def __init__(self):
+        rospack = rospkg.RosPack()
         PACKAGE_PATH = rospack.get_path("edwin")
         rospy.init_node('idle', anonymous=True)
         rospy.Subscriber('/behaviors_cmd', String, self.callback, queue_size=10)
@@ -29,7 +31,8 @@ class IdleBehaviors:
         self.routes = pickle.load(open(PACKAGE_PATH + '/params/routes.txt', 'rb'))
         self.idle_behaviors = pickle.load(open(PACKAGE_PATH + '/params/behaviors.txt', 'rb'))
         self.idle_behaviors = {key: value for key, value in self.idle_behaviors.items()
-             if "idle" in value}
+             if "idle" in key}
+        print self.idle_behaviors
 
         self.idling = True
         self.idle_time = random.randint(5, 10)
@@ -55,7 +58,7 @@ class IdleBehaviors:
                 self.idling = True
             if self.idling:
                 if int(time.time() - self.last_interaction) > self.idle_time:
-                    self.idle_time = random.randint(3, 7)
+                    self.idle_time = random.randint(5, 10)
                     print "IDLE"
                     joint = random.choice(joints)
                     if joint == "H":
@@ -70,7 +73,7 @@ class IdleBehaviors:
                         msg = random.choice(self.idle_behaviors.keys())
                         print "PUBLISHING: ", msg
                         self.behav_pub.publish(msg)
-
+                        time.sleep(3)
                     if joint != "BEHAV":
                         print "PUBLISHING: ", msg
                         self.arm_pub.publish(msg)

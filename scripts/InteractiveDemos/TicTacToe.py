@@ -411,7 +411,7 @@ class Game:
 
 				# print self.board
 
-			if we detect no circles for 15 seconds, publish impatient gesture
+#			if we detect no circles for 15 seconds, publish impatient gesture
 			if int(time.time() - start_user_turn) > 10:
 				start_user_turn = time.time()
 				self.behav_pub.publish("impatient")

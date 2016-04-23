@@ -28,7 +28,7 @@ class ArmBehaviors:
     	if armstatus == 1:
     		self.moving = True
     	else:
-    		self.moving = False    
+    		self.moving = False
 
     def behavior_callback(self, cmdin):
         print "RECEIVED CMD: ", cmdin
@@ -61,19 +61,12 @@ class ArmBehaviors:
                     elif joint == "SL":
                         msg = "data: sleeping:: " + pos
 
-
                 print "Publishing: ", msg
                 time.sleep(1)
                 self.pub.publish(msg)
 
 
     def create_behaviors(self):
-        """
-        Need to add:
-            -look_around
-            -impatient
-            -nudge
-        """
         self.behaviors["impatient"] = "R_impat, SL: 1.5, R_ttt"
         self.behaviors["happy_butt_wiggle"] = "R_curl_up, WA: 4500, WA: 5400, WA: 4500, WA: 5400, WA: 4500, WA: 5400, SL: .5, R_look"
         self.behaviors["curiosity"] =  "R_curious, WR: 800, H: 0"

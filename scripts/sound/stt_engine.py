@@ -139,8 +139,8 @@ class SpeechDetector:
                     print ([(seg.word, seg.prob, seg.start_frame, seg.end_frame) for seg in self.kw_decoder.seg()])
                     print ("Detected keyword, restarting search")
                     self.kw_decoder.end_utt()
+                    self.keyword_detect = False
                     return ["keyword", "detected"]
-
         else:
             self.decoder.start_utt()
             while True:

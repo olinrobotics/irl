@@ -49,21 +49,7 @@ class RouteCreator:
         r29 = "R_follow_squirrel; 3000, 4000, 3000, 82, 240, 21"
         r30 = "R_spin_position; 1500, 1500, 800, 64, 240, 21"
 
-
-        # r4 = "R_nudge2; 1942, 2609, 1854, 728, 240, 21"
-
-        # self.arm.create_route("R_stare", [[3296, 2308, 999, 0, 0, 0]])
-        # self.arm.create_route("R_ttt", [[200, 2400, 1800, 720, 240, 2.1]])
-        # self.arm.create_route("R_look", [[3664, 1774, 3013, 11, 0, 21]])
-        # self.arm.create_route("R_playful", [[2027, 981, 98, -11, 0, 72]])
-        # self.arm.create_route("R_sleep", [[0, 1891, 1732, 48, 0, 0]])
-        # self.arm.create_route("R_wakeup", [[0, 3523, 5032, 1, 0, 0]])
-        # self.arm.create_route("R_leaving", [[-2689, 2612, 375, 27, 0, 18]])
-        # self.arm.create_route("R_greet1", [[3665, 1774, 3013, 0, 0, 0]])
-        # self.arm.create_route("R_curious", [[3664, 1774, 3013, 0, 0, 0]])
-
         routes = [r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15, r16, r17, r18, r19, r20, r21, r22, r23, r24, r25, r26, r27, r28, r29, r30]
-
 
         for r in routes:
             msg = "create_route:: " + r
@@ -75,7 +61,7 @@ class RouteCreator:
         rospack = rospkg.RosPack()
         PACKAGE_PATH = rospack.get_path("edwin")
 
-        pickle.dump(routes, open(PACKAGE_PATH + '/params/routes.txt', 'wb'))    
+        pickle.dump(routes, open(PACKAGE_PATH + '/params/routes.txt', 'wb'))
 
     def run(self):
         self.create()
