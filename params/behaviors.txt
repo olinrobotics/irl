@@ -5,7 +5,7 @@ S'R_look_distance, SL: 1, WR: 1500, SL: .5, WR: 2300, R_look'
 p2
 sS'laugh'
 p3
-S'SPD: 500, R_laugh1, SPD: 700, R_laugh, SPD: 1000'
+S'SPD: 700, R_laugh, SPD: 1000'
 p4
 sS'idle_2_lookaround'
 p5

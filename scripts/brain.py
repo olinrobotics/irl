@@ -20,7 +20,6 @@ import numpy as np
 import pickle, os, sys
 from std_msgs.msg import String, Int16
 
-
 from InteractiveDemos import TicTacToe as ttt
 
 class EdwinBrain:
@@ -52,6 +51,10 @@ class EdwinBrain:
         self.behaviors = pickle.load(open(PACKAGE_PATH + '/params/behaviors.txt', 'rb'))
         self.routes = pickle.load(open(PACKAGE_PATH + '/params/routes.txt', 'rb'))
 
+        time.sleep(1)
+        self.control_pub.publish("idle go; stt go; stt_keyword go")
+        print "edwin brain is running"
+
     def arm_mvmt_callback(self, data):
         if data.data == 1:
             self.moving = True
@@ -69,7 +72,8 @@ class EdwinBrain:
                 self.control_pub.publish("ft go; idle stop; stt go")
             self.behav_pub.publish("greet")
             # self.behav_pub.publish(random.choice(categorized_behaviors['greeting']))
-        elif "game" in speech:
+        elif "play" in speech:
+            print "STARTING GAME"
             self.start_game = "TTT"
         elif "bye" in speech:
             self.control_pub.publish("idle go; stt go; stt_keyword go")
@@ -107,12 +111,13 @@ class EdwinBrain:
                 self.slap = True
 
     def run_game(self):
+        print "Playing game: ", self.start_game
         self.control_pub.publish("idle stop")
         self.idling = False
 
         if self.start_game == "TTT":
             self.ok = False
-            self.behav_pub.publish("get_marker")
+            self.behav_pub.publish("R_pretentious_look")
             start_marker_wait = time.time()
             while self.ok != True:
                 #if Edwin has to wait too long for a marker, get impatient
@@ -129,15 +134,16 @@ class EdwinBrain:
             ttt_gm.run()
 
         self.start_game = None
-        self.control_pub.publish("idle stop")
+        self.control_pub.publish("idle go")
         self.idling = True
 
     def run(self):
-        r = rospy.Rate(10)
+        # r = rospy.Rate(100)
         while not rospy.is_shutdown():
             if self.start_game != None:
                 self.run_game()
-            r.sleep()
+            time.sleep(0.05)
+
 
 if __name__ == '__main__':
     brain_eng = EdwinBrain()

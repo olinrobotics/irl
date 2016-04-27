@@ -33,10 +33,13 @@ class ArmBehaviors:
     def behavior_callback(self, cmdin):
         print "RECEIVED CMD: ", cmdin
         cmd = str(cmdin).replace("data: ", "")
+        self.pub.publish("set_speed:: 1000")
+        time.sleep(1)
         if cmd == "random":
             cmd = "impatient"
-        if cmd in self.behaviors.keys():
-
+        elif "R_" in cmd:
+            self.pub.publish("run_route:: "+cmd)
+        elif cmd in self.behaviors.keys():
             cmd_list = self.behaviors[cmd].split(", ")
             for elem in cmd_list:
             	while self.moving == True:
@@ -77,7 +80,7 @@ class ArmBehaviors:
         self.behaviors["gloat"] = "H: 1000	, WR: 1700, SPD: 350, R_laugh, SPD: 500, R_pretentious_look, WR: 500, SL: 1, WR: 700, SL: 1, WR: 900, SL: 1, WR: 1100"
         self.behaviors["angry"] = "SPD: 200, R_stare, SPD: 1000"
         self.behaviors["sleep"] = "R_sleep"
-        self.behaviors["laugh"] = "SPD: 500, R_laugh1, SPD: 700, R_laugh, SPD: 1000"
+        self.behaviors["laugh"] = "SPD: 700, R_laugh, SPD: 1000"
         self.behaviors["idle_look_distance"] = "R_look_distance, SL: 1, WR: 1500, SL: .5, WR: 2300, R_look"
         self.behaviors["idle_sniff"] = "R_1_sniff, R_2_sniff, R_look"
         self.behaviors["idle_yawn"] = "SPD: 200, R_yawn, SL: .5, SPD: 500, R_slouch, SL: 1, R_look"
