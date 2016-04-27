@@ -55,7 +55,7 @@ class RouteCreator:
             msg = "create_route:: " + r
             print "Sending message: ", msg
             self.arm_pub.publish(msg)
-            time.sleep(1.5)
+            time.sleep(2)
 
 
         rospack = rospkg.RosPack()

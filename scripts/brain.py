@@ -112,7 +112,7 @@ class EdwinBrain:
 
     def run_game(self):
         print "Playing game: ", self.start_game
-        self.control_pub.publish("idle stop")
+        self.control_pub.publish("idle stop; stt stop")
         self.idling = False
 
         if self.start_game == "TTT":
@@ -134,7 +134,7 @@ class EdwinBrain:
             ttt_gm.run()
 
         self.start_game = None
-        self.control_pub.publish("idle go")
+        self.control_pub.publish("idle go; stt go; stt_keyword go")
         self.idling = True
 
     def run(self):

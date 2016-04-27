@@ -65,7 +65,7 @@ class ArmBehaviors:
                         msg = "data: sleeping:: " + pos
 
                 print "Publishing: ", msg
-                time.sleep(1)
+                time.sleep(1.5)
                 self.pub.publish(msg)
 
 
@@ -92,12 +92,20 @@ class ArmBehaviors:
         self.behaviors["idle_wander"] = "R_squirrel, SL: 1, SPD: 300, R_follow_squirrel, SL: 1, SPD: 500, R_look"
         self.behaviors["idle_spin"] = "R_spin_position, WA: -17000, WA: 17000, WA: 5000, R_look"
 
-
         rospack = rospkg.RosPack()
         PACKAGE_PATH = rospack.get_path("edwin")
 
         pickle.dump(self.behaviors, open(PACKAGE_PATH + '/params/behaviors.txt', 'wb'))
 
+    def loop_all(self):
+        for key in self.behaviors.keys():
+            print " "
+            print "--------"
+            print "RUNNING: ", key
+            print "--------"
+            print " "
+            self.behavior_callback(key)
+            time.sleep(5)
 
     def run(self):
         r = rospy.Rate(10)
@@ -107,3 +115,4 @@ class ArmBehaviors:
 if __name__ == '__main__':
     behavior_eng = ArmBehaviors()
     behavior_eng.run()
+    # behavior_eng.loop_all()
