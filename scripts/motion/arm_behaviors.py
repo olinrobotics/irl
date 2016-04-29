@@ -70,7 +70,6 @@ class ArmBehaviors:
 
 
     def create_behaviors(self):
-        self.behaviors["impatient"] = "R_impat, SL: 1.5, R_ttt"
         self.behaviors["happy_butt_wiggle"] = "R_curl_up, WA: 4500, WA: 5400, WA: 4500, WA: 5400, WA: 4500, WA: 5400, SL: .5, R_look"
         self.behaviors["curiosity"] =  "R_curious, WR: 800, H: 0"
         self.behaviors["greet"] = "R_greet1, WR:1500, H: 100, H: 0"
@@ -91,6 +90,9 @@ class ArmBehaviors:
         self.behaviors["idle_head_bobble"] = "R_head_bobble, R_look"
         self.behaviors["idle_wander"] = "R_squirrel, SL: 1, SPD: 300, R_follow_squirrel, SL: 1, SPD: 500, R_look"
         self.behaviors["idle_spin"] = "R_spin_position, WA: -17000, WA: 17000, WA: 5000, R_look"
+        self.behaviors["pout"] = "R_disbelief, SL: 1, R_pout, WA: -7500, WA: -6500, WA: -7500, WA: -6500, R_look_back, R_pout, WA: -7500, WA: -6500, WA: -7500, WA: -6500, R_look"
+        self.behaviors["impatient"] = "WA: 250, WA: -250, WA: 250, WA: -250, WA: 0, SPD: 700, R_impatient, SL: 1, R_annoyed_nudge"
+        self.behaviors["bored"] = "SPD: 400, R_bored, R_stare_away"
 
         rospack = rospkg.RosPack()
         PACKAGE_PATH = rospack.get_path("edwin")
