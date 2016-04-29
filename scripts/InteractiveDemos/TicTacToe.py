@@ -199,7 +199,7 @@ class Game:
 		self.grid_middle = 4
 		self.z_depth = -630
 
-		self.difficulty = 0 #0 = easiest, 10 = hardest
+		self.difficulty = 9 #0 = easiest, 10 = hardest
 
 	def img_callback(self, data):
 		try:
@@ -330,17 +330,17 @@ class Game:
 		# Find the index of the largest contour
 		areas = [cv2.contourArea(c) for c in contours]
 
-		gesture_select = random.randint(0, 10000)
-		#there's a one in 5000 chance that edwin will get bored and start looking around
-		if gesture_select == 1:
-			self.behav_pub.publish("random")
-			time.sleep(5)
-			self.arm_pub.publish("data: R_ttt")
-			time.sleep(2)
-			self.arm_pub.publish("data: R_ttt")
+		# gesture_select = random.randint(0, 10000)
+		# #there's a one in 5000 chance that edwin will get bored and start looking around
+		# if gesture_select == 1:
+		# 	self.behav_pub.publish("random")
+		# 	time.sleep(5)
+		# 	self.arm_pub.publish("data: R_ttt")
+		# 	time.sleep(2)
+		# 	self.arm_pub.publish("data: R_ttt")
 
-		# cv2.imshow("bg2", sure_bg)
 		# cv2.imshow("bg", gray)
+		# cv2.imshow("bg2", sure_bg)
 		# cv2.imshow("frame", self.frame)
 		# c = cv2.waitKey(1)
 
@@ -354,7 +354,7 @@ class Game:
 			print "LEN: ", len(areas)
 			print "AREA: ", max(areas)
 			print "FOUND HAND"
-			return False
+			return True
 		else:
 			return False
 
@@ -411,7 +411,7 @@ class Game:
 
 				# print self.board
 
-			if we detect no circles for 15 seconds, publish impatient gesture
+#			if we detect no circles for 15 seconds, publish impatient gesture
 			if int(time.time() - start_user_turn) > 10:
 				start_user_turn = time.time()
 				self.behav_pub.publish("impatient")
@@ -618,7 +618,7 @@ class Game:
 		print "set speed to 1000"
 		time.sleep(1)
 		self.z_depth = -680
-	 	self.draw_the_board()
+		self.draw_the_board()
 
 		gd = GridDetector(self.frame)
 		self.corners = gd.get_center_box()
@@ -637,16 +637,15 @@ class Game:
 		#Player is O: 1
 		#Edwin is X: 10
 		running = True
-	 	turn = random.randint(0,1)
-	 	# turn = 1
-	 	if turn == 0:
+		turn = random.randint(0,1)
+		# turn = 1
+		if turn == 0:
 			print "YOUR TURN"
 			self.behav_pub.publish("nudge")
 
-	 	ai = False
-	 	while running:
-	 		print self.board
-	 		if turn == 0: #Player turn.
+		ai = False
+		while running:
+ 	 		if turn == 0: #Player turn.
 	 			if ai:
 	 				ai_next_move_ind = self.next_move()
 	 				self.ai_move(ai_next_move_ind)
@@ -679,6 +678,9 @@ class Game:
 	 				time.sleep(1)
 	 				running = False
 	 			turn = 0
+
+		cv2.destroyAllWindows()
+		print "Finished with TTT, hope you enjoyed :)"
 
 if __name__ == '__main__':
 	rospy.init_node('ttt_gamemaster', anonymous = True)

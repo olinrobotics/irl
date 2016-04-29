@@ -10,7 +10,7 @@ class ArmCommands:
     def __init__(self):
         rospy.init_node('robot_arm', anonymous=True)
 
-        rospy.Subscriber('/arm_cmd', String, self.arm_callback, queue_size=10)
+        rospy.Subscriber('/arm_cmd', String, self.arm_callback, queue_size=1)
         self.pub = rospy.Publisher('arm_debug', String, queue_size=10)
         self.pub2 = rospy.Publisher('arm_status', Int16, queue_size=10)
 
@@ -147,6 +147,8 @@ class ArmCommands:
             self.pub2.publish(1)
             self.arm.rotate_hand_rel(param)
             self.pub2.publish(0)
+        elif cmd == "sleeping":
+            time.sleep(float(param))
 
     def run(self):
         r = rospy.Rate(10)
