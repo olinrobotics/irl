@@ -4,6 +4,9 @@ import wave
 
 class SoundManipulator:
 	def __init__(self, filename):
+		rospy.init_node('edwin_emotionParse', anonymous = True)
+		rospy.Subscriber('/emotion', String, self.parse_emotion, queue_size=10)
+
 		self.filename = filename
 
 	def speedx(self, filename, factor):
