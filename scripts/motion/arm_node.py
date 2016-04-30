@@ -20,6 +20,8 @@ class ArmCommands:
         print "CALIBRATING"
         self.arm.start()
         print "ARM SPD IS: ", self.arm.get_speed()
+        print "ARM ACCEL IS: ", self.arm.get_accel()
+
         self.arm.set_speed(10000)
         print "HOMING"
         self.arm.home()
