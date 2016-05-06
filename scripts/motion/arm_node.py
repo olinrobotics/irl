@@ -143,8 +143,13 @@ class ArmCommands:
             self.pub2.publish(0)
         elif cmd == "rotate_waist":
             self.pub2.publish(1)
-            self.pub2.publish(0)
             self.arm.rotate_waist(param)
+            self.pub2.publish(0)
+        elif cmd == "rotate_waist_rel":
+            self.pub2.publish(1)
+            print "RELATIVE WA ROTATION"
+            self.arm.rotate_waist(param)
+            self.pub2.publish(0)
         elif cmd == "rotate_hand_rel":
             self.pub2.publish(1)
             self.arm.rotate_hand_rel(param)

@@ -444,6 +444,16 @@ class StArm():
         self.block_on_result(cmd)
         self.where()
 
+    def rotate_waist_rel(self, pitch):
+        cmd = TELL + ' ' + WAIST + ' ' + str(pitch) + ' ' + MOVE
+        print('Rotating hand to %s.' % pitch)
+        self.cxn.flushInput()
+        self.cxn.write(cmd + CR)
+        self.block_on_result(cmd)
+        self.cartesian()
+        self.where()
+
+
     def rotate_hand_rel(self, pitch_inc):
         cmd = TELL + ' ' + HAND + ' ' + str(pitch_inc) + ' ' + MOVE
         print('Rotating hand by %s' % pitch_inc)
