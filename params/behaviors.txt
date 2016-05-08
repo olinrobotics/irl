@@ -45,7 +45,7 @@ S'R_greet1, WR:1500, H: 100, H: 0'
 p22
 sS'sad'
 p23
-S'SPD: 300, R_sad_turn, SL: 2, SPD: 1000, WA: 14000, WA: 15000, WA: 14000, SL: 1, R_look'
+S'SPD: 700, R_sad_turn, SL: 1, ACCEL: 100, SPD: 1000, WA: 14000, WA: 15000, WA: 14000, SL: 1, R_look'
 p24
 sS'impatient'
 p25

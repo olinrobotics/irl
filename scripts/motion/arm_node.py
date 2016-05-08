@@ -106,7 +106,9 @@ class ArmCommands:
         elif cmd == "get_accel":
             accel = self.arm.get_accel()
         elif cmd == "set_accel":
-            self.arm.set_accel(param)
+            #ACCEL is also in units of 1000
+            print "setting accel to ", param
+            self.arm.set_accel(float(param))
         elif cmd == "run_route":
             self.pub2.publish(1)
             self.arm.run_route(param)

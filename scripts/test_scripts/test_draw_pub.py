@@ -12,21 +12,20 @@ def run():
     pub = rospy.Publisher('draw_cmd', Edwin_Shape, queue_size=10)
     arm_pub = rospy.Publisher('arm_cmd', String, queue_size=10)
     time.sleep(1)
+    print "starting"
 
     while not rospy.is_shutdown():
         msg = Edwin_Shape()
-        msg.shape = "line"
-        msg.x = (0, 4000)
-        msg.y = (250, 3000)
-        #note that Z should be a function of y.
-        msg.z = int(-770 - ((msg.x[1] - 2500)/10))
-        pub.publish(msg)
-        time.sleep(30)
 
-        # # #Board X and Y positions
-        # b_x = 0
-        # b_y = 4000
-        # b_w = 250
+        # #Board X and Y positions
+        b_x = 0
+        b_y = 4000
+        b_w = 250
+
+        msg.shape = "board"
+        msg.x = b_x
+        msg.y = b_y
+        msg.z = -730
 
         # #Sector centroids
         # b_centers = {}
@@ -56,9 +55,10 @@ def run():
         # msg.x = 0
         # msg.y = 4000
         # #note that Z should be a function of y.
-        # msg.z = int(-760 - ((msg.y - 2500)/10))
-        # pub.publish(msg)
-        # time.sleep(30)
+        # # msg.z = int(-760 - ((msg.y - 2500)/10))
+        # msg.z = -970
+        pub.publish(msg)
+        time.sleep(30)
 
 
 
