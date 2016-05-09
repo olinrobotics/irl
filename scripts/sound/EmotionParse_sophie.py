@@ -5,7 +5,8 @@ import wave
 class SoundManipulator:
 	def __init__(self, filename):
 		rospy.init_node('edwin_emotionParse', anonymous = True)
-		rospy.Subscriber('/emotion', String, self.parse_emotion, queue_size=10)
+		rospy.Subscriber('/behavior_cmd', String, self.demo_parse_emotion, queue_size=10)
+		self.sound_pub = rospy.Publisher('edwin_sound', String, queue_size=2)
 
 		self.filename = filename
 
@@ -99,6 +100,7 @@ class SoundManipulator:
 	def parse_emotion(self, emotion_state):
 		#Emotionstate being a list containing 4 emotional values
 		#happy = 0, sad = 1, angry = 2, scared = 3
+
 		total_state = sum(emotion_state) # for weighting
 		happy = (emotion_state[0]/total_state) 
 		sad = emotion_state[1]/total_state
@@ -120,8 +122,24 @@ class SoundManipulator:
 		self.pitchshift(transform_factor[0], self.filename)
 		self.stretch("pitchshift.wav", transform_factor[1])
 		self.volumeshift("pitchshift.wav", transform_factor[2])
+	
+
+	def demo_parse_emotion(self, data):
+		sound_request = data.data
+		if sound_request == "greet":
+			self.sound_pub.publish("surprise")
+		elif sound_request == "sad":
+			self.sound_pub.publish("sad")
+		elif sound_request == "curiosity"
+			self.sound_pub.publish("look")
+		elif sound_request == "idle_1_lookaround"
+			self.sound_pub.publish("unsure")
 
 
+	def run(self):
+        r = rospy.Rate(10)
+        while not rospy.is_shutdown():
+            r.sleep()
 
 if __name__ == '__main__':
 	# sound = load("r2d2.wav")
@@ -129,5 +147,6 @@ if __name__ == '__main__':
 	#print testfile.getnchannels()
 	sound = SoundManipulator("./media/sad.wav")
 	#sound.time_accel(sound.filename, .5)
-	emotion_state_test = [50., 30., 20., 0.] #0-100
-	sound.parse_emotion(emotion_state_test)
+	#emotion_state_test = [50., 30., 20., 0.] #0-100
+	#sound.parse_emotion(emotion_state_test)
+	sound.run()

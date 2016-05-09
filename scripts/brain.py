@@ -29,6 +29,7 @@ class EdwinBrain:
         rospy.Subscriber('/edwin_imu', String, self.imu_callback, queue_size=1)
         rospy.Subscriber('/edwin_decoded_speech', String, self.speech_callback, queue_size=1)
         rospy.Subscriber('/arm_status', Int16, self.arm_mvmt_callback, queue_size=1)
+        rospy.Subscriber('/kinect', String, self.kinect_demo_callback, queue_size = 1)
 
         self.arm_pub = rospy.Publisher('/arm_cmd', String, queue_size=2)
         self.behav_pub = rospy.Publisher('/behaviors_cmd', String, queue_size=2)
@@ -37,6 +38,7 @@ class EdwinBrain:
 
         self.idling = True
         self.moving = False
+        self.running_game = False
 
         self.pat = False
         self.slap = False
@@ -109,6 +111,18 @@ class EdwinBrain:
 
                 self.pat = False
                 self.slap = True
+
+    def kinect_demo_callback(self, data):
+    		#
+    		if data.data == True: #Run the game if commanded so.
+    			self.running_game = True
+    		else:
+    			self.running_game = False
+    			self.start_game = None
+        		self.control_pub.publish("idle go; stt go; stt_keyword go")
+    			self.idling = True #Idle otherwise.
+    	
+
 
     def run_game(self):
         print "Playing game: ", self.start_game
