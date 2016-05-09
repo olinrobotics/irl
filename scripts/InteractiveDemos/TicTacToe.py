@@ -175,9 +175,9 @@ class Game:
 
 		#Sector centroids
 		self.b_centers = {}
-		self.b_centers[0] = (self.b_x - 2.25*self.b_w, self.b_y + 1.5*self.b_w)
-		self.b_centers[1] = (self.b_x, self.b_y + 1.5*self.b_w)
-		self.b_centers[2] = (self.b_x + 2*self.b_w, self.b_y + 1.5*self.b_w)
+		self.b_centers[0] = (self.b_x - 2.25*self.b_w, self.b_y + 2*self.b_w)
+		self.b_centers[1] = (self.b_x, self.b_y + 2*self.b_w)
+		self.b_centers[2] = (self.b_x + 2*self.b_w, self.b_y + 2*self.b_w)
 
 		self.b_centers[3] = (self.b_x - 2*self.b_w, self.b_y)
 		self.b_centers[4] = (self.b_x, self.b_y)
@@ -659,7 +659,10 @@ class Game:
 		if turn == 0:
 			print "YOUR TURN"
 			self.behav_pub.publish("nudge")
+			time.sleep(2)
 
+		self.behav_pub.publish("R_ttt")
+		time.sleep(1)
 		ai = False
 		while running:
  	 		if turn == 0: #Player turn.
@@ -672,7 +675,8 @@ class Game:
 				winner = self.is_winner(self.board)
 	 			if winner[0] == 2: #Checks if the player made a winning move.
 	 				print "PLAYER WINS"
-					self.draw_win_line(winner[1])
+					time.sleep(5)
+					# self.draw_win_line(winner[1])
 	 				self.behav_pub.publish("sad")
 	 				time.sleep(1)
 	 				running = False
@@ -685,6 +689,7 @@ class Game:
 	 			next_move_ind = self.next_move()
 	 			if next_move_ind == "TIE":
 	 				print "IT'S A TIE"
+					time.sleep(5)
 	 				self.behav_pub.publish("pout")
 	 				running = False
 	 				continue
@@ -692,7 +697,8 @@ class Game:
 	 			winner = self.is_winner(self.board)
 	 			if winner[0] == 1:
 	 				print "EDWIN WINS"
-	 				self.draw_win_line(winner[1])
+					time.sleep(5)
+					# 	self.draw_win_line(winner[1])
 	 				self.behav_pub.publish("gloat")
 	 				time.sleep(1)
 	 				running = False

@@ -33,8 +33,10 @@ class ArmBehaviors:
     def behavior_callback(self, cmdin):
         print "RECEIVED CMD: ", cmdin
         cmd = str(cmdin).replace("data: ", "")
-        self.pub.publish("set_speed:: 1000")
-        time.sleep(1)
+        # self.pub.publish("set_speed:: 1000")
+        # time.sleep(1)
+        # self.pub.publish("set_accel:: 100")
+        # time.sleep(1)
         if cmd == "random":
             cmd = "impatient"
         elif "R_" in cmd:
@@ -85,7 +87,7 @@ class ArmBehaviors:
         self.behaviors["curiosity"] =  "R_curious, WR: 800, H: 0"
         self.behaviors["greet"] = "R_greet1, WR:1500, H: 100, H: 0"
 
-        self.behaviors["nudge"] = "R_look, R_nudge, R_look"
+        self.behaviors["nudge"] = "R_look, H:0, H:-200, R_look"
         self.behaviors["nod"] = "R_stare, E:13000, E:12000"
         self.behaviors["gloat"] = "H: 1000	, WR: 1700, SPD: 350, R_laugh, SPD: 500, R_pretentious_look, WR: 500, SL: 1, WR: 700, SL: 1, WR: 900, SL: 1, WR: 1100"
         self.behaviors["angry"] = "SPD: 200, R_stare, SPD: 1000"
@@ -99,7 +101,7 @@ class ArmBehaviors:
         self.behaviors["idle_2_lookaround"] = "H: 0, R_2_lookaround"
         self.behaviors["idle_3_lookaround"] = "R_3_lookaround, WR: 0, SL: .5, WR: 800"
         self.behaviors["idle_head_bobble"] = "SPD: 700, R_head_bobble, R_look"
-        self.behaviors["idle_wander"] = "R_squirrel, SL: 1, SPD: 300, R_follow_squirrel, SL: 1, SPD: 500, R_look"
+        self.behaviors["idle_wander"] = "R_squirrel, SL: 1, SPD: 400, R_follow_squirrel, SL: 1, SPD: 500, R_look"
         self.behaviors["idle_spin"] = "R_spin_position, WA_rel: -1000, WA_rel: 1000, WA_rel: -1000, R_look"
 
         rospack = rospkg.RosPack()

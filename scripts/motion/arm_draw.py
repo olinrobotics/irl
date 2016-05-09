@@ -18,9 +18,9 @@ class Drawer:
         self.arm_pub.publish("data: set_speed:: 3000")
 
     def draw_callback(self, data):
-        self.arm_pub.publish("data: set_speed:: 1000")
-        time.sleep(1)
-        self.arm_pub.publish("data: set_accel:: 100")
+        # self.arm_pub.publish("data: set_speed:: 1000")
+        # time.sleep(1)
+        # self.arm_pub.publish("data: set_accel:: 100")
 
         #getting into position
         motions = ["data: move_to:: " + str(data.x) + ", " + str(data.y) + ", " + str(data.z+250)+ ", " + str(0),

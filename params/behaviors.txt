@@ -13,7 +13,7 @@ S'H: 0, R_2_lookaround'
 p6
 sS'nudge'
 p7
-S'R_look, R_nudge, R_look'
+S'R_look, H:0, H:-200, R_look'
 p8
 sS'gloat'
 p9
@@ -77,7 +77,7 @@ S'R_1_lookaround'
 p38
 sS'idle_wander'
 p39
-S'R_squirrel, SL: 1, SPD: 300, R_follow_squirrel, SL: 1, SPD: 500, R_look'
+S'R_squirrel, SL: 1, SPD: 400, R_follow_squirrel, SL: 1, SPD: 500, R_look'
 p40
 sS'idle_yawn'
 p41

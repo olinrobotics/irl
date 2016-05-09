@@ -29,7 +29,7 @@ class EdwinBrain:
         rospy.Subscriber('/edwin_imu', String, self.imu_callback, queue_size=1)
         rospy.Subscriber('/edwin_decoded_speech', String, self.speech_callback, queue_size=1)
         rospy.Subscriber('/arm_status', Int16, self.arm_mvmt_callback, queue_size=1)
-        rospy.Subscriber('/kinect', String, self.kinect_demo_callback, queue_size = 1)
+        # rospy.Subscriber('/kinect', String, self.kinect_demo_callback, queue_size = 1)
 
         self.arm_pub = rospy.Publisher('/arm_cmd', String, queue_size=2)
         self.behav_pub = rospy.Publisher('/behaviors_cmd', String, queue_size=2)
@@ -54,7 +54,7 @@ class EdwinBrain:
         self.routes = pickle.load(open(PACKAGE_PATH + '/params/routes.txt', 'rb'))
 
         time.sleep(1)
-        self.control_pub.publish("idle go; stt go; stt_keyword go")
+        self.control_pub.publish("idle go; stt go; stt_keyword go; ed go")
         print "edwin brain is running"
 
     def arm_mvmt_callback(self, data):
@@ -86,10 +86,23 @@ class EdwinBrain:
         """
         format in "byte_length peak_volume"
         """
-        print "heard a loud noise!"
-        print data
-        self.behav_pub.publish("sleep")
-        self.emotion_pub.publish("STARTLE")
+        # print "heard a loud noise!"
+        # print data.data
+        sound = data.data.split(" ")
+        print sound[0]
+        if float(sound[0]) > .8:
+            if self.idling:
+                # self.behav_pub.publish("greet")
+                self.ok = True
+                self.control_pub.publish("idle stop; ed stop")
+                print "STARTING GAME"
+                self.start_game = "TTT"
+            # elif self.start_game != None:
+            #     self.ok = True
+            #     self.control_pub.publish("ed stop")
+
+        # self.behav_pub.publish("sleep")
+        # self.emotion_pub.publish("STARTLE")
 
     def imu_callback(self, data):
         """
@@ -112,16 +125,15 @@ class EdwinBrain:
                 self.pat = False
                 self.slap = True
 
-    def kinect_demo_callback(self, data):
-    		#
-    		if data.data == True: #Run the game if commanded so.
-    			self.running_game = True
-    		else:
-    			self.running_game = False
-    			self.start_game = None
-        		self.control_pub.publish("idle go; stt go; stt_keyword go")
-    			self.idling = True #Idle otherwise.
-    	
+    # def kinect_demo_callback(self, data):
+    # 		#
+    # 		if data.data == True: #Run the game if commanded so.
+    # 			self.running_game = True
+    # 		else:
+    # 			self.running_game = False
+    # 			self.start_game = None
+    #     		self.control_pub.publish("idle go; stt go; stt_keyword go")
+    # 			self.idling = True #Idle otherwise.
 
 
     def run_game(self):
@@ -130,25 +142,29 @@ class EdwinBrain:
         self.idling = False
 
         if self.start_game == "TTT":
-            self.ok = False
-            self.behav_pub.publish("R_pretentious_look")
+            self.ok = True
             start_marker_wait = time.time()
             while self.ok != True:
                 #if Edwin has to wait too long for a marker, get impatient
-                if int(start_marker_wait - time.time()) > 10:
-                    self.behav_pub.publish("impatient")
+                if int(time.time() - start_marker_wait) > 15:
+                    self.behav_pub.publish("happy_butt_wiggle")
+                    time.sleep(5)
+                    self.behav_pub.publish("R_spin_position")
+                    time.sleep(1)
+                    start_marker_wait = time.time()
                 if self.slap:
                     self.behav_pub.publish("angry")
                 elif self.exit:
                     self.exit = False
                     return
             self.ok = False
+            self.behav_pub.publish("nod")
             time.sleep(5)
             ttt_gm = ttt.Game()
             ttt_gm.run()
 
         self.start_game = None
-        self.control_pub.publish("idle go; stt go; stt_keyword go")
+        self.control_pub.publish("idle go; stt go; stt_keyword go; ed go")
         self.idling = True
 
     def run(self):

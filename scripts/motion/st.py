@@ -391,8 +391,8 @@ class StArm():
         self.where()
 
     def move_to(self, x, y, z, debug=False, block=True):
-        cmd = str(x) + ' ' + str(y) + ' ' + str(z) + ' MOVETO'
         if debug:
+            cmd = str(x) + ' ' + str(y) + ' ' + str(z) + ' MOVETO'
             print('Moving to cartesian coords: (' + str(x) + ', ' +
                   str(y) + ', ' + str(z) + ')')
         self.cartesian()
