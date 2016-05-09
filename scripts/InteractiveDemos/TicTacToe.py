@@ -199,7 +199,7 @@ class Game:
 		self.grid_middle = 4
 		self.z_depth = -630
 
-		self.difficulty = 9 #0 = easiest, 10 = hardest
+		self.difficulty = 10 #0 = easiest, 10 = hardest
 
 	def img_callback(self, data):
 		try:
@@ -226,7 +226,8 @@ class Game:
 
 		#There are 4 cases - NoWin, EdWin, Player Win and Tie, Tie is accounted for
 		#in a piece of code further down.
-		for i, b_sum in enumerate(board_sums):
+		for i in range(8):
+			b_sum = board_sums[i]
 			if b_sum == 30:
 				return (1, i)
 			elif b_sum == 3:
@@ -270,7 +271,9 @@ class Game:
 				board_copy = copy.deepcopy(self.board)
 				if self.is_free(board_copy, i):
 					board_copy[i] = 10
-					if self.is_winner(board_copy) == 1:
+					print "CHECKING IF ", board_copy, "CAN WIN"
+					if self.is_winner(board_copy)[0] == 1:
+						print "WINS"
 						return i
 
 			#Checks if player can win the next turn
@@ -278,7 +281,8 @@ class Game:
 				board_copy = copy.deepcopy(self.board)
 				if self.is_free(board_copy, i):
 					board_copy[i] = 1
-					if self.is_winner(board_copy) == 2:
+					print "CHECKING IF ", board_copy, "CAN WIN"
+					if self.is_winner(board_copy)[0] == 2:
 						return i
 
 			#Otherwise, prioritizes grabbing corners.
@@ -449,7 +453,7 @@ class Game:
 		self.board_msg.z = self.z_calculation(self.board_msg.y)
 		self.draw_pub.publish(self.board_msg)
 		print self.board_msg
-		time.sleep(25)
+		time.sleep(20)
 
 		msg = "data: R_ttt"
 		print "sending: ", msg
@@ -524,7 +528,13 @@ class Game:
 		#note that Z should be a function of y.
 		# self.draw_msg.z = self.z_depth - ((self.draw_msg.y - 2500)/9)
 		# self.draw_msg.z = self.z_depth - int((self.draw_msg.y - 2500)/9.4)
-		self.draw_msg.z = self.z_calculation(self.draw_msg.y)
+		if index < 3:
+		    self.draw_msg.z = self.z_depth - 5
+		elif index < 6:
+		    self.draw_msg.z = self.z_depth
+		else:
+		    self.draw_msg.z = self.z_depth + 20
+
 		self.draw_pub.publish(self.draw_msg)
 
 	 	self.board[index] = 10
@@ -561,8 +571,9 @@ class Game:
 		elif win_line == 7:
 			line = [self.b_centers[2], self.b_centers[6]]
 
-		z = self.z_calculation(int(line[0][1]))
+		# z = self.z_calculation(int(line[0][1]))
 		# z = self.z_depth - int((self.draw_msg.y - 2500)/9.4)
+		z = self.z_depth
 
 		#getting into position
 		motions = ["data: move_to:: " + str(int(line[0][0])) + ", " + str(int(line[0][1])) + ", " + str(z+250)+ ", " + str(0),
@@ -623,7 +634,7 @@ class Game:
 		print "set accel to 100"
 		time.sleep(1)
 
-		self.z_depth = -730
+		self.z_depth = -740
 		self.draw_the_board()
 
 		gd = GridDetector(self.frame)
@@ -647,7 +658,7 @@ class Game:
 		# turn = 1
 		if turn == 0:
 			print "YOUR TURN"
-			# self.behav_pub.publish("nudge")
+			self.behav_pub.publish("nudge")
 
 		ai = False
 		while running:
@@ -658,8 +669,10 @@ class Game:
 	 			else:
 	 				self.field_scan()
 
-	 			if self.is_winner(self.board)[0] == 2: #Checks if the player made a winning move.
+				winner = self.is_winner(self.board)
+	 			if winner[0] == 2: #Checks if the player made a winning move.
 	 				print "PLAYER WINS"
+					self.draw_win_line(winner[1])
 	 				self.behav_pub.publish("sad")
 	 				time.sleep(1)
 	 				running = False
