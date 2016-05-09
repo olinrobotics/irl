@@ -350,6 +350,7 @@ class StArm():
         too_fast = True
         tries = 1
         orig_accel = self.get_accel()
+        orig_speed = self.get_speed()
 
         while too_fast:
             print('Doing dry run of route %s' % route)
@@ -360,13 +361,17 @@ class StArm():
 
             if "Too tight" in res:
                 print "CATCHING TOO TIGHT ERROR"
-                if tries < 5:
+                if tries < 2:
                     #TODO: Fix the acceleration scaling
                     self.set_accel(orig_accel+1500*(tries))
+                    tries += 1
+                elif tries < 5:
+                    self.set_speed(orig_speed-1000*(tries-1))
                     tries += 1
                 else:
                     too_fast = False
                     self.set_accel(orig_accel)
+                    self.set_speed(orig_speed)
                     raise Exception('Arm command failed to execute as expected.', res)
 
                 time.sleep(1)
@@ -382,6 +387,7 @@ class StArm():
         self.cxn.write(cmd + CR)
         self.block_on_result(cmd)
         self.set_accel(orig_accel)
+        self.set_speed(orig_speed)
         self.where()
 
     def move_to(self, x, y, z, debug=False, block=True):

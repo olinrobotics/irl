@@ -48,6 +48,8 @@ class ArmBehaviors:
                     msg = "data: run_route:: " + str(elem)
                 elif "SPD" in elem:
                     msg = "data: set_speed:: " + str(elem.split("SPD: ")[1])
+                elif "ACCEL" in elem:
+                    msg = "data: set_accel:: " + str(elem.split("ACCEL: ")[1])
                 else:
                     joint = elem.split(":")[0]
                     pos = elem.split(":")[1]
@@ -77,7 +79,7 @@ class ArmBehaviors:
 
 
     def create_behaviors(self):
-        self.behaviors["sad"] = "SPD: 300, R_sad_turn, SL: 2, SPD: 1000, WA: 14000, WA: 15000, WA: 14000, SL: 1, R_look" #"SPD: 350, R_sigh_up, SL: .5, SPD: 500, R_sigh_down, SL: .5, SPD: 1000, R_look"
+        self.behaviors["sad"] = "SPD: 700, R_sad_turn, SL: 1, ACCEL: 100, SPD: 1000, WA: 14000, WA: 15000, WA: 14000, SL: 1, R_look" #"SPD: 350, R_sigh_up, SL: .5, SPD: 500, R_sigh_down, SL: .5, SPD: 1000, R_look"
         self.behaviors["impatient"] = "R_ttt, SPD: 500, R_impat, WA: -500, WA: 500, WA: -500, R_ttt"
         self.behaviors["happy_butt_wiggle"] = "R_curl_up, WA: 4500, WA: 5400, WA: 4500, SL: .5, R_look"
         self.behaviors["curiosity"] =  "R_curious, WR: 800, H: 0"

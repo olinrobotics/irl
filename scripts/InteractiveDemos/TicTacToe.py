@@ -412,13 +412,14 @@ class Game:
 				# print self.board
 
 #			if we detect no circles for 15 seconds, publish impatient gesture
-			if int(time.time() - start_user_turn) > 10:
-				start_user_turn = time.time()
-				self.behav_pub.publish("impatient")
-				time.sleep(4)
-				self.arm_pub.publish("data: R_ttt")
-				time.sleep(2)
-				self.arm_pub.publish("data: R_ttt")
+			# if int(time.time() - start_user_turn) > 10:
+			# 	start_user_turn = time.time()
+			# 	self.behav_pub.publish("impatient")
+			# 	time.sleep(4)
+			# 	self.arm_pub.publish("data: R_ttt")
+			# 	time.sleep(2)
+			# 	self.arm_pub.publish("data: R_ttt")
+			# 	time.sleep(20)
 
 			for box in self.image_rectangles:
 				box = np.int0(box)
@@ -510,8 +511,8 @@ class Game:
 			self.calib_grid = False
 
 	def z_calculation(self, input_y):
-		scaler = int((input_y - 2500)/9.4)
-		return scaler
+		# scaler = int((input_y - 2500)/9.4)
+		return self.z_depth
 
 	def edwin_move(self, index):
 		#edwin moves to desired location and draws
@@ -617,7 +618,12 @@ class Game:
 		self.arm_pub.publish("data: set_speed:: 1000")
 		print "set speed to 1000"
 		time.sleep(1)
-		self.z_depth = -680
+
+		self.arm_pub.publish("data: set_accel:: 100")
+		print "set accel to 100"
+		time.sleep(1)
+
+		self.z_depth = -730
 		self.draw_the_board()
 
 		gd = GridDetector(self.frame)
@@ -641,7 +647,7 @@ class Game:
 		# turn = 1
 		if turn == 0:
 			print "YOUR TURN"
-			self.behav_pub.publish("nudge")
+			# self.behav_pub.publish("nudge")
 
 		ai = False
 		while running:

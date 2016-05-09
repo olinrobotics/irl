@@ -31,7 +31,7 @@ class Drawer:
         if data.shape == "square":
             self.draw_square(data.x, data.y, data.z)
         elif data.shape == "x":
-        	self.draw_x(data.x, data.y, data.z)    
+        	self.draw_x(data.x, data.y, data.z)
         elif data.shape == "circle":
             self.draw_circle(data.x, data.y, data.z)
         elif data.shape == "board":
@@ -56,7 +56,9 @@ class Drawer:
                 [(x-3*w, y+w), (x+3*w, y+w)],
                 [(x-3*w, y-w),(x+3*w, y-w)]]
 
-        for line in lines:
+        for i, line in enumerate(lines):
+            if i == 2:
+                z -= 10
             #pick marker off paper
             msg = "data: move_to:: " + str(line[0][0]) + ", " + str(line[0][1]) + ", " + str(z+250) + ", " +str(0)
             print "sending: ", msg
@@ -79,6 +81,9 @@ class Drawer:
             self.arm_pub.publish(msg)
             time.sleep(1)
 
+            if i == 2:
+                z += 10
+
     def draw_smiley(self, x, y, z):
         pass
 
@@ -86,7 +91,7 @@ class Drawer:
     	i = 0
     	width = 150 #width of the x
 
-    	for i in range(8):    
+    	for i in range(8):
 
             if i == 0:
                 msg = "data: move_to:: " + str(x + width) + ", " + str(y + width) + ", " + str(z) + ", " + str(0)
@@ -94,20 +99,20 @@ class Drawer:
                 msg = "data: move_to:: " + str(x - width) + ", " + str(y - width) + ", " + str(z) + ", " + str(0)
             elif i == 2:   #picks up marker
                 msg = "data: move_to:: " + str(x - width) + ", " + str(y - width) + ", " + str(z +250) + ", " + str(0)
-            elif i == 3:  
-                msg = "data: move_to:: " + str(x - width) + ", " + str(y + width) + ", " + str(z +250) + ", " + str(0)    
+            elif i == 3:
+                msg = "data: move_to:: " + str(x - width) + ", " + str(y + width) + ", " + str(z +250) + ", " + str(0)
             elif i == 4:
                 msg = "data: move_to:: " + str(x - width) + ", " + str(y + width) + ", " + str(z) + ", " + str(0)
             elif i == 5:
-                msg = "data: move_to:: " + str(x + width) + ", " + str(y - width) + ", " + str(z) + ", " + str(0)    
+                msg = "data: move_to:: " + str(x + width) + ", " + str(y - width) + ", " + str(z) + ", " + str(0)
             elif i == 6:   #picks up marker
-                msg = "data: move_to:: " + str(x + width) + ", " + str(y - width) + ", " + str(z + 250) + ", " + str(0)        
-            elif i == 7: 
-                msg = "data: move_to:: " + str(x) + ", " + str(y) + ", " + str(z + 250) + ", " + str(0)       
+                msg = "data: move_to:: " + str(x + width) + ", " + str(y - width) + ", " + str(z + 250) + ", " + str(0)
+            elif i == 7:
+                msg = "data: move_to:: " + str(x) + ", " + str(y) + ", " + str(z + 250) + ", " + str(0)
 
             print "sending: ", msg
             self.arm_pub.publish(msg)
-            time.sleep(1)    
+            time.sleep(1)
 
 
 
