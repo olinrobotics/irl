@@ -30,7 +30,6 @@ class ArmCommands:
         self.create_routes()
         # self.arm.run_route("R_mv2")
         self.arm.run_route("R_ttt")
-        self.arm.joint()
 
     def create_routes(self):
         #Moves in units of thousands
@@ -48,6 +47,7 @@ class ArmCommands:
         # self.routes = ["R_mv2", "R_stare", "R_ttt", "R_look", "R_playful", "R_sleep", "R_wakeup", "R_leaving, R_greet1", "R_curious"]
 
     def arm_callback(self, cmdin):
+        self.arm.joint()
         cmd = cmdin.data
         cmd = str(cmdin).replace("data: ", "")
         if len(cmd.split(':: ')) > 1:

@@ -148,5 +148,5 @@ if __name__ == '__main__':
     # behavior_eng.run_once("sad")
     # behavior_eng.run_once("impatient")
 
-    # behavior_eng.loop_all()
     behavior_eng.run()
+    # behavior_eng.loop_all()

@@ -271,7 +271,6 @@ class Game:
 				board_copy = copy.deepcopy(self.board)
 				if self.is_free(board_copy, i):
 					board_copy[i] = 10
-					print "CHECKING IF ", board_copy, "CAN WIN"
 					if self.is_winner(board_copy)[0] == 1:
 						print "WINS"
 						return i
@@ -281,7 +280,6 @@ class Game:
 				board_copy = copy.deepcopy(self.board)
 				if self.is_free(board_copy, i):
 					board_copy[i] = 1
-					print "CHECKING IF ", board_copy, "CAN WIN"
 					if self.is_winner(board_copy)[0] == 2:
 						return i
 
@@ -368,12 +366,12 @@ class Game:
 		msg = "data: R_ttt"
 		print "sending: ", msg
 		self.arm_pub.publish(msg)
-		time.sleep(2)
+		time.sleep(3)
 
 		msg = "data: R_ttt"
 		print "sending: ", msg
 		self.arm_pub.publish(msg)
-		time.sleep(2)
+		time.sleep(3)
 
 		new_index = {}
 		start_user_turn = time.time()
@@ -453,15 +451,20 @@ class Game:
 		self.board_msg.z = self.z_calculation(self.board_msg.y)
 		self.draw_pub.publish(self.board_msg)
 		print self.board_msg
-		time.sleep(20)
+		time.sleep(30)
 
 		msg = "data: R_ttt"
 		print "sending: ", msg
 		self.arm_pub.publish(msg)
-		time.sleep(2)
+		time.sleep(3)
 
-		print "DRAW IN GUIDES IF NECESSARY"
-		time.sleep(5)
+		msg = "data: R_ttt"
+		print "sending: ", msg
+		self.arm_pub.publish(msg)
+		time.sleep(3)
+
+		# print "DRAW IN GUIDES IF NECESSARY"
+		# time.sleep(5)
 		# print "SEND OK COMMAND TO CONTINUE"
 
 		gd = GridDetector(self.frame)
@@ -522,7 +525,7 @@ class Game:
 		#edwin moves to desired location and draws
 		print "MOVING TO: ", index
 		center = self.b_centers[index]
-		self.draw_msg.shape = "square"
+		self.draw_msg.shape = "x"
 		self.draw_msg.x = center[0]
 		self.draw_msg.y = center[1]
 		#note that Z should be a function of y.
@@ -538,7 +541,7 @@ class Game:
 		self.draw_pub.publish(self.draw_msg)
 
 	 	self.board[index] = 10
-	 	time.sleep(5)
+	 	time.sleep(10)
 
 	def draw_win_line(self, win_line):
 		#TODO: Put this in arm_draw
@@ -634,7 +637,7 @@ class Game:
 		print "set accel to 100"
 		time.sleep(1)
 
-		self.z_depth = -740
+		self.z_depth = -742
 		self.draw_the_board()
 
 		gd = GridDetector(self.frame)
@@ -654,8 +657,8 @@ class Game:
 		#Player is O: 1
 		#Edwin is X: 10
 		running = True
-		turn = random.randint(0,1)
-		# turn = 1
+		# turn = random.randint(0,1)
+		turn = 0
 		if turn == 0:
 			print "YOUR TURN"
 			self.behav_pub.publish("nudge")
@@ -675,7 +678,7 @@ class Game:
 				winner = self.is_winner(self.board)
 	 			if winner[0] == 2: #Checks if the player made a winning move.
 	 				print "PLAYER WINS"
-					time.sleep(5)
+					time.sleep(10)
 					# self.draw_win_line(winner[1])
 	 				self.behav_pub.publish("sad")
 	 				time.sleep(1)
@@ -689,7 +692,7 @@ class Game:
 	 			next_move_ind = self.next_move()
 	 			if next_move_ind == "TIE":
 	 				print "IT'S A TIE"
-					time.sleep(5)
+					time.sleep(10)
 	 				self.behav_pub.publish("pout")
 	 				running = False
 	 				continue
@@ -697,7 +700,7 @@ class Game:
 	 			winner = self.is_winner(self.board)
 	 			if winner[0] == 1:
 	 				print "EDWIN WINS"
-					time.sleep(5)
+					time.sleep(10)
 					# 	self.draw_win_line(winner[1])
 	 				self.behav_pub.publish("gloat")
 	 				time.sleep(1)

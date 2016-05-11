@@ -21,6 +21,7 @@ class Drawer:
         # self.arm_pub.publish("data: set_speed:: 1000")
         # time.sleep(1)
         # self.arm_pub.publish("data: set_accel:: 100")
+        time.sleep(1)
 
         #getting into position
         motions = ["data: move_to:: " + str(data.x) + ", " + str(data.y) + ", " + str(data.z+250)+ ", " + str(0),
@@ -116,7 +117,7 @@ class Drawer:
 
             print "sending: ", msg
             self.arm_pub.publish(msg)
-            time.sleep(1)
+            time.sleep(1.25)
 
 
 
@@ -164,7 +165,7 @@ class Drawer:
 
             print "sending: ", msg
             self.arm_pub.publish(msg)
-            time.sleep(1)
+            time.sleep(1.5)
 
     def draw_circle(self, x, y, z):
         #where x, y is the center of the circle, and r is predefined
