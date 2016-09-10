@@ -175,9 +175,9 @@ class Game:
 
 		#Sector centroids
 		self.b_centers = {}
-		self.b_centers[0] = (self.b_x - 2.25*self.b_w, self.b_y + 1.5*self.b_w)
-		self.b_centers[1] = (self.b_x, self.b_y + 1.5*self.b_w)
-		self.b_centers[2] = (self.b_x + 2*self.b_w, self.b_y + 1.5*self.b_w)
+		self.b_centers[0] = (self.b_x - 2.25*self.b_w, self.b_y + 2*self.b_w)
+		self.b_centers[1] = (self.b_x, self.b_y + 2*self.b_w)
+		self.b_centers[2] = (self.b_x + 2*self.b_w, self.b_y + 2*self.b_w)
 
 		self.b_centers[3] = (self.b_x - 2*self.b_w, self.b_y)
 		self.b_centers[4] = (self.b_x, self.b_y)
@@ -199,7 +199,7 @@ class Game:
 		self.grid_middle = 4
 		self.z_depth = -630
 
-		self.difficulty = 9 #0 = easiest, 10 = hardest
+		self.difficulty = 10 #0 = easiest, 10 = hardest
 
 	def img_callback(self, data):
 		try:
@@ -226,7 +226,8 @@ class Game:
 
 		#There are 4 cases - NoWin, EdWin, Player Win and Tie, Tie is accounted for
 		#in a piece of code further down.
-		for i, b_sum in enumerate(board_sums):
+		for i in range(8):
+			b_sum = board_sums[i]
 			if b_sum == 30:
 				return (1, i)
 			elif b_sum == 3:
@@ -270,7 +271,8 @@ class Game:
 				board_copy = copy.deepcopy(self.board)
 				if self.is_free(board_copy, i):
 					board_copy[i] = 10
-					if self.is_winner(board_copy) == 1:
+					if self.is_winner(board_copy)[0] == 1:
+						print "WINS"
 						return i
 
 			#Checks if player can win the next turn
@@ -278,7 +280,7 @@ class Game:
 				board_copy = copy.deepcopy(self.board)
 				if self.is_free(board_copy, i):
 					board_copy[i] = 1
-					if self.is_winner(board_copy) == 2:
+					if self.is_winner(board_copy)[0] == 2:
 						return i
 
 			#Otherwise, prioritizes grabbing corners.
@@ -364,12 +366,12 @@ class Game:
 		msg = "data: R_ttt"
 		print "sending: ", msg
 		self.arm_pub.publish(msg)
-		time.sleep(2)
+		time.sleep(3)
 
 		msg = "data: R_ttt"
 		print "sending: ", msg
 		self.arm_pub.publish(msg)
-		time.sleep(2)
+		time.sleep(3)
 
 		new_index = {}
 		start_user_turn = time.time()
@@ -412,13 +414,14 @@ class Game:
 				# print self.board
 
 #			if we detect no circles for 15 seconds, publish impatient gesture
-			if int(time.time() - start_user_turn) > 10:
-				start_user_turn = time.time()
-				self.behav_pub.publish("impatient")
-				time.sleep(4)
-				self.arm_pub.publish("data: R_ttt")
-				time.sleep(2)
-				self.arm_pub.publish("data: R_ttt")
+			# if int(time.time() - start_user_turn) > 10:
+			# 	start_user_turn = time.time()
+			# 	self.behav_pub.publish("impatient")
+			# 	time.sleep(4)
+			# 	self.arm_pub.publish("data: R_ttt")
+			# 	time.sleep(2)
+			# 	self.arm_pub.publish("data: R_ttt")
+			# 	time.sleep(20)
 
 			for box in self.image_rectangles:
 				box = np.int0(box)
@@ -448,15 +451,20 @@ class Game:
 		self.board_msg.z = self.z_calculation(self.board_msg.y)
 		self.draw_pub.publish(self.board_msg)
 		print self.board_msg
-		time.sleep(25)
+		time.sleep(30)
 
 		msg = "data: R_ttt"
 		print "sending: ", msg
 		self.arm_pub.publish(msg)
-		time.sleep(2)
+		time.sleep(3)
 
-		print "DRAW IN GUIDES IF NECESSARY"
-		time.sleep(5)
+		msg = "data: R_ttt"
+		print "sending: ", msg
+		self.arm_pub.publish(msg)
+		time.sleep(3)
+
+		# print "DRAW IN GUIDES IF NECESSARY"
+		# time.sleep(5)
 		# print "SEND OK COMMAND TO CONTINUE"
 
 		gd = GridDetector(self.frame)
@@ -510,24 +518,30 @@ class Game:
 			self.calib_grid = False
 
 	def z_calculation(self, input_y):
-		scaler = int((input_y - 2500)/9.4)
-		return scaler
+		# scaler = int((input_y - 2500)/9.4)
+		return self.z_depth
 
 	def edwin_move(self, index):
 		#edwin moves to desired location and draws
 		print "MOVING TO: ", index
 		center = self.b_centers[index]
-		self.draw_msg.shape = "square"
+		self.draw_msg.shape = "x"
 		self.draw_msg.x = center[0]
 		self.draw_msg.y = center[1]
 		#note that Z should be a function of y.
 		# self.draw_msg.z = self.z_depth - ((self.draw_msg.y - 2500)/9)
 		# self.draw_msg.z = self.z_depth - int((self.draw_msg.y - 2500)/9.4)
-		self.draw_msg.z = self.z_calculation(self.draw_msg.y)
+		if index < 3:
+		    self.draw_msg.z = self.z_depth - 5
+		elif index < 6:
+		    self.draw_msg.z = self.z_depth
+		else:
+		    self.draw_msg.z = self.z_depth + 20
+
 		self.draw_pub.publish(self.draw_msg)
 
 	 	self.board[index] = 10
-	 	time.sleep(5)
+	 	time.sleep(10)
 
 	def draw_win_line(self, win_line):
 		#TODO: Put this in arm_draw
@@ -560,8 +574,9 @@ class Game:
 		elif win_line == 7:
 			line = [self.b_centers[2], self.b_centers[6]]
 
-		z = self.z_calculation(int(line[0][1]))
+		# z = self.z_calculation(int(line[0][1]))
 		# z = self.z_depth - int((self.draw_msg.y - 2500)/9.4)
+		z = self.z_depth
 
 		#getting into position
 		motions = ["data: move_to:: " + str(int(line[0][0])) + ", " + str(int(line[0][1])) + ", " + str(z+250)+ ", " + str(0),
@@ -617,7 +632,12 @@ class Game:
 		self.arm_pub.publish("data: set_speed:: 1000")
 		print "set speed to 1000"
 		time.sleep(1)
-		self.z_depth = -680
+
+		self.arm_pub.publish("data: set_accel:: 100")
+		print "set accel to 100"
+		time.sleep(1)
+
+		self.z_depth = -742
 		self.draw_the_board()
 
 		gd = GridDetector(self.frame)
@@ -637,12 +657,15 @@ class Game:
 		#Player is O: 1
 		#Edwin is X: 10
 		running = True
-		turn = random.randint(0,1)
-		# turn = 1
+		# turn = random.randint(0,1)
+		turn = 0
 		if turn == 0:
 			print "YOUR TURN"
 			self.behav_pub.publish("nudge")
+			time.sleep(2)
 
+		self.behav_pub.publish("R_ttt")
+		time.sleep(1)
 		ai = False
 		while running:
  	 		if turn == 0: #Player turn.
@@ -652,8 +675,11 @@ class Game:
 	 			else:
 	 				self.field_scan()
 
-	 			if self.is_winner(self.board)[0] == 2: #Checks if the player made a winning move.
+				winner = self.is_winner(self.board)
+	 			if winner[0] == 2: #Checks if the player made a winning move.
 	 				print "PLAYER WINS"
+					time.sleep(10)
+					# self.draw_win_line(winner[1])
 	 				self.behav_pub.publish("sad")
 	 				time.sleep(1)
 	 				running = False
@@ -666,6 +692,7 @@ class Game:
 	 			next_move_ind = self.next_move()
 	 			if next_move_ind == "TIE":
 	 				print "IT'S A TIE"
+					time.sleep(10)
 	 				self.behav_pub.publish("pout")
 	 				running = False
 	 				continue
@@ -673,7 +700,8 @@ class Game:
 	 			winner = self.is_winner(self.board)
 	 			if winner[0] == 1:
 	 				print "EDWIN WINS"
-	 				self.draw_win_line(winner[1])
+					time.sleep(10)
+					# 	self.draw_win_line(winner[1])
 	 				self.behav_pub.publish("gloat")
 	 				time.sleep(1)
 	 				running = False

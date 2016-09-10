@@ -33,8 +33,10 @@ class ArmBehaviors:
     def behavior_callback(self, cmdin):
         print "RECEIVED CMD: ", cmdin
         cmd = str(cmdin).replace("data: ", "")
-        self.pub.publish("set_speed:: 1000")
-        time.sleep(1)
+        # self.pub.publish("set_speed:: 1000")
+        # time.sleep(1)
+        # self.pub.publish("set_accel:: 100")
+        # time.sleep(1)
         if cmd == "random":
             cmd = "impatient"
         elif "R_" in cmd:
@@ -48,6 +50,8 @@ class ArmBehaviors:
                     msg = "data: run_route:: " + str(elem)
                 elif "SPD" in elem:
                     msg = "data: set_speed:: " + str(elem.split("SPD: ")[1])
+                elif "ACCEL" in elem:
+                    msg = "data: set_accel:: " + str(elem.split("ACCEL: ")[1])
                 else:
                     joint = elem.split(":")[0]
                     pos = elem.split(":")[1]
@@ -61,29 +65,36 @@ class ArmBehaviors:
                         msg = "data: rotate_shoulder:: " + pos
                     elif joint == "WA":
                         msg = "data: rotate_waist:: " + pos
+                    elif joint == "WA_rel":
+                        msg = "data: rotate_waist_rel:: " + pos
                     elif joint == "SL":
-                        msg = "data: sleeping:: " + pos
+                        msg = "no message"
+                        # msg = "data: sleeping:: " + pos
+                        time.sleep(float(pos))
 
                 print "Publishing: ", msg
-                time.sleep(1.5)
                 self.pub.publish(msg)
+                if "R_" in elem:
+                    time.sleep(2.5)
+                else:
+                    time.sleep(1)
 
 
     def create_behaviors(self):
         self.behaviors["happy_butt_wiggle"] = "R_curl_up, WA: 4500, WA: 5400, WA: 4500, WA: 5400, WA: 4500, WA: 5400, SL: .5, R_look"
         self.behaviors["curiosity"] =  "R_curious, WR: 800, H: 0"
         self.behaviors["greet"] = "R_greet1, WR:1500, H: 100, H: 0"
-        self.behaviors["sad"] = "H: 1000, WR: 1900, SPD: 300, R_sad_turn, SPD: 350, R_inhale, R_1_weep, R_2_weep, R_3_weep, R_4_weep, R_5_weep, SL: .5, R_sigh_up, SL: .5, SPD: 500, R_sigh_down, SL: .5, SPD: 1000, R_look"
-        self.behaviors["nudge"] = "R_look, R_nudge, R_look"
+
+        self.behaviors["nudge"] = "R_look, H:0, H:-200, R_look"
         self.behaviors["nod"] = "R_stare, E:13000, E:12000"
         self.behaviors["gloat"] = "H: 1000	, WR: 1700, SPD: 350, R_laugh, SPD: 500, R_pretentious_look, WR: 500, SL: 1, WR: 700, SL: 1, WR: 900, SL: 1, WR: 1100"
         self.behaviors["angry"] = "SPD: 200, R_stare, SPD: 1000"
         self.behaviors["sleep"] = "R_sleep"
         self.behaviors["laugh"] = "SPD: 700, R_laugh, SPD: 1000"
         self.behaviors["idle_look_distance"] = "R_look_distance, SL: 1, WR: 1500, SL: .5, WR: 2300, R_look"
-        self.behaviors["idle_sniff"] = "R_1_sniff, R_2_sniff, R_look"
-        self.behaviors["idle_yawn"] = "SPD: 200, R_yawn, SL: .5, SPD: 500, R_slouch, SL: 1, R_look"
-        self.behaviors["idle_butt_wiggle"] = "R_scrunch_up, WA: 1250, WA: 750, WA: 1250, WA: 750, WA: 1250, WA: 750"
+        self.behaviors["idle_sniff"] = "R_1_sniff, SPD: 1000, R_2_sniff, R_look"
+        self.behaviors["idle_yawn"] = "SPD: 500, R_yawn, SL: .5, SPD: 500, R_slouch, SL: 1, R_look"
+        self.behaviors["idle_butt_wiggle"] = "R_scrunch_up, WA: 1250, WA: 750, WA: 1250, WA: 750"
         self.behaviors["idle_1_lookaround"] = "R_1_lookaround"
         self.behaviors["idle_2_lookaround"] = "H: 0, R_2_lookaround"
         self.behaviors["idle_3_lookaround"] = "R_3_lookaround, WR: 0, SL: .5, WR: 800"
@@ -93,6 +104,7 @@ class ArmBehaviors:
         self.behaviors["pout"] = "R_disbelief, SL: 1, R_pout, WA: -7500, WA: -6500, WA: -7500, WA: -6500, R_look_back, R_pout, WA: -7500, WA: -6500, WA: -7500, WA: -6500, R_look"
         self.behaviors["impatient"] = "WA: 250, WA: -250, WA: 250, WA: -250, WA: 0, SPD: 700, R_impatient, SL: 1, R_annoyed_nudge"
         self.behaviors["bored"] = "SPD: 400, R_bored, R_stare_away"
+
 
         rospack = rospkg.RosPack()
         PACKAGE_PATH = rospack.get_path("edwin")
@@ -109,12 +121,34 @@ class ArmBehaviors:
             self.behavior_callback(key)
             time.sleep(5)
 
+    def run_once(self, key):
+        time.sleep(2)
+        print " "
+        print "--------"
+        print "RUNNING: ", key
+        print "--------"
+        print " "
+        self.behavior_callback(key)
+        time.sleep(2)
+
     def run(self):
         r = rospy.Rate(10)
         while not rospy.is_shutdown():
             r.sleep()
 
 if __name__ == '__main__':
+    """
+    To fix:
+    nudge
+    idle_spin
+    impatient
+    idle_head_bobble
+    """
     behavior_eng = ArmBehaviors()
+    # behavior_eng.run_once("greet")
+
+    # behavior_eng.run_once("sad")
+    # behavior_eng.run_once("impatient")
+
     behavior_eng.run()
     # behavior_eng.loop_all()

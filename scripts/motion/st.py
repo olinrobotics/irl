@@ -64,6 +64,7 @@ RESERVE = 'RESERVE'
 ROUTE = 'ROUTE'
 LEARN = 'LEARN'
 START_HERE = 'START_HERE'
+DRY = 'DRY'
 SMOOTH = 'SMOOTH'
 ADJUST = 'ADJUST'
 NEW = 'NEW'
@@ -282,9 +283,20 @@ class StArm():
             #Match '>' only at the end of the string
             if s[-1:] == '>':
                 if self.debug:
+                    print " "
+                    print "------------------"
+                    print " "
                     print('Command ' + cmd + ' completed without ' +
                           'verification of success.')
+                    print "FAILED:  " + s
+                    print "------------------"
+                    print " "
+
                 self.pub.publish(cmd + "FAILED: " + s)
+                # if "Too tight" in s:
+                #     print "CATCHING TOO TIGHT ERROR"
+                #     return s
+                # else:
                 raise Exception('Arm command failed to execute as expected.', s)
             s += self.cxn.read(self.cxn.inWaiting())
 
@@ -335,19 +347,65 @@ class StArm():
         self.block_on_result(cmd)
 
     def run_route(self, route):
-        # route is string name of learned path
         cmd = SMOOTH + ' ' + route + ' ' + RUN
         # self.set_accel(6000)
         # cmd = route + ' ' + RUN
         print('Running route %s' % route)
         self.cxn.flushInput()
         self.cxn.write(cmd + CR)
-        self.block_on_result(cmd)
+        res = self.block_on_result(cmd)
+        # if "Too tight in res":
+            # raise Exception('Arm command failed to execute as expected.', res)
+        time.sleep(1)
         self.where()
 
+    # def run_route(self, route):
+    #     too_fast = True
+    #     tries = 1
+    #     # orig_accel = self.get_accel()
+    #     # orig_speed = self.get_speed()
+    #
+    #     while too_fast:
+    #         print('Doing dry run of route %s' % route)
+    #         cmd = DRY + ' ' + route + ' ' + RUN
+    #         self.cxn.flushInput()
+    #         self.cxn.write(cmd + CR)
+    #         res = self.block_on_result(cmd)
+    #
+    #         if "Too tight" in res:
+    #             print "CATCHING TOO TIGHT ERROR"
+    #             # if tries < 2:
+    #             #     #TODO: Fix the acceleration scaling
+    #             #     self.set_accel(orig_accel+1500*(tries))
+    #             #     tries += 1
+    #             # elif tries < 5:
+    #             #     self.set_speed(orig_speed-1000*(tries-1))
+    #             #     tries += 1
+    #             # else:
+    #             #     too_fast = False
+    #             #     self.set_accel(orig_accel)
+    #             #     self.set_speed(orig_speed)
+    #             raise Exception('Arm command failed to execute as expected.', res)
+    #
+    #             time.sleep(1)
+    #         else:
+    #             too_fast = False
+    #
+    #     # route is string name of learned path
+    #     cmd = SMOOTH + ' ' + route + ' ' + RUN
+    #     # self.set_accel(6000)
+    #     # cmd = route + ' ' + RUN
+    #     print('Running route %s' % route)
+    #     self.cxn.flushInput()
+    #     self.cxn.write(cmd + CR)
+    #     self.block_on_result(cmd)
+    #     # self.set_accel(orig_accel)
+    #     # self.set_speed(orig_speed)
+    #     self.where()
+
     def move_to(self, x, y, z, debug=False, block=True):
-        cmd = str(x) + ' ' + str(y) + ' ' + str(z) + ' MOVETO'
         if debug:
+            cmd = str(x) + ' ' + str(y) + ' ' + str(z) + ' MOVETO'
             print('Moving to cartesian coords: (' + str(x) + ', ' +
                   str(y) + ', ' + str(z) + ')')
         self.cartesian()
@@ -404,6 +462,16 @@ class StArm():
         self.cxn.write(cmd + CR)
         self.block_on_result(cmd)
         self.where()
+
+    def rotate_waist_rel(self, pitch):
+        cmd = TELL + ' ' + WAIST + ' ' + str(pitch) + ' ' + MOVE
+        print('Rotating hand to %s.' % pitch)
+        self.cxn.flushInput()
+        self.cxn.write(cmd + CR)
+        self.block_on_result(cmd)
+        self.cartesian()
+        self.where()
+
 
     def rotate_hand_rel(self, pitch_inc):
         cmd = TELL + ' ' + HAND + ' ' + str(pitch_inc) + ' ' + MOVE

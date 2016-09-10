@@ -20,6 +20,8 @@ class ArmCommands:
         print "CALIBRATING"
         self.arm.start()
         print "ARM SPD IS: ", self.arm.get_speed()
+        print "ARM ACCEL IS: ", self.arm.get_accel()
+
         self.arm.set_speed(10000)
         print "HOMING"
         self.arm.home()
@@ -104,7 +106,9 @@ class ArmCommands:
         elif cmd == "get_accel":
             accel = self.arm.get_accel()
         elif cmd == "set_accel":
-            self.arm.set_accel(param)
+            #ACCEL is also in units of 1000
+            print "setting accel to ", param
+            self.arm.set_accel(float(param))
         elif cmd == "run_route":
             self.pub2.publish(1)
             self.arm.run_route(param)
@@ -141,8 +145,13 @@ class ArmCommands:
             self.pub2.publish(0)
         elif cmd == "rotate_waist":
             self.pub2.publish(1)
-            self.pub2.publish(0)
             self.arm.rotate_waist(param)
+            self.pub2.publish(0)
+        elif cmd == "rotate_waist_rel":
+            self.pub2.publish(1)
+            print "RELATIVE WA ROTATION"
+            self.arm.rotate_waist(param)
+            self.pub2.publish(0)
         elif cmd == "rotate_hand_rel":
             self.pub2.publish(1)
             self.arm.rotate_hand_rel(param)

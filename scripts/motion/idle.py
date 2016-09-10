@@ -35,7 +35,7 @@ class IdleBehaviors:
         print self.idle_behaviors
 
         self.idling = True
-        self.idle_time = random.randint(5, 10)
+        self.idle_time = random.randint(5, 7)
         print "Starting idle node"
 
     def control_callback(self, data):
