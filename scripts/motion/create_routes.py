@@ -50,13 +50,25 @@ class RouteCreator:
         r29 = "R_follow_squirrel; 3000, 4000, 3000, 82, 240, 21"
         r30 = "R_spin_position; 1500, 1500, 800, 64, 240, 21"
 
-        # routes = [r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15, r16, r17, r18, r19, r20, r21, r22, r23, r24, r25, r26, r27, r28, r29, r30]
-        routes = [r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12]
+        r31 = "R_stare; 3296, 2308, 999, 0, 0, 0"
+        r32 = "R_ttt; 200, 2400, 1800, 720, 240, 2.1"
+        r33 = "R_look; 3664, 1774, 3013, 11, 0, 21"
+        r34 = "R_playful; 2027, 981, 98, -11, 0, 72"
+        r35 = "R_sleep; 0, 1891, 1732, 48, 0, 0"
+        r36 = "R_wakeup; 0, 3523, 5032, 1, 0, 0"
+        r37 = "R_leaving; -2689, 2612, 375, 27, 0, 18"
+        r38 = "R_greet1; 3665, 1774, 3013, 0, 0, 0"
+        r39 = "R_curious; 3664, 1774, 3013, 0, 0, 0"
+
+        routes = [r1, r2, r3, r4, r5, r6, r7, r8, r9,
+                r10, r11, r12]
+
+        routes = [r31, r32, r33, r34, r35, r36, r37]
         for r in routes:
             msg = "create_route:: " + r
             print "Sending message: ", msg
             self.arm_pub.publish(msg)
-            time.sleep(2)
+            time.sleep(.5)
 
 
         rospack = rospkg.RosPack()
