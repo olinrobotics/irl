@@ -86,7 +86,6 @@ class ArmBehaviors:
         self.behaviors["happy_butt_wiggle"] = "R_curl_up, WA: 4500, WA: 5400, WA: 4500, SL: .5, R_look"
         self.behaviors["curiosity"] =  "R_curious, WR: 800, H: 0"
         self.behaviors["greet"] = "R_greet1, WR:1500, H: 100, H: 0"
-
         self.behaviors["nudge"] = "R_look, H:0, H:-200, R_look"
         self.behaviors["nod"] = "R_stare, E:13000, E:12000"
         self.behaviors["gloat"] = "H: 1000	, WR: 1700, SPD: 350, R_laugh, SPD: 500, R_pretentious_look, WR: 500, SL: 1, WR: 700, SL: 1, WR: 900, SL: 1, WR: 1100"
@@ -107,7 +106,7 @@ class ArmBehaviors:
         rospack = rospkg.RosPack()
         PACKAGE_PATH = rospack.get_path("edwin")
 
-        pickle.dump(self.behaviors, open(PACKAGE_PATH + '/params/behaviors.txt', 'wb'))
+        pickle.dump(self.behaviors, open(PACKAGE_PATH + '/params/behaviors.txt', 'w'))
 
     def loop_all(self):
         for key in self.behaviors.keys():

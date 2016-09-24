@@ -292,7 +292,7 @@ class StArm():
                     print "------------------"
                     print " "
 
-                self.pub.publish(cmd + "FAILED: " + s)
+                self.pub.publish(cmd + " FAILED: " + s)
                 # if "Too tight" in s:
                 #     print "CATCHING TOO TIGHT ERROR"
                 #     return s
@@ -356,8 +356,11 @@ class StArm():
         res = self.block_on_result(cmd)
         # if "Too tight in res":
             # raise Exception('Arm command failed to execute as expected.', res)
+        if "NOT DEFINED" in res:
+            return False
         time.sleep(1)
         self.where()
+        return True
 
     # def run_route(self, route):
     #     too_fast = True

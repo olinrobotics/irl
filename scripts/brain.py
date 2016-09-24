@@ -29,6 +29,7 @@ class EdwinBrain:
         rospy.Subscriber('/edwin_imu', String, self.imu_callback, queue_size=1)
         rospy.Subscriber('/edwin_decoded_speech', String, self.speech_callback, queue_size=1)
         rospy.Subscriber('/arm_status', Int16, self.arm_mvmt_callback, queue_size=1)
+        rospy.Subscriber('/arm_debug', String, self.arm_debug_callback, queue_size = 1)
         # rospy.Subscriber('/kinect', String, self.kinect_demo_callback, queue_size = 1)
 
         self.arm_pub = rospy.Publisher('/arm_cmd', String, queue_size=2)
@@ -36,7 +37,7 @@ class EdwinBrain:
         self.emotion_pub = rospy.Publisher('/edwin_emotion', String, queue_size=2)
         self.control_pub = rospy.Publisher('/all_control', String, queue_size=2)
 
-        self.idling = True
+        self.idling = False
         self.moving = False
         self.running_game = False
 
@@ -50,12 +51,18 @@ class EdwinBrain:
         rospack = rospkg.RosPack()
         PACKAGE_PATH = rospack.get_path("edwin")
 
-        self.behaviors = pickle.load(open(PACKAGE_PATH + '/params/behaviors.txt', 'rb'))
-        self.routes = pickle.load(open(PACKAGE_PATH + '/params/routes.txt', 'rb'))
-
         time.sleep(1)
-        self.control_pub.publish("idle go; stt go; stt_keyword go; ed go")
+        self.control_pub.publish("stt go; stt_keyword go; ed go")
         print "edwin brain is running"
+
+    def arm_debug_callback(self, data):
+        if "ROUTE CREATE DONE" in data.data:
+            self.idling = True
+
+            #We only load the behavoirs and routes once we know inits worked
+            self.behaviors = pickle.load(open(PACKAGE_PATH + '/params/behaviors.txt', 'rb'))
+            self.routes = pickle.load(open(PACKAGE_PATH + '/params/routes.txt', 'rb'))
+            self.control_pub.publish("idle init")
 
     def arm_mvmt_callback(self, data):
         if data.data == 1:
