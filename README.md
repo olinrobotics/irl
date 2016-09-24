@@ -1,2 +1,2 @@
 # edwin
-ST-R17 co-worker robot
+ST-R17 co-worker dinosaur robotic arm
