@@ -31,7 +31,7 @@ class SpeechDetector:
         self.CHANNELS = 1
         self.RATE = 16000
 
-        self.SILENCE_LIMIT = 1  # Silence limit in seconds. The max ammount of seconds where
+        self.SILENCE_LIMIT = 1.5  # Silence limit in seconds. The max ammount of seconds where
                            # only silence is recorded. When this time passes the
                            # recording finishes and the file is decoded
 
@@ -65,8 +65,8 @@ class SpeechDetector:
         # kw_config.set_string('-lm', os.path.join(MODELDIR, 'en-us/en-us.lm.bin'))
         kw_config.set_string('-dict', os.path.join(MODELDIR, 'en-us/cmudict-en-us.dict'))
         kw_config.set_string('-kws', os.path.join(PACKAGE_PATH, "params/stt_keywords.txt"))
-        # kw_config.set_string('-keyphrase', 'okay edwin')
-        # kw_config.set_float('-kws_threshold', 1e+20)
+        kw_config.set_string('-keyphrase', 'okay edwin')
+        kw_config.set_float('-kws_threshold', 1e+20)
 
         self.kw_decoder = Decoder(kw_config)
 
@@ -191,6 +191,7 @@ class SpeechDetector:
                 print "Finished recording, decoding phrase"
                 self.speech_status_pub.publish("DONE")
                 filename = self.save_speech(list(prev_audio) + audio2send, p)
+                #print "Actually Finished Recording."
                 r = self.decode_phrase(filename)
                 print "DETECTED: ", r
                 speech_string = ""
@@ -217,5 +218,5 @@ class SpeechDetector:
         p.terminate()
 
 if __name__ == "__main__":
-    sd = SpeechDetector()
-    sd.run()
+	sd = SpeechDetector()
+	sd.run()
