@@ -18,7 +18,9 @@ class ArmCommands:
         self.plan = []
         self.arm = st.StArm()
         print "CALIBRATING"
+        self.arm.initial_calibration()
         self.arm.start()
+
         print "ARM SPD IS: ", self.arm.get_speed()
         print "ARM ACCEL IS: ", self.arm.get_accel()
 
@@ -38,9 +40,6 @@ class ArmCommands:
         print cmd
         if cmd == "de_energize":
             self.arm.de_energize()
-        elif cmd == "R_ttt":
-            print "MOVING TO TTT HOME POSITION"
-            self.arm.run_route("R_ttt")
         elif cmd == "energize":
             self.arm.energize()
         elif cmd == "where":
@@ -95,6 +94,8 @@ class ArmCommands:
             self.status_pub.publish(1)
             res = self.arm.run_route(param)
 
+            if not res:
+                self.debug_pub.publish("ROUTE NOT FOUND: " + param)
             self.status_pub.publish(0)
         elif cmd == "move_to":
             #NOTE: move_to is in units of mm

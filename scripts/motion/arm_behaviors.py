@@ -33,10 +33,6 @@ class ArmBehaviors:
     def behavior_callback(self, cmdin):
         print "RECEIVED CMD: ", cmdin
         cmd = str(cmdin).replace("data: ", "")
-        # self.pub.publish("set_speed:: 1000")
-        # time.sleep(1)
-        # self.pub.publish("set_accel:: 100")
-        # time.sleep(1)
         if cmd == "random":
             cmd = "impatient"
         elif "R_" in cmd:

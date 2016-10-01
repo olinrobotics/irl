@@ -24,9 +24,6 @@ class IdleBehaviors:
         self.last_interaction = time.time()
         self.stop_idle_time = time.time()
 
-        rospack = rospkg.RosPack()
-        PACKAGE_PATH = rospack.get_path("edwin")
-
         self.idling = False
         self.idle_time = random.randint(5, 7)
         print "Starting idle node"
@@ -44,6 +41,10 @@ class IdleBehaviors:
             time.sleep(3)
         elif "idle init" in data.data:
             self.idling = True
+
+            rospack = rospkg.RosPack()
+            PACKAGE_PATH = rospack.get_path("edwin")
+
             self.routes = pickle.load(open(PACKAGE_PATH + '/params/routes.txt', 'rb'))
             self.idle_behaviors = pickle.load(open(PACKAGE_PATH + '/params/behaviors.txt', 'rb'))
             self.idle_behaviors = {key: value for key, value in self.idle_behaviors.items()

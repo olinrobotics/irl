@@ -105,35 +105,30 @@ class StArm():
         connected to.
     '''
 
-    def __init__(self, dev=DEFAULT_DEV, baud=DEFAULT_BAUD_RATE,
-                 init=True, to=DEFAULT_TIMEOUT):
+    def __init__(self, baud=DEFAULT_BAUD_RATE, to=DEFAULT_TIMEOUT):
+        self.debug = True
 
         possiblePorts = ['/dev/ttyUSB0', '/dev/ttyUSB1','/dev/ttyUSB2', '/dev/ttyUSB3', '/dev/ttyUSB4']
         self.pub = rospy.Publisher('arm_debug', String, queue_size=10)
 
         for port in possiblePorts:
             try:
-                dev = port
-                self.cxn = s.Serial(dev, baudrate=baud, timeout=to)
-                print "I did it!", dev
-                break
+                self.cxn = s.Serial(port, baudrate=baud, timeout=to)
+                print "Connected to port: ", port
+                return
             except:
-                print "I didn't do it!", port
+                print "Couldn't connect to port: ", port
                 pass
 
-        # TODO
-        # Check and parse return values of all ROBOFORTH methods called.
-
-        self.debug = True
-        if init:
-            self.cxn.flushInput()
-            self.purge()
-            self.roboforth()
-            self.joint()
-            self.start()
-            self.calibrate()
-            self.home()
-            self.cartesian()
+    def initial_calibration(self):
+        self.cxn.flushInput()
+        self.purge()
+        self.roboforth()
+        self.joint()
+        self.start()
+        self.calibrate()
+        self.home()
+        self.cartesian()
 
         self.curr_pos = StPosCart()
         self.prev_pos = StPosCart()
@@ -356,12 +351,10 @@ class StArm():
         res = self.block_on_result(cmd)
         # if "Too tight in res":
             # raise Exception('Arm command failed to execute as expected.', res)
-        if "NOT DEFINED" in res:
-            return False
+
         time.sleep(1)
         self.where()
-        return True
-
+        
     # def run_route(self, route):
     #     too_fast = True
     #     tries = 1
