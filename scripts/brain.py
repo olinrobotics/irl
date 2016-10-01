@@ -48,9 +48,6 @@ class EdwinBrain:
         self.exit = False #should be catch all to exit all long running commands
         self.start_game = None
 
-        rospack = rospkg.RosPack()
-        PACKAGE_PATH = rospack.get_path("edwin")
-
         time.sleep(1)
         self.control_pub.publish("stt go; stt_keyword go; ed go")
         print "edwin brain is running"
@@ -59,9 +56,12 @@ class EdwinBrain:
         if "ROUTE CREATE DONE" in data.data:
             self.idling = True
 
+            rospack = rospkg.RosPack()
+            self.PACKAGE_PATH = rospack.get_path("edwin")
+
             #We only load the behavoirs and routes once we know inits worked
-            self.behaviors = pickle.load(open(PACKAGE_PATH + '/params/behaviors.txt', 'rb'))
-            self.routes = pickle.load(open(PACKAGE_PATH + '/params/routes.txt', 'rb'))
+            self.behaviors = pickle.load(open(self.PACKAGE_PATH + '/params/behaviors.txt', 'rb'))
+            self.routes = pickle.load(open(self.PACKAGE_PATH + '/params/routes.txt', 'rb'))
             self.control_pub.publish("idle init")
 
     def arm_mvmt_callback(self, data):
