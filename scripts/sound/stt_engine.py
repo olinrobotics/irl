@@ -65,8 +65,8 @@ class SpeechDetector:
         # kw_config.set_string('-lm', os.path.join(MODELDIR, 'en-us/en-us.lm.bin'))
         kw_config.set_string('-dict', os.path.join(MODELDIR, 'en-us/cmudict-en-us.dict'))
         kw_config.set_string('-kws', os.path.join(PACKAGE_PATH, "params/stt_keywords.txt"))
-        kw_config.set_string('-keyphrase', 'okay edwin')
-        kw_config.set_float('-kws_threshold', 1e+20)
+        #kw_config.set_string('-keyphrase', 'okay edwin')
+        #kw_config.set_float('-kws_threshold', 1e+20)
 
         self.kw_decoder = Decoder(kw_config)
 
@@ -96,6 +96,7 @@ class SpeechDetector:
                   for x in range(num_samples)]
         values = sorted(values, reverse=True)
         r = sum(values[:int(num_samples * 0.2)]) / int(num_samples * 0.2)
+        print(r)
         print " Finished "
         print " Average audio intensity is ", r
         stream.close()
