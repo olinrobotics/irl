@@ -24,6 +24,7 @@ class RouteCreator:
         self.route_dictionary = {}
         self.create_route_dictionary()
 
+        self.initialized = False
         print "Initializing"
 
     def create_route_dictionary(self):
@@ -79,6 +80,10 @@ class RouteCreator:
         # self.create_route_dictionary()
         if "HOMING DONE" in cmd_raw.data:
             self.setup_initial_routes()
+            self.initialized = True
+            return
+
+        if self.initialized == False:
             return
 
         if "RUN FAILED" in cmd_raw.data:
@@ -103,8 +108,9 @@ class RouteCreator:
             msg = "create_route:: " + route
             print "Sending message: ", msg
             self.arm_pub.publish(msg)
+
         time.sleep(1.5)
-        self.arm_pub.publish("run_route:: " + route)
+        self.arm_pub.publish("run_route:: " + route.split(";")[0])
 
     def run(self):
         r = rospy.Rate(10)
