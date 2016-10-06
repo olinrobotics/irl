@@ -53,11 +53,11 @@ class HandwritingRecognition:
 
     def find_text_area(self):
         img = self.frame
-        edges = cv2.Canny(img,80,255)
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        blur = cv2.GaussianBlur(gray,(5,5),0)
+        edges = cv2.Canny(blur,60,255)
 
-        minLineLength = 50
-        maxLineGap = 100
-        lines = cv2.HoughLines(edges,1,np.pi/180,175)
+        lines = cv2.HoughLines(edges,1,np.pi/180,140)
         if lines is not None:
             for rho,theta in lines[0]:
                 a = np.cos(theta)
@@ -70,7 +70,7 @@ class HandwritingRecognition:
                 y2 = int(y0-1000*(a))
 
                 cv2.line(img,(x1,y1),(x2,y2),(0,0,255),2)
-        img = cv2.goodFeaturesToTrack(img,100,0.1)
+        cv2.imshow('image2',edges)
         self.frame = img
 
         # Returns a list of image ROIs (20x20) corresponding to digits found in the image
@@ -79,11 +79,13 @@ class HandwritingRecognition:
 
         frame_gray = cv2.cvtColor(new_frame,cv2.COLOR_BGR2GRAY)
         edges = cv2.Canny(frame_gray,155,255)
-
+        cv2.imshow('edges',edges)
         # Only looking for external contours
-        contours,hierarchy = cv2.findContours(edges,cv2.RETR_EXTERNAL,
+        contours,hierarchy = cv2.findContours(edges,cv2.RETR_TREE,
                                                 cv2.CHAIN_APPROX_NONE)
 
+        cv2.drawContours(edges, contours, -1, (255, 255, 255), thickness=-1)
+        cv2.drawContours(self.frame, contours, -1, (255, 0, 0), 2,maxLevel=0)
         # Build the list of number contours and number locations
         self.number_locs = []
         number_contours = []
@@ -91,17 +93,19 @@ class HandwritingRecognition:
             if not cv2.isContourConvex(contour) and len(number_contours) < 100:
                 [x,y,w,h] = cv2.boundingRect(contour)
                 if x >= 10 and y >= 10 and (x+w) <= (frame_gray.shape[0] - 10) and (y+h) <= (frame_gray.shape[1] - 10):
-                    roi = frame_gray[y-10:y+h+10,x-10:x+w+10]
+                    roi = edges[y-10:y+h+10,x-10:x+w+10]
 
                     if len(roi) > 0: # Gets rid of weird zero-size contours
                         new_roi = cv2.resize(roi, (20,20)) # standardize contours
-                        new_roi = cv2.adaptiveThreshold(new_roi,255,
-                            cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,11,2)
+                        # new_roi = cv2.adaptiveThreshold(new_roi,255,
+                        #     cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,11,2)
                         kernel = np.ones((2,2),np.uint8)
                         # dilate to make numbers more thicc
+                        #new_roi = cv2.morphologyEx(new_roi, cv2.MORPH_OPEN, kernel)
                         new_roi = cv2.dilate(new_roi,kernel,iterations = 1)
 
-                        # Record contour and cocntour location
+
+                        # Record contour and contour location
                         number_contours.append(new_roi)
                         self.number_locs.append((x+w,y+h))
 
@@ -144,10 +148,10 @@ class HandwritingRecognition:
         self.process_data()
         self.train_knn()
         while not rospy.is_shutdown():
-            self.find_text_area()
-            # ROI = self.get_text_roi()
+            #self.find_text_area()
+            ROI = self.get_text_roi()
             #print ROI.shape
-            # self.process_digits(ROI)
+            self.process_digits(ROI)
             #cv2.imshow('image2',ROI[0].reshape(20,20).astype(float8))
             self.output_image()
             r.sleep()
