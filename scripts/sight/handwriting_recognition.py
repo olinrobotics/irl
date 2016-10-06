@@ -79,29 +79,32 @@ class HandwritingRecognition:
 
         frame_gray = cv2.cvtColor(new_frame,cv2.COLOR_BGR2GRAY)
         edges = cv2.Canny(frame_gray,155,255)
-        cv2.imshow('edges',edges)
+        # cv2.imshow('edges',edges)
         # Only looking for external contours
-        contours,hierarchy = cv2.findContours(edges,cv2.RETR_TREE,
+        out_frame = cv2.adaptiveThreshold(frame_gray,255,
+            cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,15,10)
+        kernel = np.ones((2,2),np.uint8)
+        erode = cv2.erode(out_frame,kernel,iterations=2)
+        contours,hierarchy = cv2.findContours(edges,cv2.RETR_EXTERNAL,
                                                 cv2.CHAIN_APPROX_NONE)
 
-        cv2.drawContours(edges, contours, -1, (255, 255, 255), thickness=-1)
-        cv2.drawContours(self.frame, contours, -1, (255, 0, 0), 2,maxLevel=0)
         # Build the list of number contours and number locations
         self.number_locs = []
         number_contours = []
+
+        # cv2.imshow('newframe',erode)
         for contour in contours:
             if not cv2.isContourConvex(contour) and len(number_contours) < 100:
                 [x,y,w,h] = cv2.boundingRect(contour)
                 if x >= 10 and y >= 10 and (x+w) <= (frame_gray.shape[0] - 10) and (y+h) <= (frame_gray.shape[1] - 10):
-                    roi = edges[y-10:y+h+10,x-10:x+w+10]
+                    roi = frame_gray[y-10:y+h+10,x-10:x+w+10]
 
                     if len(roi) > 0: # Gets rid of weird zero-size contours
                         new_roi = cv2.resize(roi, (20,20)) # standardize contours
-                        # new_roi = cv2.adaptiveThreshold(new_roi,255,
-                        #     cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,11,2)
-                        kernel = np.ones((2,2),np.uint8)
+                        new_roi = cv2.adaptiveThreshold(new_roi,255,
+                            cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,17,5)
                         # dilate to make numbers more thicc
-                        #new_roi = cv2.morphologyEx(new_roi, cv2.MORPH_OPEN, kernel)
+                        # new_roi = cv2.morphologyEx(new_roi, cv2.MORPH_OPEN, kernel)
                         new_roi = cv2.dilate(new_roi,kernel,iterations = 1)
 
 
