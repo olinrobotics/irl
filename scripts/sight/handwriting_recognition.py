@@ -24,6 +24,8 @@ class HandwritingRecognition:
         PACKAGE_PATH = rospack.get_path("edwin")
         self.detect = True
         cv2.namedWindow('image')
+        cv2.createTrackbar('K','image',1,255,self.nothing)
+        cv2.setTrackbarPos('K','image',5)
 
     def img_callback(self, data):
         try:
@@ -81,10 +83,10 @@ class HandwritingRecognition:
         edges = cv2.Canny(frame_gray,155,255)
         # cv2.imshow('edges',edges)
         # Only looking for external contours
-        out_frame = cv2.adaptiveThreshold(frame_gray,255,
-            cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,15,10)
+        # out_frame = cv2.adaptiveThreshold(frame_gray,255,
+        #     cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,15,10)
         kernel = np.ones((2,2),np.uint8)
-        erode = cv2.erode(out_frame,kernel,iterations=2)
+        # erode = cv2.erode(out_frame,kernel,iterations=2)
         contours,hierarchy = cv2.findContours(edges,cv2.RETR_EXTERNAL,
                                                 cv2.CHAIN_APPROX_NONE)
 
@@ -113,7 +115,7 @@ class HandwritingRecognition:
                         self.number_locs.append((x+w,y+h))
 
         # Build an image to show all number contours
-        if len(number_contours) < 10:
+        if len(number_contours) < 10 and len(number_contours) > 0:
             new_img = np.ones((20,20*len(number_contours)),np.uint8)
             y = 0
             for x in range(0,len(number_contours)):
@@ -130,7 +132,8 @@ class HandwritingRecognition:
         return out_data
 
     def process_digits(self,test_data):
-        ret,result,neighbors,dist = self.knn.find_nearest(test_data,k=5)
+        k_val = cv2.getTrackbarPos('K','image')
+        ret,result,neighbors,dist = self.knn.find_nearest(test_data,k=2)
         new_frame = self.frame
         self.res = result
         nums = []
@@ -144,6 +147,14 @@ class HandwritingRecognition:
         new_frame = self.frame
         cv2.imshow('image', new_frame)
         cv2.waitKey(1)
+
+    def deskew(self,img):
+        m = cv2.moments(img)
+        if abs(m['mu02']) < 1e-2:
+            return img.copy()
+        skew = m['null']/m['mu02']
+        M = np.float32([[1,skew,-0.5*SZ*skew], [0,1,0]])
+        img = cv2.warpAffine(img,M,(SZ,SZ),flags=affine_flags)
 
     def run(self):
         r = rospy.Rate(10)
