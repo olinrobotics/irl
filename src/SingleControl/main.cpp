@@ -21,7 +21,7 @@
 
 //ROS headers
 #include <ros/ros.h>
-#include <ros/package.h>  #for file paths
+#include <ros/package.h>  //for file paths
 
 #include <stdlib.h>
 #include "std_msgs/String.h"
@@ -30,7 +30,7 @@
 
 
 #include <edwin/pointerpos.h>
-#include <edwin/gestures.h>
+#include <edwin/edwin_gestures.h>
 #include <sstream>
 
 
@@ -41,13 +41,24 @@ xn::DepthGenerator g_DepthGenerator;
 xn::UserGenerator  g_UserGenerator;
 
 // xml to initialize OpenNI
-#define SAMPLE_XML_FILE "Data/Sample-Tracking.xml"
-#define SAMPLE_XML_FILE_LOCAL "Sample-Tracking.xml"
+
+std::string path = ros::package::getPath("edwin");
+std::string sample_file_path = "/src/Data/Sample-Tracking.xml";
+std::string x = path + sample_file_path;
+std::string sample_file_local_path = "Sample-Tracking.xml";
+std::string y = path + sample_file_local_path;
+
+const char* sample_file = x.c_str();
+const char* sample_file_local = y.c_str();
+
+#define SAMPLE_XML_FILE sample_file
+#define SAMPLE_XML_FILE_LOCAL sample_file_local
 
 //variables that will be used in sending out ROS messages
 int xpos;
 int ypos;
 int zpos;
+int num;
 bool wave;
 bool sess_start;
 bool sess_end;
@@ -105,20 +116,11 @@ XnBool fileExists(const char *fn)
 int main(int argc, char** argv)
 {
 
-  //ros::Subscriber subcommand = rosnode.subscribe("/camera/rgb/image_color", 10, cameracallback);
-
-
-
-  	/*ros::Subscriber subcommand = rosnode.subscribe("/camera/depth_registered/image_raw", 10, cameracallback);
-  	printf("subscribe get\n");
-*/
 	xn::Context context;
 	xn::ScriptNode scriptNode;
 	XnVSessionGenerator* pSessionGenerator;
 	XnBool bRemoting = FALSE;
 
-	ros::init(argc, argv, "detect_people", ros::init_options::NoSigintHandler);
-  	ros::NodeHandle rosnode = ros::NodeHandle();
 
 	if (argc > 1)
 	{
@@ -182,6 +184,15 @@ int main(int argc, char** argv)
 	printf("Please perform focus gesture to start session\n");
 	printf("Hit any key to exit\n");
 
+	//We initialize our ROS nodes and publishers here
+	ros::init(argc, argv, "pointcontrol", ros::init_options::NoSigintHandler);
+  	ros::NodeHandle rosnode = ros::NodeHandle();
+
+
+  	ros::Publisher pub_single_servo = rosnode.advertise<std_msgs::Int16>("single_servo", 10); //publisher for gesture booleans
+  	std_msgs::Int16 msg_single_servo;
+
+
 	// Main loop
 	while (!xnOSWasKeyboardHit())
 	{
@@ -193,6 +204,35 @@ int main(int argc, char** argv)
 		{
 			context.WaitAnyUpdateAll();
 			((XnVSessionManager*)pSessionGenerator)->Update(&context);
+
+			//fill out the custom message fields with the placeholders we've previously defined
+/*			msg.positionx = xpos;
+			msg.positiony = ypos;
+			msg.positionz = zpos;
+			pub.publish(msg);
+			msg_gestures.wave = wave;
+			msg_gestures.hello = sess_start;
+			msg_gestures.goodbye = sess_end;
+			pub_gestures.publish(msg_gestures);
+*/
+			if(wave)
+			{
+				num = 1;
+			}
+			else
+			{
+			 	num = 0;
+			}
+
+			msg_single_servo.data = num;
+			pub_single_servo.publish(msg_single_servo);
+
+			//set gesture booleans back to false for re-initialization again
+			wave = false;
+			sess_start = false;
+			sess_end = false;
+
+			ros::spinOnce();
 		}
 	}
 
