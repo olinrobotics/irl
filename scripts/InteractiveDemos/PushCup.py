@@ -20,6 +20,7 @@ class cup_pusher:
     def __init__(self):
 
         self.bridge = CvBridge()
+        rospy.init_node('push_cup') # This is where you go, "Oh, I remember nodes from the ROS tutorial! Oh wait, that's all I remember". Go back learn it, pleb
         self.image_sub = rospy.Subscriber("/usb_cam/image_raw",Image,self.callback)
 
     # Runs once for every reciept of an image from usb_cam
@@ -31,55 +32,15 @@ class cup_pusher:
 
         self.apply_filter(cv_image)
 
-    # This manages all applications of filters.
+    # Manages all applications of filters.
     def apply_filter(self, feed):
-
-        # Detect Cup using Shape Detection Function
-        def detectcup_shape(video):
-
-             vidgray = cv2.cvtColor(video,cv2.COLOR_BGR2GRAY) #Changes BGR video to GRAY vidgray
-
-             ret,thresh = cv2.threshold(vidgray,50,90,cv2.THRESH_BINARY_INV)
-             contours, h = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
-
-             for cnt in contours:
-
-                 approx = cv2.approxPolyDP(cnt,0.01*cv2.arcLength(cnt, True), True)
-                 if len(approx)==15 and math.fabs(approx.item(0)-approx.item(2))>10:
-                     cv2.drawContours(video,[cnt],0,(0,255,255),-1)
-
-             # Feed Display(s) for debug:
-             #cv2.imshow('detectcup_shape: Raw Video(video)',video)
-             #cv2.imshow('detectcup_shape: To GRAY Filter (vidgray)',vidgray)
-             #cv2.imshow('detectcup_shape: Threshold Filter (thresh)',thresh)
-
-             return video
-
-        # Detect Cup using Color Detection Function
-        def detectcup_color(video):
-
-             hsv = cv2.cvtColor(video, cv2.COLOR_BGR2HSV) #Changes RGB video to HSV hsv
-
-             # Sets lower and upper bound for filter range (determined via TrackObject.py for red SOLO cup)
-             lower_red = np.array([0,132,101])
-             upper_red = np.array([183,255,148])
-
-             mask = cv2.inRange(hsv, lower_red, upper_red) # Filters to black all pixels except between range
-             res = cv2.bitwise_and(feed, feed, mask= mask) # Colors filtered section red
-
-             # Feed Display(s) for debug:
-             #cv2.imshow('detectcup_color: Raw Video (video)',video)
-             cv2.imshow('detectcup_color: To HSV Filter (hsv)', hsv)
-             cv2.imshow('detectcup_color: Red Filter (mask)',mask)
-             cv2.imshow('detectcup_color: Final Feed (res)',res)
-             return res
 
         # Where all the stuff not in the two functions goes
         blur = cv2.GaussianBlur(feed, (5,5), 0) # Because blurrier is better
 
         # Cause the functions have to be called somewhere
-        step1 = detectcup_color(blur)
-        step2 = detectcup_shape(step1)
+        step1 = self.detectcup_color(blur)
+        step2 = self.detectcup_shape(step1)
 
         # Feed Display(s) for debug:
         cv2.imshow('Raw Feed (feed)',feed)
@@ -89,15 +50,52 @@ class cup_pusher:
 
         k = cv2.waitKey(5) & 0xFF
 
-# For being the place where everything is actually called and happens, it's pretty boring tbh
-def main(args):
-    pc = cup_pusher() # Here's the class!
-    rospy.init_node('push_cup') # This is where you go, "Oh, I remember nodes from the ROS tutorial! Oh wait, that's all I remember". Go back learn it, pleb
-    try: #JustTryIt #WhoopsMeantJustDoIt
-        rospy.spin()
-    except KeyboardInterrupt:
-        print("Shitting down") # Yes it was a typo. No, I'm not fixing it
-    cv2.destroyAllWindows() # Python equivalent of pre-pubescent boys playing backyard baseball.
+    # Detect Cup using Shape Detection Function
+    def detectcup_shape(self, video):
 
-if __name__=='__main__': # Hell if I know
-    main(sys.argv) # Calls main? I think
+         vidgray = cv2.cvtColor(video,cv2.COLOR_BGR2GRAY) #Changes BGR video to GRAY vidgray
+
+         ret,thresh = cv2.threshold(vidgray,50,90,cv2.THRESH_BINARY_INV)
+         contours, h = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+
+         for cnt in contours:
+
+             approx = cv2.approxPolyDP(cnt,0.01*cv2.arcLength(cnt, True), True)
+             if len(approx)==15 and math.fabs(approx.item(0)-approx.item(2))>10:
+                 cv2.drawContours(video,[cnt],0,(0,255,255),-1)
+
+         # Feed Display(s) for debug:
+         #cv2.imshow('detectcup_shape: Raw Video(video)',video)
+         #cv2.imshow('detectcup_shape: To GRAY Filter (vidgray)',vidgray)
+         #cv2.imshow('detectcup_shape: Threshold Filter (thresh)',thresh)
+
+         return video
+
+    # Detect Cup using Color Detection Function
+    def detectcup_color(self, video):
+
+         hsv = cv2.cvtColor(video, cv2.COLOR_BGR2HSV) #Changes RGB video to HSV hsv
+
+         # Sets lower and upper bound for filter range (determined via TrackObject.py for red SOLO cup)
+         lower_red = np.array([0,132,101])
+         upper_red = np.array([183,255,148])
+
+         mask = cv2.inRange(hsv, lower_red, upper_red) # Filters to black all pixels except between range
+         res = cv2.bitwise_and(video, video, mask= mask) # Colors filtered section red
+
+         # Feed Display(s) for debug:
+         #cv2.imshow('detectcup_color: Raw Video (video)',video)
+         cv2.imshow('detectcup_color: To HSV Filter (hsv)', hsv)
+         cv2.imshow('detectcup_color: Red Filter (mask)',mask)
+         cv2.imshow('detectcup_color: Final Feed (res)',res)
+         return res
+
+    # Updating Function
+    def run(self):
+        r = rospy.Rate(20) # Sets update rate
+        while not rospy.is_shutdown():
+            r.sleep()
+
+if __name__=='__main__':
+    pc = cup_pusher()
+    pc.run() # Calls run function
