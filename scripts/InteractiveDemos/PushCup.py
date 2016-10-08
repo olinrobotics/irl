@@ -22,14 +22,14 @@ class cup_pusher:
         self.bridge = CvBridge()
         rospy.init_node('push_cup') # This is where you go, "Oh, I remember nodes from the ROS tutorial! Oh wait, that's all I remember". Go back learn it, pleb
         self.image_sub = rospy.Subscriber("/usb_cam/image_raw",Image,self.callback)
-
+        self.cup_x_prev = 640/2
+        self.cup_y_prev = 480/2
     # Runs once for every reciept of an image from usb_cam
     def callback(self, data):
         try:
             cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8") # Converts usb cam feed to csv feed; bgr8 is an image encoding
         except CvBridgeError as e:
             print(e)
-
         self.apply_filter(cv_image)
 
     # Manages all applications of filters.
@@ -70,16 +70,26 @@ class cup_pusher:
         cnt = contours[0]
         moments = cv2.moments(cnt)
         if moments['m00']!=0:
-            cx = int(moments['m10']/moments['m00'])
-            cy = int(moments['m01']/moments['m00'])
-            print ("x = ",cx,"| y = ",cy)
-            cv2.circle(video,(cx,cy),5,(255, 0, 0),-1)
+
+            # Calculates xy values of centroid and draws circle on it
+            self.cup_x = int(moments['m10']/moments['m00'])
+            self.cup_y = int(moments['m01']/moments['m00'])
+            cv2.circle(video,(self.cup_x,self.cup_y),5,(255, 0, 0),-1)
+
+            # Check if cup has moved significantly
+            if abs(self.cup_x - self.cup_x_prev) >= 10:
+                self.cup_moved = True
+            else:
+                self.cup_moved = False
+
+            print ("x = ",self.cup_x,"| y = ",self.cup_y,"| cup_moved = ",self.cup_moved)
+            self.cup_x_prev = self.cup_x
+            self.cup_y_prev = self.cup_y
 
         # Feed Display(s) for debug:
         #cv2.imshow('calculate: Raw Video(contour)',contour)
         cv2.imshow('calculate: Centroid Draw(video)',video)
 
-    # Updating Function
     def run(self):
         r = rospy.Rate(20) # Sets update rate
         while not rospy.is_shutdown():
