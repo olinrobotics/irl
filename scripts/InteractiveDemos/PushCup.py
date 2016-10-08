@@ -35,60 +35,49 @@ class cup_pusher:
     # Manages all applications of filters.
     def apply_filter(self, feed):
 
-        # Where all the stuff not in the two functions goes
+        # Where all the stuff not in the detectcup function goes
         blur = cv2.GaussianBlur(feed, (5,5), 0) # Because blurrier is better
 
         # Cause the functions have to be called somewhere
-        step1 = self.detectcup_color(blur)
-        step2 = self.detectcup_shape(step1)
-
+        contour, contours = self.contour_cup(blur)
+        self.calculate(contour, contours)
         # Feed Display(s) for debug:
-        cv2.imshow('Raw Feed (feed)',feed)
+        #cv2.imshow('Raw Feed (feed)',feed)
         #cv2.imshow('Gaussian Blur Filter (blur)', blur)
-        #cv2.imshow('Step 1 Feed: Color (step1)', step1)
-        #cv2.imshow('Step 2 Feed: Shape (step2)', step2)
+        #cv2.imshow('Contour Filter (contour)', contour)
 
         k = cv2.waitKey(5) & 0xFF
 
-    # Detect Cup using Shape Detection Function
-    def detectcup_shape(self, video):
-
+    # Cup Detection & Contouring Function
+    def contour_cup(self, video):
+         contour = video # Duplicate video feed so as to display both raw footage and final contoured footage
          vidgray = cv2.cvtColor(video,cv2.COLOR_BGR2GRAY) #Changes BGR video to GRAY vidgray
-
-         ret,thresh = cv2.threshold(vidgray,50,90,cv2.THRESH_BINARY_INV)
+         ret,thresh = cv2.threshold(vidgray,100,200,cv2.THRESH_BINARY_INV)
          contours, h = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
-
-         for cnt in contours:
-
-             approx = cv2.approxPolyDP(cnt,0.01*cv2.arcLength(cnt, True), True)
-             if len(approx)==15 and math.fabs(approx.item(0)-approx.item(2))>10:
-                 cv2.drawContours(video,[cnt],0,(0,255,255),-1)
+         cv2.drawContours(contour, contours, -1, (0,255,0), 3)
 
          # Feed Display(s) for debug:
-         #cv2.imshow('detectcup_shape: Raw Video(video)',video)
+         #cv2.imshow('contour_cup: Raw Video(video)',video)
          #cv2.imshow('detectcup_shape: To GRAY Filter (vidgray)',vidgray)
          #cv2.imshow('detectcup_shape: Threshold Filter (thresh)',thresh)
+         #cv3.imshow('contour_cup: Final Video(contour)',contour)
 
-         return video
+         return contour, contours
 
-    # Detect Cup using Color Detection Function
-    def detectcup_color(self, video):
+    # Center & Movement Detection Function
+    def calculate(self, contour, contours):
+        video = contour
+        cnt = contours[0]
+        moments = cv2.moments(cnt)
+        if moments['m00']!=0:
+            cx = int(moments['m10']/moments['m00'])
+            cy = int(moments['m01']/moments['m00'])
+            print ("x = ",cx,"| y = ",cy)
+            cv2.circle(video,(cx,cy),5,(255, 0, 0),-1)
 
-         hsv = cv2.cvtColor(video, cv2.COLOR_BGR2HSV) #Changes RGB video to HSV hsv
-
-         # Sets lower and upper bound for filter range (determined via TrackObject.py for red SOLO cup)
-         lower_red = np.array([0,132,101])
-         upper_red = np.array([183,255,148])
-
-         mask = cv2.inRange(hsv, lower_red, upper_red) # Filters to black all pixels except between range
-         res = cv2.bitwise_and(video, video, mask= mask) # Colors filtered section red
-
-         # Feed Display(s) for debug:
-         #cv2.imshow('detectcup_color: Raw Video (video)',video)
-         cv2.imshow('detectcup_color: To HSV Filter (hsv)', hsv)
-         cv2.imshow('detectcup_color: Red Filter (mask)',mask)
-         cv2.imshow('detectcup_color: Final Feed (res)',res)
-         return res
+        # Feed Display(s) for debug:
+        #cv2.imshow('calculate: Raw Video(contour)',contour)
+        cv2.imshow('calculate: Centroid Draw(video)',video)
 
     # Updating Function
     def run(self):
