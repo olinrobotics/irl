@@ -26,6 +26,10 @@ class HandwritingRecognition:
         cv2.namedWindow('image')
         cv2.createTrackbar('K','image',1,255,self.nothing)
         cv2.setTrackbarPos('K','image',5)
+        self.test_data = np.zeros((200,200),np.uint8)
+        self.test_filled = 0
+
+    # def fill_test_data(self):
 
     def img_callback(self, data):
         try:
@@ -83,7 +87,7 @@ class HandwritingRecognition:
         edges = cv2.Canny(frame_gray,155,255)
         # cv2.imshow('edges',edges)
         # Only looking for external contours
-        # out_frame = cv2.adaptiveThreshold(frame_gray,255,
+        # out_frame = cv2.adaptiveThreshold(frame_gray,150,
         #     cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,15,10)
         kernel = np.ones((2,2),np.uint8)
         # erode = cv2.erode(out_frame,kernel,iterations=2)
@@ -124,24 +128,28 @@ class HandwritingRecognition:
             cv2.imshow('image3',new_img)
         data_array = np.array(number_contours)
 
+        out_data = []
         # Reshapes the array to be an array of 1x400 floats to fit
         # with the kNN training data
-        out_data = data_array[:,:].reshape(-1,400).astype(np.float32)
+        if len(data_array) > 0:
+            out_data = data_array[:,:].reshape(-1,400).astype(np.float32)
+            return out_data
         cv2.waitKey(1)
         # cv2.imshow('image',frame_gray)
-        return out_data
+        return None
 
     def process_digits(self,test_data):
-        k_val = cv2.getTrackbarPos('K','image')
-        ret,result,neighbors,dist = self.knn.find_nearest(test_data,k=2)
-        new_frame = self.frame
-        self.res = result
-        nums = []
-        if result.shape[0] < 7:
-            for x in self.res:
-                nums.append(str(int(x.item(0))))
-            for index,y in enumerate(nums):
-                cv2.putText(new_frame,y,self.number_locs[index],cv2.FONT_HERSHEY_SIMPLEX, 4,(0,255,0))
+        if test_data is not None:
+            k_val = cv2.getTrackbarPos('K','image')
+            ret,result,neighbors,dist = self.knn.find_nearest(test_data,k=2)
+            new_frame = self.frame
+            self.res = result
+            nums = []
+            if result.shape[0] < 7:
+                for x in self.res:
+                    nums.append(str(int(x.item(0))))
+                for index,y in enumerate(nums):
+                    cv2.putText(new_frame,y,self.number_locs[index],cv2.FONT_HERSHEY_SIMPLEX, 4,(0,255,0))
 
     def output_image(self):
         new_frame = self.frame
