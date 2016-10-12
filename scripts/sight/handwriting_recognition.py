@@ -26,6 +26,20 @@ class HandwritingRecognition:
         cv2.namedWindow('image')
         cv2.createTrackbar('K','image',1,255,self.nothing)
         cv2.setTrackbarPos('K','image',5)
+        cv2.setMouseCallback('image',self.fill_test_data)
+        self.test_data = np.zeros((200,200),np.uint8)
+        self.test_filled = 0
+
+    def fill_test_data(self, event, x, y, flags, param):
+        if event == cv2.EVENT_LBUTTONDOWN:
+            for contour in self.numbers:
+                if self.test_filled < 100:
+                    x_index = (self.test_filled%10)*20
+                    y_index = (self.test_filled // 10)*20
+                    self.test_data[y_index:y_index+20,x_index:x_index+20] = contour
+                    self.test_filled += 1
+        elif event == cv2.EVENT_RBUTTONDOWN:
+            cv2.imwrite('test_data.png',self.test_data)
 
     def img_callback(self, data):
         try:
@@ -115,6 +129,7 @@ class HandwritingRecognition:
                         self.number_locs.append((x+w,y+h))
 
         # Build an image to show all number contours
+        self.numbers = number_contours
         if len(number_contours) < 10 and len(number_contours) > 0:
             new_img = np.ones((20,20*len(number_contours)),np.uint8)
             y = 0
@@ -126,26 +141,31 @@ class HandwritingRecognition:
 
         # Reshapes the array to be an array of 1x400 floats to fit
         # with the kNN training data
-        out_data = data_array[:,:].reshape(-1,400).astype(np.float32)
+        if data_array is not None:
+            out_data = data_array[:,:].reshape(-1,400).astype(np.float32)
+            return out_data
         cv2.waitKey(1)
         # cv2.imshow('image',frame_gray)
-        return out_data
+        return None
 
     def process_digits(self,test_data):
-        k_val = cv2.getTrackbarPos('K','image')
-        ret,result,neighbors,dist = self.knn.find_nearest(test_data,k=2)
-        new_frame = self.frame
-        self.res = result
-        nums = []
-        if result.shape[0] < 7:
-            for x in self.res:
-                nums.append(str(int(x.item(0))))
-            for index,y in enumerate(nums):
-                cv2.putText(new_frame,y,self.number_locs[index],cv2.FONT_HERSHEY_SIMPLEX, 4,(0,255,0))
+        if test_data is not None:
+            k_val = cv2.getTrackbarPos('K','image')
+            ret,result,neighbors,dist = self.knn.find_nearest(test_data,k=2)
+            new_frame = self.frame
+            self.res = result
+            nums = []
+            if result.shape[0] < 7:
+                for x in self.res:
+                    nums.append(str(int(x.item(0))))
+                for index,y in enumerate(nums):
+                    cv2.putText(new_frame,y,self.number_locs[index],cv2.FONT_HERSHEY_SIMPLEX, 4,(0,255,0))
 
     def output_image(self):
         new_frame = self.frame
         cv2.imshow('image', new_frame)
+        if self.test_data is not None:
+            cv2.imshow('test', self.test_data)
         cv2.waitKey(1)
 
     def deskew(self,img):
