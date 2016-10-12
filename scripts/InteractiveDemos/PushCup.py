@@ -20,27 +20,37 @@ class cup_pusher:
     def __init__(self):
 
         self.bridge = CvBridge()
-        rospy.init_node('push_cup') # This is where you go, "Oh, I remember nodes from the ROS tutorial! Oh wait, that's all I remember". Go back learn it, pleb
+        rospy.init_node('push_cup') # Creates node from which to subcribe and publish data
         self.image_sub = rospy.Subscriber("/usb_cam/image_raw",Image,self.callback)
-        self.cup_x_prev = 640/2
-        self.cup_y_prev = 480/2
+
+        # Stores previous cup position, contour area, and counter for taking data
+        self.cup_x_prev = 640/2 # Middle of the screen to have variables to start with
+        self.cup_y_prev = 480/2 # -
+        self.prev_area = 100
+        self.timecounter = 0
+        self.cup_x = 640/2 # Middle of the screen to have variables to start with
+        self.cup_y = 480/2 # -
+        self.human_in_frame = False
+
     # Runs once for every reciept of an image from usb_cam
     def callback(self, data):
+        self.timecounter += 1
         try:
             cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8") # Converts usb cam feed to csv feed; bgr8 is an image encoding
         except CvBridgeError as e:
             print(e)
-        self.apply_filter(cv_image)
+        if self.timecounter == 3:
+            self.apply_filter(cv_image)
+            self.timecounter = 0
 
     # Manages all applications of filters.
     def apply_filter(self, feed):
 
-        # Where all the stuff not in the detectcup function goes
-        blur = cv2.GaussianBlur(feed, (5,5), 0) # Because blurrier is better
+        blur = cv2.GaussianBlur(feed, (5,5), 0) # Gaussian Blur filter
 
-        # Cause the functions have to be called somewhere
         contour, contours = self.contour_cup(blur)
         self.calculate(contour, contours)
+
         # Feed Display(s) for debug:
         #cv2.imshow('Raw Feed (feed)',feed)
         #cv2.imshow('Gaussian Blur Filter (blur)', blur)
@@ -50,6 +60,7 @@ class cup_pusher:
 
     # Cup Detection & Contouring Function
     def contour_cup(self, video):
+
          contour = video # Duplicate video feed so as to display both raw footage and final contoured footage
          vidgray = cv2.cvtColor(video,cv2.COLOR_BGR2GRAY) #Changes BGR video to GRAY vidgray
          ret,thresh = cv2.threshold(vidgray,100,200,cv2.THRESH_BINARY_INV)
@@ -64,8 +75,17 @@ class cup_pusher:
 
          return contour, contours
 
+    # Boolean Toggling Function
+    def flip(self, boolean):
+        if boolean == False:
+            boolean = True
+        else:
+            boolean = False
+        return boolean
+
     # Center & Movement Detection Function
     def calculate(self, contour, contours):
+
         video = contour
         cnt = contours[0]
         moments = cv2.moments(cnt)
@@ -76,19 +96,26 @@ class cup_pusher:
             self.cup_y = int(moments['m01']/moments['m00'])
             cv2.circle(video,(self.cup_x,self.cup_y),5,(255, 0, 0),-1)
 
-            # Check if cup has moved significantly
-            if abs(self.cup_x - self.cup_x_prev) >= 10:
+            # Check if cup has moved significantly by comparing consecutive x and y values of the cup centroid
+            if abs(self.cup_x - self.cup_x_prev) >= 2:
                 self.cup_moved = True
             else:
                 self.cup_moved = False
 
-            print ("x = ",self.cup_x,"| y = ",self.cup_y,"| cup_moved = ",self.cup_moved)
+            # Checks for human involvement by analyzing the area of the cup contour for significant change
+            self.area = cv2.contourArea(cnt)
+            if abs(self.area - self.prev_area) > 200:
+                self.flip(self.human_in_frame)
+
+            # Prints values and updates storage variables
+            print ("x = ",self.cup_x,"| y = ",self.cup_y,"| cup_moved = ",self.cup_moved, "| human_in_frame = ",self.human_in_frame, "| area = ", self.area)
             self.cup_x_prev = self.cup_x
             self.cup_y_prev = self.cup_y
+            self.area_prev = self.area
 
-        # Feed Display(s) for debug:
-        #cv2.imshow('calculate: Raw Video(contour)',contour)
-        cv2.imshow('calculate: Centroid Draw(video)',video)
+            # Feed Display(s) for debug:
+            #cv2.imshow('calculate: Raw Video(contour)',contour)
+            cv2.imshow('calculate: Centroid Draw(video)',video)
 
     def run(self):
         r = rospy.Rate(20) # Sets update rate
