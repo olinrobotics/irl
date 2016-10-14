@@ -22,9 +22,9 @@ class Waver:
 
         if int(waves.data) == 1:
             print "I saw you wave! Hello!"
-            # msg = "data: R_nudge"
-            # self.behavior_pub.publish(msg)
-
+            msg = "data: R_nudge"
+            self.behavior_pub.publish(msg)
+            time.sleep(3)
 
     def run(self):
         print "running"
