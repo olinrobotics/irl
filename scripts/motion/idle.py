@@ -24,17 +24,7 @@ class IdleBehaviors:
         self.last_interaction = time.time()
         self.stop_idle_time = time.time()
 
-
-        rospack = rospkg.RosPack()
-        PACKAGE_PATH = rospack.get_path("edwin")
-
-        self.routes = pickle.load(open(PACKAGE_PATH + '/params/routes.txt', 'rb'))
-        self.idle_behaviors = pickle.load(open(PACKAGE_PATH + '/params/behaviors.txt', 'rb'))
-        self.idle_behaviors = {key: value for key, value in self.idle_behaviors.items()
-             if "idle" in key}
-        print self.idle_behaviors
-
-        self.idling = True
+        self.idling = False
         self.idle_time = random.randint(5, 7)
         print "Starting idle node"
 
@@ -45,10 +35,24 @@ class IdleBehaviors:
             self.stop_idle_time = time.time()
         elif "idle go" in data.data:
             self.idling = True
+            msg = random.choice(self.idle_behaviors.keys())
+            print "PUBLISHING: ", msg
+            self.behav_pub.publish(msg)
+            time.sleep(3)
+        elif "idle init" in data.data:
+            self.idling = True
+
+            rospack = rospkg.RosPack()
+            PACKAGE_PATH = rospack.get_path("edwin")
+
+            self.routes = pickle.load(open(PACKAGE_PATH + '/params/routes.txt', 'rb'))
+            self.idle_behaviors = pickle.load(open(PACKAGE_PATH + '/params/behaviors.txt', 'rb'))
+            self.idle_behaviors = {key: value for key, value in self.idle_behaviors.items()
+                 if "idle" in key}
+            print self.idle_behaviors
 
     def callback(self, data):
         self.last_interaction = time.time()
-
 
     def run(self):
         r = rospy.Rate(10)

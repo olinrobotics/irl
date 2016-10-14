@@ -22,6 +22,11 @@ class ArmGui:
         print "sending: ", msg
         self.pub.publish(msg)
 
+    def say_clbk(self, val):
+        msg = str(self.say_s.get())
+        print "sending: ", msg
+        self.say_pub.publish(msg)
+
     def behave_move(self, num):
         msg = str(self.behav_s.get())
         print "sending: ", msg
@@ -90,6 +95,14 @@ class ArmGui:
         self.f9 = tk.Frame(self.master)
         self.f9.pack(side=tk.TOP, fill=tk.X)
 
+        self.f10 = tk.Frame(self.master)
+        self.f10.pack(side=tk.TOP, fill=tk.X)
+
+        self.say_s = tk.Entry(self.f10)
+        self.say_s.bind('<Return>', self.say_clbk)
+        tk.Label(self.f10, text="Say: ").pack(side=tk.LEFT)
+        self.say_s.pack()
+
         self.route_s = tk.Entry(self.f7)
         self.route_s.bind('<Return>', self.route_move)
         tk.Label(self.f7, text="Route: ").pack(side=tk.LEFT)
@@ -141,6 +154,8 @@ class ArmGui:
         rospy.init_node('arm_tester', anonymous=True)
         self.pub2 = rospy.Publisher('behaviors_cmd', String, queue_size=10)
         self.pub = rospy.Publisher('arm_cmd', String, queue_size=10)
+
+        self.say_pub = rospy.Publisher('edwin_speech_cmd', String, queue_size=10)
 
         # while not rospy.is_shutdown():
             # time.sleep(1)
