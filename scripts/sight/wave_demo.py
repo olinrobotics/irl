@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import rospy
 import math
-import st
+# import st
 import numpy as np
 from std_msgs.msg import String, Int16
 from edwin.msg import *
@@ -11,22 +11,19 @@ import time
 class Waver:
     def __init__(self):
         rospy.init_node('edwin_presence', anonymous = True)
-        rospy.Subscriber('single_servo', Int16, self.wave_callback, queue_size=10)
+        rospy.Subscriber('wave_at_me', Int16, self.wave_callback, queue_size=10)
 
         self.behavior_pub = rospy.Publisher('behaviors_cmd', String, queue_size=10)
         self.arm_pub = rospy.Publisher('arm_cmd', String, queue_size=10)
         self.arm_pub.publish("data: set_speed:: 3000")
 
 
-    def wave_callback(self, data):
+    def wave_callback(self, waves):
 
-        time.sleep(1)
-        print "I received a piece of data which is ", data
-
-        if data == 1:
+        if int(waves.data) == 1:
             print "I saw you wave! Hello!"
-            msg = "data: R_nudge"
-            self.behavior_pub.publish(msg)
+            # msg = "data: R_nudge"
+            # self.behavior_pub.publish(msg)
 
 
     def run(self):

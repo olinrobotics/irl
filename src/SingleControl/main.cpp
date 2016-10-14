@@ -189,7 +189,7 @@ int main(int argc, char** argv)
   	ros::NodeHandle rosnode = ros::NodeHandle();
 
 
-  	ros::Publisher pub_single_servo = rosnode.advertise<std_msgs::Int16>("single_servo", 10); //publisher for gesture booleans
+  	ros::Publisher pub_single_servo = rosnode.advertise<std_msgs::Int16>("wave_at_me", 10); //publisher for gesture booleans
   	std_msgs::Int16 msg_single_servo;
 
 
