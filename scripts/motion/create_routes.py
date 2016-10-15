@@ -66,7 +66,7 @@ class RouteCreator:
 
 
     def setup_initial_routes(self):
-        inital_routes = ["R_ttt", "R_laugh", "R_yawn"]
+        inital_routes = ["R_ttt", "R_laugh", "R_nudge"]
         for r in inital_routes:
             msg = "create_route:: " + self.route_dictionary[r]
             print "Sending message: ", msg

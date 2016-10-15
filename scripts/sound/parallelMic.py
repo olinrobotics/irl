@@ -5,17 +5,20 @@ import pyaudio
 import math
 import matplotlib.pyplot
 import numpy as np
+import scipy
+
 
 #Constants
 CHUNK = 4096 #apparently 1024 causes overflow, anything above works.  
 CYCLE_LENGTH = 1 #How long each reading cycle is in seconds
 FORMAT = pyaudio.paFloat32
 RATE = 44100
+MIC_DISTANCE = .5 #Distance between Microphones in Meters.  
 
 #Some initialization things
 p = pyaudio.PyAudio()
 micChannelIndex = [] #list of the indices that the computer sees the microphone.  
-micChannels = []
+micChannels = [] #List of the microphone streams.  Two entries.
 streamData = [] #List of stream data.  There should be two entries, one for each string.
   
 
@@ -48,8 +51,8 @@ def openMic(computer_mic_index): #the index the computer sees the microphone as.
 	
 	micChannels.append(stream)
 	
-	micStream = []
-	streamData.append(micStream)
+	micStreamData = []
+	streamData.append(micStreamData)
 
 #Cycles
 def streamCycle():
@@ -83,6 +86,7 @@ def recordThread(mic_index):
 		data = micChannels[mic_index].read(CHUNK)
 		streamData[mic_index].append(data)
 		print "rec"
+	streamData[mic_index] = np.fromstring(np.asarray(streamData[mic_index]), np.int16)
 
 
 #Stream analysis.  Should return an angle.  Does mathematics to compare
@@ -92,14 +96,38 @@ def streamAnalysis():
 	time = []
 	amplitude_data = []
 	for j in range(0, channels): #convert to amplitude
-		amplitude = np.fromstring(np.asarray(streamData[j]), np.int16)
+		amplitude = streamData[j]
 		time = np.arange(0, 1, 1./amplitude.size)
 		amplitude_data.append(amplitude)
 	
 	for i in range(0, channels):
-		matplotlib.pyplot.plot(time, amplitude_data[i], "g")
-	
+		matplotlib.pyplot.plot(time, amplitude_data[i])
+
+	if len(streamData) == 2: #Find Distance
+		corrArray = np.(streamData[0], streamData[1], "full")
+		delay = numpy.argmax(corrArray) #Find the time delay, in seconds
+		ampRatio = #Amplitude Ratio.  
+		b = ampRatio*delay*343/(1-ampRatio) #distance to close microphone.  
+		a = delay*343 + b #distance to further microphone.
+		r = .5 * math.sqrt(4*b^2 + 4*a*b + 2*a^2 - MIC_DISTANCE^2) #median
+		theta = math.acos(r/MIC_DISTANCE + MIC_DISTANCE/(4*r) - b^2/(MIC_DISTANCE*r))
+
+
 	matplotlib.pyplot.show()
+
+	if len(streamData) == 2:
+		print "showing the difference"
+		for i in range(0, channels):
+			streamData[i] = scipy.fft(streamData[i])
+
+		difference = np.subtract(streamData[0], streamData[1])
+		average = np.mean(difference)
+		print "The streams are" + str(average) + "%" + " different"
+
+		ifft = scipy.ifft(streamData[0]*scipy.conj(streamData[1]))
+		time_shift = argmax(abs(ifft))
+		print time_shift
+
 
 def closeStreams():
 	for i in range(0,len(micChannels)):
