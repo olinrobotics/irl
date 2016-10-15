@@ -11,7 +11,7 @@ import pickle
 import os, sys
 
 class RouteCreator:
-    def __init__(self):
+    def __init__(self, default_init):
         rospy.init_node('route_creator', anonymous=True)
         self.arm_pub = rospy.Publisher('/arm_cmd', String, queue_size=2)
         self.debug_pub = rospy.Publisher('/arm_debug', String, queue_size=1)
@@ -24,7 +24,7 @@ class RouteCreator:
         self.route_dictionary = {}
         self.create_route_dictionary()
 
-        self.initialized = False
+        self.initialized = default_init
         print "Initializing"
 
     def create_route_dictionary(self):
@@ -118,5 +118,5 @@ class RouteCreator:
             r.sleep()
 
 if __name__ == '__main__':
-    rc = RouteCreator()
+    rc = RouteCreator(True)
     rc.run()
