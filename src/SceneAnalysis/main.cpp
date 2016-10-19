@@ -201,7 +201,6 @@ void glutDisplay (void)
 
 }
 
-#ifdef USE_GLUT
 void glutIdle (void)
 {
 	if (g_bQuit) {
@@ -259,7 +258,6 @@ void glInit (int * pargc, char ** argv)
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
 }
-#endif // USE_GLUT
 
 
 
@@ -302,33 +300,8 @@ int main(int argc, char **argv)
 	rc = g_Context.StartGeneratingAll();
 	CHECK_RC(rc, "StartGenerating");
 
-	#ifdef USE_GLUT
-
 	glInit(&argc, argv);
 	glutMainLoop();
 
-	#elif defined(USE_GLES)
 
-	if (!opengles_init(GL_WIN_SIZE_X, GL_WIN_SIZE_Y, &display, &surface, &context))
-	{
-		printf("Error initing opengles\n");
-		CleanupExit();
-	}
-
-	glDisable(GL_DEPTH_TEST);
-//	glEnable(GL_TEXTURE_2D);
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_COLOR_ARRAY);
-
-	while ((!_kbhit()) && (!g_bQuit))
-	{
-		glutDisplay();
-		eglSwapBuffers(display, surface);
-	}
-
-	opengles_shutdown(display, surface, context);
-
-	CleanupExit();
-
-	#endif
 }
