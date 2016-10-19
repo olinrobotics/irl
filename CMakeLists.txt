@@ -81,8 +81,16 @@ target_link_libraries(edwin_wave   ${catkin_LIBRARIES}
 				   ${OpenGL_INCLUDE_DIRS} -lXnVNite_1_5_2
 				   ${GLUT_LIBRARY})
 
+add_executable(edwin_bodies src/SceneAnalysis/main.cpp)
+add_dependencies(edwin_bodies geometry_msgs_gencpp ${PROJECT_NAME}_generate_messages_cpp)
+target_link_libraries(edwin_bodies   ${catkin_LIBRARIES}
+				   ${OpenNI_LIBRARIES}
+				   ${OpenGL_INCLUDE_DIRS} -lXnVNite_1_5_2
+				   ${GLUT_LIBRARY})
 
 install(TARGETS edwin_wave
+	RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+install(TARGETS edwin_bodies
 	RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 install(DIRECTORY include/${PROJECT_NAME}/
