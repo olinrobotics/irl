@@ -17,8 +17,6 @@
 
 #include "SceneDrawer.h"
 
-
-
 //ROS headers
 #include <ros/ros.h>
 #include <ros/package.h>  //for file paths
@@ -49,24 +47,10 @@ const char* sample_file = x.c_str();
 #define SAMPLE_XML_PATH sample_file
 
 
-#ifdef USE_GLUT
-#if (XN_PLATFORM == XN_PLATFORM_MACOSX)
-        #include <GLUT/glut.h>
-#else
-        #include <GL/glut.h>
-#endif
-#elif defined(USE_GLES)
-#include "opengles.h"
-#include "kbhit.h"
-#endif
+#include <GL/glut.h>
 
 #include "signal_catch.h"
 
-#ifdef USE_GLES
-static EGLDisplay display = EGL_NO_DISPLAY;
-static EGLSurface surface = EGL_NO_SURFACE;
-static EGLContext context = EGL_NO_CONTEXT;
-#endif
 
 #define GL_WIN_SIZE_X 720
 #define GL_WIN_SIZE_Y 480
@@ -185,11 +169,8 @@ void glutDisplay (void)
 	xn::SceneMetaData sceneMD;
 	xn::DepthMetaData depthMD;
 	g_DepthGenerator.GetMetaData(depthMD);
-#ifdef USE_GLUT
 	glOrtho(0, depthMD.XRes(), depthMD.YRes(), 0, -1.0, 1.0);
-#elif defined(USE_GLES)
-	glOrthof(0, depthMD.XRes(), depthMD.YRes(), 0, -1.0, 1.0);
-#endif
+
 
 	glDisable(GL_TEXTURE_2D);
 
@@ -211,16 +192,13 @@ void glutDisplay (void)
 	g_SceneAnalyzer.GetMetaData(sceneMD);
 
 	DrawDepthMap(depthMD, sceneMD);
-#ifdef USE_GLUT
 	if (g_bPrintFrameID)
 	{
 		DrawFrameID(depthMD.FrameID());
 	}
-#endif
 
-#ifdef USE_GLUT
 	glutSwapBuffers();
-#endif
+
 }
 
 #ifdef USE_GLUT
@@ -295,12 +273,12 @@ void glInit (int * pargc, char ** argv)
 
 
 //We initialize our ROS nodes and publishers here
-ros::init(argc, argv, "scenecontrol", ros::init_options::NoSigintHandler);
+ros::init(argc, argv, "pointcontrol", ros::init_options::NoSigintHandler);
   ros::NodeHandle rosnode = ros::NodeHandle();
 
 
-  ros::Publisher pub_bodies = rosnode.advertise<std_msgs::Int16>("scene_analysis", 10);
-  std_msgs::Int16 msg_bodies;
+  ros::Publisher pub_waving = rosnode.advertise<std_msgs::Int16>("wave_at_me", 10);
+  std_msgs::Int16 msg_waving;
 
 
 //-----------------------------------------------------------------------

@@ -20,7 +20,7 @@
 #include <XnCppWrapper.h>
 
 //ROS headers
-// #include <ros/ros.h>
+#include <ros/ros.h>
 #include <ros/package.h>  //for file paths
 
 #include <stdlib.h>
