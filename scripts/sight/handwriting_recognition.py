@@ -41,6 +41,28 @@ class HandwritingRecognition:
         elif event == cv2.EVENT_RBUTTONDOWN:
             cv2.imwrite('test_data.png',self.test_data)
 
+    def test_ocr(self):
+        data_img = cv2.imread('test_data.png')
+        gray = cv2.cvtColor(data_img,cv2.COLOR_BGR2GRAY)
+        cells = [np.hsplit(row,10) for row in np.vsplit(gray,10)]
+        x = np.array(cells)
+        test = x[:,:].reshape(-1,400).astype(np.float32)
+        labels = np.array([[8],[9],[5],[3],[4],[8],[7],[3],[1],[2],
+                           [8],[7],[9],[2],[3],[4],[8],[9],[0],[3],
+                           [4],[5],[5],[4],[1],[2],[7],[9],[7],[6],
+                           [5],[2],[3],[1],[5],[2],[7],[8],[5],[7],
+                           [8],[4],[5],[7],[8],[4],[5],[1],[2],[6],
+                           [5],[4],[2],[2],[1],[9],[8],[8],[5],[4],
+                           [8],[7],[7],[4],[4],[3],[2],[3],[4],[1],
+                           [5],[2],[9],[7],[8],[8],[7],[5],[4],[1],
+                           [2],[8],[7],[5],[4],[1],[7],[7],[7],[9],
+                           [8],[8],[7],[8],[7],[1],[6],[4],[8],[6]])
+        ret,result,neighbors,dist = self.knn.find_nearest(test,k=2)
+        matches = result==labels
+        correct = np.count_nonzero(matches)
+        accuracy = correct*100.0/result.size
+        print 'Accuracy: ', accuracy
+
     def img_callback(self, data):
         try:
             self.frame = self.bridge.imgmsg_to_cv2(data, "bgr8")
@@ -71,7 +93,6 @@ class HandwritingRecognition:
         img = self.frame
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         blur = cv2.GaussianBlur(gray,(5,5),0)
-        edges = cv2.Canny(blur,60,255)
 
         lines = cv2.HoughLines(edges,1,np.pi/180,140)
         if lines is not None:
@@ -91,42 +112,44 @@ class HandwritingRecognition:
 
         # Returns a list of image ROIs (20x20) corresponding to digits found in the image
     def get_text_roi(self):
+        bound = 15
         new_frame = self.frame
+        kernel = np.ones((2,2),np.uint8)
+
 
         frame_gray = cv2.cvtColor(new_frame,cv2.COLOR_BGR2GRAY)
-        edges = cv2.Canny(frame_gray,155,255)
-        # cv2.imshow('edges',edges)
-        # Only looking for external contours
-        # out_frame = cv2.adaptiveThreshold(frame_gray,255,
-        #     cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,15,10)
-        kernel = np.ones((2,2),np.uint8)
-        # erode = cv2.erode(out_frame,kernel,iterations=2)
-        contours,hierarchy = cv2.findContours(edges,cv2.RETR_EXTERNAL,
-                                                cv2.CHAIN_APPROX_NONE)
+        frame_gray = cv2.GaussianBlur(frame_gray, (5,5),0) # Gaussian blur to remove noise
 
+        # Adaptive threshold to find numbers on paper
+        thresh = cv2.adaptiveThreshold(frame_gray,255,
+            cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,31,3)
+        thresh = cv2.morphologyEx(thresh,cv2.MORPH_OPEN,kernel,iterations=3)
+
+
+        contours,hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,
+                                                cv2.CHAIN_APPROX_NONE)
         # Build the list of number contours and number locations
+
+
         self.number_locs = []
         number_contours = []
-
-        # cv2.imshow('newframe',erode)
-        for contour in contours:
-            if not cv2.isContourConvex(contour) and len(number_contours) < 100:
+        if len(number_contours) < 100:
+            for ind,contour in enumerate(contours):
+                # print hierarchy[0][ind]
                 [x,y,w,h] = cv2.boundingRect(contour)
-                if x >= 10 and y >= 10 and (x+w) <= (frame_gray.shape[0] - 10) and (y+h) <= (frame_gray.shape[1] - 10):
-                    roi = frame_gray[y-10:y+h+10,x-10:x+w+10]
+                if  bound < x < (frame_gray.shape[0] - bound) and bound < y < (frame_gray.shape[1] - bound) and (x+w) <= (frame_gray.shape[0] - bound) and (y+h) <= (frame_gray.shape[1] - bound):
+                    roi = frame_gray[y-bound:y+h+bound,x-bound:x+w+bound]
 
                     if len(roi) > 0: # Gets rid of weird zero-size contours
-                        new_roi = cv2.resize(roi, (20,20)) # standardize contours
-                        new_roi = cv2.adaptiveThreshold(new_roi,255,
-                            cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,17,5)
-                        # dilate to make numbers more thicc
-                        # new_roi = cv2.morphologyEx(new_roi, cv2.MORPH_OPEN, kernel)
-                        new_roi = cv2.dilate(new_roi,kernel,iterations = 1)
+                        new_roi = cv2.adaptiveThreshold(roi,255,
+                            cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,31,3)
+                        new_roi = cv2.dilate(new_roi,kernel,iterations=2) # Embiggen numbers
+                        new_roi = cv2.resize(new_roi, (20,20), interpolation=cv2.INTER_AREA) # standardize contours
 
-
-                        # Record contour and contour location
-                        number_contours.append(new_roi)
-                        self.number_locs.append((x+w,y+h))
+                        # Record contour and contour location, and filter out internal contours
+                        if hierarchy[0][ind][3] == -1:
+                            number_contours.append(new_roi)
+                            self.number_locs.append((x+w,y+h))
 
         # Build an image to show all number contours
         self.numbers = number_contours
@@ -141,11 +164,12 @@ class HandwritingRecognition:
 
         # Reshapes the array to be an array of 1x400 floats to fit
         # with the kNN training data
-        if data_array is not None:
+        try:
             out_data = data_array[:,:].reshape(-1,400).astype(np.float32)
             return out_data
+        except IndexError:
+            print 'Something went wrong.'
         cv2.waitKey(1)
-        # cv2.imshow('image',frame_gray)
         return None
 
     def process_digits(self,test_data):
@@ -181,6 +205,7 @@ class HandwritingRecognition:
         time.sleep(2)
         self.process_data()
         self.train_knn()
+        self.test_ocr()
         while not rospy.is_shutdown():
             #self.find_text_area()
             ROI = self.get_text_roi()
