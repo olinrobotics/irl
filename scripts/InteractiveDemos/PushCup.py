@@ -4,6 +4,8 @@
     Code taken from:
         [1] http://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_morphological_ops/py_morphological_ops.html
         [2] http://docs.opencv.org/trunk/d7/d4d/tutorial_py_thresholding.html
+        [3] edwin/scripts/InteractiveDemos TicTacToe.py, lines 663-665
+        [4] edwin/scripts/InteractiveDemos TicTacToe.py, line 161
 """
 
 # Imports
@@ -13,6 +15,7 @@ import cv2
 import rospy
 import sys
 import math
+import time
 import numpy as np
 from sensor_msgs.msg import Image
 from std_msgs.msg import String
@@ -23,9 +26,13 @@ class cup_pusher:
     # This runs once after the class is instantiated in main
     def __init__(self):
 
+        # Gets data from usb_cam
         self.bridge = CvBridge()
         rospy.init_node('push_cup') # Creates node from which to subcribe and publish data
         self.image_sub = rospy.Subscriber("/usb_cam/image_raw",Image,self.callback) # Determines node for subscription
+
+        # Sends data to Edwin
+		self.behav_pub = rospy.Publisher('behaviors_cmd', String, queue_size=10)
 
         # Stores cup positions, contour area, counter, and in-frame boolean
         self.cup_x_prev = 0
@@ -46,7 +53,7 @@ class cup_pusher:
             print(e)
 
         # SLows down data processing to once per three frames
-        if self.timecounter == 3:
+        if self.timecowunter == 3:
             self.apply_filter(cv_image)
             self.timecounter = 0
 
@@ -113,9 +120,12 @@ class cup_pusher:
         moments = cv2.moments(cnt)
         self.area = cv2.contourArea(cnt)
 
-        # Checks if cup is in screen by dividing area values into "cup" and "no_cup" based on size
+        # Checks if cup is in screen by dividing area values into "cup" and "no_cup" based on size [3]
         if self.area <= 15000:
             self.cup_in_frame = False
+            print "NO CUP DETECTED"
+            self.behav_pub.publish("sad")
+            time.sleep(2)
         else:
             self.cup_in_frame = True
 
