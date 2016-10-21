@@ -119,4 +119,5 @@ class RouteCreator:
 
 if __name__ == '__main__':
     rc = RouteCreator(True)
+    rc.setup_initial_routes()
     rc.run()
