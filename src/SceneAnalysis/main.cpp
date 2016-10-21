@@ -52,6 +52,8 @@ const char* sample_file = x.c_str();
 #include "signal_catch.h"
 
 
+
+
 #define GL_WIN_SIZE_X 720
 #define GL_WIN_SIZE_Y 480
 #define START_CAPTURE_CHECK_RC(rc, what)												\
@@ -139,8 +141,7 @@ void DrawProjectivePoints(XnPoint3D& ptIn, int width, double r, double g, double
 	pt[1] = ptIn.Y;
 	pt[2] = 0;
 
-  msg_bodyX.data = ptIn.X;
-  pub_bodyX.publish(msg_bodyX);
+
 	glColor4f(r,
 		g,
 		b,
@@ -270,13 +271,7 @@ void glInit (int * pargc, char ** argv)
 	}
 
 
-//We initialize our ROS nodes and publishers here
-ros::init(argc, argv, "pointcontrol", ros::init_options::NoSigintHandler);
-  ros::NodeHandle rosnode = ros::NodeHandle();
 
-
-  ros::Publisher pub_waving = rosnode.advertise<std_msgs::Int16>("wave_at_me", 10);
-  std_msgs::Int16 msg_waving;
 
 
 //-----------------------------------------------------------------------
@@ -287,6 +282,19 @@ int main(int argc, char **argv)
 {
 	XnStatus rc = XN_STATUS_OK;
 	xn::EnumerationErrors errors;
+
+	//We initialize our ROS nodes and publishers here
+	ros::init(argc, argv, "bodycontrol", ros::init_options::NoSigintHandler);
+		ros::NodeHandle rosnode = ros::NodeHandle();
+
+	  ros::Publisher pub_bodyX = rosnode.advertise<std_msgs::Int16>("body", 10);
+	  std_msgs::Int16 msg_bodyX;
+
+	while(true){
+		msg_bodyX.data = 1;
+		pub_bodyX.publish(msg_bodyX);
+	}
+
 
 	rc = g_Context.InitFromXmlFile(SAMPLE_XML_PATH, g_ScripeNode, &errors);
 	CHECK_ERRORS(rc, errors, "InitFromXmlFile");
