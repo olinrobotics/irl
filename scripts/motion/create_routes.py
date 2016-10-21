@@ -74,7 +74,7 @@ class RouteCreator:
             time.sleep(.5)
 
         self.debug_pub.publish("ROUTE CREATE DONE")
-
+        time.sleep(1)
 
     def create_callback(self, cmd_raw):
         # self.create_route_dictionary()
