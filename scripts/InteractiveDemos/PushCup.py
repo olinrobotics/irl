@@ -33,6 +33,7 @@ class cup_pusher:
 
         # Sends data to Edwin
 		self.behav_pub = rospy.Publisher('behaviors_cmd', String, queue_size=10)
+        self.arm_pub = rospy.Publisher('arm_cmd', String, queue_size=10)
 
         # Stores cup positions, contour area, counter, and in-frame boolean
         self.cup_x_prev = 0
@@ -103,14 +104,6 @@ class cup_pusher:
 
          return contour, contours
 
-    # Boolean Toggling Function
-    def flip(self, boolean):
-        if boolean == False:
-            boolean = True
-        else:
-            boolean = False
-        return boolean
-
     # Center & Movement Detection Function
     def calculate(self, contour, contours):
 
@@ -147,10 +140,6 @@ class cup_pusher:
             self.human_in_frame = True
         else:
             self.human_in_frame = False
-
-        # Checks for human involvement by analyzing the area of the cup contour for significant change [STORED]
-        #if abs(self.area - self.prev_area) > 200:
-        #    self.flip(self.human_in_frame)
 
         # Prints values and updates storage variables
         print ("x = ",self.cup_x,"| y = ",self.cup_y,"| cup_moved = ",self.cup_moved, "| human_in_frame = ",self.human_in_frame, "| area = ", self.area)
