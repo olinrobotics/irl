@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
 	cv_bridge
 	image_transport
 	geometry_msgs
+	tf
 )
 
 # Find OpenNI
@@ -49,8 +50,29 @@ generate_messages(
 catkin_package(
 	CATKIN_DEPENDS message_runtime std_msgs)
 
+include_directories(
+  ${catkin_INCLUDE_DIRS}
+  ${OpenNI_INCLUDEDIR}
+  ${OpenCV_INCLUDE_DIRS}
+  ${OpenGL_INCLUDE_DIRS}
+  ${GLUT_INCLUDE_DIRS}
+)
 
+include_directories("tools/nite/Include")
+include_directories("tools/nite/Source/XnCommon")
 
+link_directories(${catkin_LIBRARY_DIRS})
+link_directories(${GLUT_LIBRARY_DIRS}
+		 ${OpenGL_LIBRARY_DIRS})
+
+add_executable(edwin_wave src/SingleControl/main.cpp)
+add_dependencies(edwin_wave geometry_msgs_gencpp ${PROJECT_NAME}_generate_messages_cpp)
+
+target_link_libraries(edwin_wave   ${catkin_LIBRARIES}
+				   ${OpenNI_LIBRARIES}
+				   ${OpenGL_INCLUDE_DIRS} -lXnVNite_1_5_2
+				   ${GLUT_LIBRARY}
+)
 
 
 
@@ -58,35 +80,27 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
   ${OpenNI_INCLUDEDIR}
   ${OpenCV_INCLUDE_DIRS}
+  ${GLUT_INCLUDE_DIRS}
   ${OpenGL_INCLUDE_DIRS}
-  ${GLUT_INCLUDE_DIRS})
-
-
-
+)
 
 include_directories("tools/nite/Include")
 include_directories("tools/nite/Source/XnCommon")
 
+add_executable(edwin_bodies 
+		src/SceneAnalysis/main.cpp
+		src/SceneAnalysis/SceneDrawer.cpp
+		src/SceneAnalysis/signal_catch.cpp
+)
 
-link_directories(${catkin_LIBRARY_DIRS})
-link_directories(${GLUT_LIBRARY_DIRS}
-		 ${OpenGL_LIBRARY_DIRS})
-
-
-
-add_executable(edwin_wave src/SingleControl/main.cpp)
-add_dependencies(edwin_wave geometry_msgs_gencpp ${PROJECT_NAME}_generate_messages_cpp)
-target_link_libraries(edwin_wave   ${catkin_LIBRARIES}
-				   ${OpenNI_LIBRARIES}
-				   ${OpenGL_INCLUDE_DIRS} -lXnVNite_1_5_2
-				   ${GLUT_LIBRARY})
-
-add_executable(edwin_bodies src/SceneAnalysis/main.cpp)
 add_dependencies(edwin_bodies geometry_msgs_gencpp ${PROJECT_NAME}_generate_messages_cpp)
-target_link_libraries(edwin_bodies   ${catkin_LIBRARIES}
-				   ${OpenNI_LIBRARIES}
-				   ${OpenGL_INCLUDE_DIRS} -lXnVNite_1_5_2
-				   ${GLUT_LIBRARY})
+
+#MESSAGE( STATUS "OPENNI LIBRARIES: " ${OpenNI_LIBRARIES} )
+
+target_link_libraries(edwin_bodies ${OpenNI_LIBRARIES} -lXnVNite_1_5_2
+				   ${GLUT_LIBRARY} -lglut
+				   ${OpenGL_LIBRARIES} -lGL
+				   ${catkin_LIBRARIES})
 
 install(TARGETS edwin_wave
 	RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})

@@ -48,10 +48,11 @@ const char* sample_file = x.c_str();
 
 
 #include <GL/glut.h>
+#include <GL/gl.h>
 
 #include "signal_catch.h"
 
-
+int counter = 1;
 
 
 #define GL_WIN_SIZE_X 720
@@ -141,7 +142,6 @@ void DrawProjectivePoints(XnPoint3D& ptIn, int width, double r, double g, double
 	pt[1] = ptIn.Y;
 	pt[2] = 0;
 
-
 	glColor4f(r,
 		g,
 		b,
@@ -214,6 +214,7 @@ void glutIdle (void)
 
 void glutKeyboard (unsigned char key, int x, int y)
 {
+
 	switch (key)
 	{
 	case 27:
@@ -290,10 +291,6 @@ int main(int argc, char **argv)
 	  ros::Publisher pub_bodyX = rosnode.advertise<std_msgs::Int16>("body", 10);
 	  std_msgs::Int16 msg_bodyX;
 
-	while(true){
-		msg_bodyX.data = 1;
-		pub_bodyX.publish(msg_bodyX);
-	}
 
 
 	rc = g_Context.InitFromXmlFile(SAMPLE_XML_PATH, g_ScripeNode, &errors);
