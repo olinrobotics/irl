@@ -52,7 +52,15 @@ const char* sample_file = x.c_str();
 
 #include "signal_catch.h"
 
-int counter = 1;
+
+
+//ROS node global initializations
+ros::Publisher pub_body;
+std_msgs::String msg_body;
+
+
+
+
 
 
 #define GL_WIN_SIZE_X 720
@@ -160,6 +168,7 @@ void DrawProjectivePoints(XnPoint3D& ptIn, int width, double r, double g, double
 void glutDisplay (void)
 {
 
+
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// Setup the OpenGL viewpoint
@@ -192,7 +201,7 @@ void glutDisplay (void)
 	g_DepthGenerator.GetMetaData(depthMD);
 	g_SceneAnalyzer.GetMetaData(sceneMD);
 
-	DrawDepthMap(depthMD, sceneMD);
+	DrawDepthMap(depthMD, sceneMD, pub_body, msg_body);
 	if (g_bPrintFrameID)
 	{
 		DrawFrameID(depthMD.FrameID());
@@ -288,8 +297,7 @@ int main(int argc, char **argv)
 	ros::init(argc, argv, "bodycontrol", ros::init_options::NoSigintHandler);
 		ros::NodeHandle rosnode = ros::NodeHandle();
 
-	  ros::Publisher pub_bodyX = rosnode.advertise<std_msgs::Int16>("body", 10);
-	  std_msgs::Int16 msg_bodyX;
+	  pub_body = rosnode.advertise<std_msgs::String>("body", 10);
 
 
 

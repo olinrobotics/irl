@@ -7,9 +7,26 @@
 
 #include "SceneDrawer.h"
 #include <GL/gl.h>
-
-
 #include <GL/glut.h>
+
+
+//ROS headers
+#include <ros/ros.h>
+#include <ros/package.h>  //for file paths
+
+#include <stdlib.h>
+#include "std_msgs/String.h"
+#include "std_msgs/Bool.h"
+#include "std_msgs/Int16.h"
+
+#include <sstream>
+#include <string>
+
+std::ostringstream strs;
+std_msgs::String Xpos;
+std_msgs::String Ypos;
+
+
 
 
 #define MAX_DEPTH 10000
@@ -96,8 +113,11 @@ void DrawFrameID(XnUInt32 nFrameID)
 	glPrintString(GLUT_BITMAP_HELVETICA_18, strLabel);
 }
 
-void DrawDepthMap(const xn::DepthMetaData& dmd, const xn::SceneMetaData& smd)
+void DrawDepthMap(const xn::DepthMetaData& dmd, const xn::SceneMetaData& smd, ros::Publisher pub_body, std_msgs::String msg_body)
 {
+
+
+
 	static bool bInitialized = false;
 	static GLuint depthTexID;
 	static unsigned char* pDepthTexBuf;
@@ -255,6 +275,9 @@ void DrawDepthMap(const xn::DepthMetaData& dmd, const xn::SceneMetaData& smd)
 		glColor4f(1-Colors[i%nColors][0], 1-Colors[i%nColors][1], 1-Colors[i%nColors][2], 1);
 
 		glRasterPos2i(coms[i].X, coms[i].Y);
+		strs << coms[i].X;
+		msg_body.data = strs.str();
+		pub_body.publish(msg_body);
 		glPrintString(GLUT_BITMAP_HELVETICA_18, strLabel);
 	}
 }
