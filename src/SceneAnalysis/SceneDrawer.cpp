@@ -22,9 +22,15 @@
 #include <sstream>
 #include <string>
 
-std::ostringstream strs;
-std_msgs::String Xpos;
-std_msgs::String Ypos;
+#include <iostream>
+#include <iomanip>
+using namespace std;
+
+#include <cstdlib>
+
+std::string Xpos;
+std::string Ypos;
+std::string Zpos;
 
 
 
@@ -275,8 +281,22 @@ void DrawDepthMap(const xn::DepthMetaData& dmd, const xn::SceneMetaData& smd, ro
 		glColor4f(1-Colors[i%nColors][0], 1-Colors[i%nColors][1], 1-Colors[i%nColors][2], 1);
 
 		glRasterPos2i(coms[i].X, coms[i].Y);
-		strs << coms[i].X;
-		msg_body.data = strs.str();
+		// glRasterPos2i(320, 240); //testing for midpoint of Kinect
+
+		std::stringstream Xstrs;
+		std::stringstream Ystrs;
+		std::stringstream Zstrs;
+		std::stringstream index;
+
+		Xstrs << coms[i].X;
+		Xpos = Xstrs.str();
+		Ystrs << coms[i].Y;
+		Ypos = Ystrs.str();
+		Zstrs << coms[i].Z;
+		Zpos = Zstrs.str();
+		index << i;
+
+		msg_body.data = index.str() + ", " + Xpos + ", " + Ypos + ", " + Zpos;
 		pub_body.publish(msg_body);
 		glPrintString(GLUT_BITMAP_HELVETICA_18, strLabel);
 	}
