@@ -8,6 +8,7 @@ from std_msgs.msg import String
 from cv_bridge import CvBridge, CvBridgeError
 
 import numpy as np
+from scipy import stats
 from Character import Character
 
 import cv2
@@ -104,7 +105,7 @@ class HandwritingRecognition:
         thresh = cv2.adaptiveThreshold(frame_gray,255,
             cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,35,7)
         thresh = cv2.morphologyEx(thresh,cv2.MORPH_OPEN,kernel,iterations=3)
-        cv2.imshow('thresh',thresh)
+        # cv2.imshow('thresh',thresh)
 
         contours,hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,
                                                 cv2.CHAIN_APPROX_NONE)
@@ -132,7 +133,7 @@ class HandwritingRecognition:
         # Build an image to show all number contours
         num_len = len(chars)
         # print '# of contours: ', num_len
-        if num_len < 10 and num_len > 0:
+        if num_len < 35 and num_len > 0:
             new_img = np.ones((20,20*num_len),np.uint8)
             y = 0
             for x in chars:
@@ -143,6 +144,7 @@ class HandwritingRecognition:
         # Reshapes the array to be an array of 1x400 floats to fit
         # with the kNN training data
 
+        # Deskews a 20x20 character image
     def deskew(self,img):
         SZ = 20
         affine_flags = cv2.WARP_INVERSE_MAP|cv2.INTER_LINEAR
@@ -155,6 +157,7 @@ class HandwritingRecognition:
         img = cv2.warpAffine(img,M,(SZ,SZ),flags=affine_flags)
         return img
 
+        # Retursn the HOG for a given imagej
     def hog(self,img):
         bin_n = 16
         gx = cv2.Sobel(img, cv2.CV_32F,1,0) # x gradient
@@ -184,9 +187,61 @@ class HandwritingRecognition:
                 cv2.putText(self.frame,str(roi.result),(roi.x+roi.w,roi.y+roi.h) \
                             ,cv2.FONT_HERSHEY_SIMPLEX, 4,(0,255,0))
 
+    def find_words(self,char_list):
+        # Find lines (this is terrible - refactor)
+        line_space = []
+        char_list.sort(key = lambda roi: roi.y)
+        for ind in range(1,len(char_list)):
+            next_y = char_list[ind].y
+            curr_y = char_list[ind-1].y
+            line_space.append(char_list[ind].y - char_list[ind-1].y)
+        z_vals = stats.zscore(line_space)
+
+        line_index = [0]
+        for idx,val in enumerate(z_vals):
+            if val > 1:
+                line_index.append(idx+1)
+        line_index.append(len(char_list))
+        # print all_chars
+        # print word_index
+        lines = []
+        for idx in range(0,len(line_index)-1):
+            lines.append(char_list[line_index[idx]:line_index[idx+1]])
+
+        # Find words in lines(this is terrible - refactor)
+        for line in lines:
+            space_size = []
+            line.sort(key = lambda roi: roi.x)
+            for ind in range(1,len(line)):
+                next_x = char_list[ind+1].x
+                curr_x = char_list[ind].x + char_list[ind].h
+                space_size.append(char_list[ind].x - char_list[ind-1].x)
+            z_vals = stats.zscore(space_size)
+
+            word_index = [0]
+            for idx,val in enumerate(z_vals):
+                if val > 1:
+                    word_index.append(idx+1)
+            word_index.append(len(line))
+
+            words = []
+            for idx in range(0,len(word_index)-1):
+                words.append(''.join([str(x.result) for x in line[word_index[idx]:word_index[idx+1]]]))
+            print ' '.join(words)
+        print ''
+        # for word in lines:
+        #     print ' '.join([str(x.result) for x in word])
+
+
+
+
+
+
+    # Update the current frame
     def update_frame(self):
         self.frame = self.curr_frame
 
+    # display the current image
     def output_image(self):
         new_frame = self.frame
         cv2.imshow('image', new_frame)
@@ -197,11 +252,12 @@ class HandwritingRecognition:
         time.sleep(2)
         self.process_data_svm()
         self.train_svm()
-        self.test_ocr()
+        self.test_ocr() # print accuracy of current OCR
         while not rospy.is_shutdown():
             self.update_frame()
             self.chars = self.get_text_roi()
             self.process_digits(self.chars)
+            #self.find_words(self.chars)
             self.output_image()
             r.sleep()
 
