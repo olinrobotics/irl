@@ -1,11 +1,18 @@
 """Edwin Push-Cup Game
     Connor Novak: connor.novak@students.olin.edu
     Project in human-robot interaction: Edwin pushes cup, human pushes cup
+    Overview Position:
+    Wrist: 4400
+    Hand: 3000
+    Elbow: 7500
+    Shoulder: 100
+    Waist: 100
     Code taken from:
         [1] http://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_morphological_ops/py_morphological_ops.html
         [2] http://docs.opencv.org/trunk/d7/d4d/tutorial_py_thresholding.html
         [3] edwin/scripts/InteractiveDemos TicTacToe.py, lines 663-665
         [4] edwin/scripts/InteractiveDemos TicTacToe.py, line 161
+        [5] http://docs.opencv.org/master/d5/d45/tutorial_py_contours_more_functions.html
 """
 
 # Imports
@@ -32,8 +39,8 @@ class cup_pusher:
         self.image_sub = rospy.Subscriber("/usb_cam/image_raw",Image,self.callback) # Determines node for subscription
 
         # Sends data to Edwin
-		self.behav_pub = rospy.Publisher('behaviors_cmd', String, queue_size=10)
-        self.arm_pub = rospy.Publisher('arm_cmd', String, queue_size=10)
+		#self.behav_pub = rospy.Publisher('behaviors_cmd', String, queue_size=10)
+        #self.arm_pub = rospy.Publisher('arm_cmd', String, queue_size=10)
 
         # Stores cup positions, contour area, counter, and in-frame boolean
         self.cup_x_prev = 0
@@ -54,7 +61,7 @@ class cup_pusher:
             print(e)
 
         # SLows down data processing to once per three frames
-        if self.timecowunter == 3:
+        if self.timecounter == 3:
             self.apply_filter(cv_image)
             self.timecounter = 0
 
@@ -92,7 +99,7 @@ class cup_pusher:
 
          # Calculates and draws contours
          contours, h = cv2.findContours(opening,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
-         cv2.drawContours(contour, contours, -1, (0,255,0), 3)
+         cv2.drawContours(contour, contours, 0, (0,255,0), 3)
 
          # Feed Display(s) for debug:
          #cv2.imshow('contour_cup: Raw Video(video)',video)
@@ -114,13 +121,13 @@ class cup_pusher:
         self.area = cv2.contourArea(cnt)
 
         # Checks if cup is in screen by dividing area values into "cup" and "no_cup" based on size [3]
-        if self.area <= 15000:
-            self.cup_in_frame = False
-            print "NO CUP DETECTED"
-            self.behav_pub.publish("sad")
-            time.sleep(2)
-        else:
-            self.cup_in_frame = True
+        # if self.area <= 15000:
+        #     self.cup_in_frame = False
+        #     print ("NO CUP DETECTED")
+        #     self.behav_pub.publish("sad")
+        #     time.sleep(2)
+        # else:
+        #     self.cup_in_frame = True
 
         if moments['m00']!=0:
 
