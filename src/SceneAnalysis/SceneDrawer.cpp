@@ -19,6 +19,9 @@
 #include "std_msgs/Bool.h"
 #include "std_msgs/Int16.h"
 
+#include <edwin/People.h>
+#include <edwin/SceneAnalysis.h>
+
 #include <sstream>
 #include <string>
 
@@ -27,10 +30,6 @@
 using namespace std;
 
 #include <cstdlib>
-
-std::string Xpos;
-std::string Ypos;
-std::string Zpos;
 
 
 
@@ -119,7 +118,7 @@ void DrawFrameID(XnUInt32 nFrameID)
 	glPrintString(GLUT_BITMAP_HELVETICA_18, strLabel);
 }
 
-void DrawDepthMap(const xn::DepthMetaData& dmd, const xn::SceneMetaData& smd, ros::Publisher pub_body, std_msgs::String msg_body)
+void DrawDepthMap(const xn::DepthMetaData& dmd, const xn::SceneMetaData& smd, ros::Publisher pub_body, edwin::SceneAnalysis scene, edwin::People person)
 {
 
 
@@ -268,6 +267,12 @@ void DrawDepthMap(const xn::DepthMetaData& dmd, const xn::SceneMetaData& smd, ro
 	DrawTexture(dmd.XRes(),dmd.YRes(),0,0);
 	glDisable(GL_TEXTURE_2D);
 	char strLabel[3] = "";
+
+
+	//Initialize the scene array
+	// scene.crowd = [];
+
+
 	for (int i = 0; i < 20; ++i)
 	{
 		if (labels[i] == 0)
@@ -283,21 +288,20 @@ void DrawDepthMap(const xn::DepthMetaData& dmd, const xn::SceneMetaData& smd, ro
 		glRasterPos2i(coms[i].X, coms[i].Y);
 		// glRasterPos2i(320, 240); //testing for midpoint of Kinect
 
-		std::stringstream Xstrs;
-		std::stringstream Ystrs;
-		std::stringstream Zstrs;
-		std::stringstream index;
 
-		Xstrs << coms[i].X;
-		Xpos = Xstrs.str();
-		Ystrs << coms[i].Y;
-		Ypos = Ystrs.str();
-		Zstrs << coms[i].Z;
-		Zpos = Zstrs.str();
-		index << i;
+		person.ID = i;
+		person.xpos = coms[i].X;
+		person.ypos = coms[i].Y;
+		person.zpos = coms[i].Z;
 
-		msg_body.data = index.str() + ", " + Xpos + ", " + Ypos + ", " + Zpos;
-		pub_body.publish(msg_body);
+		scene.crowd[i] = person;
+
+
 		glPrintString(GLUT_BITMAP_HELVETICA_18, strLabel);
+	}
+	pub_body.publish(scene);
+	for(int i = 0; i < 20; ++i)
+	{
+		scene.crowd[i].ID = 0;
 	}
 }

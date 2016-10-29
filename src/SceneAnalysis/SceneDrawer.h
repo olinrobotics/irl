@@ -19,9 +19,12 @@
 #include "std_msgs/Bool.h"
 #include "std_msgs/Int16.h"
 
+#include <edwin/People.h>
+#include <edwin/SceneAnalysis.h>
+
 #include <sstream>
 
-void DrawDepthMap(const xn::DepthMetaData& dmd, const xn::SceneMetaData& smd, ros::Publisher pub_body, std_msgs::String msg_body);
+void DrawDepthMap(const xn::DepthMetaData& dmd, const xn::SceneMetaData& smd, ros::Publisher pub_body, edwin::SceneAnalysis scene, edwin::People person);
 void DrawFrameID(XnUInt32 nFrameID);
 
 #endif

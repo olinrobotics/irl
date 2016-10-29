@@ -21,6 +21,9 @@
 #include <ros/ros.h>
 #include <ros/package.h>  //for file paths
 
+#include <edwin/People.h>
+#include <edwin/SceneAnalysis.h>
+
 #include <stdlib.h>
 #include "std_msgs/String.h"
 #include "std_msgs/Bool.h"
@@ -56,8 +59,8 @@ const char* sample_file = x.c_str();
 
 //ROS node global initializations
 ros::Publisher pub_body;
-std_msgs::String msg_body;
-
+edwin::SceneAnalysis scene;
+edwin::People person;
 
 
 
@@ -201,7 +204,7 @@ void glutDisplay (void)
 	g_DepthGenerator.GetMetaData(depthMD);
 	g_SceneAnalyzer.GetMetaData(sceneMD);
 
-	DrawDepthMap(depthMD, sceneMD, pub_body, msg_body);
+	DrawDepthMap(depthMD, sceneMD, pub_body, scene, person);
 	if (g_bPrintFrameID)
 	{
 		DrawFrameID(depthMD.FrameID());
@@ -297,7 +300,7 @@ int main(int argc, char **argv)
 	ros::init(argc, argv, "bodycontrol", ros::init_options::NoSigintHandler);
 		ros::NodeHandle rosnode = ros::NodeHandle();
 
-	  pub_body = rosnode.advertise<std_msgs::String>("body", 10);
+	  pub_body = rosnode.advertise<edwin::SceneAnalysis>("body", 10);
 
 
 

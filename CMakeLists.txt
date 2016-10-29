@@ -36,6 +36,8 @@ add_message_files(
 	Edwin_Shape.msg
 	pointerpos.msg
 	edwin_gestures.msg
+	People.msg
+	SceneAnalysis.msg
 
 )
 
