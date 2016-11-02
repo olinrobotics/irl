@@ -7,7 +7,8 @@ from edwin.msg import *
 import time
 
 class Coordinates:
-    def __init__(self, x, y, z):
+    def __init__(self, ID, x, y, z):
+        self.ID = ID
         self.X = x
         self.Y = y
         self.Z = z
@@ -31,7 +32,6 @@ class Presence:
         self.arm_pub.publish("data: set_speed:: 3000")
 
         self.peoples = [None]*20
-        self.history = [None]*20
 
 
     def presence_callback(self, scene):
@@ -42,23 +42,40 @@ class Presence:
                 self.peoples[index] = None
             else:
                 if self.peoples[index] is None:
-                    self.peoples[index] = Coordinates(person.xpos, person.ypos, person.zpos)
+                    self.peoples[index] = Coordinates(person.ID, person.xpos, person.ypos, person.zpos)
                 else:
                     self.peoples[index].set_Coordinates(person.xpos, person.ypos, person.zpos)
 
 
-                print person.ID, self.peoples[index].X,  self.peoples[index].Y,  self.peoples[index].Z
+                print self.peoples[index].ID, self.peoples[index].X,  self.peoples[index].Y,  self.peoples[index].Z
 
         for person in self.peoples:
             if person is not None and person.acknowledged == False:
                 print "I see you!"
-                # msg = "data: R_look"
-                # self.behavior_pub.publish(msg)
-                time.sleep(3)
-                # msg = "data: R_nudge"
-                # self.behavior_pub.publish(msg)
-                # time.sleep(3)
+                msg = "data: R_look"
+                self.behavior_pub.publish(msg)
+                time.sleep(2)
+                msg = "data: R_nudge"
+                self.behavior_pub.publish(msg)
+                time.sleep(2)
                 person.acknowledged = True
+
+
+        print "I am paying attention to person", self.attention()
+
+
+    def attention(self):
+
+        center_of_attention = 0
+        distance = 5000
+        for person in self.peoples:
+            if person is not None:
+                if person.Z < distance:
+                    center_of_attention = person.ID
+                    distance = person.Z
+
+        if center_of_attention != 0:
+            return center_of_attention
 
 
     def run(self):

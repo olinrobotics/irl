@@ -31,7 +31,7 @@ class RouteCreator:
         ##Single set routes
         self.route_dictionary["R_stare"] = "R_stare; 3296, 2308, 999, 0, 0, 0"
         self.route_dictionary["R_ttt"] = "R_ttt; 200, 2400, 1800, 720, 240, 21"
-        self.route_dictionary["R_look"] = "R_look; 3664, 1774, 3013, 11, 0, 21"
+        self.route_dictionary["R_look"] = "R_look; 3664, 1774, 3013, 110, 225, 0"
         self.route_dictionary["R_impat"] = "R_impat; 0, 3621, 4860, 545, 120, 21"
         self.route_dictionary["R_laugh"] = "R_laugh; 1000, 700, 7000, -456, 150, 21, 2000, 2000, 2000, 580, 90, 21, 1500, 1500, 3500, 338, 90, 21, 1700, 1700, 3200, 338, 90, 21, 1500, 1500, 3500, 338, 90, 21, 1700, 1700, 3200, 338, 90, 21, 1500, 1500, 3500, 338, 90, 21, 1700, 1700, 3200, 338, 90, 21"
         self.route_dictionary["R_pretentious_look"] = "R_pretentious_look; 2000, 2000, 1300, 165, 90, 21"
@@ -45,6 +45,7 @@ class RouteCreator:
         self.route_dictionary["R_look_distance"] = "R_look_distance; 1000, -2500, 6000, 80, 240, 21"
         self.route_dictionary["R_1_sniff"] = "R_1_sniff; 1000, 4000, -700, 358, 240, 21, 1000, 4000, -700, 298, 270, 21, 1000, 4000, -700, 358, 240, 21, 1000, 4000, -700, 298, 270, 21,  1000, 4000, -700, 358, 240, 21"
         self.route_dictionary["R_2_sniff"] = "R_2_sniff; 4000, -100, -500, 346, 240, 21, 4000, -100, -500, 286, 240, 21, 4000, -100, -500, 346, 240, 21, 4000, -100, -500, 286, 240, 21, 4000, -100, -500, 346, 240, 21"
+        self.route_dictionary["R_3_sniff"] = "R_3_sniff; 3600, 1770, -200, 346, 240, 21, 3600, 1770, -200, 286, 240, 21, 3600, 1770, -200, 346, 240, 21, 3600, 1770, -200, 286, 240, 21, 3600, 1770, -200, 346, 240, 21"
         self.route_dictionary["R_yawn"] = "R_yawn; 1100, 1100, 7000, -850, 210, 21"
         self.route_dictionary["R_slouch"] = "R_slouch; 2400, 2400, 1000, 602, 210, 21, 2400, 2400, 1000, 151, 240, 21"
         self.route_dictionary["R_scrunch_up"] = "R_scrunch_up; 400, 3500, 300, 186, 240, 21"
