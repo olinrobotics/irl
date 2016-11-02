@@ -10,13 +10,15 @@ from cv_bridge import CvBridge, CvBridgeError
 import numpy as np
 from scipy import stats
 from Character import Character
+from os import listdir
+from os.path import isfile, join
 
 import cv2
 
 class HandwritingRecognition:
 
     def __init__(self):
-        self.img = cv2.imread('test_imgs/digits.png')
+        cv2.setUseOptimized(True)
         rospy.init_node('handwriting_recognition', anonymous=True)
         self.bridge = CvBridge()
         rospy.Subscriber("usb_cam/image_raw", Image, self.img_callback)
@@ -24,20 +26,7 @@ class HandwritingRecognition:
         PACKAGE_PATH = rospack.get_path("edwin")
         self.detect = True
         cv2.namedWindow('image')
-        cv2.setMouseCallback('image',self.fill_test_data)
-        self.test_data = np.zeros((200,200),np.uint8)
-        self.test_filled = 0
-
-    def fill_test_data(self, event, x, y, flags, param):
-        if event == cv2.EVENT_LBUTTONDOWN:
-            for contour in self.numbers:
-                if self.test_filled < 100:
-                    x_index = (self.test_filled%10)*20
-                    y_index = (self.test_filled // 10)*20
-                    self.test_data[y_index:y_index+20,x_index:x_index+20] = contour
-                    self.test_filled += 1
-        elif event == cv2.EVENT_RBUTTONDOWN:
-            cv2.imwrite('test_data.png',self.test_data)
+        # print os.getcwd()
 
     def test_ocr(self):
         data_img = cv2.imread('test_data.png')
@@ -70,15 +59,25 @@ class HandwritingRecognition:
             print(e)
 
     def process_data_svm(self):
-        cells_data = []
-        gray = cv2.cvtColor(self.img,cv2.COLOR_BGR2GRAY)
-        cells = [np.hsplit(row,100) for row in np.vsplit(gray,50)]
-        # print cells[0][0]
-        deskewed = [map(self.deskew,row) for row in cells]
-        # print deskewed[0][0]
-        hogdata = [map(self.hog,row) for row in deskewed]
-        train_data = np.float32(hogdata).reshape(-1,64)
-        responses = np.float32(np.repeat(np.arange(10),500))[:,np.newaxis]
+        path = 'char_data/'
+        files = listdir(path)
+
+        train_data = np.float32(np.zeros((0,64)))
+        responses = np.float32(np.zeros((0,1)))
+        for f in files:
+            file_path = path + f
+            letter = f.split('.',1)[0]
+            train_img = cv2.imread(file_path)
+            cells_data = []
+            gray = cv2.cvtColor(train_img,cv2.COLOR_BGR2GRAY)
+            cells = [np.hsplit(row,10) for row in np.vsplit(gray,10)]
+            deskewed = [map(self.deskew,row) for row in cells]
+            hogdata = [map(self.hog,row) for row in deskewed]
+
+            train_data = np.concatenate((train_data,np.float32(hogdata).reshape(-1,64)),axis=0)
+            responses = np.concatenate((responses,np.float32(np.repeat([ord(letter)],100)[:,np.newaxis])),axis=0)
+        print train_data.shape
+        print responses.shape
         np.savez('svm_data.npz',train=train_data,train_labels=responses)
 
     def train_svm(self):
@@ -95,7 +94,7 @@ class HandwritingRecognition:
         # Returns a list of image ROIs (20x20) corresponding to digits found in the image
     def get_text_roi(self):
         chars = []
-        bound = 5
+        bound = 15
         kernel = np.ones((2,2),np.uint8)
 
         frame_gray = cv2.cvtColor(self.frame,cv2.COLOR_BGR2GRAY)
@@ -184,7 +183,7 @@ class HandwritingRecognition:
                 res_data.append(int(x.item(0)))
             for idx,roi in enumerate(self.chars):
                 roi.result = res_data[idx]
-                cv2.putText(self.frame,str(roi.result),(roi.x+roi.w,roi.y+roi.h) \
+                cv2.putText(self.frame,chr(int(roi.result)),(roi.x+roi.w,roi.y+roi.h) \
                             ,cv2.FONT_HERSHEY_SIMPLEX, 4,(0,255,0))
 
     def find_words(self,char_list):
@@ -227,8 +226,8 @@ class HandwritingRecognition:
             words = []
             for idx in range(0,len(word_index)-1):
                 words.append(''.join([str(x.result) for x in line[word_index[idx]:word_index[idx+1]]]))
-            print ' '.join(words)
-        print ''
+            #print ' '.join(words)
+        # print ''
         # for word in lines:
         #     print ' '.join([str(x.result) for x in word])
 
@@ -254,11 +253,14 @@ class HandwritingRecognition:
         self.train_svm()
         self.test_ocr() # print accuracy of current OCR
         while not rospy.is_shutdown():
+            e1 = cv2.getTickCount()
             self.update_frame()
             self.chars = self.get_text_roi()
             self.process_digits(self.chars)
-            #self.find_words(self.chars)
+            self.find_words(self.chars)
             self.output_image()
+            e2 = cv2.getTickCount()
+            # print (e2-e1)/cv2.getTickFrequency()
             r.sleep()
 
 if __name__ == '__main__':
