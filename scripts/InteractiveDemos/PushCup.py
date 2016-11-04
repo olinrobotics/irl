@@ -2,11 +2,11 @@
     Connor Novak: connor.novak@students.olin.edu
     Project in human-robot interaction: Edwin pushes cup, human pushes cup
     Overview Position:
-    Wrist: 4400
-    Hand: 3000
-    Elbow: 7500
-    Shoulder: 100
-    Waist: 100
+    Wrist: 4000
+    Hand: 2650
+    Elbow: 8500
+    Shoulder: 0
+    Waist: 0
     Code taken from:
         [1] http://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_morphological_ops/py_morphological_ops.html
         [2] http://docs.opencv.org/trunk/d7/d4d/tutorial_py_thresholding.html
@@ -97,9 +97,16 @@ class cup_pusher:
          # Cleans out background through extra dilations (3x)
          sure_bg = cv2.dilate(opening,kernel,iterations=3)
 
-         # Calculates and draws contours
+         # Calculates contours
          contours, h = cv2.findContours(opening,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
-         cv2.drawContours(contour, contours, 0, (0,255,0), 3)
+
+         # Creates list of contours with more points than 100 so as to select out for cup and hand
+         finalcontours = []
+         for cnt in contours:
+             if len(cnt) >= 100:
+                 finalcontours.append(cnt)
+         if
+         cv2.drawContours(contour, finalcontours, -1, (0,255,0), 3)
 
          # Feed Display(s) for debug:
          #cv2.imshow('contour_cup: Raw Video(video)',video)
@@ -109,14 +116,14 @@ class cup_pusher:
          #cv2.imshow('contour_cup: Background Clear (sure_bg)', sure_bg)
          #cv2.imshow('contour_cup: Final Video(contour)',contour)
 
-         return contour, contours
+         return contour, finalcontours
 
     # Center & Movement Detection Function
-    def calculate(self, contour, contours):
+    def calculate(self, contour, finalcontours):
 
         # Finds moments and area
         video = contour
-        cnt = contours[0]
+        cnt = finalcontours[0] # Defines which contour to apply moments to from list of contours
         moments = cv2.moments(cnt)
         self.area = cv2.contourArea(cnt)
 
@@ -149,7 +156,7 @@ class cup_pusher:
             self.human_in_frame = False
 
         # Prints values and updates storage variables
-        print ("x = ",self.cup_x,"| y = ",self.cup_y,"| cup_moved = ",self.cup_moved, "| human_in_frame = ",self.human_in_frame, "| area = ", self.area)
+        #print ("x = ",self.cup_x,"| y = ",self.cup_y,"| cup_moved = ",self.cup_moved, "| human_in_frame = ",self.human_in_frame, "| area = ", self.area)
         self.cup_x_prev = self.cup_x
         self.cup_y_prev = self.cup_y
         self.area_prev = self.area
@@ -163,6 +170,7 @@ class cup_pusher:
         while not rospy.is_shutdown():
             r.sleep()
 
+
 if __name__=='__main__':
-    pc = cup_pusher()
+    pc = cup_pusher() # Creates cup_pusher object
     pc.run() # Calls run function
