@@ -277,6 +277,7 @@ class StArm():
         while s[-5:-3] != OK:
             #Match '>' only at the end of the string
             if s[-1:] == '>':
+                rospy.loginfo(" s is : %s" , s)
                 if self.debug:
                     print " "
                     print "------------------"
@@ -354,7 +355,7 @@ class StArm():
 
         time.sleep(1)
         self.where()
-        
+
     # def run_route(self, route):
     #     too_fast = True
     #     tries = 1

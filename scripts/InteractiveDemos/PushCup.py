@@ -7,7 +7,8 @@
     Elbow: 8500
     Shoulder: 0
     Waist: 0
-    Code taken from:
+"""
+"""Code Citations:
         [1] http://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_morphological_ops/py_morphological_ops.html
         [2] http://docs.opencv.org/trunk/d7/d4d/tutorial_py_thresholding.html
         [3] edwin/scripts/InteractiveDemos TicTacToe.py, lines 663-665
