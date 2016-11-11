@@ -30,7 +30,7 @@ class BuildData:
         self.test_filled = 0
 
     def fill_test_data(self, event, x, y, flags, param):
-        init_character = 'b'
+        init_character = 'c'
         path = 'char_data/'
         if event == cv2.EVENT_LBUTTONDOWN:
             for contour in self.numbers:
@@ -55,7 +55,7 @@ class BuildData:
         # Returns a list of image ROIs (20x20) corresponding to digits found in the image
     def get_text_roi(self):
         chars = []
-        bound = 15
+        bound = 5
         kernel = np.ones((2,2),np.uint8)
 
         frame_gray = cv2.cvtColor(self.frame,cv2.COLOR_BGR2GRAY)

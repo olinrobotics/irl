@@ -10,8 +10,6 @@ from cv_bridge import CvBridge, CvBridgeError
 import numpy as np
 from scipy import stats
 from Character import Character
-from os import listdir
-from os.path import isfile, join
 
 import cv2
 
@@ -19,6 +17,7 @@ class HandwritingRecognition:
 
     def __init__(self):
         cv2.setUseOptimized(True)
+        self.img = cv2.imread('test_imgs/digits.png')
         rospy.init_node('handwriting_recognition', anonymous=True)
         self.bridge = CvBridge()
         rospy.Subscriber("usb_cam/image_raw", Image, self.img_callback)
@@ -26,13 +25,20 @@ class HandwritingRecognition:
         PACKAGE_PATH = rospack.get_path("edwin")
         self.detect = True
         cv2.namedWindow('image')
-        # print os.getcwd()
+        cv2.setMouseCallback('image',self.fill_test_data)
+        self.test_data = np.zeros((200,200),np.uint8)
+        self.test_filled = 0
 
-        # Defines vars for keeping track of new words
-        self.last_word = ''
-        self.last_time = time.time()
-        self.curr_data = ''
-        self.found_word = False
+    def fill_test_data(self, event, x, y, flags, param):
+        if event == cv2.EVENT_LBUTTONDOWN:
+            for contour in self.numbers:
+                if self.test_filled < 100:
+                    x_index = (self.test_filled%10)*20
+                    y_index = (self.test_filled // 10)*20
+                    self.test_data[y_index:y_index+20,x_index:x_index+20] = contour
+                    self.test_filled += 1
+        elif event == cv2.EVENT_RBUTTONDOWN:
+            cv2.imwrite('test_data.png',self.test_data)
 
     def test_ocr(self):
         data_img = cv2.imread('test_data.png')
@@ -65,28 +71,17 @@ class HandwritingRecognition:
             print(e)
 
     def process_data_svm(self):
-        path = 'char_data/'
-        files = listdir(path)
-
-        train_data = np.float32(np.zeros((0,64)))
-        responses = np.float32(np.zeros((0,1)))
-        for f in files: # Loads the .pngs for the training data for each letter
-            file_path = path + f
-            letter = f.split('.',1)[0]
-            train_img = cv2.imread(file_path)
-            cells_data = []
-            # Processes the training data into a usable format
-            gray = cv2.cvtColor(train_img,cv2.COLOR_BGR2GRAY)
-            cells = [np.hsplit(row,10) for row in np.vsplit(gray,10)]
-            # deskewed = [map(self.deskew,row) for row in cells]
-            hogdata = [map(self.hog,row) for row in cells]
-
-            train_data = np.concatenate((train_data,np.float32(hogdata).reshape(-1,64)),axis=0)
-            # Builds the labels for the training data
-            responses = np.concatenate((responses,np.float32(np.repeat([ord(letter)],100)[:,np.newaxis])),axis=0)
+        cells_data = []
+        gray = cv2.cvtColor(self.img,cv2.COLOR_BGR2GRAY)
+        cells = [np.hsplit(row,100) for row in np.vsplit(gray,50)]
+        # print cells[0][0]
+        deskewed = [map(self.deskew,row) for row in cells]
+        # print deskewed[0][0]
+        hogdata = [map(self.hog,row) for row in deskewed]
+        train_data = np.float32(hogdata).reshape(-1,64)
+        responses = np.float32(np.repeat(np.arange(10),500))[:,np.newaxis]
         np.savez('svm_data.npz',train=train_data,train_labels=responses)
 
-        # Train the SVM neural network to recognize characters
     def train_svm(self):
         svm_params = dict(kernel_type = cv2.SVM_LINEAR, svm_type = \
                             cv2.SVM_C_SVC, C=2.67, gamma=5.383)
@@ -101,7 +96,7 @@ class HandwritingRecognition:
         # Returns a list of image ROIs (20x20) corresponding to digits found in the image
     def get_text_roi(self):
         chars = []
-        bound = 5
+        bound = 15
         kernel = np.ones((2,2),np.uint8)
 
         frame_gray = cv2.cvtColor(self.frame,cv2.COLOR_BGR2GRAY)
@@ -120,14 +115,15 @@ class HandwritingRecognition:
 
         if len(contours) < 35:
             for ind,contour in enumerate(contours):
+                # print hierarchy[0][ind]
                 [x,y,w,h] = cv2.boundingRect(contour)
                 if  bound < x < (frame_gray.shape[1] - bound) and bound < y < (frame_gray.shape[0] - bound) and (x+w) <= (frame_gray.shape[1] - bound) and (y+h) <= (frame_gray.shape[0] - bound):
                     roi = frame_gray[y-bound:y+h+bound,x-bound:x+w+bound]
 
                     if len(roi) > 0: # Gets rid of weird zero-size contours
                         new_roi = cv2.adaptiveThreshold(roi,255,
-                            cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,35,7)
-                        new_roi = cv2.morphologyEx(new_roi,cv2.MORPH_OPEN,kernel,iterations=2) # Embiggen numbers
+                            cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,31,3)
+                        new_roi = cv2.dilate(new_roi,kernel,iterations=2) # Embiggen numbers
                         new_roi = cv2.resize(new_roi, (20,20), interpolation=cv2.INTER_AREA) # standardize contours
                         deskewed = self.deskew(new_roi)
                         # Record contour and contour location, and filter out internal contours
@@ -146,6 +142,8 @@ class HandwritingRecognition:
                 y += 20
             cv2.imshow('image3',new_img)
         return chars
+        # Reshapes the array to be an array of 1x400 floats to fit
+        # with the kNN training data
 
         # Deskews a 20x20 character image
     def deskew(self,img):
@@ -176,7 +174,9 @@ class HandwritingRecognition:
 
     def process_digits(self,test_data):
         if len(test_data) != 0:
-            # Prepares input data for processing
+            # print 'test data length: ', len(test_data)
+            # k_val = cv2.getTrackbarPos('K','image')
+            # ret,result,neighbors,dist = self.knn.find_nearest(test_data,k=2)
             reshape_data = np.float32([char.HOG for char in test_data]).reshape(-1,64)
 
             result = self.SVM.predict_all(reshape_data)
@@ -185,25 +185,8 @@ class HandwritingRecognition:
                 res_data.append(int(x.item(0)))
             for idx,roi in enumerate(self.chars):
                 roi.result = res_data[idx]
-                # Formats results from SVM processing
-                cv2.putText(self.frame,chr(int(roi.result)),(roi.x,roi.y+roi.h) \
+                cv2.putText(self.frame,str(roi.result),(roi.x+roi.w,roi.y+roi.h) \
                             ,cv2.FONT_HERSHEY_SIMPLEX, 4,(0,255,0))
-            self.detect_new_word(test_data)
-
-    def detect_new_word(self,char_list):
-        char_list.sort(key = lambda roi: roi.x)
-        word = ''.join([chr(item.result) for item in char_list])
-        if word == self.curr_data:
-            if time.time() - self.last_time > 2 and self.found_word == False:
-                self.last_word = word
-                self.found_word = True
-                print word
-        else:
-            self.last_time = time.time()
-            self.curr_data = word
-            self.found_word = False
-
-
 
     def find_words(self,char_list):
         # Find lines (this is terrible - refactor)
@@ -250,6 +233,11 @@ class HandwritingRecognition:
         # for word in lines:
         #     print ' '.join([str(x.result) for x in word])
 
+
+
+
+
+
     # Update the current frame
     def update_frame(self):
         self.frame = self.curr_frame
@@ -271,10 +259,10 @@ class HandwritingRecognition:
             self.update_frame()
             self.chars = self.get_text_roi()
             self.process_digits(self.chars)
-            #self.find_words(self.chars)
+            self.find_words(self.chars)
             self.output_image()
             e2 = cv2.getTickCount()
-            # print (e2-e1)/cv2.getTickFrequency()
+            print (e2-e1)/cv2.getTickFrequency()
             r.sleep()
 
 if __name__ == '__main__':
