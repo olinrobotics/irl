@@ -7,8 +7,7 @@
     Elbow: 8500
     Shoulder: 0
     Waist: 0
-"""
-"""Code Citations:
+    Code Citations:
         [1] http://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_morphological_ops/py_morphological_ops.html
         [2] http://docs.opencv.org/trunk/d7/d4d/tutorial_py_thresholding.html
         [3] edwin/scripts/InteractiveDemos TicTacToe.py, lines 663-665
@@ -29,7 +28,8 @@ from sensor_msgs.msg import Image
 from std_msgs.msg import String
 from cv_bridge import CvBridge, CvBridgeError
 
-class cup_pusher:
+# Main class
+class PushCupGame:
 
     # This runs once after the class is instantiated in main
     def __init__(self):
@@ -52,19 +52,22 @@ class cup_pusher:
         self.cup_y = 0
         self.human_in_frame = False
         self.cup_in_frame = False
+        self.goal_in_frame = False
 
     # Runs once for every reciept of an image from usb_cam
     def callback(self, data):
-        self.timecounter += 1
-        try:
-            cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8") # Converts usb cam feed to csv feed; bgr8 is an image encoding
-        except CvBridgeError as e:
-            print(e)
 
-        # SLows down data processing to once per three frames
+        # Slows down data processing to once per three frames
+        self.timecounter += 1
         if self.timecounter == 3:
+            try:
+                cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8") # Converts usb cam feed to csv feed; bgr8 is an image encoding
+            except CvBridgeError as e:
+                print(e)
+
             self.apply_filter(cv_image)
             self.timecounter = 0
+            self.play_game()
 
     # Manages all applications of filters, image processing
     def apply_filter(self, feed):
@@ -73,14 +76,25 @@ class cup_pusher:
 
         # Calls functions to contour cup and calculate moments
         contour, contours = self.contour_cup(blur)
-        self.calculate(contour, contours)
+
+        # Returns contoured feed only if a contour is present in the image, else runs raw feed
+        if len(contours) > 0:
+            video = self.calculate(contour, contours)
+            cv2.circle(video,(self.cup_x,self.cup_y),5,(255, 0, 0),-1)
+        else:
+            video = contour
 
         # Feed Display(s) for debug:
         #cv2.imshow('Raw Feed (feed)',feed)
         #cv2.imshow('Gaussian Blur Filter (blur)', blur)
         #cv2.imshow('Contour Filter (contour)', contour)
 
+        # Final Contour feed
+        cv2.imshow('Final Contours (video)', video)
+
         k = cv2.waitKey(5) & 0xFF
+
+        return video
 
     # Cup Detection & Contouring Function
     def contour_cup(self, video):
@@ -106,8 +120,8 @@ class cup_pusher:
          for cnt in contours:
              if len(cnt) >= 100:
                  finalcontours.append(cnt)
-         if
-         cv2.drawContours(contour, finalcontours, -1, (0,255,0), 3)
+
+         cv2.drawContours(contour, contours, -1, (0,255,0), 3)
 
          # Feed Display(s) for debug:
          #cv2.imshow('contour_cup: Raw Video(video)',video)
@@ -128,27 +142,16 @@ class cup_pusher:
         moments = cv2.moments(cnt)
         self.area = cv2.contourArea(cnt)
 
-        # Checks if cup is in screen by dividing area values into "cup" and "no_cup" based on size [3]
-        # if self.area <= 15000:
-        #     self.cup_in_frame = False
-        #     print ("NO CUP DETECTED")
-        #     self.behav_pub.publish("sad")
-        #     time.sleep(2)
-        # else:
-        #     self.cup_in_frame = True
+        if len(finalcontours) == 0:
+            self.cup_in_frame = False
+        else:
+            self.cup_in_frame = True
 
         if moments['m00']!=0:
 
-            # Calculates xy values of centroid and draws circle on it
+            # Calculates xy values of centroid
             self.cup_x = int(moments['m10']/moments['m00'])
             self.cup_y = int(moments['m01']/moments['m00'])
-            cv2.circle(video,(self.cup_x,self.cup_y),5,(255, 0, 0),-1)
-
-            # Check if cup has moved significantly by comparing consecutive x and y values of the cup centroid
-            if abs(self.cup_x - self.cup_x_prev) >= 2:
-                self.cup_moved = True
-            else:
-                self.cup_moved = False
 
         # Checks for human involvement by dividing area values into "cup" and "cup + hand" based on size
         if self.area >= 60000:
@@ -164,7 +167,14 @@ class cup_pusher:
 
         # Feed Display(s) for debug:
         #cv2.imshow('calculate: Raw Video(contour)',contour)
-        cv2.imshow('calculate: Centroid Draw(video)',video)
+        #cv2.imshow('calculate: Centroid Draw(video)',video)
+
+        return video
+
+    # Function for gameplay decisions
+    def play_game(self):
+        if self.human_in_frame == False and self.cup_in_frame == True and self.goal_in_frame == True:
+            print("TODO: Push Cup")
 
     def run(self):
         r = rospy.Rate(20) # Sets update rate
@@ -173,5 +183,5 @@ class cup_pusher:
 
 
 if __name__=='__main__':
-    pc = cup_pusher() # Creates cup_pusher object
+    pc = PushCupGame() # Creates push cup game object
     pc.run() # Calls run function
