@@ -40,8 +40,6 @@ class IdleBehaviors:
             self.behav_pub.publish(msg)
             time.sleep(3)
         elif "idle init" in data.data:
-            self.idling = True
-
             rospack = rospkg.RosPack()
             PACKAGE_PATH = rospack.get_path("edwin")
 
@@ -50,6 +48,7 @@ class IdleBehaviors:
             self.idle_behaviors = {key: value for key, value in self.idle_behaviors.items()
                  if "idle" in key}
             print self.idle_behaviors
+            self.idling = True
 
     def callback(self, data):
         self.last_interaction = time.time()

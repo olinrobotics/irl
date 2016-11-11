@@ -33,7 +33,12 @@ class ArmGui:
         self.pub2.publish(msg)
 
     def xyz_move(self):
-        msg = "data: move_to:: " + self.x.get() + ", " + self.y.get() + ", " + self.z.get() + ", " + self.pitch.get()
+        msg = "data: move_to:: " + self.x.get() + ", " + self.y.get() + ", " + self.z.get() + ", " + "0"
+        print "sending; ", msg
+        self.pub.publish(msg)
+
+    def cmd_set(self, val):
+        msg = str(self.cmd_s.get())
         print "sending; ", msg
         self.pub.publish(msg)
 
@@ -98,6 +103,15 @@ class ArmGui:
         self.f10 = tk.Frame(self.master)
         self.f10.pack(side=tk.TOP, fill=tk.X)
 
+        self.f11 = tk.Frame(self.master)
+        self.f11.pack(side=tk.TOP, fill=tk.X)
+
+
+        self.cmd_s = tk.Entry(self.f11)
+        self.cmd_s.bind('<Return>', self.cmd_set)
+        tk.Label(self.f11, text="CMD: ").pack(side=tk.LEFT)
+        self.cmd_s.pack()
+
         self.say_s = tk.Entry(self.f10)
         self.say_s.bind('<Return>', self.say_clbk)
         tk.Label(self.f10, text="Say: ").pack(side=tk.LEFT)
@@ -112,7 +126,6 @@ class ArmGui:
         tk.Entry(self.f8, textvariable=self.x, width=5).pack(side=tk.LEFT)
         tk.Entry(self.f8, textvariable=self.y, width=5).pack(side=tk.LEFT)
         tk.Entry(self.f8, textvariable=self.z, width=5).pack(side=tk.LEFT)
-        tk.Entry(self.f8, textvariable=self.pitch, width=5).pack(side=tk.LEFT)
         tk.Button(self.f8, text="Set", width=5, command=self.xyz_move).pack(side=tk.LEFT)
 
         self.behav_s = tk.Entry(self.f9)
@@ -149,6 +162,8 @@ class ArmGui:
         self.speed_s.bind('<Return>', self.speed_set)
         tk.Label(self.f6, text="Speed: ").pack(side=tk.LEFT)
         self.speed_s.pack()
+
+
 
     def init_pub(self):
         rospy.init_node('arm_tester', anonymous=True)
