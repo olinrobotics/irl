@@ -12,6 +12,7 @@ from scipy import stats
 from Character import Character
 
 import cv2
+import img_processing as Process
 
 class BuildData:
 
@@ -52,83 +53,6 @@ class BuildData:
         except CvBridgeError as e:
             print(e)
 
-        # Returns a list of image ROIs (20x20) corresponding to digits found in the image
-    def get_text_roi(self):
-        chars = []
-        bound = 5
-        kernel = np.ones((2,2),np.uint8)
-
-        frame_gray = cv2.cvtColor(self.frame,cv2.COLOR_BGR2GRAY)
-        frame_gray = cv2.GaussianBlur(frame_gray, (5,5),0) # Gaussian blur to remove noise
-
-        # Adaptive threshold to find numbers on paper
-        thresh = cv2.adaptiveThreshold(frame_gray,255,
-            cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,35,7)
-        thresh = cv2.morphologyEx(thresh,cv2.MORPH_OPEN,kernel,iterations=3)
-        # cv2.imshow('thresh',thresh)
-
-        contours,hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,
-                                                cv2.CHAIN_APPROX_NONE)
-        cv2.drawContours(self.frame,contours,-1,(255,0,0),2)
-        # Build the list of number contours and number locations
-
-        if len(contours) < 55:
-            for ind,contour in enumerate(contours):
-                # print hierarchy[0][ind]
-                [x,y,w,h] = cv2.boundingRect(contour)
-                if  bound < x < (frame_gray.shape[1] - bound) and bound < y < (frame_gray.shape[0] - bound) and (x+w) <= (frame_gray.shape[1] - bound) and (y+h) <= (frame_gray.shape[0] - bound):
-                    roi = frame_gray[y-bound:y+h+bound,x-bound:x+w+bound]
-
-                    if len(roi) > 0: # Gets rid of weird zero-size contours
-                        new_roi = cv2.adaptiveThreshold(roi,255,
-                            cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,31,3)
-                        new_roi = cv2.dilate(new_roi,kernel,iterations=2) # Embiggen numbers
-                        new_roi = cv2.resize(new_roi, (20,20), interpolation=cv2.INTER_AREA) # standardize contours
-                        deskewed = self.deskew(new_roi)
-                        # Record contour and contour location, and filter out internal contours
-                        if hierarchy[0][ind][3] == -1:
-                            cont = Character(deskewed,(x,y,w,h), self.hog(deskewed))
-                            chars.append(cont)
-
-        # Build an image to show all number contours
-        num_len = len(chars)
-        # print '# of contours: ', num_len
-        if num_len < 55 and num_len > 0:
-            new_img = np.ones((20,20*num_len),np.uint8)
-            y = 0
-            for x in chars:
-                new_img[:,y:y+20] = x.img
-                y += 20
-            cv2.imshow('image3',new_img)
-        return chars
-        # Reshapes the array to be an array of 1x400 floats to fit
-        # with the kNN training data
-
-        # Deskews a 20x20 character image
-    def deskew(self,img):
-        SZ = 20
-        affine_flags = cv2.WARP_INVERSE_MAP|cv2.INTER_LINEAR
-        m = cv2.moments(img)
-        if abs(m['mu02']) < 1e-2:
-            return img.copy()
-        # print m
-        skew = m['mu11']/m['mu02']
-        M = np.float32([[1,skew,-0.5*SZ*skew], [0,1,0]])
-        img = cv2.warpAffine(img,M,(SZ,SZ),flags=affine_flags)
-        return img
-
-        # Retursn the HOG for a given imagej
-    def hog(self,img):
-        bin_n = 16
-        gx = cv2.Sobel(img, cv2.CV_32F,1,0) # x gradient
-        gy = cv2.Sobel(img, cv2.CV_32F,0,1) # y gradient
-        mag,ang = cv2.cartToPolar(gx,gy) # Polar gradients
-        bins = np.int32(bin_n*ang/(2*np.pi)) # creating binvalues
-        bin_cells = bins[:10,:10],bins[10:,:10],bins[:10,10:],bins[10:,10:]
-        mag_cells = mag[:10,:10],mag[10:,:10],mag[:10,10:],mag[10:,10:]
-        hists = [np.bincount(b.ravel(), m.ravel(), bin_n) for b, m in zip(bin_cells, mag_cells)]
-        hist = np.hstack(hists) # hist is a 64-bit vector
-        return hist
 
     # Update the current frame
     def update_frame(self):
@@ -146,7 +70,7 @@ class BuildData:
         time.sleep(2)
         while not rospy.is_shutdown():
             self.update_frame()
-            self.numbers = self.get_text_roi()
+            self.numbers = Process.get_text_roi(self.frame)
             self.output_image()
             r.sleep()
 
