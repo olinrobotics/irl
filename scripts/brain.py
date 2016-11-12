@@ -30,7 +30,6 @@ class EdwinBrain:
         self.control_pub = rospy.Publisher('/all_control', String, queue_size=2)
 
         self.idling = False
-
         self.exit = False #should be catch all to exit all long running commands
 
         time.sleep(1)

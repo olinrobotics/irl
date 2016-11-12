@@ -120,9 +120,10 @@ class StArm():
                 print "Couldn't connect to port: ", port
                 pass
 
+
     def initial_calibration(self):
         self.cxn.flushInput()
-        self.purge()
+        # self.purge() #this command seems to block the robot
         self.roboforth()
         self.joint()
         self.start()
@@ -273,8 +274,12 @@ class StArm():
 
     def block_on_result(self, cmd, debug=False):
         t = time.time()
+        print "in block_on_result"
         s = self.cxn.read(self.cxn.inWaiting())
+        print s
         while s[-5:-3] != OK:
+            # print "got: ", s
+            # time.sleep(1)
             #Match '>' only at the end of the string
             if s[-1:] == '>':
                 if self.debug:
@@ -354,7 +359,7 @@ class StArm():
 
         time.sleep(1)
         self.where()
-        
+
     # def run_route(self, route):
     #     too_fast = True
     #     tries = 1
