@@ -1,12 +1,11 @@
 """Edwin Push-Cup Game
     Connor Novak: connor.novak@students.olin.edu
     Project in human-robot interaction: Edwin pushes cup, human pushes cup
+    
     Overview Position:
-    Wrist: 4000
-    Hand: 2650
-    Elbow: 8500
-    Shoulder: 0
-    Waist: 0
+    Wrist: 4000 Hand: 2650 Elbow: 8500 Shoulder: 0 Waist: 0
+    X: 0.0 Y: 373.5 Z: 407.7 PITCH: 74.5 W(ROLL): 40.5 LEN.: 0.0
+
     Code Citations:
         [1] http://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_morphological_ops/py_morphological_ops.html
         [2] http://docs.opencv.org/trunk/d7/d4d/tutorial_py_thresholding.html
@@ -34,15 +33,6 @@ class PushCupGame:
     # This runs once after the class is instantiated in main
     def __init__(self):
 
-        # Gets data from usb_cam
-        self.bridge = CvBridge()
-        rospy.init_node('push_cup') # Creates node from which to subcribe and publish data
-        self.image_sub = rospy.Subscriber("/usb_cam/image_raw",Image,self.callback) # Determines node for subscription
-
-        # Sends data to Edwin
-		#self.behav_pub = rospy.Publisher('behaviors_cmd', String, queue_size=10)
-        #self.arm_pub = rospy.Publisher('arm_cmd', String, queue_size=10)
-
         # Stores cup positions, contour area, counter, and in-frame boolean
         self.cup_x_prev = 0
         self.cup_y_prev = 0
@@ -53,6 +43,21 @@ class PushCupGame:
         self.human_in_frame = False
         self.cup_in_frame = False
         self.goal_in_frame = False
+
+        # Gets data from usb_cam
+        self.bridge = CvBridge()
+        rospy.init_node('push_cup') # Creates node from which to subcribe and publish data
+        self.image_sub = rospy.Subscriber("/usb_cam/image_raw",Image,self.callback) # Determines node for subscription
+
+        # Sends data to Edwin
+        self.behav_pub = rospy.Publisher('behaviors_cmd', String, queue_size=10)
+        self.arm_pub = rospy.Publisher('/arm_cmd', String, queue_size=10)
+
+        # Moves Edwin to Overview position
+        msg = "create_route:: Overview; 0, 373.5, 407.7, 74.5, 40.5, 0"
+        print ("sending: ", msg)
+        self.arm_pub.publish(msg)
+        time.sleep(3)
 
     # Runs once for every reciept of an image from usb_cam
     def callback(self, data):
@@ -69,7 +74,7 @@ class PushCupGame:
             self.timecounter = 0
             self.play_game()
 
-    # Manages all applications of filters, image processing
+    # Manages contours (positions, areas, relevance, etc.)
     def apply_filter(self, feed):
 
         blur = cv2.GaussianBlur(feed, (5,5), 0) # Gaussian Blur filter
@@ -77,7 +82,7 @@ class PushCupGame:
         # Calls functions to contour cup and calculate moments
         contour, contours = self.contour_cup(blur)
 
-        # Returns contoured feed only if a contour is present in the image, else runs raw feed
+        # Returns contoured feed only if 1+ significant contours present in image, else runs raw feed
         if len(contours) > 0:
             video = self.calculate(contour, contours)
             cv2.circle(video,(self.cup_x,self.cup_y),5,(255, 0, 0),-1)
@@ -96,7 +101,7 @@ class PushCupGame:
 
         return video
 
-    # Cup Detection & Contouring Function
+    # Contours video feed frame
     def contour_cup(self, video):
 
          contour = video # Duplicate video feed so as to display both raw footage and final contoured footage
@@ -117,9 +122,15 @@ class PushCupGame:
 
          # Creates list of contours with more points than 100 so as to select out for cup and hand
          finalcontours = []
-         for cnt in contours:
-             if len(cnt) >= 100:
-                 finalcontours.append(cnt)
+        #for cnt in contours:
+        #     hull = cv2.convexHull(cnt, returnPoints = False)
+        #     defects = cv2.convexityDefects(cnt, hull)
+        #     if len(defects) == 0:
+        #       print("Perfect!")
+        #     else:
+        #       print("Imperfect.")
+        #     if len(cnt) >= 100:
+        #         finalcontours.append(cnt)
 
          cv2.drawContours(contour, contours, -1, (0,255,0), 3)
 
@@ -173,6 +184,7 @@ class PushCupGame:
 
     # Function for gameplay decisions
     def play_game(self):
+
         if self.human_in_frame == False and self.cup_in_frame == True and self.goal_in_frame == True:
             print("TODO: Push Cup")
 
