@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+from Character import Character
 
 def get_text_roi(frame):
     chars = []
