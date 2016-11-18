@@ -25,8 +25,8 @@ class ArmCommands:
         print "ARM ACCEL IS: ", self.arm.get_accel()
 
         self.arm.set_speed(10000)
-        print "HOMING"
         self.arm.home()
+        print "HOMING"
 
         self.debug_pub.publish("HOMING DONE")
 
