@@ -5,6 +5,7 @@ import numpy as np
 from std_msgs.msg import String, Int16
 from edwin.msg import *
 import time
+import tf
 
 class Coordinates:
     def __init__(self, ID, x, y, z):
@@ -24,12 +25,21 @@ class Coordinates:
 
 class Presence:
     def __init__(self):
+        #subscribing to edwin_bodies, from Kinect
         rospy.init_node('edwin_presence', anonymous = True)
         rospy.Subscriber('body', SceneAnalysis, self.presence_callback, queue_size=10)
 
+        #setting up ROS publishers to Edwin commands
         self.behavior_pub = rospy.Publisher('behaviors_cmd', String, queue_size=10)
         self.arm_pub = rospy.Publisher('arm_cmd', String, queue_size=10)
         self.arm_pub.publish("data: set_speed:: 3000")
+
+
+        # tf transformations
+        self.br = tf.TransformBroadcaster()
+        self.listener = tf.TransformListener()
+
+
 
         self.peoples = [None]*20
 
@@ -52,16 +62,33 @@ class Presence:
         for person in self.peoples:
             if person is not None and person.acknowledged == False:
                 print "I see you!"
-                msg = "data: R_look"
-                self.behavior_pub.publish(msg)
-                time.sleep(2)
-                msg = "data: R_nudge"
-                self.behavior_pub.publish(msg)
-                time.sleep(2)
+                # msg = "data: R_look"
+                # self.behavior_pub.publish(msg)
+                # time.sleep(2)
+                # msg = "data: R_nudge"
+                # self.behavior_pub.publish(msg)
+                # time.sleep(2)
                 person.acknowledged = True
 
 
-        print "I am paying attention to person", self.attention()
+        # print "I am paying attention to person", self.attention()
+
+        if self.peoples[1] is not None:
+             self.br.sendTransform((self.peoples[1].Z, self.peoples[1].X, self.peoples[1].Y),
+                              tf.transformations.quaternion_from_euler(0, 0, 0),
+                              rospy.Time.now(),
+                              "human",
+                              "kinect")
+
+
+             try:
+                 (trans,rot) = self.listener.lookupTransform('/world', '/human', rospy.Time(0))
+             except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+                 pass
+
+             print trans
+
+
 
 
     def attention(self):
