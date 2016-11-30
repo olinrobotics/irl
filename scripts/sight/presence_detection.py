@@ -52,12 +52,12 @@ class Presence:
                 self.peoples[index] = None
             else:
                 if self.peoples[index] is None:
-                    self.peoples[index] = Coordinates(person.ID, person.xpos, person.ypos, person.zpos)
+                    self.peoples[index] = Coordinates(person.ID, person.xpos, 480 - person.ypos, person.zpos)
                 else:
-                    self.peoples[index].set_Coordinates(person.xpos, person.ypos, person.zpos)
+                    self.peoples[index].set_Coordinates(person.xpos, 480 - person.ypos, person.zpos)
 
 
-                print self.peoples[index].ID, self.peoples[index].X,  self.peoples[index].Y,  self.peoples[index].Z
+                print self.peoples[index].ID, self.peoples[index].X, self.peoples[index].Y, self.peoples[index].Z
 
         for person in self.peoples:
             if person is not None and person.acknowledged == False:
