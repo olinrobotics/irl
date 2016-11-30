@@ -68,24 +68,6 @@ class HandwritingRecognition:
         except CvBridgeError as e:
             print(e)
 
-    def get_paper_region(self,img):
-        x_val = img.shape[1]
-        y_val = img.shape[0]
-        gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-        gray = cv2.GaussianBlur(gray, (5,5),0)
-        edges = cv2.Canny(gray,75,220)
-        cv2.imshow('edges',edges)
-        (cnts, _) = cv2.findContours(edges.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-        cnts = sorted(cnts, key = cv2.contourArea, reverse = True)[:5]
-        for c in cnts:
-            peri = cv2.arcLength(c,True)
-            approx = cv2.approxPolyDP(c, 0.02*peri,True)
-            if len(approx) == 4:
-                screenCnt = approx
-                cv2.drawContours(self.frame,[screenCnt], -1, (0, 255, 0), 2)
-                break
-        if screenCnt is not None:
-            perspective = cv2.getPerspectiveTransform(screenCnt,[[0 0],[0 img.shape[0]])
 
     def process_data_svm(self):
         path = 'char_data/'
@@ -219,8 +201,8 @@ class HandwritingRecognition:
         while not rospy.is_shutdown():
             e1 = cv2.getTickCount()
             self.update_frame()
-            self.get_paper_region(self.frame)
-            self.chars = Process.get_text_roi(self.frame)
+            out_image = Process.get_paper_region(self.frame)
+            self.chars = Process.get_text_roi(out_image)
             self.process_digits(self.chars)
             #self.find_words(self.chars)
             self.output_image()
