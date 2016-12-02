@@ -1,7 +1,7 @@
 """Edwin Push-Cup Game
     Connor Novak: connor.novak@students.olin.edu
     Project in human-robot interaction: Edwin pushes cup, human pushes cup
-    
+
     Overview Position:
     Wrist: 4000 Hand: 2650 Elbow: 8500 Shoulder: 0 Waist: 0
     X: 0.0 Y: 373.5 Z: 407.7 PITCH: 74.5 W(ROLL): 40.5 LEN.: 0.0
@@ -27,37 +27,63 @@ from sensor_msgs.msg import Image
 from std_msgs.msg import String
 from cv_bridge import CvBridge, CvBridgeError
 
-# Main class
+"""PushCupGame class:
+    A class that instantiates and runs a game of Push Cup. Contains state
+    variables describing the game and functions to analyze video data and play
+    the game.
+    | see | | terminal output describing running processes
+    | see | | Edwin runs a game of Push Cup
+"""
 class PushCupGame:
 
-    # This runs once after the class is instantiated in main
+    """__init__ function
+        __init__ is a function run once when a new PushCupGame instance is
+        created. The function initializes variables to store goal and cup
+        positions and other information. It also starts publisher and
+        subscriber nodes necessary to run Edwin.
+    """
     def __init__(self):
 
-        # Stores cup positions, contour area, counter, and in-frame boolean
+        print ("INIT| Initializing")
+        # ---------- State Variables ----------
+        # Dimensions
         self.cup_x_prev = 0
         self.cup_y_prev = 0
         self.prev_area = 0
-        self.timecounter = 0
         self.cup_x = 0
         self.cup_y = 0
-        self.human_in_frame = False
-        self.cup_in_frame = False
-        self.goal_in_frame = False
+        self.screen_width = 0
+        self.screen_height = 0
+        self.gameboard_width = 5000
+        self.gameboard_height = 6500
 
-        # Gets data from usb_cam
-        self.bridge = CvBridge()
+        # Game Elements
+        self.timecounter = 0
+        self.human_in_frame = False # False if Edwin does not detect human, True if he does
+        self.cup_in_frame = False   # False if Edwin does not detect cup, True if he does
+        self.goal_in_frame = False  # False if Edwin does not detect goal, True if he does
+        self.game_turn = 1          # 0 if human's turn, 1 if Edwin's turn
+
         rospy.init_node('push_cup') # Creates node from which to subcribe and publish data
-        self.image_sub = rospy.Subscriber("/usb_cam/image_raw",Image,self.callback) # Determines node for subscription
 
         # Sends data to Edwin
         self.behav_pub = rospy.Publisher('behaviors_cmd', String, queue_size=10)
         self.arm_pub = rospy.Publisher('/arm_cmd', String, queue_size=10)
 
-        # Moves Edwin to Overview position
-        msg = "create_route:: Overview; 0, 373.5, 407.7, 74.5, 40.5, 0"
-        print ("sending: ", msg)
-        self.arm_pub.publish(msg)
-        time.sleep(3)
+        # Creates Edwin's overview position route
+        time.sleep(2)
+        msg1 = "create_route:: R_overview; 0, 3735, 4077, 745, 405, 0"
+        print ("INIT| Sending: ", msg1)
+        self.arm_pub.publish(msg1)
+        time.sleep(2)
+
+        # Moves Edwin along route
+        self.overview_pos()
+        print ("INIT| Finished")
+
+        # Gets data from usb_cam
+        self.bridge = CvBridge()
+        self.image_sub = rospy.Subscriber("/usb_cam/image_raw",Image,self.callback) # Determines node for subscription
 
     # Runs once for every reciept of an image from usb_cam
     def callback(self, data):
@@ -67,12 +93,29 @@ class PushCupGame:
         if self.timecounter == 3:
             try:
                 cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8") # Converts usb cam feed to csv feed; bgr8 is an image encoding
+
+                # Sets image size
+                image_size = cv_image.shape
+                screen_height = image_size[0]
+                screen_width = image_size[1]
             except CvBridgeError as e:
                 print(e)
 
             self.apply_filter(cv_image)
             self.timecounter = 0
-            self.play_game()
+            self.push_cup()
+
+    """ overview_pos function:
+        Function: moves Edwin to a standardized position where he can examine the entire gameboard
+        -----------------------------------------------------------------------------------
+        |param | self | access to the state variables of the class calling the function |
+        |see   |      | Edwin moves to position                                          |
+    """
+    def overview_pos(self):
+        msg2 = "run_route:: R_overview"
+        print ("INIT| Sending: ", msg2)
+        self.arm_pub.publish(msg2)
+        time.sleep(3)
 
     # Manages contours (positions, areas, relevance, etc.)
     def apply_filter(self, feed):
@@ -122,17 +165,19 @@ class PushCupGame:
 
          # Creates list of contours with more points than 100 so as to select out for cup and hand
          finalcontours = []
-        #for cnt in contours:
-        #     hull = cv2.convexHull(cnt, returnPoints = False)
-        #     defects = cv2.convexityDefects(cnt, hull)
-        #     if len(defects) == 0:
-        #       print("Perfect!")
-        #     else:
-        #       print("Imperfect.")
-        #     if len(cnt) >= 100:
-        #         finalcontours.append(cnt)
+         for cnt in contours:
+             area_real = cv2.contourArea(cnt)
+             (x,y),radius = cv2.minEnclosingCircle(cnt)
+             area_approx = math.pi*radius**2
+             area_diff = area_approx - area_real
+             #cv2.circle(contour,(int(x),int(y)),int(radius),(0,0,255),2) # Draws circles used for area comparison
 
-         cv2.drawContours(contour, contours, -1, (0,255,0), 3)
+             # If contour is really close to circle
+             if (area_diff < 1500):
+                 finalcontours.append(cnt)
+                 self.dotcontour = cnt
+
+         cv2.drawContours(contour, finalcontours, -1, (0,255,0), 3)
 
          # Feed Display(s) for debug:
          #cv2.imshow('contour_cup: Raw Video(video)',video)
@@ -182,11 +227,46 @@ class PushCupGame:
 
         return video
 
-    # Function for gameplay decisions
-    def play_game(self):
+    """ push_cup function:
+        push_cup makes Edwin push the cup to the goal
+        ---------------------------------------------------------------------------------
+        |param | self | access to the state variables of the class calling the function |
+        |see   |      | Edwin pushes or pulls the cup such that it covers the goal      |
+    """
+    def push_cup(self):
+        pos = self.find_cup()
+        print ("PSH| pos = ", pos)
+        self.game_turn = 0; # Ends turn
 
-        if self.human_in_frame == False and self.cup_in_frame == True and self.goal_in_frame == True:
-            print("TODO: Push Cup")
+    """ find_cup function
+        find_cup converts between the cup's x and y in usb camera feed to x and
+        y in realspace (edwin head position)
+        ----------------------------------------------------------------------------------
+        |param  | self | access to the state variables of the class calling the function |
+        |return |      | vector of cup x and y position in realspace                     |
+    """
+    def find_cup(self):
+
+        # Determines coefficients to convert from camspace to realspace
+        x_coefficient = self.screen_width / self.gameboard_width
+        y_coefficient = self.screen_height / self.gameboard_height
+
+        # Uses coefficients to convert cup_position to realspace
+        edwin_x = x_coefficient * self.cup_x
+        edwin_y = y_coefficient * self.cup_y
+        return([edwin_x, edwin_y])
+
+    """ play_game function
+        play_game holds Edwin's game logic and makes him decide when to move
+        and act. The function also calls Edwin's physical moving functions at the
+        appropriate times.
+        ---------------------------------------------------------------------------------
+        |param | self | access to the state variables of the class calling the function |
+    """
+    def play_game(self):
+        if self.cup_in_frame == False and self.goal_in_frame == False:
+            if self.game_turn == 1:
+                self.push_cup();
 
     def run(self):
         r = rospy.Rate(20) # Sets update rate
@@ -195,5 +275,5 @@ class PushCupGame:
 
 
 if __name__=='__main__':
-    pc = PushCupGame() # Creates push cup game object
+    pc = PushCupGame() # Creates new instance of class PushCupGame
     pc.run() # Calls run function
