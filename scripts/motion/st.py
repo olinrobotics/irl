@@ -106,6 +106,8 @@ class StArm():
     '''
 
     def __init__(self, baud=DEFAULT_BAUD_RATE, to=DEFAULT_TIMEOUT):
+        rospy.init_node('robot_arm', anonymous=True)
+
         self.debug = True
 
         possiblePorts = ['/dev/ttyUSB0', '/dev/ttyUSB1','/dev/ttyUSB2', '/dev/ttyUSB3', '/dev/ttyUSB4']
@@ -164,6 +166,11 @@ class StArm():
         self.cxn.write(cmd + CR)
         self.block_on_result(cmd)
 
+    def execute_command(self, cmd):
+        print('Running custom command...')
+        self.cxn.write(cmd + CR)
+        result = self.block_on_result(cmd)
+        print(result)
 
     def continuous(self):
         cmd = CONTINUOUS
