@@ -51,10 +51,12 @@ class Presence:
             if person.ID == 0:
                 self.peoples[index] = None
             else:
+                # print person.xpos, person.ypos, person.zpos
+                xpos, ypos, zpos = self.kinect_transform(person.xpos, person.ypos, person.zpos)
                 if self.peoples[index] is None:
-                    self.peoples[index] = Coordinates(person.ID, person.xpos, 480 - person.ypos, person.zpos)
+                    self.peoples[index] = Coordinates(person.ID, xpos, ypos, zpos)
                 else:
-                    self.peoples[index].set_Coordinates(person.xpos, 480 - person.ypos, person.zpos)
+                    self.peoples[index].set_Coordinates(xpos, ypos, zpos)
 
 
                 print self.peoples[index].ID, self.peoples[index].X, self.peoples[index].Y, self.peoples[index].Z
@@ -73,20 +75,34 @@ class Presence:
 
         # print "I am paying attention to person", self.attention()
 
-        if self.peoples[1] is not None:
-             self.br.sendTransform((self.peoples[1].Z, self.peoples[1].X, self.peoples[1].Y),
-                              tf.transformations.quaternion_from_euler(0, 0, 0),
-                              rospy.Time.now(),
-                              "human",
-                              "kinect")
+
+        for person in self.peoples:
+            if person is not None:
+                 self.br.sendTransform((person.X, person.Y, person.Z),
+                                  tf.transformations.quaternion_from_euler(0, 0, 0),
+                                  rospy.Time.now(),
+                                  "human",
+                                  "kinect")
 
 
-             try:
-                 (trans,rot) = self.listener.lookupTransform('/world', '/human', rospy.Time(0))
-             except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-                 pass
+                 try:
+                     (trans,rot) = self.listener.lookupTransform('/world', '/human', rospy.Time(0))
+                     print person.ID, trans
 
-             print trans
+                 except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+                     pass
+
+
+
+
+
+    def kinect_transform(self, x, y, z):
+        xposition = x - 320
+        yposition = 240 - y
+        zposition = z
+
+        return zposition, xposition, yposition
+
 
 
 
