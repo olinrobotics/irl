@@ -25,16 +25,20 @@ class HandwritingRecognition:
             #init_param allows us to instantiate the HR object in different contexts, i.e in InteractiveDemos
             pass
         else:
-            self.img = cv2.imread('test_imgs/digits.png')
+            rospack = rospkg.RosPack()
+            self.PARAMS_PATH = rospack.get_path('edwin')
+            self.img = cv2.imread(self.PARAMS_PATH + '/params/test_imgs/digits.png')
             rospy.init_node('handwriting_recognition', anonymous=True)
             self.bridge = CvBridge()
-            rospy.Subscriber("usb_cam/image_raw", Image, self.img_callback)
-            rospack = rospkg.RosPack()
-            PACKAGE_PATH = rospack.get_path("edwin")
+            rospy.Subscriber('usb_cam/image_raw', Image, self.img_callback)
+            self.pub = rospy.Publisher('word_publish',String,queue_size=10)
+
             self.detect = True
             cv2.namedWindow('image')
-            cv2.createTrackbar('K','image',1,255,self.nothing)
-            cv2.setTrackbarPos('K','image',5)
+            cv2.createTrackbar('X','image',0,255,self.nothing)
+            cv2.setTrackbarPos('X','image',255)
+            cv2.createTrackbar('Y','image',0,255,self.nothing)
+            cv2.setTrackbarPos('Y','image',7)
             self.test_data = np.zeros((200,200),np.uint8)
             self.test_filled = 0
         # print os.getcwd()
@@ -46,7 +50,7 @@ class HandwritingRecognition:
         self.found_word = False
 
     def test_ocr(self):
-        data_img = cv2.imread('test_data.png')
+        data_img = cv2.imread(self.PARAMS_PATH + '/params/test_data.png')
         gray = cv2.cvtColor(data_img,cv2.COLOR_BGR2GRAY)
         cells = [np.hsplit(row,10) for row in np.vsplit(gray,10)]
         deskewed = [map(Process.deskew,row) for row in cells]
@@ -71,13 +75,14 @@ class HandwritingRecognition:
 
     def img_callback(self, data):
         try:
-            self.curr_frame = self.bridge.imgmsg_to_cv2(data, "bgr8")
+            # self.curr_frame = self.bridge.imgmsg_to_cv2(data, "bgr8")
+            self.curr_frame = cv2.imread('letters2.jpg')
         except CvBridgeError as e:
             print(e)
 
 
     def process_data_svm(self):
-        path = 'char_data/'
+        path =  self.PARAMS_PATH + '/params/char_data/'
         files = listdir(path)
 
         train_data = np.float32(np.zeros((0,64)))
@@ -96,14 +101,14 @@ class HandwritingRecognition:
             train_data = np.concatenate((train_data,np.float32(hogdata).reshape(-1,64)),axis=0)
             # Builds the labels for the training data
             responses = np.concatenate((responses,np.float32(np.repeat([ord(letter)],100)[:,np.newaxis])),axis=0)
-        np.savez('svm_data.npz',train=train_data,train_labels=responses)
+        np.savez(self.PARAMS_PATH + '/params/svm_data.npz',train=train_data,train_labels=responses)
 
         # Train the SVM neural network to recognize characters
     def train_svm(self):
         svm_params = dict(kernel_type = cv2.SVM_LINEAR, svm_type = \
                             cv2.SVM_C_SVC, C=2.67, gamma=5.383)
 
-        with np.load('svm_data.npz') as input_data:
+        with np.load(self.PARAMS_PATH + '/params/svm_data.npz') as input_data:
             train_data = input_data['train']
             data_labels = input_data['train_labels']
 
@@ -136,7 +141,7 @@ class HandwritingRecognition:
             if time.time() - self.last_time > 2 and self.found_word == False:
                 self.last_word = word
                 self.found_word = True
-                print word
+                self.pub.publish(word)
         else:
             self.last_time = time.time()
             self.curr_data = word
@@ -208,8 +213,12 @@ class HandwritingRecognition:
         while not rospy.is_shutdown():
             e1 = cv2.getTickCount()
             self.update_frame()
-            out_image = Process.get_paper_region(self.frame)
-            self.chars = Process.get_text_roi(out_image)
+            # out_image = Process.get_paper_region(self.frame)
+            x = 255
+            if (cv2.getTrackbarPos('X','image') % 2 == 1):
+                x = cv2.getTrackbarPos('X','image')
+            y = cv2.getTrackbarPos('Y','image')
+            self.chars = Process.get_text_roi(self.frame,x,y)
             self.process_digits(self.chars)
             #self.find_words(self.chars)
             self.output_image()
