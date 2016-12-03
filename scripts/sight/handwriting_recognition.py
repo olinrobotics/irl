@@ -15,19 +15,23 @@ class HandwritingRecognition:
     def nothing(x):
         pass
 
-    def __init__(self):
-        self.img = cv2.imread('test_imgs/digits.png')
-        rospy.init_node('handwriting_recognition', anonymous=True)
-        self.bridge = CvBridge()
-        rospy.Subscriber("usb_cam/image_raw", Image, self.img_callback)
-        rospack = rospkg.RosPack()
-        PACKAGE_PATH = rospack.get_path("edwin")
-        self.detect = True
-        cv2.namedWindow('image')
-        cv2.createTrackbar('K','image',1,255,self.nothing)
-        cv2.setTrackbarPos('K','image',5)
-        self.test_data = np.zeros((200,200),np.uint8)
-        self.test_filled = 0
+    def __init__(self, init_param = False):
+        if init_param:
+            #init_param allows us to instantiate the HR object in different contexts, i.e in InteractiveDemos
+            pass
+        else:
+            self.img = cv2.imread('test_imgs/digits.png')
+            rospy.init_node('handwriting_recognition', anonymous=True)
+            self.bridge = CvBridge()
+            rospy.Subscriber("usb_cam/image_raw", Image, self.img_callback)
+            rospack = rospkg.RosPack()
+            PACKAGE_PATH = rospack.get_path("edwin")
+            self.detect = True
+            cv2.namedWindow('image')
+            cv2.createTrackbar('K','image',1,255,self.nothing)
+            cv2.setTrackbarPos('K','image',5)
+            self.test_data = np.zeros((200,200),np.uint8)
+            self.test_filled = 0
 
     # def fill_test_data(self):
 
