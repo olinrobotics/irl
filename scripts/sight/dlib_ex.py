@@ -50,7 +50,7 @@ class FaceDetect:
         except CvBridgeError as e:
             print(e)
 
-    def get_landmarks(image):
+    def get_landmarks(self, clahe_image):
         #code from http://www.paulvangent.com/2016/08/05/emotion-recognition-using-facial-landmarks/
         #detect faces in the image
         detections = self.detector(clahe_image, 1)
@@ -63,10 +63,16 @@ class FaceDetect:
 
             xlist = []
             ylist = []
+            landmarks = []
 
             #For each point, draw a red circle with thickness2 on the original frame
             for i in range(1,68): #There are 68 landmark points on each face
                 cv2.circle(self.frame, (shape.part(i).x, shape.part(i).y), 1, (0,0,255), thickness=2)
+                #cv2.putText(img, text, org, fontFace, fontScale, color[, thickness[, lineType[, bottomLeftOrigin]]])
+                org = (shape.part(i).x, shape.part(i).y)
+                fontFace = cv2.FONT_HERSHEY_PLAIN
+                cv2.putText(self.frame, str(i), org, fontFace, 1,  (255,225,225) , 1, 8)
+
                 xlist.append(float(shape.part(i).x))
                 ylist.append(float(shape.part(i).y))
 
@@ -88,7 +94,7 @@ class FaceDetect:
         clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
         clahe_image = clahe.apply(gray)
 
-        landmarks = get_landmarks(clahe_image)
+        landmarks = self.get_landmarks(clahe_image)
 
         cv2.imshow("image", self.frame) #Display the frame
 
