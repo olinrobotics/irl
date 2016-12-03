@@ -2,18 +2,26 @@ import cv2
 import numpy as np
 from Character import Character
 
-def get_text_roi(frame):
+def get_text_roi(frame, x, y):
+    kernel_sharpen = np.array([[-1,-1,-1],[-1,9,-1],[-1,-1,-1]])
+    kernel_sharpen_3 = np.array([[-1,-1,-1,-1,-1],
+                             [-1,2,2,2,-1],
+                             [-1,2,8,2,-1],
+                             [-1,2,2,2,-1],
+                             [-1,-1,-1,-1,-1]]) / 8.0
+
     chars = []
     bound = 5
     kernel = np.ones((2,2),np.uint8)
 
     frame_gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
-    frame_gray = cv2.GaussianBlur(frame_gray, (5,5),0) # Gaussian blur to remove noise
+    frame_gray = cv2.filter2D(frame_gray.copy(),-1,kernel_sharpen_3)
+    # frame_gray = cv2.GaussianBlur(frame_gray, (5,5),0) # Gaussian blur to remove noise
 
     # Adaptive threshold to find numbers on paper
     thresh = cv2.adaptiveThreshold(frame_gray,255,
-        cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,35,7)
-    thresh = cv2.morphologyEx(thresh,cv2.MORPH_OPEN,kernel,iterations=3)
+        cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,x,y)
+    thresh = cv2.morphologyEx(thresh,cv2.MORPH_OPEN,kernel,iterations=2)
     # cv2.imshow('thresh',thresh)
 
     contours,hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,
@@ -24,6 +32,8 @@ def get_text_roi(frame):
     if len(contours) < 35:
         for ind,contour in enumerate(contours):
             [x,y,w,h] = cv2.boundingRect(contour)
+            x_bound = w * .1;
+            y_bound = h * .1;
             if  bound < x < (frame_gray.shape[1] - bound) and bound < y < (frame_gray.shape[0] - bound) and (x+w) <= (frame_gray.shape[1] - bound) and (y+h) <= (frame_gray.shape[0] - bound):
                 roi = frame_gray[y-bound:y+h+bound,x-bound:x+w+bound]
 
