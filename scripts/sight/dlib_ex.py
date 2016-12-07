@@ -42,6 +42,9 @@ class FaceDetect:
         self.bridge = CvBridge()
         rospy.Subscriber("usb_cam/image_raw", Image, self.img_callback)
 
+        #newFace boolean to control how many expressions detected
+        self.new_face = True
+
     #converts ros message to numpy
     def img_callback(self, data):
         try:
@@ -85,9 +88,13 @@ class FaceDetect:
             landmarks = "error"
             return landmarks
 
+    #def smile_detect(self, landmarks):
+
+
     def face_detect(self):
         if self.frame == None:
             return
+
 
         #converts feed to grayscale
         gray = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
@@ -96,7 +103,35 @@ class FaceDetect:
 
         landmarks = self.get_landmarks(clahe_image)
 
+        if landmarks == "error":
+            return
+
         cv2.imshow("image", self.frame) #Display the frame
+
+        #mouth_landmarks: 48-68, corners: 48, 54, top of mouth: 50, 51, bottom of mouth: 57, 58
+
+        #landmarks in form x1,y1,x2,y2 -> index = (X) landmark_num*2-2, (Y) landmark_num*2-1
+        #landmarks = self.get_landmarks(clahe_image)
+
+        #landmark points in format [x1,y1]
+        left_corner_mouth_y = landmarks[95]
+        right_corner_mouth_y = landmarks[107]
+        bottom_mouth_y = landmarks[113]
+        top_mouth_y = landmarks[99]
+
+        mouth_hieght = top_mouth_y - bottom_mouth_y
+        threshold = mouth_hieght/2
+        lip_line = (left_corner_mouth_y + right_corner_mouth_y)/2
+        lip_corner_hieght = top_mouth_y - lip_line
+
+        smile = False
+
+        if lip_corner_hieght > threshold:
+                smile = True
+        print smile
+
+
+
 
         if cv2.waitKey(1) & 0xFF == ord('q'): #Exit program when the user presses 'q'
             self.detect = False
