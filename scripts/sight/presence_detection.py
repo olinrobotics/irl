@@ -8,6 +8,9 @@ import time
 import tf
 
 class Coordinates:
+    """
+    helper class to keep track of each individual person's coordinates and status
+    """
     def __init__(self, ID, x, y, z):
         self.ID = ID
         self.X = x
@@ -25,6 +28,9 @@ class Coordinates:
 
 
 class Presence:
+    """
+    main class for detecting presence, following people, and waving
+    """
     def __init__(self):
         #subscribing to edwin_bodies, from Kinect
         rospy.init_node('edwin_presence', anonymous = True)
@@ -46,9 +52,14 @@ class Presence:
         self.peoples = [None]*20
 
         #coordinates that edwin moves to face the person he's interacting with
-        self.edwinx = 0
-        self.edwiny = 0
-        self.edwinz = 0
+        self.coordx = 0
+        self.coordy = 0
+        self.coordz = 0
+
+        #edwin's own coordinates
+        self.edwin = None
+        self.edwin = None
+        self.edwin = None
 
         #keeps track of whether someone waved a Edwin or not
         self.waved = False
@@ -81,18 +92,16 @@ class Presence:
         for person in self.peoples:
             if person is not None and person.acknowledged == False:
                 print "I see you!"
-                # time.sleep(3)
-                msg = "data: R_nudge"
-                self.behavior_pub.publish(msg)
-                time.sleep(3)
-                msg = "data: R_look"
-                self.behavior_pub.publish(msg)
-                time.sleep(3)
-                msg = "rotate_hand:: " + str(-1520)
-                self.arm_pub.publish(msg)
-                time.sleep(3)
-                msg = "rotate_wrist:: " + str(-800)
-                self.arm_pub.publish(msg)
+                greeting = ["R_nudge",
+                            "R_look",
+                            "rotate_hand:: " + str(-1520),
+                            "rotate_wrist:: " + str(-800)]
+                for msg in greeting:
+                    if msg[0] == "R":
+                        self.behavior_pub.publish(msg)
+                    else:
+                        self.arm_pub.publish(msg)
+                    time.sleep(3)
                 person.acknowledged = True
 
         if self.waved == True:
