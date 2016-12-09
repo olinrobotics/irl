@@ -52,8 +52,8 @@ class PushCupGame:
         self.prev_area = 0
         self.cup_x = 0
         self.cup_y = 0
-        self.screen_width = 0
-        self.screen_height = 0
+        self.screen_width = 640
+        self.screen_height = 480
         self.gameboard_width = 5000
         self.gameboard_height = 6500
 
@@ -234,27 +234,30 @@ class PushCupGame:
         |see   |      | Edwin pushes or pulls the cup such that it covers the goal      |
     """
     def push_cup(self):
-        pos = self.find_cup()
+        pos = self.convert_space(self.cup_x,self.cup_y)
         print ("PSH| pos = ", pos)
         self.game_turn = 0; # Ends turn
 
-    """ find_cup function
-        find_cup converts between the cup's x and y in usb camera feed to x and
-        y in realspace (edwin head position)
-        ----------------------------------------------------------------------------------
-        |param  | self | access to the state variables of the class calling the function |
-        |return |      | vector of cup x and y position in realspace                     |
+    """ convert_space function
+        convert_space converts an xy point in camspace (pixel location) to
+        realspace (edwin head location)
+        ------------------------------------------------------------------------
+        |param  | self | access to the state variables of the class calling    |
+        |the function                                                          |
+        |param  | x    | x position of point in camspace                       |
+        |param  | y    | y position of point in camspace                       |
+        |return |      | vector of cup x and y position in realspace           |
     """
-    def find_cup(self):
+    def convert_space(self, x, y):
 
         # Determines coefficients to convert from camspace to realspace
-        x_coefficient = self.screen_width / self.gameboard_width
-        y_coefficient = self.screen_height / self.gameboard_height
+        x_coefficient = self.gameboard_width / self.screen_width
+        y_coefficient = self.gameboard_height / self.screen_height
 
-        # Uses coefficients to convert cup_position to realspace
-        edwin_x = x_coefficient * self.cup_x
-        edwin_y = y_coefficient * self.cup_y
-        return([edwin_x, edwin_y])
+        # Uses coefficients to convert input position to realspace coordinates
+        x_real = x_coefficient * x
+        y_real = y_coefficient * y
+        return([x_real, y_real])
 
     """ play_game function
         play_game holds Edwin's game logic and makes him decide when to move
