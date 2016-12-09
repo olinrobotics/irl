@@ -18,10 +18,12 @@ class Coordinates:
         self.Z = z
         self.acknowledged = False
 
+
     def set_Coordinates(self, x, y, z):
         self.X = x
         self.Y = y
         self.Z = z
+
 
     def change_Presence(self):
         self.acknowledged = not self.acknowledged
@@ -89,7 +91,6 @@ class Presence:
         """
         subscribes to edwin_wave and checks if someone is waving
         """
-
         if int(waves.data) == 1:
             self.waved = True
 
@@ -98,7 +99,6 @@ class Presence:
         """
         subscribes to edwin_bodies and keeps track of people's presence
         """
-
         #iterates through all 20 possible people that can be tracked
         for index in range(20):
             person = scene.crowd[index]
@@ -107,7 +107,6 @@ class Presence:
             if person.ID == 0:
                 self.peoples[index] = None
             else:
-
                 xpos, ypos, zpos = self.kinect_transform(person.xpos, person.ypos, person.zpos)
 
                 #either sets up a new presence or updates a person's presence
@@ -122,12 +121,11 @@ class Presence:
         greets people if they are newly tracked presence,
         responds to waves
         """
-
-
         #greets new people, and only greets them once while they're in the camera's view
         for person in self.peoples:
             if person is not None and person.acknowledged == False:
                 print "I see you!"
+
                 greeting = ["R_nudge",
                             "R_look",
                             "rotate_hand:: " + str(-1520),
@@ -137,7 +135,8 @@ class Presence:
                         self.behavior_pub.publish(msg)
                     else:
                         self.arm_pub.publish(msg)
-                    time.sleep(7)
+                    time.sleep(5)
+
                 person.acknowledged = True
 
         #responds to wave, a completely separate process
@@ -155,7 +154,6 @@ class Presence:
         """
         follows the nearest person's body around
         """
-
         #finds the person of interest's coordinates and then converts them to Edwin coordinates
         for person in self.peoples:
             if person is not None and self.attention() == person.ID:
@@ -163,7 +161,6 @@ class Presence:
                 if trans is not None:
                     xcoord, ycoord, zcoord = self.edwin_transform(trans)
                     print xcoord, ycoord, zcoord
-
 
                     #the person's coordinates are updated here, edwin's coordinates are updated in the callback
                     self.coordx = xcoord
@@ -181,7 +178,6 @@ class Presence:
         """
         finds the nearest person and specifically targets them
         """
-
         center_of_attention = 0
         distance = 5000
         for person in self.peoples:
@@ -200,7 +196,6 @@ class Presence:
         kinect reference frame = center of Kinect camera
         edwin reference frame = center of edwin' base, the plateau below his butt
         """
-
         self.br.sendTransform((person.X, person.Y, person.Z),
                             tf.transformations.quaternion_from_euler(0, 0, 0),
                             rospy.Time.now(),
@@ -220,7 +215,6 @@ class Presence:
         transforms coordinates such that the kinect coordinates are centered
         on the camera rather than to an arbitrary corner
         """
-
         xposition = x - 320
         yposition = 240 - y
         zposition = z
@@ -233,7 +227,6 @@ class Presence:
         additional transform of coordinates that have been changed from kinect to
         edwin to make sure that edwin can appropriately move to said coordinates
         """
-
         edwinx = int(5.485 * coordinates[0] - 1689)
         edwiny = int(7.879 * coordinates[1] - 2794)
         edwinz = int(29.45 * coordinates[2] + 5325)
@@ -257,7 +250,9 @@ class Presence:
 
 
     def run(self):
-
+        """
+        main run function for edwin
+        """
         print "running"
         r = rospy.Rate(10)
         time.sleep(2)
@@ -268,6 +263,5 @@ class Presence:
             r.sleep()
 
 if __name__ == "__main__":
-
     detector = Presence()
     detector.run()
