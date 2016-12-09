@@ -514,7 +514,7 @@ class StArm():
         res = self.block_on_result(cmd)
         print "I'M LOCATED"
         print res
-        self.pub.publish("WHERE" + str(res))
+        self.pub.publish(str(res))
         try:
             lines = res.split('\r\n')
             #TODO: Need to account for possibility that arm is in decimal mode
