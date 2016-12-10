@@ -14,15 +14,15 @@ from sensor_msgs.msg import Image
 from edwin.msg import Edwin_Shape
 from cv_bridge import CvBridge, CvBridgeError
 
-"""
-AutoPlay is a demo in which Edwin interacts with objects in his field of view. This is
-a non-interactive demo that is halted once a human is detected in the scene.
+from sight import handwriting_recognition
 
-There are multiple interaction types in this demo, and it concludes once a full run-through
-of one has been down.
+"""
+WritingDemo is a demo in which Edwin does text recognition on a piece of paper with
+text written on it. Edwin then writes the text he has recognized on piece of paper placed
+on the robot table.
 """
 class Game:
-    def __init__(self, recognizer):
+    def __init__(self):
         self.draw_pub = rospy.Publisher('draw_cmd', Edwin_Shape, queue_size=10)
         self.arm_pub = rospy.Publisher('arm_cmd', String, queue_size=10)
         self.behav_pub = rospy.Publisher('behaviors_cmd', String, queue_size=10)
@@ -31,7 +31,12 @@ class Game:
         self.image_sub = rospy.Subscriber("usb_cam/image_raw", Image, self.img_callback)
 
         #handwriting recognizer passed in from brain
-        self.recognizer = recognizer
+        self.recognizer = handwriting_recognition.HandwritingRecognition(True)
+        self.recognizer.process_data_svm()
+        self.recognizer.train_svm()
+
+        time.sleep(2)
+        print "Starting WritingDemo"
 
     def img_callback(self, data):
         try:
@@ -44,7 +49,8 @@ class Game:
         running = True
 
         while running:
-            pass
+            word = self.recognizer.get_image_text(self.frame)
+            print "WORD IS: ", word
 
         # cv2.destroyAllWindows()
         print "Finished with WritingDemo :)"
