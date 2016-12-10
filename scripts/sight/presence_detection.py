@@ -34,26 +34,29 @@ class Presence:
     main class for detecting presence, following people, and waving
     """
     def __init__(self):
-        #subscribing to edwin_bodies, from Kinect
         rospy.init_node('edwin_presence', anonymous = True)
 
+        #subscribing to edwin_bodies, from Kinect
         rospy.Subscriber('body', SceneAnalysis, self.presence_callback, queue_size=10)
+
+        #subscribing to edwin_wave, from Kinect
         rospy.Subscriber('wave_at_me', Int16, self.wave_callback, queue_size=10)
+
+        #subsrcibing to st.py's arm_debug, from Edwin
         rospy.Subscriber('arm_debug', String, self.edwin_location, queue_size=10)
 
         #setting up ROS publishers to Edwin commands
         self.behavior_pub = rospy.Publisher('behaviors_cmd', String, queue_size=10)
         self.arm_pub = rospy.Publisher('arm_cmd', String, queue_size=1)
-        self.arm_pub.publish("data: set_speed:: 4000")
 
-        # tf transformations
+        # tf transformations between Kinect and Edwin
         self.br = tf.TransformBroadcaster()
         self.listener = tf.TransformListener()
 
         #keeps of the people's coordinates and some statuses about them
         self.peoples = [None]*20
 
-        #coordinates that edwin moves to face the person he's interacting with
+        #coordinates of the person edwin's interacting with
         self.coordx = 0
         self.coordy = 0
         self.coordz = 0
@@ -77,6 +80,7 @@ class Presence:
 
             #massive string formatting - takes the string, splits by a formatter, then takes the array index that holds the XYZ,
             #then strips that string and splits it by spacing, and then takes the XYZ
+            #reason for this massive formatting is b/c sent data format is not consistent
             where = where.split("\r\n")[2].strip().split('  ')[0:3]
 
             #makes everything numbers that can be used as coordinates for Edwin
@@ -253,9 +257,11 @@ class Presence:
         """
         main run function for edwin
         """
-        print "running"
+        print "running presence detection"
         r = rospy.Rate(10)
         time.sleep(2)
+        self.arm_pub.publish("data: set_speed:: 4000")
+
         while not rospy.is_shutdown():
             self.find_new_people()
             self.follow_people()
