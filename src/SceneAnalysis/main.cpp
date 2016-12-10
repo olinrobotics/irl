@@ -62,6 +62,8 @@ ros::Publisher pub_body;
 edwin::SceneAnalysis scene;
 edwin::People person;
 
+ros::Subscriber toggle;
+bool operation = true;
 
 
 
@@ -171,46 +173,54 @@ void DrawProjectivePoints(XnPoint3D& ptIn, int width, double r, double g, double
 void glutDisplay (void)
 {
 
-
-	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	// Setup the OpenGL viewpoint
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-	glLoadIdentity();
-
-	xn::SceneMetaData sceneMD;
-	xn::DepthMetaData depthMD;
-	g_DepthGenerator.GetMetaData(depthMD);
-	glOrtho(0, depthMD.XRes(), depthMD.YRes(), 0, -1.0, 1.0);
-
-
-	glDisable(GL_TEXTURE_2D);
-
-	if (!g_bPause)
+	if (operation == true)
 	{
-		// Read next available data
-		g_Context.WaitOneUpdateAll(g_DepthGenerator);
-	}
+		glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	if (g_bStep)
+		// Setup the OpenGL viewpoint
+		glMatrixMode(GL_PROJECTION);
+		glPushMatrix();
+		glLoadIdentity();
+
+		xn::SceneMetaData sceneMD;
+		xn::DepthMetaData depthMD;
+		g_DepthGenerator.GetMetaData(depthMD);
+		glOrtho(0, depthMD.XRes(), depthMD.YRes(), 0, -1.0, 1.0);
+
+
+		glDisable(GL_TEXTURE_2D);
+
+		if (!g_bPause)
+		{
+			// Read next available data
+			g_Context.WaitOneUpdateAll(g_DepthGenerator);
+		}
+
+		if (g_bStep)
+		{
+			g_bStep = false;
+			g_bPause = true;
+		}
+
+		// Process the data
+		//DRAW
+		g_DepthGenerator.GetMetaData(depthMD);
+		g_SceneAnalyzer.GetMetaData(sceneMD);
+
+		DrawDepthMap(depthMD, sceneMD, pub_body, scene, person);
+		if (g_bPrintFrameID)
+		{
+			DrawFrameID(depthMD.FrameID());
+		}
+
+		glutSwapBuffers();
+
+
+	}
+	else
 	{
-		g_bStep = false;
-		g_bPause = true;
+		printf("I'm stopped");
 	}
-
-	// Process the data
-	//DRAW
-	g_DepthGenerator.GetMetaData(depthMD);
-	g_SceneAnalyzer.GetMetaData(sceneMD);
-
-	DrawDepthMap(depthMD, sceneMD, pub_body, scene, person);
-	if (g_bPrintFrameID)
-	{
-		DrawFrameID(depthMD.FrameID());
-	}
-
-	glutSwapBuffers();
 
 }
 
@@ -284,6 +294,21 @@ void glInit (int * pargc, char ** argv)
 	}
 
 
+void toggle_callback(std_msgs::Int16 msg)
+{
+	printf("i got something");
+	if (msg.data == 0)
+	{
+		printf("i was right");
+		operation = false;
+	}
+	else
+	{
+		operation = true;
+	}
+
+}
+
 
 
 
@@ -302,7 +327,7 @@ int main(int argc, char **argv)
 
 	  pub_body = rosnode.advertise<edwin::SceneAnalysis>("body", 10);
 
-
+		toggle = rosnode.subscribe<std_msgs::Int16>("body_toggle", 10, toggle_callback);
 
 	rc = g_Context.InitFromXmlFile(SAMPLE_XML_PATH, g_ScripeNode, &errors);
 	CHECK_ERRORS(rc, errors, "InitFromXmlFile");

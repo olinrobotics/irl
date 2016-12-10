@@ -68,7 +68,7 @@ link_directories(${GLUT_LIBRARY_DIRS}
 		 ${OpenGL_LIBRARY_DIRS})
 
 add_executable(edwin_wave src/SingleControl/main.cpp)
-add_dependencies(edwin_wave geometry_msgs_gencpp ${PROJECT_NAME}_generate_messages_cpp)
+add_dependencies(edwin_wave std_msgs geometry_msgs_gencpp ${PROJECT_NAME}_generate_messages_cpp)
 
 target_link_libraries(edwin_wave   ${catkin_LIBRARIES}
 				   ${OpenNI_LIBRARIES}
@@ -95,7 +95,7 @@ add_executable(edwin_bodies
 		src/SceneAnalysis/signal_catch.cpp
 )
 
-add_dependencies(edwin_bodies geometry_msgs_gencpp ${PROJECT_NAME}_generate_messages_cpp)
+add_dependencies(edwin_bodies std_msgs geometry_msgs_gencpp ${PROJECT_NAME}_generate_messages_cpp)
 
 #MESSAGE( STATUS "OPENNI LIBRARIES: " ${OpenNI_LIBRARIES} )
 

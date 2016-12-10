@@ -125,21 +125,21 @@ class Presence:
         greets people if they are newly tracked presence,
         responds to waves
         """
-        #greets new people, and only greets them once while they're in the camera's view
+        #greets people, only greets once while they're in the camera's view and are center of attention
         for person in self.peoples:
-            if person is not None and person.acknowledged == False:
-                print "I see you!"
+            if (person is not None) and (self.attention() == person.ID) and (person.acknowledged == False):
+                print "I see you!", self.attention()
 
-                greeting = ["R_nudge",
-                            "R_look",
-                            "rotate_hand:: " + str(-1520),
-                            "rotate_wrist:: " + str(-800)]
-                for msg in greeting:
-                    if msg[0] == "R":
-                        self.behavior_pub.publish(msg)
-                    else:
-                        self.arm_pub.publish(msg)
-                    time.sleep(5)
+                # greeting = ["R_nudge",
+                #             "R_look",
+                #             "rotate_hand:: " + str(-1520),
+                #             "rotate_wrist:: " + str(-800)]
+                # for msg in greeting:
+                #     if msg[0] == "R":
+                #         self.behavior_pub.publish(msg)
+                #     else:
+                #         self.arm_pub.publish(msg)
+                #     time.sleep(5)
 
                 person.acknowledged = True
 
@@ -151,8 +151,6 @@ class Presence:
             self.waved = False
             time.sleep(3)
 
-        # print "I am paying attention to person", self.attention()
-
 
     def follow_people(self):
         """
@@ -160,11 +158,11 @@ class Presence:
         """
         #finds the person of interest's coordinates and then converts them to Edwin coordinates
         for person in self.peoples:
-            if person is not None and self.attention() == person.ID:
+            if (person is not None) and (self.attention() == person.ID):
                 trans = self.kinect_to_edwin_transform(person)
                 if trans is not None:
                     xcoord, ycoord, zcoord = self.edwin_transform(trans)
-                    print xcoord, ycoord, zcoord
+                    print person.ID, xcoord, ycoord, zcoord
 
                     #the person's coordinates are updated here, edwin's coordinates are updated in the callback
                     self.coordx = xcoord
@@ -186,9 +184,9 @@ class Presence:
         distance = 5000
         for person in self.peoples:
             if person is not None:
-                if person.Z < distance:
+                if person.X < distance: #person's depth is now their X position in edwin frame
                     center_of_attention = person.ID
-                    distance = person.Z
+                    distance = person.X
 
         if center_of_attention != 0:
             return center_of_attention
