@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 from Character import Character
 
-def get_text_roi(frame, x, y):
+def get_text_roi(frame, x, y, show_window=True):
     kernel_sharpen = np.array([[-1,-1,-1],[-1,9,-1],[-1,-1,-1]])
     kernel_sharpen_3 = np.array([[-1,-1,-1,-1,-1],
                              [-1,2,2,2,-1],
@@ -48,16 +48,17 @@ def get_text_roi(frame, x, y):
                         cont = Character(deskewed,(x,y,w,h), hog(deskewed))
                         chars.append(cont)
 
-    # Build an image to show all number contours
-    num_len = len(chars)
-    # print '# of contours: ', num_len
-    if num_len < 35 and num_len > 0:
-        new_img = np.ones((20,20*num_len),np.uint8)
-        y = 0
-        for x in chars:
-            new_img[:,y:y+20] = x.img
-            y += 20
-        cv2.imshow('image3',new_img)
+    if show_window:
+        # Build an image to show all number contours
+        num_len = len(chars)
+        # print '# of contours: ', num_len
+        if num_len < 35 and num_len > 0:
+            new_img = np.ones((20,20*num_len),np.uint8)
+            y = 0
+            for x in chars:
+                new_img[:,y:y+20] = x.img
+                y += 20
+            cv2.imshow('image3',new_img)
     return chars
 
     # Deskews a 20x20 character image

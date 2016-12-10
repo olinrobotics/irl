@@ -22,25 +22,27 @@ class HandwritingRecognition:
 
     def __init__(self, init_param = False):
         if init_param:
-            #init_param allows us to instantiate the HR object in different contexts, i.e in InteractiveDemos
+            #init_param allows us to instantiate the HR object in different contexts, i.e in WritingDemo.py
             pass
         else:
-            rospack = rospkg.RosPack()
-            self.PARAMS_PATH = rospack.get_path('edwin')
-            self.img = cv2.imread(self.PARAMS_PATH + '/params/test_imgs/digits.png')
             rospy.init_node('handwriting_recognition', anonymous=True)
-            self.bridge = CvBridge()
             rospy.Subscriber('usb_cam/image_raw', Image, self.img_callback)
-            self.pub = rospy.Publisher('word_publish',String,queue_size=10)
 
-            self.detect = True
-            cv2.namedWindow('image')
-            cv2.createTrackbar('X','image',0,255,self.nothing)
-            cv2.setTrackbarPos('X','image',255)
-            cv2.createTrackbar('Y','image',0,255,self.nothing)
-            cv2.setTrackbarPos('Y','image',7)
-            self.test_data = np.zeros((200,200),np.uint8)
-            self.test_filled = 0
+            self.bridge = CvBridge()
+
+        rospack = rospkg.RosPack()
+        self.PARAMS_PATH = rospack.get_path('edwin')
+        self.img = cv2.imread(self.PARAMS_PATH + '/params/test_imgs/digits.png')
+        self.pub = rospy.Publisher('word_publish',String,queue_size=10)
+
+        self.detect = True
+        cv2.namedWindow('image')
+        cv2.createTrackbar('X','image',0,255,self.nothing)
+        cv2.setTrackbarPos('X','image',255)
+        cv2.createTrackbar('Y','image',0,255,self.nothing)
+        cv2.setTrackbarPos('Y','image',7)
+        self.test_data = np.zeros((200,200),np.uint8)
+        self.test_filled = 0
         # print os.getcwd()
 
         # Defines vars for keeping track of new words
@@ -75,8 +77,8 @@ class HandwritingRecognition:
 
     def img_callback(self, data):
         try:
-            # self.curr_frame = self.bridge.imgmsg_to_cv2(data, "bgr8")
-            self.curr_frame = cv2.imread('letters2.jpg')
+            self.curr_frame = self.bridge.imgmsg_to_cv2(data, "bgr8")
+            # self.curr_frame = cv2.imread('letters2.jpg')
         except CvBridgeError as e:
             print(e)
 
@@ -203,6 +205,27 @@ class HandwritingRecognition:
         new_frame = self.frame
         cv2.imshow('image', new_frame)
         cv2.waitKey(1)
+
+
+    def get_image_text(self, frame):
+        default_x = 255
+        default_y = 7
+        self.chars = Process.get_text_roi(frame, default_x, default_y, show_window=False)
+
+        if len(self.chars) != 0:
+            # Prepares input data for processing
+            reshape_data = np.float32([char.HOG for char in self.chars]).reshape(-1,64)
+
+            result = self.SVM.predict_all(reshape_data)
+            res_data = []
+            for x in result:
+                res_data.append(int(x.item(0)))
+            for idx,roi in enumerate(self.chars):
+                roi.result = res_data[idx]
+
+        self.chars.sort(key = lambda roi: roi.x)
+        word = ''.join([chr(item.result) for item in self.chars])
+        return word
 
     def run(self):
         r = rospy.Rate(10)
