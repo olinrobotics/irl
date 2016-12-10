@@ -9,15 +9,17 @@ import time
 
 
 class Writer:
-    def __init__(self):
-        rospy.init_node('edwin_write', anonymous = True)
-        rospy.Subscriber('/write_cmd', Edwin_Shape, self.write_callback, queue_size=10)
+    def __init__(self, init_param = False):
+        if init_param:
+            pass
+        else:
+            rospy.init_node('edwin_write', anonymous = True)
+            rospy.Subscriber('/write_cmd', Edwin_Shape, self.write_callback, queue_size=10)
 
         self.behavior_pub = rospy.Publisher('behaviors_cmd', String, queue_size=10)
         self.arm_pub = rospy.Publisher('arm_cmd', String, queue_size=10)
 
         print "starting edwin writer...."
-        self.arm_pub.publish("set_speed:: 10000")
 
         self.w = 200
         self.letter_dictionary = {}
@@ -129,7 +131,7 @@ class Writer:
             msg = "move_to:: " + str(data.x-stroke[0]) + ", " + str(data.y-stroke[1]) + ", " + str(z) + ", " + str(0)
             print "sending: ", msg
             self.arm_pub.publish(msg)
-            time.sleep(1.5)
+            time.sleep(2)
 
     def write_callback(self, data):
         time.sleep(1)
@@ -141,6 +143,7 @@ class Writer:
             self.arm_pub.publish(motion)
             time.sleep(1.5)
 
+        time.sleep(2)
         #data.shape is the string we want Edwin to write
         for letter in data.shape:
             self.write_letter(letter, data)
