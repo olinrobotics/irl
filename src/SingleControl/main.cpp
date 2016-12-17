@@ -189,8 +189,8 @@ int main(int argc, char** argv)
   	ros::NodeHandle rosnode = ros::NodeHandle();
 
 
-  	ros::Publisher pub_single_servo = rosnode.advertise<std_msgs::Int16>("wave_at_me", 10); //publisher for gesture booleans
-  	std_msgs::Int16 msg_single_servo;
+  	ros::Publisher pub_waving = rosnode.advertise<std_msgs::Int16>("wave_at_me", 10);
+  	std_msgs::Int16 msg_waving;
 
 
 	// Main loop
@@ -224,8 +224,8 @@ int main(int argc, char** argv)
 			 	num = 0;
 			}
 
-			msg_single_servo.data = num;
-			pub_single_servo.publish(msg_single_servo);
+			msg_waving.data = num;
+			pub_waving.publish(msg_waving);
 
 			//set gesture booleans back to false for re-initialization again
 			wave = false;
