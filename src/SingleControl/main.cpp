@@ -62,6 +62,7 @@ int num;
 bool wave;
 bool sess_start;
 bool sess_end;
+bool operation = true;
 
 
 //-----------------------------------------------------------------------------
@@ -110,6 +111,46 @@ XnBool fileExists(const char *fn)
 	xnOSDoesFileExist(fn, &exists);
 	return exists;
 }
+
+
+std::vector<std::string> split(const std::string &s, char delim) {
+    std::stringstream ss(s);
+    std::string item;
+    std::vector<std::string> tokens;
+    while (getline(ss, item, delim)) {
+        tokens.push_back(item);
+    }
+    return tokens;
+}
+void toggle_callback(const std_msgs::String::ConstPtr& msg)
+{
+	printf("i got something");
+	std::string test = msg->data.c_str();
+
+	std::vector<std::string> x = split(test, ';');
+	for (unsigned i=0; i < x.size(); i++)
+	{
+    std::vector<std::string> y = split(x[i], ':');
+		if (y[0] == "singlecontrol")
+		{
+			if (y[1] == "stop")
+			{
+				printf("STOPPING");
+				operation = false;
+			}
+			else
+			{
+				printf("RUNNING");
+				operation = true;
+			}
+
+		}
+
+
+	}
+
+}
+
 
 
 // this sample can run either as a regular sample, or as a client for multi-process (remote mode)
@@ -192,48 +233,57 @@ int main(int argc, char** argv)
   	ros::Publisher pub_waving = rosnode.advertise<std_msgs::Int16>("wave_at_me", 10);
   	std_msgs::Int16 msg_waving;
 
+		ros::Subscriber toggle = rosnode.subscribe<std_msgs::String>("all_control", 10, &toggle_callback);
+
+
 
 	// Main loop
 	while (!xnOSWasKeyboardHit())
 	{
-		if (bRemoting)
+		if(operation)
 		{
-			((XnVMultiProcessFlowClient*)pSessionGenerator)->ReadState();
-		}
-		else
-		{
-			context.WaitAnyUpdateAll();
-			((XnVSessionManager*)pSessionGenerator)->Update(&context);
-
-			//fill out the custom message fields with the placeholders we've previously defined
-/*			msg.positionx = xpos;
-			msg.positiony = ypos;
-			msg.positionz = zpos;
-			pub.publish(msg);
-			msg_gestures.wave = wave;
-			msg_gestures.hello = sess_start;
-			msg_gestures.goodbye = sess_end;
-			pub_gestures.publish(msg_gestures);
-*/
-			if(wave)
+			if (bRemoting)
 			{
-				num = 1;
+				((XnVMultiProcessFlowClient*)pSessionGenerator)->ReadState();
 			}
 			else
 			{
-			 	num = 0;
-			}
+				context.WaitAnyUpdateAll();
+				((XnVSessionManager*)pSessionGenerator)->Update(&context);
 
-			msg_waving.data = num;
-			pub_waving.publish(msg_waving);
+				//fill out the custom message fields with the placeholders we've previously defined
+	/*			msg.positionx = xpos;
+				msg.positiony = ypos;
+				msg.positionz = zpos;
+				pub.publish(msg);
+				msg_gestures.wave = wave;
+				msg_gestures.hello = sess_start;
+				msg_gestures.goodbye = sess_end;
+				pub_gestures.publish(msg_gestures);
+	*/
+				if(wave)
+				{
+					num = 1;
+				}
+				else
+				{
+					num = 0;
+				}
 
-			//set gesture booleans back to false for re-initialization again
-			wave = false;
-			sess_start = false;
-			sess_end = false;
+				msg_waving.data = num;
+				pub_waving.publish(msg_waving);
 
-			ros::spinOnce();
+				//set gesture booleans back to false for re-initialization again
+				wave = false;
+				sess_start = false;
+				sess_end = false;
+
 		}
+
+
+		}
+		ros::spinOnce();
+
 	}
 
 	delete pSessionGenerator;

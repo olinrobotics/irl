@@ -166,13 +166,11 @@ void DrawProjectivePoints(XnPoint3D& ptIn, int width, double r, double g, double
 
 
 	glFlush();
-  ros::spinOnce();
 
 }
 // this function is called each frame
 void glutDisplay (void)
 {
-
 	if (operation == true)
 	{
 		glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -216,10 +214,6 @@ void glutDisplay (void)
 		glutSwapBuffers();
 
 
-	}
-	else
-	{
-		printf("I'm stopped");
 	}
 
 }
@@ -294,21 +288,51 @@ void glInit (int * pargc, char ** argv)
 	}
 
 
-void toggle_callback(std_msgs::Int16 msg)
+	std::vector<std::string> split(const std::string &s, char delim) {
+	    std::stringstream ss(s);
+	    std::string item;
+	    std::vector<std::string> tokens;
+	    while (getline(ss, item, delim)) {
+	        tokens.push_back(item);
+	    }
+	    return tokens;
+	}
+	void toggle_callback(const std_msgs::String::ConstPtr& msg)
+	{
+		printf("i got something");
+		std::string test = msg->data.c_str();
+
+		std::vector<std::string> x = split(test, ';');
+		for (unsigned i=0; i < x.size(); i++)
+		{
+	    std::vector<std::string> y = split(x[i], ':');
+			if (y[0] == "sceneanalysis")
+			{
+				if (y[1] == "stop")
+				{
+					printf("STOPPING");
+					operation = false;
+				}
+				else
+				{
+					printf("RUNNING");
+					operation = true;
+				}
+
+			}
+
+
+		}
+
+	}
+
+
+void timer(int value)
 {
-	printf("i got something");
-	if (msg.data == 0)
-	{
-		printf("i was right");
-		operation = false;
-	}
-	else
-	{
-		operation = true;
-	}
-
+	printf("running");
+	ros::spinOnce();
+	glutTimerFunc(10, timer, 0);
 }
-
 
 
 
@@ -327,7 +351,8 @@ int main(int argc, char **argv)
 
 	  pub_body = rosnode.advertise<edwin::SceneAnalysis>("body", 10);
 
-		toggle = rosnode.subscribe<std_msgs::Int16>("body_toggle", 10, toggle_callback);
+		toggle = rosnode.subscribe<std_msgs::String>("all_control", 10, &toggle_callback);
+
 
 	rc = g_Context.InitFromXmlFile(SAMPLE_XML_PATH, g_ScripeNode, &errors);
 	CHECK_ERRORS(rc, errors, "InitFromXmlFile");
@@ -342,7 +367,9 @@ int main(int argc, char **argv)
 	CHECK_RC(rc, "StartGenerating");
 
 	glInit(&argc, argv);
+	glutTimerFunc(10, timer, 0);
 	glutMainLoop();
+
 
 
 }
