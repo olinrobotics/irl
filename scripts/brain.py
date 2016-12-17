@@ -20,7 +20,8 @@ import numpy as np
 import pickle, os, sys
 from std_msgs.msg import String, Int16
 
-from sight import handwriting_recognition
+import WritingDemo
+import PresenceDemo
 
 class EdwinBrain:
     def __init__(self):
@@ -48,12 +49,21 @@ class EdwinBrain:
             self.control_pub.publish("idle init")
             self.idling = True
 
+    def demo(self):
+        while True:
+            cmd = str(raw_input("Demo ID: "))
+            if cmd == "w":
+                g = WritingDemo.Game()
+                g.run()
+            elif cmd == "pd":
+                g = PresenceDemo.Game()
+                g.run()
+
     def run(self):
         r = rospy.Rate(10)
         while not rospy.is_shutdown():
             r.sleep()
 
-
 if __name__ == '__main__':
     brain_eng = EdwinBrain()
-    brain_eng.run()
+    brain_eng.demo()

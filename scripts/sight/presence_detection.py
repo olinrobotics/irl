@@ -7,6 +7,12 @@ from edwin.msg import *
 import time
 import tf
 
+"""
+rosrun edwin edwin_bodies
+rosrun edwin edwin_wave
+rosrun edwin presence_detection.py
+"""
+
 class Coordinates:
     """
     helper class to keep track of each individual person's coordinates and status
@@ -33,8 +39,9 @@ class Presence:
     """
     main class for detecting presence, following people, and waving
     """
-    def __init__(self):
-        rospy.init_node('edwin_presence', anonymous = True)
+    def __init__(self, init=False):
+        if not init:
+            rospy.init_node('edwin_presence', anonymous = True)
 
         #subscribing to edwin_bodies, from Kinect
         rospy.Subscriber('body', SceneAnalysis, self.presence_callback, queue_size=10)
@@ -69,6 +76,8 @@ class Presence:
         #keeps track of whether someone waved a Edwin or not
         self.waved = False
 
+        #whether run true loop is running
+        self.running = True
 
     def edwin_location(self, res):
         """
@@ -150,6 +159,7 @@ class Presence:
             self.behavior_pub.publish(msg)
             self.waved = False
             time.sleep(3)
+            self.running = False
 
 
     def follow_people(self):
@@ -260,7 +270,7 @@ class Presence:
         time.sleep(2)
         self.arm_pub.publish("data: set_speed:: 4000")
 
-        while not rospy.is_shutdown():
+        while self.running:
             self.find_new_people()
             self.follow_people()
 
