@@ -20,6 +20,8 @@ import numpy as np
 import pickle, os, sys
 from std_msgs.msg import String, Int16
 
+from sight import handwriting_recognition
+
 class EdwinBrain:
     def __init__(self):
         rospy.init_node('edwin_brain', anonymous=True)
@@ -37,7 +39,6 @@ class EdwinBrain:
 
     def arm_debug_callback(self, data):
         if "ROUTE CREATE DONE" in data.data:
-
             rospack = rospkg.RosPack()
             self.PACKAGE_PATH = rospack.get_path("edwin")
 

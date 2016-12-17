@@ -24,7 +24,6 @@ on the robot table.
 """
 class Game:
     def __init__(self):
-        self.draw_pub = rospy.Publisher('draw_cmd', Edwin_Shape, queue_size=10)
         self.arm_pub = rospy.Publisher('arm_cmd', String, queue_size=10)
         self.behav_pub = rospy.Publisher('behaviors_cmd', String, queue_size=10)
 
