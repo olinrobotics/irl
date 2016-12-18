@@ -137,7 +137,8 @@ def streamGraph():
 	#
 	# matplotlib.pyplot.show()
 
-	streamData = []
+	streamData[0] = []
+	streamData[1] = []
 
 def streamAnalysis():
 	equalize()
@@ -180,6 +181,7 @@ def calibrate():
 	averages = average_amplitude()
 	eqRatio = averages[1]/averages[0] #reciprocal of how much bigger mic 1 is than mic 2
 	print eqRatio
+	streamGraph()
 
 def test():
 	streamCycle()
@@ -219,6 +221,5 @@ End Butter Filter
 if __name__ == '__main__':
 	micStreamSetup() #Gets the mic indices and opens the streams
 	calibrate()
-	streamGraph()
-	#test()
+	test()
 	closeStreams()
