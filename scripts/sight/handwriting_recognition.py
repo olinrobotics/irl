@@ -152,7 +152,7 @@ class HandwritingRecognition:
         for dot in dot_contours:
             for line in line_contours:
                 # If this is true, a letter 'i' has been found
-                if abs(line.x - dot.x) < 20 and line.y - (dot.y+dot.h) < 20:
+                if abs(line.x - dot.x) < 50 and line.y > dot.y:
                     dot.result = ord('i')
                     dot.h += line.h
                     dot.y = line.y
