@@ -18,12 +18,13 @@ class BuildData:
 
     def __init__(self):
         cv2.setUseOptimized(True)
+        self.init_character = 'test_data'
         self.img = cv2.imread('test_imgs/digits.png')
         rospy.init_node('handwriting_recognition', anonymous=True)
         self.bridge = CvBridge()
         rospy.Subscriber("usb_cam/image_raw", Image, self.img_callback)
         rospack = rospkg.RosPack()
-        PACKAGE_PATH = rospack.get_path("edwin")
+        self.PACKAGE_PATH = rospack.get_path("edwin")
         self.detect = True
         cv2.namedWindow('image')
         cv2.setMouseCallback('image',self.fill_test_data)
@@ -31,8 +32,7 @@ class BuildData:
         self.test_filled = 0
 
     def fill_test_data(self, event, x, y, flags, param):
-        init_character = 'c'
-        path = 'char_data/'
+        path = self.PACKAGE_PATH + '/params/char_data/'
         if event == cv2.EVENT_LBUTTONDOWN:
             for contour in self.numbers:
                 if self.test_filled < 100:
@@ -41,11 +41,12 @@ class BuildData:
                     self.test_data[y_index:y_index+20,x_index:x_index+20] = contour.img
                     self.test_filled += 1
         elif event == cv2.EVENT_RBUTTONDOWN:
-            write_path = path + init_character + '.png'
+            write_path = path + self.init_character + '.png'
             cv2.imwrite(write_path,self.test_data)
-            init_chracter += 1
+            print('Image saved: ' + write_path)
             self.test_filled = 0
             self.test_data[:,:] = 0
+            self.init_character = chr(ord(self.init_character)+1)
 
     def img_callback(self, data):
         try:
