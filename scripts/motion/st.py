@@ -106,6 +106,8 @@ class StArm():
     '''
 
     def __init__(self, baud=DEFAULT_BAUD_RATE, to=DEFAULT_TIMEOUT):
+        rospy.init_node('robot_arm', anonymous=True)
+
         self.debug = True
 
         possiblePorts = ['/dev/ttyUSB0', '/dev/ttyUSB1','/dev/ttyUSB2', '/dev/ttyUSB3', '/dev/ttyUSB4']
@@ -120,9 +122,10 @@ class StArm():
                 print "Couldn't connect to port: ", port
                 pass
 
+
     def initial_calibration(self):
         self.cxn.flushInput()
-        self.purge()
+        # self.purge() #this command seems to block the robot
         self.roboforth()
         self.joint()
         self.start()
@@ -163,6 +166,11 @@ class StArm():
         self.cxn.write(cmd + CR)
         self.block_on_result(cmd)
 
+    def execute_command(self, cmd):
+        print('Running custom command...')
+        self.cxn.write(cmd + CR)
+        result = self.block_on_result(cmd)
+        print(result)
 
     def continuous(self):
         cmd = CONTINUOUS
@@ -273,8 +281,12 @@ class StArm():
 
     def block_on_result(self, cmd, debug=False):
         t = time.time()
+        print "in block_on_result"
         s = self.cxn.read(self.cxn.inWaiting())
+        print s
         while s[-5:-3] != OK:
+            # print "got: ", s
+            # time.sleep(1)
             #Match '>' only at the end of the string
             if s[-1:] == '>':
                 rospy.loginfo(" s is : %s" , s)
