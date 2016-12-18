@@ -49,6 +49,7 @@ class PushCupGame:
 
         self.debug = True # Debug State
         self.temp = 0
+        self.cv_image = None
 
         # Positions
         self.cup_pos = [0,0]
@@ -104,26 +105,16 @@ class PushCupGame:
     # Runs once for every reciept of an image from usb_cam
     def callback(self, data):
 
-        # Slows down data processing to once per three frames
-        self.timecounter += 1
-        if self.timecounter == 3:
-            try:
-                cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8") # Converts usb cam feed to csv feed; bgr8 is an image encoding
+        try:
+            self.cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8") # Converts usb cam feed to csv feed; bgr8 is an image encoding
 
-                # Sets image size
-                image_size = cv_image.shape
-                screen_height = image_size[0]
-                screen_width = image_size[1]
+            # Sets image size
+            image_size = self.cv_image.shape
+            screen_height = image_size[0]
+            screen_width = image_size[1]
 
-            except CvBridgeError as e:
-                print(e)
-
-            self.apply_filter(cv_image)
-            self.timecounter = 0
-            if self.temp == 30:
-                self.push_cup()
-                self.temp += 1
-            else: self.temp += 1
+        except CvBridgeError as e:
+            print(e)
 
     """ overview_pos function:
         Function: moves Edwin to a standardized position where he can examine the entire gameboard
@@ -139,6 +130,9 @@ class PushCupGame:
 
     # Manages contours (positions, areas, relevance, etc.)
     def apply_filter(self, feed):
+
+        if feed == None:
+            return
 
         blur = cv2.GaussianBlur(feed, (5,5), 0) # Gaussian Blur filter
 
@@ -297,28 +291,53 @@ class PushCupGame:
         pos4 = []
         pos5 = []
         if (self.check_pos([cup[0], (cup[1] - 200), -500]) == True):
+
+            direction = None
             msg1 = "create_route:: Push; "
+            if cup[0] < goal[0]: direction = "Left"
+            if cup[0] > goal[0]: direction = "Right"
+
             if cup[1] < goal[1]:
+                print("PSH| Pushing Up")
                 # Position Below Cup; Push Up to Cup Y
-                msg1 = msg1 + str(cup[0]) + ", " + str(cup[1] - 200) + ", -800, 845, 195, 0"
+                msg1 = msg1 + str(cup[0]) + ", " + str(cup[1] - 300) + ", -800, 845, 195, 0"               # Head Down
+                msg1 = msg1 + ", " + str(cup[0]) + ", " + str(goal[1]) + ", -800, 845, 195, 0"             # Push Forward
+
+                if direction == "Left":
+                    print("PSH| Pushing Left")
+                    msg1 = msg1 + ", " + str(cup[0] + 300) + ", " + str(goal[1]) + ", -800, 845, 195, 0"       # Move Right
+                    msg1 = msg1 + ", " + str(cup[0] + 300) + ", " + str(goal[1] + 300) + ", -800, 845, 195, 0" # Move Up
+                    msg1 = msg1 + ", " + str(goal[0]) + ", " + str(goal[1] + 300) + ", -800, 845, 195, 0"      # Push Left
+                elif direction == "Right":
+                    print("PSH| Pushing Right")
+                    msg1 = msg1 + ", " + str(cup[0] - 300) + ", " + str(goal[1]) + ", -800, 845, 195, 0"       # Move Left
+                    msg1 = msg1 + ", " + str(cup[0] - 300) + ", " + str(goal[1] + 300) + ", -800, 845, 195, 0" # Move Up
+                    msg1 = msg1 + ", " + str(goal[0]) + ", " + str(goal[1] + 300) + ", -800, 845, 195, 0"      # Push Right
             else:
                 # Postion Above Cup; Push Down to Cup Y
-                msg1 = msg1 + str(cup[0]) + ", " + str(cup[1] + 400) + ", -800, 845, 195, 0"
-            if cup[0] < goal[0]:
-                # Position to Right of Cup: Push Left to Cup X
-                print("Left")
-            else:
-                # Position to Left of Cup: Push Right to Cup X
-                print("Right")
-            # msg1 = "create_route:: R_push; " + str(cup[0]) +", " + str(cup[1] - 200) + ", -800, 845, 195, 0, " + str(cup[0]) + ", " + str(goal[1]) + ", -800, 845, 195, 0,"
+                print("PSH| Pushing Down")
+                msg1 = msg1 + str(cup[0]) + ", " + str(cup[1] + 300) + ", -800, 845, 195, 0"               # Head Down
+                msg1 = msg1 + ", " + str(cup[0]) + ", " + str(goal[1]) + ", -800, 845, 195, 0"             # Push Backward
+
+                if direction == "Left":
+                    print("PSH| Pushing Left")
+                    msg1 = msg1 + ", " + str(cup[0] + 300) + ", " + str(goal[1]) + ", -800, 845, 195, 0"       # Move Right
+                    msg1 = msg1 + ", " + str(cup[0] + 300) + ", " + str(goal[1] - 300) + ", -800, 845, 195, 0" # Move Down
+                    msg1 = msg1 + ", " + str(goal[0]) + ", " + str(goal[1] + 300) + ", -800, 845, 195, 0"      # Push Left
+                elif direction == "Right":
+                    print("RSH| Pushing Right")
+                    msg1 = msg1 + ", " + str(cup[0] - 300) + ", " + str(goal[1]) + ", -800, 845, 195, 0"       # Move Left
+                    msg1 = msg1 + ", " + str(cup[0] - 300) + ", " + str(goal[1] - 300) + ", -800, 845, 195, 0" # Move Down
+                    msg1 = msg1 + ", " + str(goal[0]) + ", " + str(goal[1] - 300) + ", -800, 845, 195, 0"      # Push Right
+
             print ("PSH| Sending: ", msg1)
             self.arm_pub.publish(msg1)
             time.sleep(1)
             msg2 = "run_route:: Push"
             print("PSH| Sending: ", msg2)
             self.arm_pub.publish(msg2)
-            # time.sleep(2)
-            # self.overview_pos()
+            time.sleep(2)
+            self.overview_pos()
 
     """ reset_cup function:
         reset_cup makes Edwin push the cup to a "random" point on the gameboard
@@ -373,48 +392,50 @@ class PushCupGame:
     def play_game(self):
 
         if self.debug == True: print("Starting Gameplay")
-        self.convert_space(self.cup_pos)
-        # if self.game_state == 0: # If Edwin is playing with another person
-        #     if self.game_turn == 1: # If it's Edwin's turn
-        #         if self.cup_in_frame == True and self.goal_in_frame == True: # If game pieces are on the playing field
-        #             if self.debug == True: print ("Pushing Cup . . .")
-        #             self.push_cup()
-        #             self.game_turn = 0
-        #             if self.debug == True: print("Turn: Player")
-        #
-        #         else: # If some game pieces are missing
-        #             if self.debug == True:
-        #                 if self.cup_in_frame == False: print("ERROR: No cup in frame")
-        #                 if self.goal_in_frame == False: print("ERROR: No goal in frame")
-        #     else: # If it's the player's turn
-        #         if self.human_in_frame == True and self.turn_in_progress == False: # Human starts taking turn
-        #             self.turn_in_progress = True
-        #         if self.human_in_frame == False and self.turn_in_progress == True: # Human has ended turn
-        #             self.turn_in_progress = False
-        #             self.game_turn == 1
-        #             if self.debug == True: print("Turn: Edwin")
-        #             time.sleep(1)
-        #
-        #
-        # else: # If Edwin is playing by himself
-        #     if self.game_turn == 0: # If it's Edwin's goal turn
-        #         print("temp")
-        #         if self.cup_in_frame == True and self.goal_in_frame == True: # If game pieces are on the playing field
-        #             if self.debug == True: print ("Pushing Cup . . .")
-        #             self.push_cup()
-        #             if self.debug == True: print("Turn: Reset")
-        #             time.sleep(3)
-        #             self.game_turn = 0
-        #
-        #         else: # If some game pieces are missing
-        #             if self.debug == True:
-        #                 if self.cup_in_frame == False: print("ERROR: No cup in frame")
-        #                 if self.goal_in_frame == False: print("ERROR: No goal in frame")
-        #     else: # If it's Edwin's reset turn
-        #         self.reset_cup()
-        #         if self.debug == True: print("Turn: Play")
-        #         time.sleep(3)
-        #         self.game_turn = 1
+        self.apply_filter(self.cv_image)
+        time.sleep(2)
+
+        if self.game_state == 0: # If Edwin is playing with another person
+            if self.game_turn == 1: # If it's Edwin's turn
+                if self.cup_in_frame == True and self.goal_in_frame == True: # If game pieces are on the playing field
+                    if self.debug == True: print ("Pushing Cup . . .")
+                    self.push_cup()
+                    self.game_turn = 0
+                    if self.debug == True: print("Turn: Player")
+
+                else: # If some game pieces are missing
+                    if self.debug == True:
+                        if self.cup_in_frame == False: print("ERROR: No cup in frame")
+                        if self.goal_in_frame == False: print("ERROR: No goal in frame")
+            else: # If it's the player's turn
+                if self.human_in_frame == True and self.turn_in_progress == False: # Human starts taking turn
+                    self.turn_in_progress = True
+                if self.human_in_frame == False and self.turn_in_progress == True: # Human has ended turn
+                    self.turn_in_progress = False
+                    self.game_turn == 1
+                    if self.debug == True: print("Turn: Edwin")
+                    time.sleep(1)
+
+
+        else: # If Edwin is playing by himself
+            if self.game_turn == 0: # If it's Edwin's goal turn
+                print("temp")
+                if self.cup_in_frame == True and self.goal_in_frame == True: # If game pieces are on the playing field
+                    if self.debug == True: print ("Pushing Cup . . .")
+                    self.push_cup()
+                    if self.debug == True: print("Turn: Reset")
+                    time.sleep(3)
+                    self.game_turn = 0
+
+                else: # If some game pieces are missing
+                    if self.debug == True:
+                        if self.cup_in_frame == False: print("ERROR: No cup in frame")
+                        if self.goal_in_frame == False: print("ERROR: No goal in frame")
+            else: # If it's Edwin's reset turn
+                self.reset_cup()
+                if self.debug == True: print("Turn: Play")
+                time.sleep(3)
+                self.game_turn = 1
 
     """ run function:
         run handles the actual updating of the code and continuation of the program
@@ -425,6 +446,7 @@ class PushCupGame:
         r = rospy.Rate(20) # Sets update rate
         while not rospy.is_shutdown():
             r.sleep()
+            self.play_game()
 
 
 if __name__=='__main__':
