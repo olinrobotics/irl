@@ -78,8 +78,6 @@ class Presence:
             #gets edwin's location
             where = res.data[5:]
 
-
-
             #massive string formatting - takes the string, splits by a formatter, then takes the array index that holds the XYZ,
             #then strips that string and splits it by spacing, and then takes the XYZ
             #reason for this massive formatting is b/c sent data format is not consistent
@@ -87,8 +85,6 @@ class Presence:
 
             #gets rid of empty strings that result from formatting
             where = filter(None, where)[0:3]
-
-
 
             #makes everything numbers that can be used as coordinates for Edwin
             where = [int(float(coord) * 10) for coord in where]
@@ -125,7 +121,6 @@ class Presence:
                     self.peoples[index] = Coordinates(person.ID, xpos, ypos, zpos)
                 else:
                     self.peoples[index].set_Coordinates(xpos, ypos, zpos)
-
 
 
     def find_new_people(self):
