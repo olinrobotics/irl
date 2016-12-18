@@ -104,26 +104,18 @@ class PushCupGame:
     # Runs once for every reciept of an image from usb_cam
     def callback(self, data):
 
-        # Slows down data processing to once per three frames
-        self.timecounter += 1
-        if self.timecounter == 3:
-            try:
-                cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8") # Converts usb cam feed to csv feed; bgr8 is an image encoding
+        try:
+            self.cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8") # Converts usb cam feed to csv feed; bgr8 is an image encoding
 
-                # Sets image size
-                image_size = cv_image.shape
-                screen_height = image_size[0]
-                screen_width = image_size[1]
+            # Sets image size
+            image_size = self.cv_image.shape
+            screen_height = image_size[0]
+            screen_width = image_size[1]
 
-            except CvBridgeError as e:
-                print(e)
+        except CvBridgeError as e:
+            print(e)
 
-            self.apply_filter(cv_image)
-            self.timecounter = 0
-            if self.temp == 30:
-                self.push_cup()
-                self.temp += 1
-            else: self.temp += 1
+        self.apply_filter(cv_image)
 
     """ overview_pos function:
         Function: moves Edwin to a standardized position where he can examine the entire gameboard
@@ -373,6 +365,8 @@ class PushCupGame:
     """
     def play_game(self):
 
+        self.applyfilter(self.cv_image)
+
         if self.debug == True: print("Starting Gameplay")
         self.convert_space(self.cup_pos)
         # if self.game_state == 0: # If Edwin is playing with another person
@@ -426,6 +420,7 @@ class PushCupGame:
         r = rospy.Rate(20) # Sets update rate
         while not rospy.is_shutdown():
             r.sleep()
+            play_game()
 
 
 if __name__=='__main__':
