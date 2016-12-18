@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 from Character import Character
 
-def get_text_roi(frame, x, y, show_window=True):
+def get_text_roi(frame, show_window=True):
     kernel_sharpen = np.array([[-1,-1,-1],[-1,9,-1],[-1,-1,-1]])
     kernel_sharpen_3 = np.array([[-1,-1,-1,-1,-1],
                              [-1,2,2,2,-1],
