@@ -49,6 +49,7 @@ class PushCupGame:
 
         self.debug = True # Debug State
         self.temp = 0
+        self.cv_image = None
 
         # Positions
         self.cup_pos = [0,0]
@@ -115,8 +116,6 @@ class PushCupGame:
         except CvBridgeError as e:
             print(e)
 
-        self.apply_filter(cv_image)
-
     """ overview_pos function:
         Function: moves Edwin to a standardized position where he can examine the entire gameboard
         ----------------------------------------------------------------------------------
@@ -131,6 +130,9 @@ class PushCupGame:
 
     # Manages contours (positions, areas, relevance, etc.)
     def apply_filter(self, feed):
+
+        if feed == None:
+            return
 
         blur = cv2.GaussianBlur(feed, (5,5), 0) # Gaussian Blur filter
 
@@ -365,7 +367,7 @@ class PushCupGame:
     """
     def play_game(self):
 
-        self.applyfilter(self.cv_image)
+        self.apply_filter(self.cv_image)
 
         if self.debug == True: print("Starting Gameplay")
         self.convert_space(self.cup_pos)
@@ -420,7 +422,7 @@ class PushCupGame:
         r = rospy.Rate(20) # Sets update rate
         while not rospy.is_shutdown():
             r.sleep()
-            play_game()
+            self.play_game()
 
 
 if __name__=='__main__':
