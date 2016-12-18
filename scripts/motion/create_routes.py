@@ -31,12 +31,12 @@ class RouteCreator:
         ##Single set routes
         self.route_dictionary["R_stare"] = "R_stare; 3296, 2308, 999, 0, 0, 0"
         self.route_dictionary["R_ttt"] = "R_ttt; 200, 2400, 1800, 720, 240, 21"
-        self.route_dictionary["R_look"] = "R_look; 3664, 1774, 3013, 11, 0, 21"
+        self.route_dictionary["R_look"] = "R_look; 2564, 1974, 3013, 110, 225, 0"
         self.route_dictionary["R_impat"] = "R_impat; 0, 3621, 4860, 545, 120, 21"
         self.route_dictionary["R_laugh"] = "R_laugh; 1000, 700, 7000, -456, 150, 21, 2000, 2000, 2000, 580, 90, 21, 1500, 1500, 3500, 338, 90, 21, 1700, 1700, 3200, 338, 90, 21, 1500, 1500, 3500, 338, 90, 21, 1700, 1700, 3200, 338, 90, 21, 1500, 1500, 3500, 338, 90, 21, 1700, 1700, 3200, 338, 90, 21"
         self.route_dictionary["R_pretentious_look"] = "R_pretentious_look; 2000, 2000, 1300, 165, 90, 21"
         self.route_dictionary["R_curious"] = "R_curious; 3664, 1774, 3013, 0, 0, 0"
-        self.route_dictionary["R_nudge"] = "R_nudge; 2200, 2200, 1700, 630, 270, 21, 2700, 2700, 2200, 57, 240, 21, 2400, 2400, 1700, 569, 270, 21, 2900, 2900, 2200, 22, 270, 21"
+        self.route_dictionary["R_nudge"] = "R_nudge; 2500, 1900, 1700, 630, 270, 0, 3000, 2400, 2200, 57, 240, 0, 2700, 2100, 1700, 569, 270, 0, 3200, 2600, 2200, 22, 211, 0"
         self.route_dictionary["R_sad_turn"] = "R_sad_turn; 1000, -2700, 200, 930, 270, 21"
         self.route_dictionary["R_inhale"] = "R_inhale; 1000, -2700, 1000, 547, 300, 21"
         self.route_dictionary["R_sigh_up"] = "R_sigh_up; 1000, -3000, 1700, 209, 180, 21"
@@ -45,6 +45,7 @@ class RouteCreator:
         self.route_dictionary["R_look_distance"] = "R_look_distance; 1000, -2500, 6000, 80, 240, 21"
         self.route_dictionary["R_1_sniff"] = "R_1_sniff; 1000, 4000, -700, 358, 240, 21, 1000, 4000, -700, 298, 270, 21, 1000, 4000, -700, 358, 240, 21, 1000, 4000, -700, 298, 270, 21,  1000, 4000, -700, 358, 240, 21"
         self.route_dictionary["R_2_sniff"] = "R_2_sniff; 4000, -100, -500, 346, 240, 21, 4000, -100, -500, 286, 240, 21, 4000, -100, -500, 346, 240, 21, 4000, -100, -500, 286, 240, 21, 4000, -100, -500, 346, 240, 21"
+        self.route_dictionary["R_3_sniff"] = "R_3_sniff; 3600, 1770, -200, 346, 240, 21, 3600, 1770, -200, 286, 240, 21, 3600, 1770, -200, 346, 240, 21, 3600, 1770, -200, 286, 240, 21, 3600, 1770, -200, 346, 240, 21"
         self.route_dictionary["R_yawn"] = "R_yawn; 1100, 1100, 7000, -850, 210, 21"
         self.route_dictionary["R_slouch"] = "R_slouch; 2400, 2400, 1000, 602, 210, 21, 2400, 2400, 1000, 151, 240, 21"
         self.route_dictionary["R_scrunch_up"] = "R_scrunch_up; 400, 3500, 300, 186, 240, 21"
@@ -66,7 +67,7 @@ class RouteCreator:
 
 
     def setup_initial_routes(self):
-        inital_routes = ["R_ttt", "R_laugh", "R_nudge"]
+        inital_routes = ["R_ttt", "R_laugh", "R_nudge", "R_look", "R_sad_turn"]
         for r in inital_routes:
             msg = "create_route:: " + self.route_dictionary[r]
             print "Sending message: ", msg

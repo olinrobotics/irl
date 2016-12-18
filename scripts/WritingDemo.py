@@ -14,16 +14,16 @@ from sensor_msgs.msg import Image
 from edwin.msg import Edwin_Shape
 from cv_bridge import CvBridge, CvBridgeError
 
-"""
-AutoPlay is a demo in which Edwin interacts with objects in his field of view. This is
-a non-interactive demo that is halted once a human is detected in the scene.
+from sight import handwriting_recognition
+from motion import arm_write
 
-There are multiple interaction types in this demo, and it concludes once a full run-through
-of one has been down.
+"""
+WritingDemo is a demo in which Edwin does text recognition on a piece of paper with
+text written on it. Edwin then writes the text he has recognized on piece of paper placed
+on the robot table.
 """
 class Game:
-    def __init__(self, recognizer):
-        self.draw_pub = rospy.Publisher('draw_cmd', Edwin_Shape, queue_size=10)
+    def __init__(self):
         self.arm_pub = rospy.Publisher('arm_cmd', String, queue_size=10)
         self.behav_pub = rospy.Publisher('behaviors_cmd', String, queue_size=10)
 
@@ -31,7 +31,15 @@ class Game:
         self.image_sub = rospy.Subscriber("usb_cam/image_raw", Image, self.img_callback)
 
         #handwriting recognizer passed in from brain
-        self.recognizer = recognizer
+        self.recognizer = handwriting_recognition.HandwritingRecognition(True)
+        self.recognizer.process_data_svm()
+        self.recognizer.train_svm()
+
+        #writer object
+        self.writer = arm_write.Writer(True)
+
+        time.sleep(2)
+        print "Starting WritingDemo"
 
     def img_callback(self, data):
         try:
@@ -39,14 +47,43 @@ class Game:
         except CvBridgeError as e:
             print(e)
 
+    def write_word(self, word):
+    	# while not rospy.is_shutdown():
+    	msg = Edwin_Shape()
+
+    	msg.shape = word
+    	msg.x = -500
+    	msg.y = 5700
+    	msg.z = -830
+
+        self.writer.write_callback(msg)
+
     def run(self):
         print "Starting WritingDemo"
         running = True
 
-        while running:
-            pass
+        prev_word = ""
+        recognized_word = ""
+        word_sureity_lim = 10
+        word_count = 0
 
-        # cv2.destroyAllWindows()
+        while running:
+            word = self.recognizer.get_image_text(self.frame)
+            time.sleep(0.1) #so we're not trying to recognize all the time
+            if (len(word) > 2):
+                if word == prev_word:
+                    word_count += 1
+                else:
+                    prev_word = word
+                    word_count = 0
+
+                if (word_count > word_sureity_lim) and (word != recognized_word):
+                    print "WORD IS: ", word
+                    self.write_word(word)
+
+                    running = False
+                    recognized_word = word
+
         print "Finished with WritingDemo :)"
 
 if __name__ == '__main__':
