@@ -301,6 +301,7 @@ class PushCupGame:
             if cup[1] < goal[1]:
                 # Position Below Cup; Push Up to Cup Y
                 msg1 = msg1 + str(cup[0]) + ", " + str(cup[1] - 200) + ", -800, 845, 195, 0"
+                msg1 = msg1 + ", " + str(cup[0]) + ", " + str(goal[1]) + ", -800, 845, 195, 0"
             else:
                 # Postion Above Cup; Push Down to Cup Y
                 msg1 = msg1 + str(cup[0]) + ", " + str(cup[1] + 400) + ", -800, 845, 195, 0"
@@ -317,8 +318,8 @@ class PushCupGame:
             msg2 = "run_route:: Push"
             print("PSH| Sending: ", msg2)
             self.arm_pub.publish(msg2)
-            # time.sleep(2)
-            # self.overview_pos()
+            time.sleep(2)
+            self.overview_pos()
 
     """ reset_cup function:
         reset_cup makes Edwin push the cup to a "random" point on the gameboard
