@@ -37,6 +37,7 @@ class Game:
 
         #writer object
         self.writer = arm_write.Writer(True)
+        self.frame = None
 
         time.sleep(2)
         print "Starting WritingDemo"
@@ -62,14 +63,21 @@ class Game:
         print "Starting WritingDemo"
         running = True
 
+        self.behav_pub.publish("R_look")
+
         prev_word = ""
         recognized_word = ""
-        word_sureity_lim = 10
+        word_sureity_lim = 3
         word_count = 0
 
         while running:
+            if self.frame == None:
+                return
             word = self.recognizer.get_image_text(self.frame)
             time.sleep(0.1) #so we're not trying to recognize all the time
+            # print "W: ", word
+            if not word:
+                continue
             if (len(word) > 2):
                 if word == prev_word:
                     word_count += 1

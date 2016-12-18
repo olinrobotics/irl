@@ -42,7 +42,6 @@ class FaceDetect:
         #initializes frame
         self.frame = None
         self.smile_counter = 0
-        self.init_time = time.time()
         print "FaceDetect is running"
 
     #converts ros message to numpy
@@ -102,10 +101,12 @@ class FaceDetect:
 
             if len(smile) > 0:
                 smile_msg = 'True'
-                self.running = False
-
+                msg = 'True'
+                
             for (x, y, w, h) in smile:
                 print "Found", len(smile), "smiles!"
+                self.running = False
+
                 cv2.rectangle(self.frame, (x, y), (x+w, y+h), (255, 0, 0), 1)
 
 
@@ -121,7 +122,7 @@ class FaceDetect:
                 self.detect = False
         else:
             if msg != '':
-                self.pub.publish("smile_response") #Arm behavior's pattern for smile response
+                self.pub.publish("laugh") #Arm behavior's pattern for smile response
                 print "SMILE :)"
             else:
                 if int(time.time() - self.init_time) > 10:
@@ -131,6 +132,8 @@ class FaceDetect:
             self.publish_image(self.frame)
 
     def demo_run(self):
+        self.init_time = time.time()
+
         while self.running:
             self.face_detect()
 

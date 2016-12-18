@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 from Character import Character
 
-def get_text_roi(frame, x, y, show_window=True):
+def get_text_roi(frame, show_window=True):
     kernel_sharpen = np.array([[-1,-1,-1],[-1,9,-1],[-1,-1,-1]])
     kernel_sharpen_3 = np.array([[-1,-1,-1,-1,-1],
                              [-1,2,2,2,-1],
@@ -20,7 +20,7 @@ def get_text_roi(frame, x, y, show_window=True):
 
     # Adaptive threshold to find numbers on paper
     thresh = cv2.adaptiveThreshold(frame_gray,255,
-        cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,x,y)
+        cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,255,7)
     thresh = cv2.morphologyEx(thresh,cv2.MORPH_OPEN,kernel,iterations=2)
     # cv2.imshow('thresh',thresh)
 
