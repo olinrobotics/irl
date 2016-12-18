@@ -102,7 +102,8 @@ class HandwritingRecognition:
         # Train the SVM neural network to recognize characters
     def train_svm(self):
         svm_params = dict(kernel_type = cv2.SVM_LINEAR, svm_type = \
-                            cv2.SVM_C_SVC, C=2.67, gamma=5.383)
+                            cv2.SVM_NU_SVC, nu=.105)
+                            # gamma = 5.383
 
         with np.load(self.PARAMS_PATH + '/params/svm_data.npz') as input_data:
             train_data = input_data['train']
@@ -136,10 +137,10 @@ class HandwritingRecognition:
             i_conts = self.resolve_letters(dots,lines)
             if len(i_conts) > 0:
                 self.chars.extend(i_conts)
-
-            # for roi in self.chars:
-            #     cv2.putText(self.frame,chr(int(roi.result)),(roi.x,roi.y+roi.h) \
-            #                 ,cv2.FONT_HERSHEY_SIMPLEX, 4,(0,255,0))
+            if self.frame is not None:
+                for roi in self.chars:
+                    cv2.putText(self.frame,chr(int(roi.result)),(roi.x,roi.y+roi.h) \
+                                ,cv2.FONT_HERSHEY_SIMPLEX, 4,(0,255,0))
             if detect_words:
                 self.detect_new_word(test_data)
             else:

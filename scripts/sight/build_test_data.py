@@ -18,7 +18,7 @@ class BuildData:
 
     def __init__(self):
         cv2.setUseOptimized(True)
-        self.init_character = 'test_data'
+        self.init_character = 'c'
         self.img = cv2.imread('test_imgs/digits.png')
         rospy.init_node('handwriting_recognition', anonymous=True)
         self.bridge = CvBridge()
