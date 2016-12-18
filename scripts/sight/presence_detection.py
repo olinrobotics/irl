@@ -141,16 +141,16 @@ class Presence:
             if (person is not None) and (self.attention() == person.ID) and (person.acknowledged == False):
                 print "I see you!", self.attention()
 
-                # greeting = ["R_nudge",
-                #             "R_look",
-                #             "rotate_hand:: " + str(-1520),
-                #             "rotate_wrist:: " + str(-800)]
-                # for msg in greeting:
-                #     if msg[0] == "R":
-                #         self.behavior_pub.publish(msg)
-                #     else:
-                #         self.arm_pub.publish(msg)
-                #     time.sleep(5)
+                greeting = ["R_nudge",
+                            "R_look",
+                            "rotate_hand:: " + str(-1520),
+                            "rotate_wrist:: " + str(-800)]
+                for msg in greeting:
+                    if msg[0] == "R":
+                        self.behavior_pub.publish(msg)
+                    else:
+                        self.arm_pub.publish(msg)
+                    time.sleep(5)
 
                 person.acknowledged = True
 

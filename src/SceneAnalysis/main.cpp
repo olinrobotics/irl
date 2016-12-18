@@ -63,7 +63,7 @@ edwin::SceneAnalysis scene;
 edwin::People person;
 
 ros::Subscriber toggle;
-bool operation = true;
+bool operation = false;
 
 
 

@@ -14,7 +14,7 @@ from sight import facial_emotion_recognition
 
 """
 PresenceDemo is a demo in which Edwin interacts with people that he sees using the Kinect.
-This demo ends once someone waves at Edwin.
+This demo ends once someone waves at Edwin and smiles.
 """
 
 class Game:

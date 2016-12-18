@@ -62,7 +62,7 @@ int num;
 bool wave;
 bool sess_start;
 bool sess_end;
-bool operation = true;
+bool operation = false;
 
 
 //-----------------------------------------------------------------------------

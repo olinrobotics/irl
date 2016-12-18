@@ -47,12 +47,13 @@ class EdwinBrain:
             #We only load the behavoirs and routes once we know inits worked
             self.behaviors = pickle.load(open(self.PACKAGE_PATH + '/params/behaviors.txt', 'rb'))
             self.routes = pickle.load(open(self.PACKAGE_PATH + '/params/routes.txt', 'rb'))
-            self.control_pub.publish("idle init")
+            self.control_pub.publish("idle:init")
             self.idling = True
 
     def demo(self):
         while True:
             cmd = str(raw_input("Demo ID: "))
+            self.control_pub.publish("idle:stop")
             if cmd == "w":
                 g = WritingDemo.Game()
                 g.run()
@@ -64,6 +65,7 @@ class EdwinBrain:
                 g.run()
             elif cmd == "help":
                 print "w -> WritingDemo \n pd -> PresenceDemo \n ttt -> TicTacToe"
+            self.control_pub.publish("idle:go")
 
     def run(self):
         r = rospy.Rate(10)
