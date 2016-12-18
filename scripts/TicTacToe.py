@@ -45,7 +45,6 @@ def inside_rect(A, B, D, x, y):
 	else:
 		return True
 
-
 class GridDetector:
 	def __init__(self, img):
 		self.img = img
@@ -153,9 +152,13 @@ class GridDetector:
 	def run(self, img):
 		self.img = img
 
-
 class Game:
-	def __init__(self):
+	def __init__(self, init=False):
+		if init:
+			self.ai = True
+		else:
+			self.ai = False
+
 		self.draw_pub = rospy.Publisher('draw_cmd', Edwin_Shape, queue_size=10)
 		self.arm_pub = rospy.Publisher('arm_cmd', String, queue_size=10)
 		self.behav_pub = rospy.Publisher('behaviors_cmd', String, queue_size=10)
@@ -614,7 +617,7 @@ class Game:
 		#edwin moves to desired location and draws
 		print "MOVING TO: ", index
 		center = self.b_centers[index]
-		self.draw_msg.shape = "circle"
+		self.draw_msg.shape = "square"
 		self.draw_msg.x = center[0]
 		self.draw_msg.y = center[1]
 		#note that Z should be a function of y.
@@ -640,36 +643,37 @@ class Game:
 		self.z_depth = -742
 		self.draw_the_board()
 
-		gd = GridDetector(self.frame)
-		self.corners = gd.get_center_box()
-		self.image_rectangles = gd.boxes
-
-		for i in range(50):
-			gd.run(self.frame)
-			self.corners = gd.get_center_box()
-			for j in range(9):
-				elem = gd.boxes[j]
-				self.image_rectangles[j] = (self.image_rectangles[j] + elem)/2
-
-		self.id = True
-		self.id_img()
-
-		#Player is O: 1
-		#Edwin is X: 10
-		running = True
-		# turn = random.randint(0,1)
 		turn = 0
-		if turn == 0:
-			print "YOUR TURN"
-			self.behav_pub.publish("nudge")
-			time.sleep(2)
+
+		if not self.ai:
+			gd = GridDetector(self.frame)
+			self.corners = gd.get_center_box()
+			self.image_rectangles = gd.boxes
+
+			for i in range(50):
+				gd.run(self.frame)
+				self.corners = gd.get_center_box()
+				for j in range(9):
+					elem = gd.boxes[j]
+					self.image_rectangles[j] = (self.image_rectangles[j] + elem)/2
+
+			self.id = True
+			self.id_img()
+
+			#Player is O: 1
+			#Edwin is X: 10
+			if turn == 0:
+				print "YOUR TURN"
+				self.behav_pub.publish("nudge")
+				time.sleep(2)
+
+		running = True
 
 		self.behav_pub.publish("R_ttt")
 		time.sleep(1)
-		ai = False
 		while running:
  	 		if turn == 0: #Player turn.
-	 			if ai:
+	 			if self.ai:
 	 				ai_next_move_ind = self.next_move()
 	 				self.ai_move(ai_next_move_ind)
 	 			else:

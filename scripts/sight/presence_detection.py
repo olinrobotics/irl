@@ -46,7 +46,7 @@ class Presence:
         rospy.Subscriber('arm_debug', String, self.edwin_location, queue_size=10)
 
         #setting up ROS publishers to Edwin commands
-        self.behavior_pub = rospy.Publisher('behaviors_cmd', String, queue_size=10)
+        self.behavior_pub = rospy.Publisher('behaviors_cmd', String, queue_size=1)
         self.arm_pub = rospy.Publisher('arm_cmd', String, queue_size=1)
 
         # tf transformations between Kinect and Edwin
@@ -78,6 +78,7 @@ class Presence:
             #gets edwin's location
             where = res.data[5:]
 
+<<<<<<< HEAD
 
 
             #massive string formatting - takes the string, splits by a formatter, then takes the array index that holds the XYZ,
@@ -89,14 +90,22 @@ class Presence:
             where = filter(None, where)[0:3]
 
 
+=======
+            try:
+                #massive string formatting - takes the string, splits by a formatter, then takes the array index that holds the XYZ,
+                #then strips that string and splits it by spacing, and then takes the XYZ
+                #reason for this massive formatting is b/c sent data format is not consistent
+                where = where.split("\r\n")[2].strip().split('  ')[0:3]
+>>>>>>> 8a9d4afa78a0016a79da885ba68aa540d064745a
 
-            #makes everything numbers that can be used as coordinates for Edwin
-            where = [int(float(coord) * 10) for coord in where]
+                #makes everything numbers that can be used as coordinates for Edwin
+                where = [int(float(coord) * 10) for coord in where]
 
-            self.edwinx = where[0]
-            self.edwiny = where[1]
-            self.edwinz = where[2]
-
+                self.edwinx = where[0]
+                self.edwiny = where[1]
+                self.edwinz = where[2]
+            except ValueError:
+                print "Error transforming where. String is: ", where
 
     def wave_callback(self, waves):
         """
@@ -140,21 +149,30 @@ class Presence:
 
                 greeting = ["R_nudge",
                             "R_look",
+<<<<<<< HEAD
                             "rotate_hand:: " + str(-700),
                             "rotate_wrist:: " + str(0)]
+=======
+                            "rotate_hand:: " + str(-1520),
+                            "rotate_wrist:: " + str(-800)]
+>>>>>>> 8a9d4afa78a0016a79da885ba68aa540d064745a
                 for msg in greeting:
                     if msg[0] == "R":
                         self.behavior_pub.publish(msg)
                     else:
                         self.arm_pub.publish(msg)
+<<<<<<< HEAD
                     time.sleep(6)
+=======
+                    time.sleep(5)
+>>>>>>> 8a9d4afa78a0016a79da885ba68aa540d064745a
 
                 person.acknowledged = True
 
         #responds to wave, a completely separate process
         if self.waved == True:
             print "I saw you wave! Hello!"
-            msg = "data: R_nudge"
+            msg = "R_nudge"
             self.behavior_pub.publish(msg)
             self.waved = False
             time.sleep(3)
@@ -169,19 +187,27 @@ class Presence:
             if (person is not None) and (self.attention() == person.ID):
                 trans = self.kinect_to_edwin_transform(person)
                 if trans is not None:
+<<<<<<< HEAD
                     xcoord, ycoord, zcoord = self.edwin_transform(trans)
+=======
+                    try:
+                        xcoord, ycoord, zcoord = self.edwin_transform(trans)
+                        print person.ID, xcoord, ycoord, zcoord
+>>>>>>> 8a9d4afa78a0016a79da885ba68aa540d064745a
 
-                    #the person's coordinates are updated here, edwin's coordinates are updated in the callback
-                    self.coordx = xcoord
-                    self.coordy = ycoord
-                    self.coordz = zcoord
+                        #the person's coordinates are updated here, edwin's coordinates are updated in the callback
+                        self.coordx = xcoord
+                        self.coordy = ycoord
+                        self.coordz = zcoord
 
-                    #after coordinates are calculated, checks if the person has moved enough to respond, and then responds
-                    if abs(self.coordx - self.edwinx) > 400 or abs(self.coordy - self.edwiny) > 400 or abs(self.coordz - self.edwinz) > 400:
-                        msg = "move_to:: " + str(self.coordx) + ", " + str(self.coordy) + ", " + str(self.coordz) + ", " + str(11)
-                        self.arm_pub.publish(msg)
-                        time.sleep(.5)
+                        #after coordinates are calculated, checks if the person has moved enough to respond, and then responds
+                        if abs(self.coordx - self.edwinx) > 400 or abs(self.coordy - self.edwiny) > 400 or abs(self.coordz - self.edwinz) > 400:
+                            msg = "move_to:: " + str(self.coordx) + ", " + str(self.coordy) + ", " + str(self.coordz) + ", " + str(11)
+                            self.arm_pub.publish(msg)
+                            time.sleep(.5)
 
+                    except ValueError:
+                        print "Error transforming coordinates"
 
     def attention(self):
         """
@@ -265,6 +291,10 @@ class Presence:
         print "running presence detection"
         r = rospy.Rate(10)
         time.sleep(2)
+<<<<<<< HEAD
+=======
+        # self.arm_pub.publish("data: set_speed:: 4000")
+>>>>>>> 8a9d4afa78a0016a79da885ba68aa540d064745a
 
         while not rospy.is_shutdown():
             self.find_new_people()
