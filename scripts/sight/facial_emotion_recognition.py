@@ -15,21 +15,21 @@ from cv_bridge import CvBridge, CvBridgeError
 
 class FaceDetect:
 
-    def __init__(self):
-
-        #detection boolean
-        self.detect = True
-
-        #initializes frame
-        self.frame = None
-
+    def __init__(self, init=False):
         #initializes ros node for face detect, pubilishes to face location
-        rospy.init_node('face_detect', anonymous=True)
-        self.pub = rospy.Publisher('/face_location', String, queue_size=10)
+        self.init = init
+        if not self.init:
+            rospy.init_node('face_detect', anonymous=True)
+            self.pub = rospy.Publisher('/smile_detected', String, queue_size = 10)
+            #detection boolean
+            self.detect = True
+        else:
+            self.pub = rospy.Publisher('/arm_behaviors', String, queue_size = 10)
+            self.image_pub = rospy.Publisher('/edwin_image', Image, queue_size = 10)
+
+        self.running = True
 
         #definines cascade path
-        # cascPath = sys.argv[1]
-        # self.face_cascade = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
         rospack = rospkg.RosPack()
         PACKAGE_PATH = rospack.get_path("edwin")
         self.face_cascade = cv2.CascadeClassifier(PACKAGE_PATH + '/params/haarcascade_frontalface_alt.xml')
@@ -39,9 +39,9 @@ class FaceDetect:
         self.bridge = CvBridge()
         rospy.Subscriber("usb_cam/image_raw", Image, self.img_callback)
 
-        #
-        self.pub = rospy.Publisher('/smile_detected', String, queue_size = 10)
-
+        #initializes frame
+        self.frame = None
+        self.smile_counter = 0
         print "FaceDetect is running"
 
     #converts ros message to numpy
@@ -49,6 +49,12 @@ class FaceDetect:
         try:
             self.frame = self.bridge.imgmsg_to_cv2(data, "bgr8")
             h, w = self.frame.shape[:2]
+        except CvBridgeError as e:
+            print(e)
+
+    def publish_image(self, data):
+        try:
+            self.image_pub.publish(self.bridge.cv2_to_imgmsg(data, "bgr8"))
         except CvBridgeError as e:
             print(e)
 
@@ -77,8 +83,6 @@ class FaceDetect:
         for (x, y, w, h) in faces:
             cv2.rectangle(self.frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
 
-
-
             #crops face from image
             face = gray[y:y+h,x:x+w]
 
@@ -97,26 +101,32 @@ class FaceDetect:
 
             if len(smile) > 0:
                 smile_msg = 'True'
-
-            if area > biggestArea:
-                area = biggestArea
-                msg = str(center_x) + ',' + str(center_y) + ':' + smile_msg
+                self.running = False
 
             for (x, y, w, h) in smile:
                 print "Found", len(smile), "smiles!"
                 cv2.rectangle(self.frame, (x, y), (x+w, y+h), (255, 0, 0), 1)
 
-        if msg != '':
-            self.pub.publish(msg)
 
-        # #displays resulting frame
-        cv2.imshow('Video', self.frame)
-        if face != None:
-            cv2.imshow('Face', face)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            self.detect = False
-        pass
+        if not self.init:
+            if msg != '':
+                self.pub.publish(msg)
 
+            # #displays resulting frame
+            cv2.imshow('Video', self.frame)
+            if face != None:
+                cv2.imshow('Face', face)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                self.detect = False
+        else:
+            if msg != '':
+                self.pub.publish("smile_response") #Arm behavior's pattern for smile response
+                print "SMILE :)"
+            self.publish_image(self.frame)
+
+    def demo_run(self):
+        while self.running:
+            self.face_detect()
 
     def run(self):
         while not rospy.is_shutdown():
@@ -125,5 +135,4 @@ class FaceDetect:
 
 if __name__ == '__main__':
     fd = FaceDetect()
-    #fd.face_detect()
     fd.run()

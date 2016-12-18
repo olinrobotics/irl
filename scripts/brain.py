@@ -35,7 +35,7 @@ class EdwinBrain:
         self.idling = False
         self.exit = False #should be catch all to exit all long running commands
 
-        time.sleep(1)
+        time.sleep(0.2)
         print "edwin brain is running"
 
     def arm_debug_callback(self, data):
