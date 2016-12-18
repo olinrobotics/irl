@@ -137,9 +137,9 @@ class HandwritingRecognition:
             if len(i_conts) > 0:
                 self.chars.extend(i_conts)
 
-            for roi in self.chars:
-                cv2.putText(self.frame,chr(int(roi.result)),(roi.x,roi.y+roi.h) \
-                            ,cv2.FONT_HERSHEY_SIMPLEX, 4,(0,255,0))
+            # for roi in self.chars:
+            #     cv2.putText(self.frame,chr(int(roi.result)),(roi.x,roi.y+roi.h) \
+            #                 ,cv2.FONT_HERSHEY_SIMPLEX, 4,(0,255,0))
             if detect_words:
                 self.detect_new_word(test_data)
             else:
@@ -247,9 +247,10 @@ class HandwritingRecognition:
     def get_image_text(self, frame):
         self.chars = Process.get_text_roi(frame,show_window=False)
         self.chars = self.process_digits(self.chars)
-        self.chars.sort(key = lambda roi: roi.x)
-        word = ''.join([chr(item.result) for item in self.chars])
-        return word
+        if self.chars:
+            self.chars.sort(key = lambda roi: roi.x)
+            word = ''.join([chr(item.result) for item in self.chars])
+            return word
 
     def run(self):
         r = rospy.Rate(10)
