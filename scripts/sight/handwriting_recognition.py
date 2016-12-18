@@ -114,7 +114,7 @@ class HandwritingRecognition:
         # Returns a list of image ROIs (20x20) corresponding to digits found in the image
 
 
-    def process_digits(self,test_data):
+    def process_digits(self,test_data,detect_words = False):
         if len(test_data) != 0:
             # Prepares input data for processing
             reshape_data = np.float32([char.HOG for char in test_data]).reshape(-1,64)
@@ -140,7 +140,10 @@ class HandwritingRecognition:
             for roi in self.chars:
                 cv2.putText(self.frame,chr(int(roi.result)),(roi.x,roi.y+roi.h) \
                             ,cv2.FONT_HERSHEY_SIMPLEX, 4,(0,255,0))
-            self.detect_new_word(test_data)
+            if detect_words:
+                self.detect_new_word(test_data)
+            else:
+                return test_data
 
     # Resolves ambiguous letters (i,l)
     def resolve_letters(self,dot_contours,line_contours):
@@ -242,21 +245,8 @@ class HandwritingRecognition:
 
 
     def get_image_text(self, frame):
-        default_x = 255
-        default_y = 7
-        self.chars = Process.get_text_roi(frame, default_x, default_y, show_window=False)
-
-        if len(self.chars) != 0:
-            # Prepares input data for processing
-            reshape_data = np.float32([char.HOG for char in self.chars]).reshape(-1,64)
-
-            result = self.SVM.predict_all(reshape_data)
-            res_data = []
-            for x in result:
-                res_data.append(int(x.item(0)))
-            for idx,roi in enumerate(self.chars):
-                roi.result = res_data[idx]
-
+        self.chars = Process.get_text_roi(frame,show_window=False)
+        self.chars = self.process_digits(self.chars)
         self.chars.sort(key = lambda roi: roi.x)
         word = ''.join([chr(item.result) for item in self.chars])
         return word
@@ -272,7 +262,7 @@ class HandwritingRecognition:
             self.update_frame()
             # out_image = Process.get_paper_region(self.frame)
             self.chars = Process.get_text_roi(self.frame)
-            self.process_digits(self.chars)
+            self.process_digits(self.chars,detect_words=True)
             #self.find_words(self.chars)
             self.output_image()
             e2 = cv2.getTickCount()
