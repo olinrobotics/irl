@@ -7,12 +7,6 @@ from edwin.msg import *
 import time
 import tf
 
-"""
-rosrun edwin edwin_bodies
-rosrun edwin edwin_wave
-rosrun edwin presence_detection.py
-"""
-
 class Coordinates:
     """
     helper class to keep track of each individual person's coordinates and status
@@ -39,9 +33,8 @@ class Presence:
     """
     main class for detecting presence, following people, and waving
     """
-    def __init__(self, init=False):
-        if not init:
-            rospy.init_node('edwin_presence', anonymous = True)
+    def __init__(self):
+        rospy.init_node('edwin_presence', anonymous = True)
 
         #subscribing to edwin_bodies, from Kinect
         rospy.Subscriber('body', SceneAnalysis, self.presence_callback, queue_size=10)
@@ -76,8 +69,6 @@ class Presence:
         #keeps track of whether someone waved a Edwin or not
         self.waved = False
 
-        #whether run true loop is running
-        self.running = True
 
     def edwin_location(self, res):
         """
@@ -87,10 +78,17 @@ class Presence:
             #gets edwin's location
             where = res.data[5:]
 
+
+
             #massive string formatting - takes the string, splits by a formatter, then takes the array index that holds the XYZ,
             #then strips that string and splits it by spacing, and then takes the XYZ
             #reason for this massive formatting is b/c sent data format is not consistent
-            where = where.split("\r\n")[2].strip().split('  ')[0:3]
+            where = where.split("\r\n")[2].strip().split('  ')
+
+            #gets rid of empty strings that result from formatting
+            where = filter(None, where)[0:3]
+
+
 
             #makes everything numbers that can be used as coordinates for Edwin
             where = [int(float(coord) * 10) for coord in where]
@@ -129,6 +127,7 @@ class Presence:
                     self.peoples[index].set_Coordinates(xpos, ypos, zpos)
 
 
+
     def find_new_people(self):
         """
         greets people if they are newly tracked presence,
@@ -139,16 +138,16 @@ class Presence:
             if (person is not None) and (self.attention() == person.ID) and (person.acknowledged == False):
                 print "I see you!", self.attention()
 
-                # greeting = ["R_nudge",
-                #             "R_look",
-                #             "rotate_hand:: " + str(-1520),
-                #             "rotate_wrist:: " + str(-800)]
-                # for msg in greeting:
-                #     if msg[0] == "R":
-                #         self.behavior_pub.publish(msg)
-                #     else:
-                #         self.arm_pub.publish(msg)
-                #     time.sleep(5)
+                greeting = ["R_nudge",
+                            "R_look",
+                            "rotate_hand:: " + str(-700),
+                            "rotate_wrist:: " + str(0)]
+                for msg in greeting:
+                    if msg[0] == "R":
+                        self.behavior_pub.publish(msg)
+                    else:
+                        self.arm_pub.publish(msg)
+                    time.sleep(6)
 
                 person.acknowledged = True
 
@@ -159,7 +158,6 @@ class Presence:
             self.behavior_pub.publish(msg)
             self.waved = False
             time.sleep(3)
-            self.running = False
 
 
     def follow_people(self):
@@ -172,7 +170,6 @@ class Presence:
                 trans = self.kinect_to_edwin_transform(person)
                 if trans is not None:
                     xcoord, ycoord, zcoord = self.edwin_transform(trans)
-                    print person.ID, xcoord, ycoord, zcoord
 
                     #the person's coordinates are updated here, edwin's coordinates are updated in the callback
                     self.coordx = xcoord
@@ -191,7 +188,7 @@ class Presence:
         finds the nearest person and specifically targets them
         """
         center_of_attention = 0
-        distance = 5000
+        distance = 10000
         for person in self.peoples:
             if person is not None:
                 if person.X < distance: #person's depth is now their X position in edwin frame
@@ -239,9 +236,9 @@ class Presence:
         additional transform of coordinates that have been changed from kinect to
         edwin to make sure that edwin can appropriately move to said coordinates
         """
-        edwinx = int(5.485 * coordinates[0] - 1689)
-        edwiny = int(7.879 * coordinates[1] - 2794)
-        edwinz = int(29.45 * coordinates[2] + 5325)
+        edwinx = int(4.652 * coordinates[0] - 941.6)
+        edwiny = int(7.518 * coordinates[1] - 2632)
+        edwinz = int(29.45 * coordinates[2] + 4425)
 
         if edwinx > 4000:
             edwinx = 4000
@@ -268,9 +265,8 @@ class Presence:
         print "running presence detection"
         r = rospy.Rate(10)
         time.sleep(2)
-        self.arm_pub.publish("data: set_speed:: 4000")
 
-        while self.running:
+        while not rospy.is_shutdown():
             self.find_new_people()
             self.follow_people()
 
