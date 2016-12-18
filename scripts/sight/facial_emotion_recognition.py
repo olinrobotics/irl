@@ -6,8 +6,8 @@ import cv2
 import sys
 import logging as log
 import datetime as dt
+import time
 
-from time import sleep
 from std_msgs.msg import String
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
@@ -24,7 +24,7 @@ class FaceDetect:
             #detection boolean
             self.detect = True
         else:
-            self.pub = rospy.Publisher('/arm_behaviors', String, queue_size = 10)
+            self.pub = rospy.Publisher('/behaviors_cmd', String, queue_size = 10)
             self.image_pub = rospy.Publisher('/edwin_image', Image, queue_size = 10)
 
         self.running = True
@@ -42,6 +42,7 @@ class FaceDetect:
         #initializes frame
         self.frame = None
         self.smile_counter = 0
+        self.init_time = time.time()
         print "FaceDetect is running"
 
     #converts ros message to numpy
@@ -122,6 +123,11 @@ class FaceDetect:
             if msg != '':
                 self.pub.publish("smile_response") #Arm behavior's pattern for smile response
                 print "SMILE :)"
+            else:
+                if int(time.time() - self.init_time) > 10:
+                    print "no smile found"
+                    self.pub.publish("pout")
+                    self.running = False
             self.publish_image(self.frame)
 
     def demo_run(self):

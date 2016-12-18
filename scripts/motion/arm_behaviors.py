@@ -49,6 +49,7 @@ class ArmBehaviors:
                 elif "ACCEL" in elem:
                     msg = "data: set_accel:: " + str(elem.split("ACCEL: ")[1])
                 else:
+                    print "ELEM IS: ", elem
                     joint = elem.split(":")[0]
                     pos = elem.split(":")[1]
                     if joint == "H":
@@ -96,10 +97,10 @@ class ArmBehaviors:
         self.behaviors["idle_head_bobble"] = "R_head_bobble, R_look"
         self.behaviors["idle_wander"] = "R_squirrel, SL: 1, SPD: 300, R_follow_squirrel, SL: 1, SPD: 500, R_look"
         self.behaviors["idle_spin"] = "R_spin_position, WA: -17000, WA: 17000, WA: 5000, R_look"
-        self.behaviors["pout"] = "R_disbelief, SL: 1, R_pout, WA: -7500, WA: -6500, WA: -7500, WA: -6500, R_look_back, R_pout, WA: -7500, WA: -6500, WA: -7500, WA: -6500, R_look"
+        # self.behaviors["pout"] = "R_disbelief, SL: 1, R_pout, WA: -7500, WA: -6500, WA: -7500, WA: -6500, R_look_back, R_pout, WA: -7500, WA: -6500, WA: -7500, WA: -6500, R_look"
+        self.behaviors["pout"] = "R_sad_turn, WA: -1000, WA: 1000"
         self.behaviors["impatient"] = "WA: 250, WA: -250, WA: 250, WA: -250, WA: 0, SPD: 700, R_impatient, SL: 1, R_annoyed_nudge"
         self.behaviors["bored"] = "SPD: 400, R_bored, R_stare_away"
-
 
         rospack = rospkg.RosPack()
         PACKAGE_PATH = rospack.get_path("edwin")

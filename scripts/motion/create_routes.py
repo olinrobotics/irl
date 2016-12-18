@@ -37,7 +37,7 @@ class RouteCreator:
         self.route_dictionary["R_pretentious_look"] = "R_pretentious_look; 2000, 2000, 1300, 165, 90, 21"
         self.route_dictionary["R_curious"] = "R_curious; 3664, 1774, 3013, 0, 0, 0"
         self.route_dictionary["R_nudge"] = "R_nudge; 2200, 2200, 1700, 630, 270, 21, 2700, 2700, 2200, 57, 240, 21, 2400, 2400, 1700, 569, 270, 21, 2900, 2900, 2200, 22, 270, 21"
-        self.route_dictionary["R_sad_turn"] = "R_sad_turn; 1000, -2700, 200, 930, 270, 21"
+        self.route_dictionary["R_sad_turn"] = "R_sad_turn; 0, 2900, 200, 930, 270, 21"
         self.route_dictionary["R_inhale"] = "R_inhale; 1000, -2700, 1000, 547, 300, 21"
         self.route_dictionary["R_sigh_up"] = "R_sigh_up; 1000, -3000, 1700, 209, 180, 21"
         self.route_dictionary["R_sigh_down"] = "R_sigh_down; 1000, -2500, 0, 940, 165, 21"
@@ -67,7 +67,7 @@ class RouteCreator:
 
 
     def setup_initial_routes(self):
-        inital_routes = ["R_ttt", "R_laugh", "R_nudge", "R_look"]
+        inital_routes = ["R_ttt", "R_laugh", "R_nudge", "R_look", "R_sad_turn"]
         for r in inital_routes:
             msg = "create_route:: " + self.route_dictionary[r]
             print "Sending message: ", msg
