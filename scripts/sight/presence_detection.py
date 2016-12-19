@@ -33,8 +33,27 @@ class Presence:
     """
     main class for detecting presence, following people, and waving
     """
-    def __init__(self):
-        rospy.init_node('edwin_presence', anonymous = True)
+    def __init__(self, init=False):
+        if not init:
+            rospy.init_node('edwin_presence', anonymous = True)
+
+        #keeps of the people's coordinates and some statuses about them
+        self.peoples = [None]*20
+
+        #coordinates of the person edwin's interacting with
+        self.coordx = 0
+        self.coordy = 0
+        self.coordz = 0
+
+        #edwin's own coordinates
+        self.edwinx = 0
+        self.edwiny = 0
+        self.edwinz = 0
+
+        #keeps track of whether someone waved a Edwin or not
+        self.waved = False
+
+        self.running = True
 
         #subscribing to edwin_bodies, from Kinect
         rospy.Subscriber('body', SceneAnalysis, self.presence_callback, queue_size=10)
@@ -53,22 +72,8 @@ class Presence:
         self.br = tf.TransformBroadcaster()
         self.listener = tf.TransformListener()
 
-        #keeps of the people's coordinates and some statuses about them
-        self.peoples = [None]*20
-
-        #coordinates of the person edwin's interacting with
-        self.coordx = 0
-        self.coordy = 0
-        self.coordz = 0
-
-        #edwin's own coordinates
-        self.edwinx = 0
-        self.edwiny = 0
-        self.edwinz = 0
-
-        #keeps track of whether someone waved a Edwin or not
-        self.waved = False
-
+        time.sleep(2)
+        print "Starting presence_detection.py"
 
     def edwin_location(self, res):
         """
@@ -142,7 +147,7 @@ class Presence:
                         self.behavior_pub.publish(msg)
                     else:
                         self.arm_pub.publish(msg)
-                    time.sleep(6)
+                    time.sleep(2)
 
                 person.acknowledged = True
 
@@ -152,6 +157,7 @@ class Presence:
             msg = "data: R_nudge"
             self.behavior_pub.publish(msg)
             self.waved = False
+            self.running = False
             time.sleep(3)
 
 
@@ -160,9 +166,14 @@ class Presence:
         follows the nearest person's body around
         """
         #finds the person of interest's coordinates and then converts them to Edwin coordinates
+        print "PEOPLE: ", self.peoples
+        attn = self.attention()
+        print "ATTN: ", self.attention()
         for person in self.peoples:
-            if (person is not None) and (self.attention() == person.ID):
+            if (person is not None) and (attn == person.ID):
+                print "PERSON: ", person
                 trans = self.kinect_to_edwin_transform(person)
+                print "TRANS: ", trans
                 if trans is not None:
                     xcoord, ycoord, zcoord = self.edwin_transform(trans)
 
@@ -261,7 +272,7 @@ class Presence:
         r = rospy.Rate(10)
         time.sleep(2)
 
-        while not rospy.is_shutdown():
+        while self.running:
             self.find_new_people()
             self.follow_people()
 
