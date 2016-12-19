@@ -23,6 +23,7 @@ import sys
 import math
 import time
 import numpy as np
+import random
 from sensor_msgs.msg import Image
 from std_msgs.msg import String
 from cv_bridge import CvBridge, CvBridgeError
@@ -89,13 +90,13 @@ class PushCupGame:
 
         # Creates Edwin's overview position route
         time.sleep(1)
-        msg1 = "create_route:: R_overview; 621, 4832, 3739, 845, 195, 0" # Positions multiplied by 10 from #s at top of code
+        msg1 = "create_route:: R_vulture; 621, 4832, 3739, 845, 195, 0" # Positions multiplied by 10 from #s at top of code
         print ("INIT| Sending: ", msg1)
         self.arm_pub.publish(msg1)
         time.sleep(1)
 
         # Moves Edwin along route
-        self.overview_pos()
+        self.run_route("R_vulture")
         print ("INIT| Finished")
 
         # Gets data from usb_cam
@@ -122,9 +123,9 @@ class PushCupGame:
         |param | self | access to the state variables of the class calling the function  |
         |see   |      | Edwin moves to position                                          |
     """
-    def overview_pos(self):
-        msg2 = "run_route:: R_overview"
-        print ("INIT| Sending: ", msg2)
+    def run_route(self, route):
+        msg2 = "run_route:: " + route
+        print ("RUN| Sending: ", msg2)
         self.arm_pub.publish(msg2)
         time.sleep(2)
 
@@ -203,9 +204,9 @@ class PushCupGame:
         #if self.debug == True:
             #cv2.drawContours(contour, contours, -1, (255,0,0), 3)
             #cv2.imshow('contour_feed: Final Video(contour)',contour)
-        cv2.drawContours(contour, finalcontours[0], -1, (0,0,255), 3)
-        cv2.drawContours(contour, finalcontours[1], -1, (0,0,0),3)
-        cv2.drawContours(contour, finalcontours[2], -1, (0,255,0),3)
+        if self.cup_in_frame == True: cv2.drawContours(contour, finalcontours[0], -1, (0,0,255), 3)
+        if self.goal_in_frame == True: cv2.drawContours(contour, finalcontours[1], -1, (0,0,0),3)
+        if self.human_in_frame == True: cv2.drawContours(contour, finalcontours[2], -1, (0,255,0),3)
 
         # Feed Display(s) for debug:
         #cv2.imshow('contour_feed: Raw Video(video)',video)
@@ -262,6 +263,17 @@ class PushCupGame:
 
         return video
 
+    """ calibrate function:
+        calibrate displays values used in tandem with test_arm_pub.py to calibrate convert_space()
+    """
+    def calibrate(self):
+        self.apply_filter(self.cv_image)
+        print("CLB| Cup Pos Screenspace: ", self.cup_pos)
+        print("CLB| Goal Pos Screenspace: ", self.goal_pos)
+        print("CLB| Cup Pos Realspace: ", self.convert_space(self.cup_pos))
+        print("CLB| Goal Pos Realspace: ", self.convert_space(self.goal_pos))
+        time.sleep(1)
+
     """ check_pos function:
         check_pos ensures that moving Edwin to a position doesn't breach the limits placed on his movement
     """
@@ -272,88 +284,6 @@ class PushCupGame:
                 if (self.lowlimit_z < pos[2] < self.highlimit_z):
                     safe = True
         return safe
-
-    """ push_cup function:
-        push_cup makes Edwin push the cup to the goal
-        ---------------------------------------------------------------------------------
-        |param | self | access to the state variables of the class calling the function |
-        |see   |      | Edwin pushes or pulls the cup such that it covers the goal      |
-    """
-    def push_cup(self):
-        cup = self.convert_space(self.cup_pos)
-        goal = self.convert_space(self.goal_pos)
-        print ("PSH| pos = ", cup)
-        print ("PSH| goal pos = ", goal)
-
-        pos1 = [cup[0]]
-        pos2 = []
-        pos3 = []
-        pos4 = []
-        pos5 = []
-        if (self.check_pos([cup[0], (cup[1] - 200), -500]) == True):
-
-            direction = None
-            msg1 = "create_route:: Push; "
-            if cup[0] < goal[0]: direction = "Left"
-            if cup[0] > goal[0]: direction = "Right"
-
-            if cup[1] < goal[1]:
-                print("PSH| Pushing Up")
-                # Position Below Cup; Push Up to Cup Y
-                msg1 = msg1 + str(cup[0]) + ", " + str(cup[1] - 300) + ", -800, 845, 195, 0"               # Head Down
-                msg1 = msg1 + ", " + str(cup[0]) + ", " + str(goal[1]) + ", -800, 845, 195, 0"             # Push Forward
-
-                if direction == "Left":
-                    print("PSH| Pushing Left")
-                    msg1 = msg1 + ", " + str(cup[0] + 300) + ", " + str(goal[1]) + ", -800, 845, 195, 0"       # Move Right
-                    msg1 = msg1 + ", " + str(cup[0] + 300) + ", " + str(goal[1] + 300) + ", -800, 845, 195, 0" # Move Up
-                    msg1 = msg1 + ", " + str(goal[0]) + ", " + str(goal[1] + 300) + ", -800, 845, 195, 0"      # Push Left
-                elif direction == "Right":
-                    print("PSH| Pushing Right")
-                    msg1 = msg1 + ", " + str(cup[0] - 300) + ", " + str(goal[1]) + ", -800, 845, 195, 0"       # Move Left
-                    msg1 = msg1 + ", " + str(cup[0] - 300) + ", " + str(goal[1] + 300) + ", -800, 845, 195, 0" # Move Up
-                    msg1 = msg1 + ", " + str(goal[0]) + ", " + str(goal[1] + 300) + ", -800, 845, 195, 0"      # Push Right
-            else:
-                # Postion Above Cup; Push Down to Cup Y
-                print("PSH| Pushing Down")
-                msg1 = msg1 + str(cup[0]) + ", " + str(cup[1] + 300) + ", -800, 845, 195, 0"               # Head Down
-                msg1 = msg1 + ", " + str(cup[0]) + ", " + str(goal[1]) + ", -800, 845, 195, 0"             # Push Backward
-
-                if direction == "Left":
-                    print("PSH| Pushing Left")
-                    msg1 = msg1 + ", " + str(cup[0] + 300) + ", " + str(goal[1]) + ", -800, 845, 195, 0"       # Move Right
-                    msg1 = msg1 + ", " + str(cup[0] + 300) + ", " + str(goal[1] - 300) + ", -800, 845, 195, 0" # Move Down
-                    msg1 = msg1 + ", " + str(goal[0]) + ", " + str(goal[1] + 300) + ", -800, 845, 195, 0"      # Push Left
-                elif direction == "Right":
-                    print("RSH| Pushing Right")
-                    msg1 = msg1 + ", " + str(cup[0] - 300) + ", " + str(goal[1]) + ", -800, 845, 195, 0"       # Move Left
-                    msg1 = msg1 + ", " + str(cup[0] - 300) + ", " + str(goal[1] - 300) + ", -800, 845, 195, 0" # Move Down
-                    msg1 = msg1 + ", " + str(goal[0]) + ", " + str(goal[1] - 300) + ", -800, 845, 195, 0"      # Push Right
-
-            print ("PSH| Sending: ", msg1)
-            self.arm_pub.publish(msg1)
-            time.sleep(1)
-            msg2 = "run_route:: Push"
-            print("PSH| Sending: ", msg2)
-            self.arm_pub.publish(msg2)
-            time.sleep(2)
-            self.overview_pos()
-
-    """ reset_cup function:
-        reset_cup makes Edwin push the cup to a "random" point on the gameboard
-        ---------------------------------------------------------------------------------
-        |param | self | access to the state variables of the class calling the function |
-        |see   |      | Edwin pushes or pulls the cup such that it is no longer covering|
-        |the goal.                                                                      |
-    """
-    def reset_cup(self):
-        pos = self.convert_space(self.cup_pos)
-        print("RST| pos = ", pos)
-
-        # Creates and moves Edwin along push route
-        time.sleep(1)
-        pos1 = "621, 4832, 3739, 845, 195, 0"
-        msg1 = "create_route:: R_overview; 621, 4832, 3739, 845, 195, 0" # Position to move to
 
     """ convert_space function
         convert_space converts an xy point in camspace (pixel location) to
@@ -367,20 +297,107 @@ class PushCupGame:
     """
     def convert_space(self, pos):
 
-        if self.debug == True: print("SPC: Old Coordinates: %d, %d", pos[0], pos[1])
+        if self.debug == True: print("SPC: Old Coordinates: ", pos[0], pos[1])
 
         # Determines equations to convert from camspace to realspace in x-direction
-        m1 = (self.gameboard_left - self.gameboard_right)/(0 - self.screen_width)
-        b1 = - self.gameboard_right + 500
+        m1 = (2000 - 300)/(484 - 305)
+        b1 = - 2000
         x_real = m1 * pos[0] + b1
 
         # Determines equations to convert from camspace to realspace in Y-direction
-        m2 = (self.gameboard_top - self.gameboard_bottom)/(0 - self.screen_height)
-        b2 = self.gameboard_top
+        m2 = (6900 - 4900)/(127 - 352)
+        b2 = 7500
         y_real = m2 * pos[1] + b2
 
-        if self.debug == True: print("SPC: New Coordinates: %d, %d", x_real, y_real)
+        if self.debug == True: print("SPC: New Coordinates: ", x_real, y_real)
         return([x_real, y_real])
+
+    def check_win(self):
+        if self.cup_in_frame == True and self.goal_in_frame == True:
+
+    """ push_cup function:
+        push_cup makes Edwin push the cup to the goal
+        ---------------------------------------------------------------------------------
+        |param | self | access to the state variables of the class calling the function |
+        |see   |      | Edwin pushes or pulls the cup such that it covers the goal      |
+    """
+    def push_cup(self):
+
+        # Converts game piece positions into realspace
+        cup = self.convert_space(self.cup_pos)
+        goal = self.convert_space(self.goal_pos)
+        if self.debug == True: # Debugging info
+            print ("PSH| pos = ", cup)
+            print ("PSH| goal pos = ", goal)
+
+        # Checks if positions are safe [TOFIX]
+        if (self.check_pos([cup[0], cup[1], -500]) == True):
+
+        #---------------ROUTE CONSTRUCTION---------------#
+            # Determines direction to push cup
+            direction = None
+            msg1 = "create_route:: R_push; "
+            if cup[0] < goal[0]: direction = "Right"
+            if cup[0] > goal[0]: direction = "Left"
+
+            if cup[1] < goal[1]: # Position Below Cup; Push Up to Goal Y
+                print("PSH| Pushing Up")
+                msg1 = msg1 + str(cup[0]) + ", " + str(cup[1] - 300) + ", -800, 845, 195, 0"                    # Head Down
+                msg1 = msg1 + ", " + str(cup[0]) + ", " + str(goal[1]) + ", -800, 845, 195, 0"                  # Push Forward
+                msg1 = msg1 + ", " + str(cup[0]) + ", " + str(goal[1] - 100) + ", -800, 845, 195, 0"            # Disengage
+
+                if direction == "Left": # Position Right of Cup; Push Left to Goal X
+                    print("PSH| Pushing Left")
+                    msg1 = msg1 + ", " + str(cup[0] + 800) + ", " + str(goal[1] + 800) + ", -800, 845, 195, 0"        # Move Right
+                    msg1 = msg1 + ", " + str(cup[0] + 800) + ", " + str(goal[1]) + ", -800, 845, 195, 0"  # Move Up
+                    msg1 = msg1 + ", " + str(goal[0] + 300) + ", " + str(goal[1]) + ", -800, 845, 195, 0"       # Push Left
+                elif direction == "Right": # Position Left of Cup; Push Right to Goal Y
+                    print("PSH| Pushing Right")
+                    msg1 = msg1 + ", " + str(cup[0] - 300) + ", " + str(goal[1]) + ", -800, 845, 195, 0"        # Move Left
+                    msg1 = msg1 + ", " + str(cup[0] - 300) + ", " + str(goal[1] + 300) + ", -800, 845, 195, 0"  # Move Up
+                    msg1 = msg1 + ", " + str(goal[0]) + ", " + str(goal[1] + 300) + ", -800, 845, 195, 0"       # Push Right
+            else: # Position Above Cup; Push Down to Goal Y
+                print("PSH| Pushing Down")
+                msg1 = msg1 + str(cup[0]) + ", " + str(cup[1] + 800) + ", -1000, -24, 240, 0"                   # Head Down
+                msg1 = msg1 + ", " + str(cup[0]) + ", " + str(cup[1] + 800) + ", -1000, 845, 195, 0"            # Chin Down
+                msg1 = msg1 + ", " + str(cup[0]) + ", " + str(goal[1] + 1000) + ", -800, 845, 195, 0"           # Push Backward
+                msg1 = msg1 + ", " + str(cup[0]) + ", " + str(goal[1] + 1100) + ", -800, 845, 195, 0"           # Disengage
+
+                if direction == "Left": # Position Right of Cup; Push Left to Goal X
+                    print("PSH| Pushing Left")
+                    msg1 = msg1 + ", " + str(cup[0] + 800) + ", " + str(goal[1] + 1100) + ", -800, 845, 195, 0" # Move Right
+                    msg1 = msg1 + ", " + str(cup[0] + 800) + ", " + str(goal[1]) + ", -800, 845, 195, 0"        # Move Down
+                    msg1 = msg1 + ", " + str(goal[0]) + ", " + str(goal[1]) + ", -800, 845, 195, 0"             # Push Left
+                elif direction == "Right": # Position Left of Cup; Push Right to Goal Y
+                    print("RSH| Pushing Right")
+                    msg1 = msg1 + ", " + str(cup[0] - 800) + ", " + str(goal[1] + 1100) + ", -800, 845, 195, 0"       # Move Left
+                    msg1 = msg1 + ", " + str(cup[0] - 800) + ", " + str(goal[1]) + ", -800, 845, 195, 0" # Move Down
+                    msg1 = msg1 + ", " + str(goal[0]) + ", " + str(goal[1]) + ", -800, 845, 195, 0"      # Push Right
+
+            # Creates and runs route, then returns to overview
+            print ("PSH| Sending: ", msg1)
+            self.arm_pub.publish(msg1)
+            time.sleep(1)
+            self.run_route("R_push")
+            self.run_route("R_vulture")
+
+    """ reset_cup function:
+        reset_cup makes Edwin push the cup to a "random" point on the gameboard
+        ---------------------------------------------------------------------------------
+        |param | self | access to the state variables of the class calling the function |
+        |see   |      | Edwin pushes or pulls the cup such that it is no longer covering|
+        |the goal.                                                                      |
+    """
+    def reset_cup(self):
+        pos = self.convert_space(self.cup_pos)
+        print("RST| pos = ", pos)
+
+        new_pos = [random.randrange(self.gameboard_left,self.gameboard_right), random.randrange(self.gameboard_bottom, self.gameboard_top)]
+        print("RST| new pos = ", new_pos)
+        msg = "create_route:: R_reset; "
+        direction = None
+        if new_pos[0] < pos[0]: direction = "Left"
+        if new_pos[0] > pos[0]: direction = "Right"
 
     """ play_game function
         play_game holds Edwin's game logic and makes him decide when to move
@@ -391,7 +408,7 @@ class PushCupGame:
     """
     def play_game(self):
 
-        if self.debug == True: print("Starting Gameplay")
+        if self.debug == True: print("DBG| Game Loop")
         self.apply_filter(self.cv_image)
         time.sleep(2)
 
@@ -419,23 +436,29 @@ class PushCupGame:
 
         else: # If Edwin is playing by himself
             if self.game_turn == 0: # If it's Edwin's goal turn
-                print("temp")
+                print("PLY| Goal Turn")
                 if self.cup_in_frame == True and self.goal_in_frame == True: # If game pieces are on the playing field
-                    if self.debug == True: print ("Pushing Cup . . .")
+                    print ("PLY| Pushing Cup")
                     self.push_cup()
-                    if self.debug == True: print("Turn: Reset")
-                    time.sleep(3)
-                    self.game_turn = 0
+                    time.sleep(10)
+                    self.check_win(self.goal_in_frame)
+                    self.game_turn = 1
 
                 else: # If some game pieces are missing
+
                     if self.debug == True:
-                        if self.cup_in_frame == False: print("ERROR: No cup in frame")
-                        if self.goal_in_frame == False: print("ERROR: No goal in frame")
+                        if self.cup_in_frame == False: print("DBG| ERROR: No cup in frame")
+                        if self.goal_in_frame == False: print("DBG| ERROR: No goal in frame")
             else: # If it's Edwin's reset turn
-                self.reset_cup()
-                if self.debug == True: print("Turn: Play")
-                time.sleep(3)
-                self.game_turn = 1
+                if self.cup_in_frame == True and self.goal_in_frame == False: # If game pieces are on the playing field
+                    print("PLY| Reset Turn")
+                    self.reset_cup()
+                    time.sleep(5)
+                    self.game_turn = 0
+                else: # If some game pieces aren't in position
+                    if self.debug == True:
+                        if self.cup_in_frame == False: print("DBG| ERROR: No cup in frame")
+                        if self.goal_in_frame == True: print("DBG| ERROR: Goal not covered by cup")
 
     """ run function:
         run handles the actual updating of the code and continuation of the program
@@ -446,6 +469,7 @@ class PushCupGame:
         r = rospy.Rate(20) # Sets update rate
         while not rospy.is_shutdown():
             r.sleep()
+            # if self.debug == True: self.calibrate()
             self.play_game()
 
 
