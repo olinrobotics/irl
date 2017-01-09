@@ -1,5 +1,5 @@
 ---
-title: Olin Coworker Project
+title: Index
 layout: template
 filename: index
 --- 
