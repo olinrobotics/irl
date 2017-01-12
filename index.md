@@ -11,7 +11,7 @@ The [Olin Robotics Lab](http://olinrobotics.github.io) is working to build a low
 
 ### Handwritten Communication
 
-[![../images/IMG_0968.JPG](https://www.youtube.com/../images/IMG_0968.JPG)](https://www.youtube.com/)
+[![images/IMG_0968.JPG](https://www.youtube.com/images/IMG_0968.JPG)](https://www.youtube.com/)
 
 ### Object Tracking and Recognization
 
