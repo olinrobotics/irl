@@ -16,6 +16,7 @@ filename: readme
 Fully operational launch of all demo systems.
 
 Requirements:
+
   - Loads Edwin's brain (brain.py)
   - Loads idle behaviors (idle.py)
   - USB cam feed required (image_raw, camera_info)
@@ -25,6 +26,7 @@ Requirements:
 Mostly for quick behavior debugging. This is the minimum needed to "operate" Edwin. No camera.
 
 Requirements:
+
   - Loads Edwin's brain (brain.py)
   - Arm must be on (arm_behaviors.py)
   - Kinect must be on and connected.
@@ -33,6 +35,7 @@ Requirements:
 Meant for testing only. This launch file only loads camera and Kinect scripts; the arm does not boot up.
 
 Requirements:
+
   - Kinect must be on and connected.
   - USB cam feed required (image_raw, camera_info).
 
