@@ -77,8 +77,6 @@ class FaceDetect:
         for (x, y, w, h) in faces:
             cv2.rectangle(self.frame, (x, y), (x+w, y+h), (0, 255, 0), 2)
 
-
-
             #crops face from image
             face = gray[y:y+h,x:x+w]
 
