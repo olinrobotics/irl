@@ -19,7 +19,7 @@ The [Olin Robotics Lab](http://olinrobotics.github.io) is working to build a low
 
 ### Push Cup Game
 <p>Push Cup is a simple game demonstrating Edwin's capability to operate safely
-within the same physical space as a human ([read more . . .](pushcup)).</p>
+within the same physical space as a human.</p> ([read more . . .](pushcup))
 
 [![cup_pic](images/cup_thumbnail.png)](https://www.youtube.com/watch?v=dPkxl1ZD-vY&list=PLJM0FO8qEb3wIP3sY_EpJsm3OK1juWhqN&index=3)
 
