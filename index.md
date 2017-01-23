@@ -17,7 +17,9 @@ The [Olin Robotics Lab](http://olinrobotics.github.io) is working to build a low
 
 [![track_pic](images/track_thumbnail.png)](https://www.youtube.com/watch?v=wFORJR2kNos&list=PLJM0FO8qEb3wIP3sY_EpJsm3OK1juWhqN&index=2)
 
-### Push Cup Game ([read more . . .](pushcup))
+### Push Cup Game
+<p>Push Cup is a simple game demonstrating Edwin's capability to operate safely
+within the same physical space as a human ([read more . . .](pushcup)).</p>
 
 [![cup_pic](images/cup_thumbnail.png)](https://www.youtube.com/watch?v=dPkxl1ZD-vY&list=PLJM0FO8qEb3wIP3sY_EpJsm3OK1juWhqN&index=3)
 
