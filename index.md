@@ -18,7 +18,7 @@ The [Olin Robotics Lab](http://olinrobotics.github.io) is working to build a low
 [![track_pic](images/track_thumbnail.png)](https://www.youtube.com/watch?v=wFORJR2kNos&list=PLJM0FO8qEb3wIP3sY_EpJsm3OK1juWhqN&index=2)
 
 ### Push Cup Game
-[Push the Cup](#pushcup)
+[Push the Cup](pushcup)
 
 [![cup_pic](images/cup_thumbnail.png)](https://www.youtube.com/watch?v=dPkxl1ZD-vY&list=PLJM0FO8qEb3wIP3sY_EpJsm3OK1juWhqN&index=3)
 
