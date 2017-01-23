@@ -18,11 +18,11 @@ human was interacting with the cup and when they were finished, thus
 demonstrating a concept of "turns".</p>
 
 ### Tools Used:
-- Ubuntu 14.04
-- Python
-- OpenCV Vision Library
-- Atom Text Editor
-- ROS indigo
+- [Ubuntu 14.04](https://www.ubuntu.com/)
+- [Python](https://www.python.org/)
+- [OpenCV Vision Library](http://opencv.org/)
+- [Atom Text Editor](https://atom.io/)
+- [ROS Indigo](http://www.ros.org/)
 - Endoscope USB Camera
 
 ### Technical Explanation
