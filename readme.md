@@ -2,15 +2,15 @@
 title: How to Edwin
 layout: template
 filename: readme
---- 
+---
 
 ### Getting Code to Run
 1. Clone [github repository](https://github.com/olinrobotics/edwin) into your `catkin_ws/src` folder
   - if you don't have ROS indigo, install it with [these instructions](http://wiki.ros.org/indigo/Installation/Ubuntu) (use `ros-indigo-desktop-full`)
-2. Install dependencies: 
+2. Install dependencies:
 
   Basic processes:
-  
+
     - copy
     - random
     - time
@@ -25,32 +25,32 @@ filename: readme
     - threading
     - subprocess
     - struct
-    
+
   Ros packages
-  
+
     - std_msgs
     - common_msgs (sensor_msgs)
     - rospy
     - rospkg
     - roslib
-    
+
   Mathematical processing:
-  
+
     - math
     - numpy
     - scipy
     - operator
     - itertools
-    
+
   Visual processing:
-  
+
     - cv2
     - cv_bridge
     - Tkinter
     - csv
-  
+
   Audial processing:
-  
+
     - pyaudio
     - Queue
     - alsaaudio
@@ -59,7 +59,7 @@ filename: readme
     - pocketsphinx
     - sphinxbase
     - espeak
-    
+
 3. *Under construction*
 
 ### Launch Files
