@@ -1,7 +1,7 @@
 ---
-title: How to Edwin
+title: Push Cup Game
 layout: template
-filename: readme
+filename: pushcup
 ---
 
 ### Description
