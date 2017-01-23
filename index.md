@@ -36,4 +36,4 @@ The [Olin Robotics Lab](http://olinrobotics.github.io) is working to build a low
 ## Useful Information
 *Under Construction*
 
-*This Github page is currently under construction. Last edited on 1/9/17.*
+*This Github page is currently under construction. Last edited on 1/23/17.*
