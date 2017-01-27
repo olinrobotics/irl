@@ -4,90 +4,26 @@ layout: template
 filename: readme
 ---
 
-### Getting Code to Run
-1. Clone [github repository](https://github.com/olinrobotics/edwin) into your `catkin_ws/src` folder
-  - if you don't have ROS indigo, install it with [these instructions](http://wiki.ros.org/indigo/Installation/Ubuntu) (use `ros-indigo-desktop-full`)
-2. Install dependencies:
+### Installation
 
-  Basic processes:
+[Click here for installation instructions.](install_edwin)
 
-    - copy
-    - random
-    - time
-    - logging
-    - datetime
-    - pickle
-    - os
-    - sys
-    - serial
-    - re
-    - shlex
-    - threading
-    - subprocess
-    - struct
+### Startup (Minimal)
 
-  Ros packages
+Run Edwin with the minimal amount of code necessary to actuate him.
 
-    - std_msgs
-    - common_msgs (sensor_msgs)
-    - rospy
-    - rospkg
-    - roslib
+  1. Run [roscore.](http://wiki.ros.org/roscore)
+  2. Press Ctrl-Alt-T to start a new tab.
+  3. Plug the USB cord into a port on your computer. You may require a USB serial converter (pictured below) to connect to the robot.
+  
+    ![Connector](/images/USBConnect.jpeg)
+    
+  4. Turn Edwin on by flipping the power button on his electronics box to "|". (Pictured below)
+  
+    ![Switch](/images/PowerSwitch.jpeg)
 
-  Mathematical processing:
+  5. In your new terminal, run `roslaunch edwin robot_minimal.launch`
+  6. To test functionality, run `rosrun edwin test_arm_pub.py`
+  7. You should now be able to type positions in the terminal
 
-    - math
-    - numpy
-    - scipy
-    - operator
-    - itertools
-
-  Visual processing:
-
-    - cv2
-    - cv_bridge
-    - Tkinter
-    - csv
-
-  Audial processing:
-
-    - pyaudio
-    - Queue
-    - alsaaudio
-    - audioop
-    - wave
-    - pocketsphinx
-    - sphinxbase
-    - espeak
-
-3. *Under construction*
-
-### Launch Files
-[**`robot.launch`**](https://github.com/olinrobotics/edwin/blob/master/launch/robot.launch)
-Fully operational launch of all demo systems.
-
-Requirements:
-
-  - Loads Edwin's brain (brain.py)
-  - Loads idle behaviors (idle.py)
-  - USB cam feed required (image_raw, camera_info)
-  - Arm must be on (arm_node.py, arm_behaviors.py, arm_draw.py)
-
-[**`robot_minimal.launch`**](https://github.com/olinrobotics/edwin/blob/master/launch/robot_minimal.launch)
-Mostly for quick behavior debugging. This is the minimum needed to "operate" Edwin. No camera.
-
-Requirements:
-
-  - Loads Edwin's brain (brain.py)
-  - Arm must be on (arm_behaviors.py)
-  - Kinect must be on and connected.
-
-[**`robot_sight.launch`**](https://github.com/olinrobotics/edwin/blob/master/launch/robot_sight.launch)
-Meant for testing only. This launch file only loads camera and Kinect scripts; the arm does not boot up.
-
-Requirements:
-
-  - Kinect must be on and connected.
-  - USB cam feed required (image_raw, camera_info).
-
-*This Github page is currently under construction. Last edited on 1/12/17.*
+*This Github page is currently under construction. Last edited on 1/27/17.*
