@@ -1,21 +1,5 @@
-"""Edwin Push-Cup Game
-    Connor Novak: connor.novak@students.olin.edu
-    Project in human-robot interaction: Edwin pushes cup, human pushes cup
-
-    Overview Position:
-    Wrist: 3550 Hand: 2900 Elbow: 7000 Shoulder: 3500 Waist: 800
-    X: 62.1 Y: 483.2 Z: 373.9 PITCH: 84.5 W(ROLL): 19.5 LEN.: 0.0
-
-    Code Citations:
-        [1] http://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_morphological_ops/py_morphological_ops.html
-        [2] http://docs.opencv.org/trunk/d7/d4d/tutorial_py_thresholding.html
-        [3] edwin/scripts/InteractiveDemos TicTacToe.py, lines 663-665
-        [4] edwin/scripts/InteractiveDemos TicTacToe.py, line 161
-        [5] http://docs.opencv.org/master/d5/d45/tutorial_py_contours_more_functions.html
-"""
 
 # Imports
-from __future__ import print_function
 import roslib
 import cv2
 import rospy
