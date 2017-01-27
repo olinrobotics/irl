@@ -17,6 +17,7 @@ from cv_bridge import CvBridge, CvBridgeError
     variables describing the game and functions to analyze video data and play
     the game.
     | see | | terminal output describing running processes
+    | see | | video output depicting contouring process
     | see | | Edwin runs a game of Push Cup
 """
 class PushCupGame:
@@ -25,7 +26,8 @@ class PushCupGame:
         __init__ is a function run once when a new PushCupGame instance is
         created. The function initializes variables to store goal and cup
         positions and other information. It also starts publisher and
-        subscriber nodes necessary to run Edwin.
+        subscriber nodes necessary to run Edwin. Writes and runs R_vulture to
+        put Edwin in initial position
     """
     def __init__(self):
 
@@ -87,7 +89,16 @@ class PushCupGame:
         self.bridge = CvBridge()
         self.image_sub = rospy.Subscriber("/usb_cam/image_raw",Image,self.callback) # Determines node for subscription
 
-    # Runs once for every reciept of an image from usb_cam
+    """ callback function:
+        callback is run once every time the usb_cam subscriber recieves a frame.
+        The function converts the feed to csv values, takes data on feed size,
+        and provides error printing. No official output, but it stores the
+        current image pulled from the cam in self.cv_image
+        ----------------------------------------------------------------------------------
+        |param | self | access to the state variables of the class calling the function  |
+        |param | data | raw cam data automatically provided by the subscriber            |
+        |see   |      | pulled cam image stored in self.cv_image
+    """
     def callback(self, data):
 
         try:
@@ -101,22 +112,33 @@ class PushCupGame:
         except CvBridgeError as e:
             print(e)
 
-    """ overview_pos function:
-        Function: moves Edwin to a standardized position where he can examine the entire gameboard
+    """ run_route function:
+        run_route
         ----------------------------------------------------------------------------------
-        |param | self | access to the state variables of the class calling the function  |
-        |see   |      | Edwin moves to position                                          |
+        |param | self  | access to the state variables of the class calling the function |
+        |param | route | sequence of coordinates for Edwin to move between               |
+        |see   |       | Edwin runs the provided route                                   |
     """
     def run_route(self, route):
         msg2 = "run_route:: " + route
         print ("RUN| Sending: ", msg2)
         self.arm_pub.publish(msg2)
-        time.sleep(2)
+        time.sleep(1)
 
-    # Manages contours (positions, areas, relevance, etc.)
+    """ apply_filter function:
+        apply_filter takes raw camera feed and applies basic filtering. It also
+        draws contours and position points for contours. Displays final contours in
+        final video feed, plus other feeds for debugging.
+        ----------------------------------------------------------------------------------
+        |param | self | access to the state variables of the class calling the function |
+        |param | feed | image being processed                                           |
+        |see   |      | Video feed of what Edwin sees                                   |
+        |see   |      | list of relevant contours and contour positions                 |
+    """
     def apply_filter(self, feed):
 
-        if feed == None:
+        # if first time running apply_filter, exception for default setting
+        if feed == None: #
             return
 
         blur = cv2.GaussianBlur(feed, (5,5), 0) # Gaussian Blur filter
@@ -128,16 +150,17 @@ class PushCupGame:
         if len(contours) > 0:
             video = self.calculate(contour, contours)
 
-            # Draws tracking dots
+            # Draws tracking dots for goal and cup
             cv2.circle(video,(self.cup_pos[0],self.cup_pos[1]),5,(0,0,255),-1)
             cv2.circle(video,(self.goal_pos[0],self.goal_pos[1]),5,(0,0,0),-1)
         else:
             video = contour
 
         # Feed Display(s) for debug:
-        #cv2.imshow('Raw Feed (feed)',feed)
-        #cv2.imshow('Gaussian Blur Filter (blur)', blur)
-        #cv2.imshow('Contour Filter (contour)', contour)
+        if self.debug == True:
+            cv2.imshow('Raw Feed (feed)',feed)
+            cv2.imshow('Gaussian Blur Filter (blur)', blur)
+            cv2.imshow('Contour Filter (contour)', contour)
 
         # Final Contour feed
         cv2.imshow('Final Contours (video)', video)
@@ -146,7 +169,17 @@ class PushCupGame:
 
         return video
 
-    # Contours video feed frame
+    """ contour_feed function:
+        contour_feed does more filtering of the image provided and calculates the
+        contours in the feed. The function then selects out for the relevant
+        contours and returns a list of those contours plus a feed with contours
+        drawn on.
+        -------------------------------------------------------------------------------------------
+        |param  | self          | access to the state variables of the class calling the function |
+        |param  | video         | frame to filter and contour                                     |
+        |return | contour       | frame with contours drawn on                                    |
+        |return | finalcontours | list of relevant contours                                       |
+    """
     def contour_feed(self, video):
 
         contour = video # Duplicate video feed so as to display both raw footage and final contoured footage
@@ -165,43 +198,47 @@ class PushCupGame:
         # Calculates contours
         contours, h = cv2.findContours(opening,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 
-        # Creates list of contours with more points than 100 so as to select out for cup and hand
+        # -------------------- CONTOUR SELECTION -------------------- #
         finalcontours = [None]*3 # 1st Elem: Cup | 2nd Elem: Goal | 3rd Elem: Hand
         for cnt in contours:
-            area_real = cv2.contourArea(cnt)
-            (x,y),radius = cv2.minEnclosingCircle(cnt)
+            area_real = cv2.contourArea(cnt) # Find area of contour
+            (x,y),radius = cv2.minEnclosingCircle(cnt) # Find radius of smallest circle containing contour
             area_approx = math.pi*radius**2
             area_diff = area_approx - area_real
             diff_coefficient = area_diff / radius
-            #cv2.circle(contour,(int(x),int(y)),int(radius),(0,0,255),2) # Draws circles used for area comparison
+
+            if self.debug == True: cv2.circle(contour,(int(x),int(y)),int(radius),(0,0,255),2) # Draws circles used for area comparison
 
             # If contour is really close to circle
             if (diff_coefficient < 100) and (area_real > 200):
                 if (area_real < 600):
-                    finalcontours[1] = cnt
+                    finalcontours[1] = cnt # Is goal
                 elif (area_real > 5000):
-                    finalcontours[0] = cnt
+                    finalcontours[0] = cnt # Is cup
             if (area_real > 25000):
                     finalcontours[2] = cnt
 
 
-        #if self.debug == True:
-            #cv2.drawContours(contour, contours, -1, (255,0,0), 3)
-            #cv2.imshow('contour_feed: Final Video(contour)',contour)
+        # draws each contour in a different color
         if self.cup_in_frame == True: cv2.drawContours(contour, finalcontours[0], -1, (0,0,255), 3)
         if self.goal_in_frame == True: cv2.drawContours(contour, finalcontours[1], -1, (0,0,0),3)
         if self.human_in_frame == True: cv2.drawContours(contour, finalcontours[2], -1, (0,255,0),3)
 
-        # Feed Display(s) for debug:
-        #cv2.imshow('contour_feed: Raw Video(video)',video)
-        #cv2.imshow('contour_feed: To GRAY Filter (vidgray)',vidgray)
-        #cv2.imshow('contour_feed: Threshold Filter (thresh)',thresh)
-        #cv2.imshow('contour_feed: Opening Kernel (opening)', opening)
-        #cv2.imshow('contour_feed: Background Clear (sure_bg)', sure_bg)
+        if self.debug == True:
+            cv2.imshow('contour_feed: Raw Video(video)',video)
+            cv2.imshow('contour_feed: To GRAY Filter (vidgray)',vidgray)
+            cv2.imshow('contour_feed: Threshold Filter (thresh)',thresh)
+            cv2.imshow('contour_feed: Opening Kernel (opening)', opening)
+            cv2.imshow('contour_feed: Background Clear (sure_bg)', sure_bg)
 
         return contour, finalcontours
 
-    # Center & Movement Detection Function
+    """ calculate function:
+        ------------------------------------------------------------------------------------------
+        |param | self          | access to the state variables of the class calling the function |
+        |param | contour       | frame with contours drawn on                                    |
+        |param | finalcontours | list of relevant contours                                       |
+    """
     def calculate(self, contour, finalcontours):
 
         video = contour
@@ -269,7 +306,7 @@ class PushCupGame:
                     safe = True
         return safe
 
-    """ convert_space function
+    """ convert_space function:
         convert_space converts an xy point in camspace (pixel location) to
         realspace (edwin head location)
         ------------------------------------------------------------------------
@@ -295,9 +332,6 @@ class PushCupGame:
 
         if self.debug == True: print("SPC: New Coordinates: ", x_real, y_real)
         return([x_real, y_real])
-
-    def check_win(self):
-        if self.cup_in_frame == True and self.goal_in_frame == True:
 
     """ push_cup function:
         push_cup makes Edwin push the cup to the goal
@@ -383,7 +417,7 @@ class PushCupGame:
         if new_pos[0] < pos[0]: direction = "Left"
         if new_pos[0] > pos[0]: direction = "Right"
 
-    """ play_game function
+    """ play_game function:
         play_game holds Edwin's game logic and makes him decide when to move
         and act. The function calls Edwin's physical moving functions at the
         appropriate times.
@@ -425,7 +459,6 @@ class PushCupGame:
                     print ("PLY| Pushing Cup")
                     self.push_cup()
                     time.sleep(10)
-                    self.check_win(self.goal_in_frame)
                     self.game_turn = 1
 
                 else: # If some game pieces are missing
