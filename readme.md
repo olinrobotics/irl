@@ -14,7 +14,8 @@ Run Edwin with the minimal amount of code necessary to actuate him.
 
   1. Run [roscore](http://wiki.ros.org/roscore) in a new Terminal window.
   2. Press Ctrl-Alt-T to start a new Terminal tab.
-  3. Plug the USB cord into a port on your computer. The connector (pictured below) uses a usb serial connector to connect to the robot.
+  3. Plug the USB cord into a port on your computer. The connector (pictured below) uses a usb serial connector to connect to the robot. Wait until the green light
+  is blinking slowly.
   ![Connector](images/USBConnect.jpeg)
 
   4. Turn Edwin on by flipping the power button on his electronics box to "|". (Pictured below)
@@ -29,4 +30,11 @@ Run Edwin with the minimal amount of code necessary to actuate him.
 <p>If you followed 7a, you can now move Edwin to various positions. If you followed
 7b, Edwin should execute your code.</p>
 
+### Moving Edwin (test_arm_pub)
+
+Input numbers into a GUI to position Edwin.
+
+The ST-R17 arm that Edwin is based on has 5 main pivot points: Waist, Shoulder,
+Elbow, Wrist, and Hand. Each of these has an input line in the test_arm_pub GUI.
+Additionally, the GUI 
 *This Github page is currently under construction. Last edited on 1/27/17.*
