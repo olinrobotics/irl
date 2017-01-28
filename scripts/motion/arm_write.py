@@ -143,7 +143,7 @@ class Writer:
             self.arm_pub.publish(motion)
             time.sleep(1.5)
 
-        time.sleep(2)
+        time.sleep(4)
         #data.shape is the string we want Edwin to write
         for letter in data.shape:
             self.write_letter(letter, data)

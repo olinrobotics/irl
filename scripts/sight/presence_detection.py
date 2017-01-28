@@ -134,6 +134,7 @@ class Presence:
         responds to waves
         """
         #greets people, only greets once while they're in the camera's view and are center of attention
+
         for person in self.peoples:
             if (person is not None) and (self.attention() == person.ID) and (person.acknowledged == False):
                 print "I see you!", self.attention()
@@ -147,7 +148,7 @@ class Presence:
                         self.behavior_pub.publish(msg)
                     else:
                         self.arm_pub.publish(msg)
-                    time.sleep(2)
+                    time.sleep(3)
 
                 person.acknowledged = True
 
@@ -156,9 +157,10 @@ class Presence:
             print "I saw you wave! Hello!"
             msg = "data: R_nudge"
             self.behavior_pub.publish(msg)
+            time.sleep(2)
             self.waved = False
             self.running = False
-            time.sleep(3)
+            # time.sleep(6)
 
 
     def follow_people(self):

@@ -73,7 +73,7 @@ S'SPD: 500, R_yawn, SL: .5, SPD: 500, R_slouch, SL: 1, R_look'
 p36
 sS'pout'
 p37
-S'R_disbelief, SL: 1, R_pout, WA: -7500, WA: -6500, WA: -7500, WA: -6500, R_look_back, R_pout, WA: -7500, WA: -6500, WA: -7500, WA: -6500, R_look'
+S'R_sad_turn, WA: -1000, WA: 1000'
 p38
 sS'greet'
 p39

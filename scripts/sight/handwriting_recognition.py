@@ -37,6 +37,7 @@ class HandwritingRecognition:
         self.pub = rospy.Publisher('word_publish',String,queue_size=10)
 
         self.detect = True
+        self.frame = None
         cv2.namedWindow('image')
         cv2.createTrackbar('X','image',0,255,self.nothing)
         cv2.setTrackbarPos('X','image',255)

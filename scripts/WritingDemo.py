@@ -55,8 +55,9 @@ class Game:
     	msg.shape = word
     	msg.x = -500
     	msg.y = 5700
-    	msg.z = -830
+    	msg.z = -810
 
+        time.sleep(2)
         self.writer.write_callback(msg)
 
     def run(self):
