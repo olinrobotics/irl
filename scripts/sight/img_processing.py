@@ -1,8 +1,21 @@
+''' Image Processing Functions
+    Author: Matthew Brucker
+    Email: matthew.brucker@students.olin.edu
+    Maintainer: Connor Novak
+    Email: connor@students.olin.edu
+    Purpose: Provide processing functions using OpenCV for handwriting_recognition.py
+    '''
+
 import cv2
 import numpy as np
 from Character import Character
 
 def get_text_roi(frame, show_window=True):
+    '''
+    draws box around text in image
+    args:
+
+        '''
     kernel_sharpen = np.array([[-1,-1,-1],[-1,9,-1],[-1,-1,-1]])
     kernel_sharpen_3 = np.array([[-1,-1,-1,-1,-1],
                              [-1,2,2,2,-1],

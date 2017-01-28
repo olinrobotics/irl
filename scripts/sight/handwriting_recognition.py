@@ -188,7 +188,14 @@ class HandwritingRecognition:
             return None
 
 
-
+    ''' function find_words()
+        PURPOSE:
+        ARGUMENTS:
+        self: object that refers to the current HandwritingRecognition object
+        char_list:
+        RETURNS:
+        '''
+    # This is incomplete    
     def find_words(self,char_list):
         # Find lines (this is terrible - refactor)
         line_space = []
@@ -234,20 +241,41 @@ class HandwritingRecognition:
         # for word in lines:
         #     print ' '.join([str(x.result) for x in word])
 
-    # Update the current frame
+    ''' function update_frame
+        PURPOSE: update frame variable for use
+        ARGUMENTS:
+        self: object that refers to the current HandwritingRecognition object
+        RETURNS: None
+        SHOWS: None
+        '''
     def update_frame(self):
         self.frame = self.curr_frame
 
-    # display the current image
+    ''' function output_image()
+        PURPOSE: Display current frame
+        ARGUMENTS:
+        self: object that refers to the current HandwritingRecognition object
+        RETURNS: None
+        SHOWS: Displays current frame
+        '''
     def output_image(self):
         new_frame = self.frame
         cv2.imshow('image', new_frame)
         cv2.waitKey(1)
 
 
+    ''' function get_image_text()
+        PURPOSE: Get the words out of an image
+        ARGUMENTS:
+        self: object that refers to the current HandwritingRecognition object
+        frame: current image to analyze
+        RETURNS: string representing text found in frame
+        '''
     def get_image_text(self, frame):
         self.chars = Process.get_text_roi(frame,show_window=False)
         self.chars = self.process_digits(self.chars)
+
+        # If chars exists,
         if self.chars:
             self.chars.sort(key = lambda roi: roi.x)
             word = ''.join([chr(item.result) for item in self.chars])
