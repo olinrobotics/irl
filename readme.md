@@ -23,8 +23,8 @@ Run Edwin with the minimal amount of code necessary to actuate him.
   5. In your new terminal, cd into the scripts folder in the edwin folder
   6. run `rosrun edwin arm_node.py` to start the arm node
   7. In a new Terminal window, run `roslaunch edwin robot_minimal.launch` to start peripheral things
-  8. (a) To test functionality, run `rosrun edwin test_arm_pub.py` in a new Terminal window <br/>
-     (b) To run code, open a new Terminal window and run your code.<br/>
+  8. (a) To test functionality, run `rosrun edwin test_arm_pub.py` in a new Terminal window\s\s
+     (b) To run code, open a new Terminal window and run your code.\s\s
 
 <p>If you followed 7a, you can now move Edwin to various positions. If you followed
 7b, Edwin should execute your code.</p>
