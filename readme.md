@@ -36,5 +36,10 @@ Input numbers into a GUI to position Edwin.
 
 The ST-R17 arm that Edwin is based on has 5 main pivot points: Waist, Shoulder,
 Elbow, Wrist, and Hand. Each of these has an input line in the test_arm_pub GUI.
-Additionally, the GUI 
-*This Github page is currently under construction. Last edited on 1/27/17.*
+Additionally, the GUI (Pictured below) has 6 other inputs: Route, XYZ, Behavior, Say, and CMD.
+- Wrist-Waist: To use joints, input a small number to test Edwin's range. Playing with numbers such as 100 and -100 before moving to positions is a good idea when you don't have a good idea of what inputs move Edwin where. Additionally, Edwin's values drift over time, so moving his shoulder to 1000 will be a slightly different position than it used to be. The numerical inputs to the joints are measured (roughly) in tenths of a degree... maybe?
+- Route: To use routes, familiarize yourself with the routes that Edwin can run inside create_routes.py. These are strings of movements that Edwin can do.
+- XYZ: Edwin has a coordinate system that he can reference. The coordinates place Edwin's wrist, not his head, so the limiters that don't let Edwin run himself into the ground will still let you run the head into the ground. Be very careful. Additionally, for Edwin to move to a position, a number needs to be in each box, and the user must push the "Set" button, not press "Enter".
+*Under Construction*
+![Gui](images/test-arm-pub-gui.png)
+*This Github page is currently under construction. Last edited on 1/28/17.*
