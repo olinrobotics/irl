@@ -23,6 +23,7 @@ from std_msgs.msg import String, Int16
 import WritingDemo
 import PresenceDemo
 import TicTacToe
+import PlayPushCup
 
 class EdwinBrain:
     def __init__(self):
@@ -62,6 +63,9 @@ class EdwinBrain:
                 g.run()
             elif cmd == "ttt":
                 g = TicTacToe.Game(init=True)
+                g.run()
+            elif cmd == "pc":
+                g = PlayPushCup.PushCupGame(init=True)
                 g.run()
             elif cmd == "help":
                 print "w -> WritingDemo \n pd -> PresenceDemo \n ttt -> TicTacToe"
