@@ -5,7 +5,7 @@ filename: troubleshooting
 ---
 
 
-#Edwin Hardware details
+# Edwin Hardware details
 
 ST-R17 co-worker dinosaur robotic arm
 Website: https://olinrobotics.github.io/edwin/
@@ -13,20 +13,20 @@ Arm Manual: http://strobotics.com/manuals/R17%20manual.pdf
 Head Module Design: 
 
 
-#Troubleshooting
+# Troubleshooting
 
-###Encoder-stepper mismatch
+### Encoder-stepper mismatch
 
  Is the area around the K11R control box and robot arm clear?
  Turn the controller on/off. (Power-cycle the robot)
 
-###rosrun edwin arm_node.py is stuck at "in block_on_result"
+### rosrun edwin arm_node.py is stuck at "in block_on_result"
 
  Is the turn-key at the front of the controller set to warm?
  Is the light on the Tripp-Lite serial-usb converter blinking?
  Open a new terminal window and run the command again
  
-###rosrun edwin arm_node.py returns "AttributeError: StArm instance hs no attribute 'cxn'"
+### rosrun edwin arm_node.py returns "AttributeError: StArm instance hs no attribute 'cxn'"
 
   This is a permissions error.
   Type `groups <YOUR USERNAME>`
@@ -34,7 +34,7 @@ Head Module Design:
   If not, type `sudo adduser $(whoami) dialout`
   Type in your password.
 
-###Controller refuses to turn on
+### Controller refuses to turn on
 
  Check the fuses. Two are located in the back of the controller, one is located on the power supply itself. (Where the power cord is plugged in)
  
