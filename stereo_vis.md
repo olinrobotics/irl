@@ -14,8 +14,33 @@ In order to identify objects we were interested in "teaching" to Edwin, we devel
 
 ### The Hardware
 
+#### Our Cameras
+
+  Hardkernel oCam
+  
+  ![Camera](/images/ocam.jpg)
+  
+  - standard M12 lens
+  - 3.6mm focal length
+  - 65 deg. field of view (FOV)
+  - 120 frames per second (fps) at a resolution of 640x480 pixels
+  - 5 megapixels (MP)
+  - 35 grams
+  - Micro-USB 3.0 connection port
+  
+  
+
+####
+
 ### The Software
 
 #### OpenCV
 
+##### Optical Flow
+
+##### Color Detection
+
 ##### 
+
+
+*This page is under construction. Last edited on 1/29/17 by [L. Zuehsow](https://github.com/Oktober13).*
