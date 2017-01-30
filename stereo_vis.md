@@ -54,6 +54,24 @@ In order to identify objects we were interested in "teaching" to Edwin, we devel
 
   While our mount design was adequate for holding our cameras steady, the micro-USB 3.0 to USB 2.0 cables had a tendency to come unplugged from the cameras when handled or disturbed too much. We resoldered the micro-USB 3.0 female ports on the oCams, which reduced instances of this problem, but did not completely solve them.
   
+**Better (and cheaper) cameras
+
+  Having used the oCams for a semester, we have identified the important factors when choosing a camera for visual processing.
+  Of these factors, the most relevant to us are:
+  
+  1. The shutter (global v. rolling)
+  2. Camera synchronization
+  3. Field of view (Wide v. narrow)
+  4. Color v. Black and White
+  
+Global shutter: Since our cameras are mounted inside Edwin's head, which moves fairly often as he executes behaviors, we need to be able to capture pixels in our images instantaneously, rather than sequentially. This will allow us to avoid image blurs and distortions from the motion of the cameras, which could potentially interfere with our visual processing.
+
+Camera synchronization: If we could synchronize video feeds from both cameras, we would eliminate a potential source of error in our visual processing.
+
+Wide FOV: If we can provide more data for our visual processing, we can cope with missing information more easily, thus creating a more accurate distance estimate overall.
+
+Color: While most visual processing only requires black and white camera feeds, we also account for the dominant color of an object, which requires a color camera.
+  
 #### Arduino powered turntable
 
 ### The Software
