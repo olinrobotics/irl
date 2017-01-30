@@ -36,7 +36,7 @@ In order to identify objects we were interested in "teaching" to Edwin, we devel
 
   We originally planned to hold the oCams steady by CADing and 3D printing two mounts to hold them snugly. We then fixed the mounts in place relative to each other by bolting them to a piece of sheet metal cut to size.
   
-  *Insert diagram* *Insert CAD model*
+  ![oCam_Mount](images/oCam_Mount.png)
   
   The bolts weren't sufficient to keep the mounts from shifting minutely, though, and this resulted in offsets in camera calibration. In the end, we merged the two camera mounts into one unified, 3D printed mount. 
   
