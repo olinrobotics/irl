@@ -32,7 +32,7 @@ In order to identify objects we were interested in "teaching" to Edwin, we devel
   - 35 grams
   - $99 USD + shipping
 
-#### The mount
+#### The camera mount
 
   We originally planned to hold the oCams steady by CADing and 3D printing two mounts to hold them snugly. We then fixed the mounts in place relative to each other by bolting them to a piece of sheet metal cut to size.
   
@@ -43,8 +43,22 @@ In order to identify objects we were interested in "teaching" to Edwin, we devel
   *Insert CAD model*
   
   This was a better solution, as the single mount was structurally stiffer than two constrained single camera mounts.
+  
+  *Insert transparent assembly render*
+  
+  The mount was held in place inside the head through 4 screw "pins," (2 on either side of the head). The pin forces exerted by the screws were sufficient to hold the mount immobile in the head under stress.
+  
+#### Future improvements
+
+**An additional clip on the back of the camera mount (to secure the cable to the mount)**
+
+  While our mount design was adequate for holding our cameras steady, the micro-USB 3.0 to USB 2.0 cables had a tendency to come unplugged from the cameras when handled or disturbed too much. We resoldered the micro-USB 3.0 female ports on the oCams, which reduced instances of this problem, but did not completely solve them.
+  
+#### Arduino powered turntable
 
 ### The Software
+
+  
 
 #### OpenCV
 
