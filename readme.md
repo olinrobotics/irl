@@ -42,7 +42,7 @@ Additionally, the GUI (Pictured below) has 6 other inputs: Route, XYZ, Behavior,
 - XYZ: Edwin has a coordinate system that he can reference. The coordinates place Edwin's wrist, not his head, so the limiters that don't let Edwin run himself into the ground will still let you run the head into the ground. Be very careful. Additionally, for Edwin to move to a position, a number needs to be in each box, and the user must push the "Set" button, not press "Enter".
 
 ![Gui](images/test-arm-pub-gui.png)
-![EdwinJoints](images/edwin_joints.jpeg)
+![EdwinJoints](images/EdwinJoints.jpeg)
 
 # [Something wrong? Click here.](troubleshooting)
 
