@@ -89,7 +89,7 @@ include_directories(
 include_directories("tools/nite/Include")
 include_directories("tools/nite/Source/XnCommon")
 
-add_executable(edwin_bodies 
+add_executable(edwin_bodies
 		src/SceneAnalysis/main.cpp
 		src/SceneAnalysis/SceneDrawer.cpp
 		src/SceneAnalysis/signal_catch.cpp
@@ -116,5 +116,5 @@ install(DIRECTORY launch/
 	DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
 	PATTERN ".svn" EXCLUDE)
 
-install(FILES package.xml 
+install(FILES package.xml
 	DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
