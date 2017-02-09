@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
 	cv_bridge
 	image_transport
 	geometry_msgs
+	sensor_msgs
 	tf
 )
 
@@ -46,6 +47,7 @@ generate_messages(
   DEPENDENCIES
   geometry_msgs
   std_msgs
+  sensor_msgs
 )
 
 
