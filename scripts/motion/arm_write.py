@@ -112,6 +112,49 @@ class Writer:
 
         self.letter_dictionary["z"] = [(w,0,"u"), (w,0,"d"), (0,0,"d"), (w,w,"d"), (0,w,"d")]
 
+        self.letter_dictionary["0"] = [(w,0,"u"), (w,0,"d"), (w,w,"d"),
+                                        (w,0,"u"), (w,0,"d"), (0,0,"d"), (0,w,"d"),
+                                        (w,w,"d")]
+
+        self.letter_dictionary["1"] = [(w/2,0,"u"), (w/2,0,"d"), (w/2,w,"d")]
+
+        self.letter_dictionary["2"] = [(0,0,"u"),(0,0,"d"), (w,0,"d"), (w,w/2,"d"),
+                                       (0,w/2,"d"), (0,w,"d"), (w,w,"d")]
+
+        self.letter_dictionary["3"] = [(0,0,"u"), (0,0,"d"), (w,0,"d"), (w,w/2,"d"),
+                                       (0,w/2,"d"), (0,w/2,"u"), (w,w/2,"u"), (w,w/2,"d"),
+                                       (w,w,"d"), (0,w,"d")
+
+        self.letter_dictionary["4"] = [(0,0,"u"), (0,0,"d"), (0,w/2,"d"), (w,w/2,"d"), (w,w/2,"u"),
+                                       (w,0,"u"), (w,0,"d"), (w,w,"d")]
+
+        self.letter_dictionary["5"] = [(w,0,"u"), (w,0,"d"), (0,0,"d"),
+                                        (w,0,"u"), (w,0,"d"), (w,w/2,"d"),
+                                        (0,w/2,"d"), (0,w,"d"), (w,w,"d")]
+
+        self.letter_dictionary["6"] = [(w,0,"u"),(w,0,"d"), (0,0,"d"), (0,w,"d"),
+                                       (w,w,"d"), (w,w,"u"), (0,w/2,"u"), (0,w/2,"d"),
+                                       (w,w/2,"d"), (w,w,"d")]
+
+        self.letter_dictionary["7"] = [(0,0,"u"), (0,0,"d"), (w,0,"d"), (w/2,w,"d")]
+
+        self.letter_dictionary["8"] = [(w,0,"u"), (w,0,"d"), (w,w,"d"),
+                                        (w,0,"u"), (w,0,"d"),(0,0,"d"), (0,w,"d"), (w,w,"d"),
+                                        (w,w/2,"u"),(w,w/2,"d"),(0,w/2,"d")]
+
+        self.letter_dictionary["9"] = [(w,0,"u"), (w,0,"d"), (0,0,"d"), (0,w/2,"d"),
+                                       (w,w/2,"d"), (w,w/2,"u"), (w,0,"u"),
+                                       (w,0,"d"), (w,w,"d"), (0,w,"d")]
+
+        self.letter_dictionary["."] = [(0,w,"u"), (0,w,"d")]
+
+        self.letter_dictionary["!"] = [(0,0,"u"), (0,0,"d"), (0,.75*w,"d"), (0,.75*w,"u"),
+                                       (0,w,"u"), (0,w,"d")]
+
+        self.letter_dictionary["?"] = [(0,0,"u"), (0,0,"d"), (w,0,"d"), (w,w/2,"d"),
+                                       (w/2,w/2,"d"), (w/2,w/2,"u"),(w/2,w/2+w/4,"d"),
+                                       (w/2,w/2+w/4,"u"), (w/2,w,"u"), (w/2,w,"d")]
+
 
     def write_letter(self, letter, data):
         strokes = self.letter_dictionary.get(letter, None)
