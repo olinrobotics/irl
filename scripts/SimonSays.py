@@ -29,19 +29,46 @@ class Game:
 	def __init__(self, max_turns = 5):
 		self.arm_pub = rospy.Publisher('arm_cmd', String, queue_size=10)
 		self.behav_pub = rospy.Publisher('behaviors_cmd', String, queue_size=10)
+		self.say_pub = rospy.Publisher('say_cmd', String, queue_size = 1)
 
 		self.bridge = CvBridge()
 		self.image_sub = rospy.Subscriber("usb_cam/image_raw", Image, self.img_callback)
+		self.hear_sub = rospy.Subscriber("decoded_speech", String, self.hear_callback)
 
-		self.SimonCommand = namedtuple("SimonCommand", ["simon_ID", "simon_says", "command"])
+		self.current_cmd = None
+		self.heard_cmd = None
+		self.ready_to_listen = False
 
 		self.max_turns = max_turns
+		self.command_2_speech = {}
+		self.command_2_motion = {}
+		self.command_2_rules = {}
+
+		self.populate_dictionaries()
 
 	def img_callback(self, data):
 		try:
 			self.frame = self.bridge.imgmsg_to_cv2(data, "bgr8")
 		except CvBridgeError as e:
 			print(e)
+
+	def hear_callback(self, data):
+		if self.ready_to_listen:
+			self.heard_cmd = data.data
+
+	def populate_dictionaries(self):
+		"""Fill up the Simon command dictionary possible command"""
+		self.command_2_speech["turn_around"] = "turn around"
+		self.command_2_motion["turn_around"] = ["R_ttt"]
+		self.command_2_rules["turn_around"] = [(1,2), (2,0)]
+
+		self.command_2_speech["touch_head"] = "touch your head"
+		self.command_2_speech["touch_stomach"] = "touch your stomach"
+		self.command_2_speech["high5_self"] = "give yourself a high five"
+		self.command_2_speech["hug_self"] = "hug yourself"
+		self.command_2_speech["breakdance"] = "breakdance!"
+		self.command_2_speech["clap_hands"] = "clap your hands!"
+
 
 	def field_scan(self):
 		time.sleep(5)
@@ -54,7 +81,10 @@ class Game:
 
 		This function issues a Simon command.
 		It is said outloud, so depends on the tts_engine to be running"""
-		pass
+
+		command = random.choice(self.command_dictionary.keys())
+		self.current_cmd = random.choice(["simon says, ", ""]) + self.command_dictionary[command]
+		self.say_pub.publish(self.current_cmd)
 
 	def check_simon_response(self):
 		"""If Simon is Edwin:
@@ -62,24 +92,54 @@ class Game:
 		This function checks to see if the players have followed Edwin's cmd
 		This relies on skeleton tracker to be functional
 		"""
-		pass
 
+		if "simon says" in self.current_cmd:
+			command_rules = self.command_2_rules.get(self.current_cmd.substitute("simon says, ", ""), None)
+			if command_rules:
+				for rule in command_rules:
+					print "Checking rule: ", rule
+		else:
+			#check that kids aren't moving
+			pass
+
+		#TODO: add behavior for success / failure of following command
 
 	def listen_for_simon(self):
 		"""If Simon is the User:
-
 		This function listens to a spoken Simon command from user
+
 		This relies on stt_engine to be running"""
-		pass
+		self.ready_to_listen = True
+
+		#do nothing while waiting for the speech command
+		while not self.heard_cmd:
+			continue
+
+		if "simon says" in self.heard_cmd:
+			cmd = self.heard_cmd.substitute("simon says ", "")
+			motions = self.command_2_motion.get(cmd, None)
+
+			if motions:
+				self.current_cmd = cmd
+				print "GOT CMD: ", cmd
+		else:
+			self.current_cmd = None
+
+		#if simon says isn't in the command, than Edwin does nothing
+		self.ready_to_listen = False
 
 	def follow_simon_cmd(self):
 		"""If Simon is the User:
 
 		This function takes the command from listen_for_simon() and interprets
 		The resulting command is sent to arm_node for physical motion"""
-		pass
 
-
+		if self.current_cmd:
+			motions = self.command_2_motion.get(cmd, None)
+			if motions:
+				for m in motions:
+					print "GOT MOTION: ", m
+					#TODO: add publish to arm_cmd for edwin to actually move
 
 	def run(self):
 		"""Game mainloop. Runs for as long as max_turns is defined"""
@@ -119,4 +179,7 @@ class Game:
 if __name__ == '__main__':
 	rospy.init_node('ss_gamemaster', anonymous = True)
 	gm = Game()
-	gm.run()
+	while True:
+		raw_input("enter to go to next")
+		gm.issue_simon_cmd()
+	# gm.run()
