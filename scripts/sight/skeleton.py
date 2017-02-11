@@ -64,12 +64,31 @@ class Skeleton(object):
         Renders an image using opencv
         """
         cv_image = self.bridge.imgmsg_to_cv2(image, "bgr8")
-        (rows,cols,channels) = cv_image.shape
-        if cols > 60 and rows > 60 :
-            cv2.circle(cv_image, (50,50), 10, 255)
+        cv2.circle(cv_image, (50,50), 10, 255, thickness = -1)
+        cv2.circle(cv_image, (640, 480), 10, 255, thickness = -1)
+        cv2.circle(cv_image, (320, 240), 10, 255, thickness = -1)
 
-        cv2.imshow("Image window", cv_image)
+        cv2.imshow("chicken", cv_image)
         cv2.waitKey(3)
+
+
+    def transform_skel2image(self, x, y, z):
+        """
+        makes a transformation from the coordinates of the skeleton to the coordinates
+        of the Kinect image
+        """
+        #TODO
+
+
+        pass
+
+        """
+        ask sophie if a static transform will work, and if so, using what units
+        """
+
+
+
+
     def run(self):
         """
         main run function for edwin
