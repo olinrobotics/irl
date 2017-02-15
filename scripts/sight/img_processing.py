@@ -12,39 +12,51 @@ from Character import Character
 
 def get_text_roi(frame, show_window=True):
     '''
-    draws box around text in image
-    ARGS:
-    frame - image - image to search and find text
-    show_window=True - ______ - _________________
-    RETURNS: chars - 
+        ----------------------------------------
+        DESC: draws box around text in image
+        ----------------------------------------
+        ARGS:
+        frame - image - image to search and find text
+        show_window=True - boolean - represents whether or not to show debug
+        image for chars (optional input)
+        ----------------------------------------
+        RETURNS: chars - list of characters found in image text
+        ----------------------------------------
         '''
-    kernel_sharpen = np.array([[-1,-1,-1],[-1,9,-1],[-1,-1,-1]])
-    kernel_sharpen_3 = np.array([[-1,-1,-1,-1,-1],
-                             [-1,2,2,2,-1],
-                             [-1,2,8,2,-1],
-                             [-1,2,2,2,-1],
-                             [-1,-1,-1,-1,-1]]) / 8.0
 
-    chars = []
+    kernel_sharpen = np.array([[-1,-1,-1],
+                               [-1, 9,-1],
+                               [-1,-1,-1]])
+
+    kernel_sharpen_3 = np.array([[-1,-1,-1,-1,-1],
+                                 [-1, 2, 2, 2,-1],
+                                 [-1, 2, 8, 2,-1],
+                                 [-1, 2, 2, 2,-1],
+                                 [-1,-1,-1,-1,-1]]) / 8.0
+
+    chars = [] # Stores found characters
     bound = 5
     kernel = np.ones((2,2),np.uint8)
 
-    frame_gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
-    frame_gray = cv2.filter2D(frame_gray.copy(),-1,kernel_sharpen_3)
+    frame_gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY) # Filter to grayscale
+    frame_gray = cv2.filter2D(frame_gray.copy(),-1,kernel_sharpen_3) # Filter to sharpen
     # frame_gray = cv2.GaussianBlur(frame_gray, (5,5),0) # Gaussian blur to remove noise
 
     # Adaptive threshold to find numbers on paper
     thresh = cv2.adaptiveThreshold(frame_gray,255,
         cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV,255,7)
     thresh = cv2.morphologyEx(thresh,cv2.MORPH_OPEN,kernel,iterations=2)
-    # cv2.imshow('thresh',thresh)
+    #cv2.imshow('thresh',thresh)
 
     contours,hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,
                                             cv2.CHAIN_APPROX_NONE)
     cv2.drawContours(frame,contours,-1,(255,0,0),2)
     # Build the list of number contours and number locations
 
-    if len(contours) < 35:
+    if len(contours) < 35: # If reasonable # of contours
+
+        # For each contour, draw bounding rectangle, make sure it's a reasonable
+        # size, make it a new frame,
         for ind,contour in enumerate(contours):
             [x,y,w,h] = cv2.boundingRect(contour)
             x_bound = w * .1;
@@ -68,8 +80,8 @@ def get_text_roi(frame, show_window=True):
         num_len = len(chars)
         # print '# of contours: ', num_len
         if num_len < 35 and num_len > 0:
-            new_img = np.ones((20,20*num_len),np.uint8)
-            y = 0
+            new_img = np.ones((20,20*num_len),np.uint8) # Creates matrix of ones
+            y = 0 # counter
             for x in chars:
                 new_img[:,y:y+20] = x.img
                 y += 20
@@ -77,6 +89,8 @@ def get_text_roi(frame, show_window=True):
     return chars
 
     # Deskews a 20x20 character image
+
+
 def deskew(img):
     SZ = 20
     affine_flags = cv2.WARP_INVERSE_MAP|cv2.INTER_LINEAR
@@ -90,6 +104,8 @@ def deskew(img):
     return img
 
     # Retursn the HOG for a given imagej
+
+
 def hog(img):
     bin_n = 16
     gx = cv2.Sobel(img, cv2.CV_32F,1,0) # x gradient
