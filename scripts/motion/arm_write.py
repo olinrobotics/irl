@@ -155,6 +155,12 @@ class Writer:
                                        (w/2,w/2,"d"), (w/2,w/2+w/4,"d"),
                                        (w/2,w/2+w/4,"u"), (w/2,w,"u"), (w/2,w,"d")]
 
+        self.letter_dictionary["["] = [(0,0,"u"), (0,0,"d"), (w/3,0,"d"), (w/3,w,"d"),
+                                       (0,w,"d")]
+
+        self.letter_dictionary["]"] = [(w,0,"u"), (w,0,"d"), (2w/3,0,"d"), (2w/3,w,"d"),
+                                       (w,0,"d")]
+
 
     def write_letter(self, letter, data):
         strokes = self.letter_dictionary.get(letter, None)

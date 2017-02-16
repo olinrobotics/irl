@@ -28,6 +28,7 @@ class HandwritingRecognition:
         cv2.setMouseCallback('image',self.fill_test_data)
         self.test_data = np.zeros((200,200),np.uint8)
         self.test_filled = 0
+        self.debug = True
 
     def fill_test_data(self, event, x, y, flags, param):
         if event == cv2.EVENT_LBUTTONDOWN:
@@ -39,6 +40,7 @@ class HandwritingRecognition:
                     self.test_filled += 1
         elif event == cv2.EVENT_RBUTTONDOWN:
             cv2.imwrite('test_data.png',self.test_data)
+
 
     def test_ocr(self):
         data_img = cv2.imread('test_data.png')
@@ -64,11 +66,13 @@ class HandwritingRecognition:
         accuracy = correct*100.0/result.size
         print 'Accuracy: ', accuracy
 
+
     def img_callback(self, data):
         try:
             self.curr_frame = self.bridge.imgmsg_to_cv2(data, "bgr8")
         except CvBridgeError as e:
             print(e)
+
 
     def process_data_svm(self):
         cells_data = []
@@ -82,6 +86,7 @@ class HandwritingRecognition:
         responses = np.float32(np.repeat(np.arange(10),500))[:,np.newaxis]
         np.savez('svm_data.npz',train=train_data,train_labels=responses)
 
+
     def train_svm(self):
         svm_params = dict(kernel_type = cv2.SVM_LINEAR, svm_type = \
                             cv2.SVM_C_SVC, C=2.67, gamma=5.383)
@@ -94,6 +99,8 @@ class HandwritingRecognition:
         self.SVM.train(train_data,data_labels,params=svm_params)
 
         # Returns a list of image ROIs (20x20) corresponding to digits found in the image
+
+
     def get_text_roi(self):
         chars = []
         bound = 15
@@ -146,16 +153,26 @@ class HandwritingRecognition:
         # with the kNN training data
 
         # Deskews a 20x20 character image
+
+
     def deskew(self,img):
+        '''
+            DESC: Takes an image and deskews it
+            ARGS:
+            self - HandwritingRecognition object self-referential
+            img - image object to deskew
+            RETURNS: image straightened
+            '''
         SZ = 20
         affine_flags = cv2.WARP_INVERSE_MAP|cv2.INTER_LINEAR
         m = cv2.moments(img)
+        #if (self.debug == True): cv2.imshow('Skew Test Image: Before',img)
         if abs(m['mu02']) < 1e-2:
             return img.copy()
-        # print m
         skew = m['mu11']/m['mu02']
         M = np.float32([[1,skew,-0.5*SZ*skew], [0,1,0]])
         img = cv2.warpAffine(img,M,(SZ,SZ),flags=affine_flags)
+        #if (self.debug == True): cv2.imshow('Skew Test Image: After',img)
         return img
 
         # Retursn the HOG for a given imagej

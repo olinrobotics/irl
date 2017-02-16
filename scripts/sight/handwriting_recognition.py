@@ -14,30 +14,41 @@ from os import listdir
 from os.path import isfile, join
 
 import cv2
-import img_processing as Process
+import img_processing as Process #Library of image processing functions in edwin/scripts/sight
 import csv
 
-class HandwritingRecognition:
-    def nothing(x):
+class HandwritingRecognition: # HR object
+    def nothing(x): # empty callback function to pass as parameter
         pass
 
-    def __init__(self, init_param = False):
+    def __init__(self, init_param=False):
+        '''
+            DESC: runs once when program starts, sets up initial state, vars, etc.
+            ARGS:
+            self - reference to current HR object
+            init_param - Boolean providing alternate setup initialization
+            RETURN: none
+            '''
         if init_param:
-            #init_param allows us to instantiate the HR object in different contexts, i.e in WritingDemo.py
+            # init_param allows us to instantiate the HR object in different contexts, i.e in WritingDemo.py
             pass
         else:
-            rospy.init_node('handwriting_recognition', anonymous=True)
-            rospy.Subscriber('usb_cam/image_raw', Image, self.img_callback)
+            rospy.init_node('handwriting_recognition', anonymous=True) # makes self into node
+            rospy.Subscriber('usb_cam/image_raw', Image, self.img_callback) # subscribes to cam feed
 
-            self.bridge = CvBridge()
+            self.bridge = CvBridge() # converts image types to use with OpenCV
 
+        # Builds path to find picture of numbers
         rospack = rospkg.RosPack()
         self.PARAMS_PATH = rospack.get_path('edwin')
         self.img = cv2.imread(self.PARAMS_PATH + '/params/test_imgs/digits.png')
-        self.pub = rospy.Publisher('word_publish',String,queue_size=10)
+
+        self.pub = rospy.Publisher('word_publish',String,queue_size=10) # publishes found words
 
         self.detect = True
         self.frame = None
+
+        # Builds window to view and control output
         cv2.namedWindow('image')
         cv2.createTrackbar('X','image',0,255,self.nothing)
         cv2.setTrackbarPos('X','image',255)
@@ -47,22 +58,28 @@ class HandwritingRecognition:
         self.test_filled = 0
         # print os.getcwd()
 
-        # Defines vars for keeping track of new words
+        # Define vars for keeping track of new words
         self.last_word = ''
         self.last_time = time.time()
         self.curr_data = ''
         self.found_word = False
 
-    def test_ocr(self): # Compares our SVM-guessed set against the training data
+    def test_ocr(self):
+        '''
+            DESC: Compares Support Vector Machine(SVM)-guessed set against training data
+            ARGS: self - reference to current HR object
+            RETURNS: none
+            SHOWS: prints accuracy of the SVM
+            '''
         labels = []
         # Prepares the labels from the text file
         with open(self.PARAMS_PATH + '/params/train_data.txt', 'r') as test_data:
             open_reader = csv.reader(test_data)
             for line in open_reader:
-                labels.append(ord(line[0]))
+                labels.append(ord(line[0])) # adds label to list labels per line
 
-        test_img = cv2.imread(self.PARAMS_PATH + '/params/test_data.png')
-        cells = [np.hsplit(row,10) for row in np.vsplit(test_img,10)]
+        test_img = cv2.imread(self.PARAMS_PATH + '/params/test_data.png') # reads image, saves as test_img
+        cells = [np.hsplit(row,10) for row in np.vsplit(test_img,10)] #
         hogdata = [map(Process.hog,row) for row in cells]
         test_data = np.float32(hogdata).reshape(-1,64)
         result = [int(res) for res in self.SVM.predict_all(test_data)]
@@ -70,6 +87,7 @@ class HandwritingRecognition:
         matches = [i for i, j in zip(result, labels) if i == j]
         accuracy = len(matches)
         print 'Accuracy: ', accuracy
+
 
     def img_callback(self, data):
         try:
@@ -79,14 +97,19 @@ class HandwritingRecognition:
 
 
     def process_data_svm(self):
+        '''
+            DESC:
+            ARGS:
+            RETURNS:
+            '''
         path =  self.PARAMS_PATH + '/params/char_data/'
-        files = listdir(path)
+        files = listdir(path) #Lists files in path folder
 
         train_data = np.float32(np.zeros((0,64)))
         responses = np.float32(np.zeros((0,1)))
-        for f in files: # Loads the .pngs for the training data for each letter
+        for f in files: # Loads the .pngs for the training data for each symbol
             file_path = path + f
-            letter = f.split('.',1)[0]
+            code = f.split('.',1)[0]
             train_img = cv2.imread(file_path)
             cells_data = []
             # Processes the training data into a usable format
@@ -97,10 +120,34 @@ class HandwritingRecognition:
 
             train_data = np.concatenate((train_data,np.float32(hogdata).reshape(-1,64)),axis=0)
             # Builds the labels for the training data
-            responses = np.concatenate((responses,np.float32(np.repeat([ord(letter)],100)[:,np.newaxis])),axis=0)
+            responses = np.concatenate((responses,np.float32(np.repeat([self.decode_file(code)],100)[:,np.newaxis])),axis=0)
         np.savez(self.PARAMS_PATH + '/params/svm_data.npz',train=train_data,train_labels=responses)
 
         # Train the SVM neural network to recognize characters
+
+    def decode_file(self, code):
+        '''
+            DESC: Translates file name (part before .png) into Unicode index
+            for the character represented by the file name. Used to get around
+            the inability to name files with symbols such as /,-,
+            *, etc.
+            ARGS:
+            self - HandWriting object - reference to current object
+            code - string - file name up to, but not including, .png
+            RTRN: string directly representing character
+            '''
+        if (code == 'mlt'):
+            return ord('*')
+        elif (code == 'dvd'):
+            return ord('/')
+        elif (code == 'pls'):
+            return ord('+')
+        elif (code == 'mns'):
+            return ord('-')
+        elif (len(code) == 1):
+            return ord(code)
+
+
     def train_svm(self):
         svm_params = dict(kernel_type = cv2.SVM_LINEAR, svm_type = \
                             cv2.SVM_NU_SVC, nu=.105)
@@ -113,7 +160,7 @@ class HandwritingRecognition:
         self.SVM = cv2.SVM()
         self.SVM.train(train_data,data_labels,params=svm_params)
 
-        # Returns a list of image ROIs (20x20) corresponding to digits found in the image
+        # Returns a list of image Regions Of Interest(ROIs) (20x20) corresponding to digits found in the image
 
 
     def process_digits(self,test_data,detect_words = False):
@@ -196,7 +243,7 @@ class HandwritingRecognition:
         char_list:
         RETURNS:
         '''
-    # This is incomplete    
+    # This is incomplete
     def find_words(self,char_list):
         # Find lines (this is terrible - refactor)
         line_space = []
@@ -265,14 +312,14 @@ class HandwritingRecognition:
         cv2.waitKey(1)
 
 
-    ''' function get_image_text()
-        PURPOSE: Get the words out of an image
-        ARGUMENTS:
-        self: object that refers to the current HandwritingRecognition object
-        frame: current image to analyze
-        RETURNS: string representing text found in frame
-        '''
     def get_image_text(self, frame):
+        '''
+            DESC: Get the words out of an image
+            ARGS:
+                self - object - current HR object
+                frame - image - current image to analyze
+            RETURNS: string representing text found in frame
+            '''
         self.chars = Process.get_text_roi(frame,show_window=False)
         self.chars = self.process_digits(self.chars)
 
@@ -281,6 +328,7 @@ class HandwritingRecognition:
             self.chars.sort(key = lambda roi: roi.x)
             word = ''.join([chr(item.result) for item in self.chars])
             return word
+
 
     def run(self):
         r = rospy.Rate(10)
