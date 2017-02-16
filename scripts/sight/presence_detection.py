@@ -7,6 +7,8 @@ from edwin.msg import *
 import time
 import tf
 
+
+
 class Coordinates:
     """
     helper class to keep track of each individual person's coordinates and status
@@ -74,6 +76,7 @@ class Presence:
 
         time.sleep(2)
         print "Starting presence_detection.py"
+
 
     def edwin_location(self, res):
         """
@@ -168,14 +171,14 @@ class Presence:
         follows the nearest person's body around
         """
         #finds the person of interest's coordinates and then converts them to Edwin coordinates
-        print "PEOPLE: ", self.peoples
+        # print "PEOPLE: ", self.peoples
         attn = self.attention()
-        print "ATTN: ", self.attention()
+        # print "ATTN: ", self.attention()
         for person in self.peoples:
             if (person is not None) and (attn == person.ID):
-                print "PERSON: ", person
+                # print "PERSON: ", person
                 trans = self.kinect_to_edwin_transform(person)
-                print "TRANS: ", trans
+                # print "TRANS: ", trans
                 if trans is not None:
                     xcoord, ycoord, zcoord = self.edwin_transform(trans)
 

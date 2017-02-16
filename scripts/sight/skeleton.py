@@ -21,6 +21,9 @@ class Skeleton(object):
         rospy.Subscriber("/skeleton_markers", Marker, self.constructSkeleton, queue_size=10)
         rospy.Subscriber("/camera/rgb/image_raw", Image, self.renderImage, queue_size=10)
 
+        self.listener = tf.TransformListener()
+
+
         self.bridge = CvBridge()
         self.body_points = None
         self.head = None
@@ -34,58 +37,59 @@ class Skeleton(object):
         Body points is a list of 15 markers that denotes body parts, as per the skeleton
         They are in this order in the list:
 
-        1 - head
-        2 - neck
-        3 - torso
+        0 - head
+        1 - neck
+        2 - torso
 
-        4 - left shoulder
-        5 - left elbow
-        6 - left hand
+        3 - right shoulder
+        4 - right elbow
+        5 - right hand
 
-        7 - right shoulder
-        8 - right elbow
-        9 - right hand
+        6 - left shoulder
+        7 - left elbow
+        8 - left hand
 
-        10 - left hip
-        11 - left knee
-        12 - left foot
+        9 - right hip
+        10 - right knee
+        11 - right foot
 
-        13 - right hip
-        14 - right knee
-        15 - right foot
+        12 - left hip
+        13 - left knee
+        14 - left foot
         """
         self.body_points = skeleton.points
         self.head = self.body_points[0]
-        print self.head
-
+        print "raw", self.head
+        self.head = self.transform_skel2kinect()
+        print "processed", self.head
+        print " "
 
     def renderImage(self, image):
         """
         Renders an image using opencv
         """
         cv_image = self.bridge.imgmsg_to_cv2(image, "bgr8")
-        cv2.circle(cv_image, (50,50), 10, 255, thickness = -1)
-        cv2.circle(cv_image, (640, 480), 10, 255, thickness = -1)
-        cv2.circle(cv_image, (320, 240), 10, 255, thickness = -1)
+        imagex = int(self.head[0]) + 320
+        imagey = 240 - int(self.head[1])
+        cv2.circle(cv_image, (imagex, imagey), 10, 255, thickness = -1)
+
 
         cv2.imshow("chicken", cv_image)
         cv2.waitKey(3)
 
 
-    def transform_skel2image(self, x, y, z):
+    def transform_skel2kinect(self):
         """
         makes a transformation from the coordinates of the skeleton to the coordinates
         of the Kinect image
         """
-        #TODO
+        try:
+            (trans,rot) = self.listener.lookupTransform("/camera_depth_frame","/head_1" , rospy.Time(0))
+        except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:
+            trans = None
+            print e
 
-
-        pass
-
-        """
-        ask sophie if a static transform will work, and if so, using what units
-        """
-
+        return trans
 
 
 
