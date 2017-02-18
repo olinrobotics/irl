@@ -16,7 +16,7 @@ from __future__ import division
 import rospy
 import rospkg
 from std_msgs.msg import String
-data = '2x-4=4'
+data = '2*x+1=3'
 
 
 class Calculator:
@@ -26,11 +26,16 @@ class Calculator:
         rospy.init_node('doing_math')
         self.pub = rospy.Publisher('/math_output', String, queue_size=10)
 
-        self.integer_list = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+        self.integer_list = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.']
+        self.order_of_ops = ['-', '+', '/', '*']
         self.operator_list = ['+', '-', '/', '*', '=']
         self.variable_list = ['x', 'y', 'z']
+        self.opposite_operation = {'+': '-', '-': '+', '/': '*', '*': '/'}
         self.basics_list = self.integer_list + self.operator_list
         self.basics_and_variables = self.basics_list + self.variable_list
+
+        self.side1 = []
+        self.side2 = []
         # rospy.Subscriber('Connors Writing Recog', str, self.cmd_callback)
 
     def cmd_callback(self, data):
@@ -44,17 +49,17 @@ class Calculator:
         return data
 
     def makes_sense(self, data):
-        '''checks if every element is either a number or an operator'''
-        self.split_into_list = list(data)
-        for element in self.split_into_list:
-            if element not in self.basics_list:
-                if element in self.basics_and_variables:
-                    print('I do not know algebra')
-                    return
-                else:
-                    print('I do not know how to do that yet :(')
-                    return
-        return self.simple_equation(data)
+        '''if data is something it can solve, send it to simple_equation.
+        else, print why it can't solve it.'''
+        # self.split_into_list = list(data)
+        # for element in self.split_into_list:
+        #     if element not in self.basics_list:
+        #         if element in self.basics_and_variables:
+        #             return self.algebra_solver(data)
+        #         else:
+        #             print('I do not know how to do that yet :(')
+        #             return
+        # return self.simple_equation(data)
 
     def simple_equation(self, eqn):
         '''solves a simple expression'''
@@ -62,16 +67,21 @@ class Calculator:
         answer = eval(eqn)
         if type(answer) == float:
             answer = "{0:.2f}".format(answer)
-        print(answer)
+        return answer
 
     def algebra_solver(self, eqn):
-        return
+        # root_node =
+        i = 0
+        while i < len(eqn):
+            if i in 
 
     def run(self):
         '''
         does the running thing
         '''
         self.makes_sense(data)
+
+class Node:
 
 
 if __name__ == '__main__':
