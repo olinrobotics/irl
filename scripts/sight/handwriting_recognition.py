@@ -66,7 +66,9 @@ class HandwritingRecognition: # HR object
 
     def test_ocr(self):
         '''
-            DESC: Compares Support Vector Machine(SVM)-guessed set against training data
+            DESC: Compares Support Vector Machine(SVM)-guessed set against
+            training data to determine accuracy of Optical Character Recognition
+            (OCR)
             ARGS: self - reference to current HR object
             RETURNS: none
             SHOWS: prints accuracy of the SVM
@@ -90,6 +92,15 @@ class HandwritingRecognition: # HR object
 
 
     def img_callback(self, data):
+        '''
+            DESC: Callback function for usb cam subscription; stores frame from
+            camera to self
+            ARGS:
+            self - object - reference to current HR object
+            data - image - data sent over subscriber
+            RTRN: none
+            SHOW: stores usb-cam frame in self.curr_frame
+            '''
         try:
             self.curr_frame = self.bridge.imgmsg_to_cv2(data, "bgr8")
         except CvBridgeError as e:
@@ -121,6 +132,7 @@ class HandwritingRecognition: # HR object
             train_data = np.concatenate((train_data,np.float32(hogdata).reshape(-1,64)),axis=0)
             # Builds the labels for the training data
             responses = np.concatenate((responses,np.float32(np.repeat([self.decode_file(code)],100)[:,np.newaxis])),axis=0)
+
         np.savez(self.PARAMS_PATH + '/params/svm_data.npz',train=train_data,train_labels=responses)
 
         # Train the SVM neural network to recognize characters
@@ -169,8 +181,8 @@ class HandwritingRecognition: # HR object
             ARGS:
             self - HandWriting object - reference to current object
             test_data - list - collection of symbols from data set
-            detect_words - boolean - represents whether or not to call the word
-            detection function
+            detect_words - boolean - represents whether or not words are
+            detected
             RTRN: Newly processed digits
             '''
         if len(test_data) != 0:
