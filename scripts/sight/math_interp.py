@@ -16,7 +16,7 @@ from __future__ import division
 import rospy
 import rospkg
 from std_msgs.msg import String
-data = '2*x+1=3'
+# data = '2*x+1=3'
 
 
 class Calculator:
@@ -24,7 +24,8 @@ class Calculator:
     def __init__(self):
         '''initializes the object'''
         rospy.init_node('doing_math')
-        self.pub = rospy.Publisher('/math_output', String, queue_size=10)
+        # self.pub = rospy.Publisher('/math_output', String, queue_size=10)
+        rospy.Subscriber('word_publish', String, self.cmd_callback)
 
         self.integer_list = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.']
         self.order_of_ops = ['-', '+', '/', '*']
@@ -33,22 +34,19 @@ class Calculator:
         self.opposite_operation = {'+': '-', '-': '+', '/': '*', '*': '/'}
         self.basics_list = self.integer_list + self.operator_list
         self.basics_and_variables = self.basics_list + self.variable_list
-
-        self.side1 = []
-        self.side2 = []
-        # rospy.Subscriber('Connors Writing Recog', str, self.cmd_callback)
+        self.eqn = ''
 
     def cmd_callback(self, data):
         '''callback'''
-        self.equation_to_calc = data
+        self.eqn = data
 
-    def removes_equals(self, data):
+    def removes_equals(self, eqn):
         '''if there is an = at the end, removes it'''
-        if data[-1] == '=':
-            data = data[0:-1]
+        if eqn[-1] == '=':
+            data = eqn[0:-1]
         return data
 
-    def makes_sense(self, data):
+    def makes_sense(self, eqn):
         '''if data is something it can solve, send it to simple_equation.
         else, print why it can't solve it.'''
         # self.split_into_list = list(data)
@@ -63,27 +61,44 @@ class Calculator:
 
     def simple_equation(self, eqn):
         '''solves a simple expression'''
-        eqn = self.removes_equals(eqn)
+        # eqn = self.removes_equals(eqn)
         answer = eval(eqn)
         if type(answer) == float:
             answer = "{0:.2f}".format(answer)
         return answer
 
-    def algebra_solver(self, eqn):
+    # def algebra_solver(self, eqn):
         # root_node =
-        i = 0
-        while i < len(eqn):
-            if i in 
+        # i = 0
+        # while i < len(eqn):
+        #     if i i
 
     def run(self):
         '''
         does the running thing
         '''
-        self.makes_sense(data)
+        print(self.simple_equation(self.eqn))
 
-class Node:
 
+class Tree(object):
+    '''make the equation into a tree...hypothetically'''
+
+    def __init__(self, name='root', children=None):
+        self.name = name
+        self.children = []
+        if children is not None:
+            for child in children:
+                self.add_child(child)
+
+    def __repr__(self):
+        return self.name
+
+    def add_child(self, node):
+        assert isinstance(node, Tree)
+        self.children.append(node)
 
 if __name__ == '__main__':
     ctr = Calculator()
     ctr.run()
+    # t = Tree('1+2+(3+4)')
+    # print(t)
