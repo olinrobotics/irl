@@ -49,6 +49,8 @@ class Calculator:
     def makes_sense(self, eqn):
         '''if data is something it can solve, send it to simple_equation.
         else, print why it can't solve it.'''
+        if (eqn == ''):
+            return False
         # self.split_into_list = list(data)
         # for element in self.split_into_list:
         #     if element not in self.basics_list:
