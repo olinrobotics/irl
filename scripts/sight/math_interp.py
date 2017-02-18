@@ -25,6 +25,7 @@ class Calculator:
         '''initializes the object'''
         rospy.init_node('doing_math')
         # self.pub = rospy.Publisher('/math_output', String, queue_size=10)
+        self.eqn = ''
         rospy.Subscriber('word_publish', String, self.cmd_callback)
 
         self.integer_list = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.']
@@ -34,7 +35,6 @@ class Calculator:
         self.opposite_operation = {'+': '-', '-': '+', '/': '*', '*': '/'}
         self.basics_list = self.integer_list + self.operator_list
         self.basics_and_variables = self.basics_list + self.variable_list
-        self.eqn = ''
 
     def cmd_callback(self, data):
         '''callback'''
@@ -49,8 +49,12 @@ class Calculator:
     def makes_sense(self, eqn):
         '''if data is something it can solve, send it to simple_equation.
         else, print why it can't solve it.'''
+<<<<<<< HEAD
         if (eqn == ''):
             return False
+=======
+
+>>>>>>> 266d0d0f542573993cb5a8ebdaae7e9a843da9dc
         # self.split_into_list = list(data)
         # for element in self.split_into_list:
         #     if element not in self.basics_list:
@@ -66,38 +70,45 @@ class Calculator:
         # eqn = self.removes_equals(eqn)
         answer = eval(eqn)
         if type(answer) == float:
-            answer = "{0:.2f}".format(answer)
-        return answer
+            self.answer = "{0:.2f}".format(answer)
+        return self.answer
 
     # def algebra_solver(self, eqn):
         # root_node =
         # i = 0
         # while i < len(eqn):
         #     if i i
+    def check_triviality(self, answer):
+        if answer == '':
+            return False
+        else:
+            return True
 
     def run(self):
         '''
         does the running thing
         '''
-        print(self.simple_equation(self.eqn))
+        while not rospy.is_shutdown():
+            if check_triviality(self, self.eqn) == True
+                print(self.simple_equation(self.eqn))
 
 
-class Tree(object):
-    '''make the equation into a tree...hypothetically'''
-
-    def __init__(self, name='root', children=None):
-        self.name = name
-        self.children = []
-        if children is not None:
-            for child in children:
-                self.add_child(child)
-
-    def __repr__(self):
-        return self.name
-
-    def add_child(self, node):
-        assert isinstance(node, Tree)
-        self.children.append(node)
+# class Tree(object):
+#     '''make the equation into a tree...hypothetically'''
+#
+#     def __init__(self, name='root', children=None):
+#         self.name = name
+#         self.children = []
+#         if children is not None:
+#             for child in children:
+#                 self.add_child(child)
+#
+#     def __repr__(self):
+#         return self.name
+#
+#     def add_child(self, node):
+#         assert isinstance(node, Tree)
+#         self.children.append(node)
 
 if __name__ == '__main__':
     ctr = Calculator()
