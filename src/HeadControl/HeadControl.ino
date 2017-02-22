@@ -15,7 +15,11 @@ int gripperPos = 0;
 ros::NodeHandle edwin_head;
 int cmd = 0;
 const int ledPin = 13;
-boolean light = false;
+
+//Serial Manual control
+boolean serial_control = true;
+int control_pos = 0;
+int current_pos = 0;
 
 void grip_object(){
   for(gripperPos = 0; gripperPos <= 180; gripperPos += 1) // goes from 0 degrees to 180 degrees 
@@ -37,9 +41,14 @@ void callback( const std_msgs::Int8& cmd_raw){
 ros::Subscriber<std_msgs::Int8> cmd_sub("head_cmd", &callback);
 
 void setup(){
-  edwin_head.getHardware() -> setBaud(9600);
-  edwin_head.initNode();
-  edwin_head.subscribe(cmd_sub);
+  if (serial_control) {
+    Serial.begin(9600);
+    Serial.println("Starting manual HeadControl node");
+  } else {
+    edwin_head.getHardware() -> setBaud(9600);
+    edwin_head.initNode();
+    edwin_head.subscribe(cmd_sub);
+  }
   
   //Set up gripper servo
   gripperServo.attach(gripperPin);
@@ -51,17 +60,43 @@ void setup(){
   delay(1000);
   digitalWrite(ledPin, LOW);
   delay(1000);
+
 }
 
+
 void loop(){
-  edwin_head.spinOnce();
+  if (serial_control && Serial.available()) {
+    current_pos = gripperServo.read();
+    control_pos = Serial.parseInt();
+    
+    Serial.print("Writing servo position: ");
+    Serial.println(control_pos);
+    Serial.println(current_pos);
+    
+    if (control_pos > current_pos){
+      while((control_pos - current_pos) > 0) {
+        gripperServo.write(current_pos);
+        current_pos += 5;
+        delay(100);
+      }
+    } else {
+      while((current_pos - control_pos) > 0) {
+        gripperServo.write(current_pos);
+        current_pos -= 5;
+        delay(100);
+      }
+    }
+    return;
+  }
   
+  edwin_head.spinOnce();
+      
   if (cmd != 0){
     digitalWrite(ledPin, HIGH);
     switch (cmd) {
       case GRIP:
         grip_object();
-        break;        
+        break;
     }    
     cmd = 0;
     digitalWrite(ledPin, LOW);
