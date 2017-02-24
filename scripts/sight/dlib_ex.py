@@ -19,33 +19,33 @@ from cv_bridge import CvBridge, CvBridgeError
 class FaceDetect:
 
     def __init__(self):
-        #initializes frame
+        # initializes frame
         self.frame = None
 
-        #initializes ros node for face detect, pubilishes to face location
+        # initializes ros node for face detect, pubilishes to face location
         rospy.init_node('face_detect', anonymous=True)
         self.pub = rospy.Publisher('/face_location', String, queue_size=10)
 
-        #definines file paths
+        # definines file paths
         rospack = rospkg.RosPack()
         PACKAGE_PATH = rospack.get_path("edwin")
         self.predictor_path = PACKAGE_PATH + '/params/shape_predictor_68_face_landmarks.dat'
         self.faces_folder_path = PACKAGE_PATH + '/params'
 
-        #def of attributes
+        # def of attributes
         self.detect = True
         self.detector = dlib.get_frontal_face_detector()
         self.predictor = dlib.shape_predictor(self.predictor_path)
         self.window = dlib.image_window()
 
-        #CvBridge to usb_cam, subscribes to usb cam
+        # CvBridge to usb_cam, subscribes to usb cam
         self.bridge = CvBridge()
         rospy.Subscriber("usb_cam/image_raw", Image, self.img_callback)
 
-        #ros Publisher
-        self.pub = rospy.Publisher('/smile_detected', String, queue_size = 10)
+        # ros Publisher
+        self.pub = rospy.Publisher('/smile_detected', String, queue_size=10)
 
-        #newFace boolean to control how many expressions detected
+        # newFace boolean to control how many expressions detected
         self.new_face = True
 
         self.debug = False
@@ -53,7 +53,7 @@ class FaceDetect:
         sleep(2)
         print "started dlib"
 
-    #converts ros message to numpy
+    # converts ros message to numpy
     def img_callback(self, data):
         try:
             self.frame = self.bridge.imgmsg_to_cv2(data, "bgr8")
@@ -62,11 +62,11 @@ class FaceDetect:
             print(e)
 
     def get_landmarks(self, clahe_image):
-        #code from http://www.paulvangent.com/2016/08/05/emotion-recognition-using-facial-landmarks/
-        #detect faces in the image
+        # code from http://www.paulvangent.com/2016/08/05/emotion-recognition-using-facial-landmarks/
+        # detect faces in the image
         detections = self.detector(clahe_image, 1)
 
-        #for each detected face
+        # for each detected face
         for k,d in enumerate(detections):
 
             #Get coordinates
@@ -77,7 +77,7 @@ class FaceDetect:
             landmarks = []
 
             #For each point, draw a red circle with thickness2 on the original frame
-            for i in range(1,68): #There are 68 landmark points on each face
+            for i in range(1,68): # There are 68 landmark points on each face
                 # if self.debug == True:
                 #     cv2.circle(self.frame, (shape.part(i).x, shape.part(i).y), 1, (0,0,255), thickness=2)
                 #     #cv2.putText(img, text, org, fontFace, fontScale, color[, thickness[, lineType[, bottomLeftOrigin]]])
@@ -88,7 +88,7 @@ class FaceDetect:
                 xlist.append(float(shape.part(i).x))
                 ylist.append(float(shape.part(i).y))
 
-            for x, y in zip(xlist, ylist): #Store all landmarks in one list in the format x1,y1,x2,y2,etc.
+            for x, y in zip(xlist, ylist): # Store all landmarks in one list in the format x1,y1,x2,y2,etc.
                 landmarks.append(x)
                 landmarks.append(y)
         if len(detections) > 0:
@@ -97,21 +97,21 @@ class FaceDetect:
             landmarks = "error"
             return landmarks
 
-    #def smile_detect(self, landmarks):
+    # def smile_detect(self, landmarks):
 
-    #landmarks in form x1,y1,x2,y2 -> index = (X) landmark_num*2-2, (Y) landmark_num*2-1
-    #LANDMARK TO INDEX FUNCTIONS
+    # landmarks in form x1,y1,x2,y2 -> index = (X) landmark_num*2-2, (Y) landmark_num*2-1
+    # LANDMARK TO INDEX FUNCTIONS
     def landmarkX(self, landmark):
-        return landmark*2 -2
+        return landmark*2 - 2
 
     def landmarkY(self, landmark):
-        return landmark*2 -1
+        return landmark*2 - 1
 
     def smile_detect(self, landmarks):
-        #SMILE DETECTION
-        #mouth_landmarks: 48-68, corners: 48, 54, top of mouth: 50, 51, bottom of mouth: 57, 58
+        # SMILE DETECTION
+        # mouth_landmarks: 48-68, corners: 48, 54, top of mouth: 50, 51, bottom of mouth: 57, 58
 
-        #landmark points in format [x1,y1]
+        # landmark points in format [x1,y1]
         left_corner_mouth_y = landmarks[95]
         right_corner_mouth_y = landmarks[107]
         bottom_mouth_y = landmarks[113]
@@ -159,13 +159,13 @@ class FaceDetect:
         width_face =  (landmarks[self.landmarkX(16)] - center_face_x)
         area_face = height_face * width_face
 
-        if smile.detect(landmarks):
-            smile_msg = "True"
-        else:
-            smile_msg = "False"
+        smile_msg = "False"
 
-        # # message for Publisher
-        # msg = ''
+        if self.smile_detect(landmarks):
+            smile_msg = "True"
+
+        # message for Publisher
+        msg = ''
         # smile_msg = 'False'
 
         print smile_msg
@@ -175,7 +175,7 @@ class FaceDetect:
         # biggestArea = 0;
         # if area_face > biggestArea:
         #     area_face = biggestArea
-        #     msg = str(center_face_x) + ',' + str(center_face_y) + ':' + smile_msg
+        msg = str(center_face_x) + ',' + str(center_face_y) + ':' + smile_msg
 
 
 
