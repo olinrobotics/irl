@@ -17,17 +17,17 @@ int cmd = 0;
 const int ledPin = 13;
 
 //Serial Manual control
-boolean serial_control = true;
+boolean serial_control = false;
 int control_pos = 0;
 int current_pos = 0;
 
 void grip_object(){
-  for(gripperPos = 0; gripperPos <= 180; gripperPos += 1) // goes from 0 degrees to 180 degrees 
+  for(gripperPos = 0; gripperPos <= 120; gripperPos += 1) // goes from 0 degrees to 180 degrees 
   {                                  // in steps of 1 degree 
     gripperServo.write(gripperPos);              // tell servo to go to position in variable 'pos' 
     delay(15);                       // waits 15ms for the servo to reach the position 
   } 
-  for(gripperPos = 180; gripperPos>=0; gripperPos-=1)     // goes from 180 degrees to 0 degrees 
+  for(gripperPos = 120; gripperPos>=0; gripperPos-=1)     // goes from 180 degrees to 0 degrees 
   {                                
     gripperServo.write(gripperPos);              // tell servo to go to position in variable 'pos' 
     delay(15);                       // waits 15ms for the servo to reach the position 
@@ -38,7 +38,7 @@ void callback( const std_msgs::Int8& cmd_raw){
     cmd = cmd_raw.data;
 }
 
-ros::Subscriber<std_msgs::Int8> cmd_sub("head_cmd", &callback);
+ros::Subscriber<std_msgs::Int8> cmd_sub("head_serial", &callback);
 
 void setup(){
   if (serial_control) {
