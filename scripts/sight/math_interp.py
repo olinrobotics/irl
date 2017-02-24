@@ -9,6 +9,7 @@ MAKE SURE ROSCORE IS RUNNING
 RUN IT AS $rosrun edwin math_interp.py
 NEXT STEP:
 take out cases of double operatives, etc.
+doesn't make the right OofOp tree :()
 '''
 from __future__ import division
 import rospy
@@ -26,7 +27,7 @@ class Calculator:
         # rospy.Subscriber('word_publish', String, self.cmd_callback)
 
         self.integer_list = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.']
-        self.order_of_ops = ['-', '+', '/', '*']
+        self.order_of_ops = [('*', '/'), ('+', '-')]
         self.operator_list = ['+', '-', '/', '*', '=']
         self.variable_list = ['x', 'y', 'z']
         self.opposite_operation = {'+': '-', '-': '+', '/': '*', '*': '/'}
@@ -37,12 +38,6 @@ class Calculator:
         '''callback'''
         given_string = str(data)
         self.eqn = given_string[6:]
-
-    def removes_equals(self, eqn):
-        '''if there is an = at the end, removes it'''
-        if eqn[-1] == '=':
-            data = eqn[0:-1]
-        return data
 
     def makes_sense(self, eqn):
         '''if data is something it can solve, send it to simple_equation.
@@ -58,41 +53,87 @@ class Calculator:
         #             return
         # return self.simple_equation(data)
 
-    def simple_equation(self, eqn):
+    def solve_simple(self, eqn):
         '''solves a simple expression'''
-        # eqn = self.removes_equals(eqn)
+        eqn = self.removes_equals(eqn)
         answer = eval(eqn)
         if type(answer) == float:
             answer = "{0:.2f}".format(answer)
         return answer
 
+    def removes_equals(self, eqn):
+        '''if there is an = at the end, removes it'''
+        if eqn[-1] == '=':
+            data = eqn[0:-1]
+        return data
+
+    def solve_algebra(self, eqn):
+        '''solves algebra'''
+        sides = self.initialize_tree(eqn)
+        self.rightside = sides[0]                       # this can be consolidated
+        self.leftside = sides[1]                        #
+        print(self.rightside)                           #
+        print(self.leftside)                            #
+
     def initialize_tree(self, eqn):
+        '''takes an equation, splits into two sides. Returns tuples of
+        the sides processed into a tree.'''
         if '=' in eqn:
             index = eqn.find('=')
             left_side = eqn[:index]
             right_side = eqn[index+1:]
         right_side = self.tree_base_case_check(right_side)
         left_side = self.tree_base_case_check(left_side)
-        print(right_side)
-        print(left_side)
+        return right_side, left_side
 
     def tree_base_case_check(self, side):
+        '''takes in one side of the equation. if there's still an
+        operation present, keep processsing and return the processed
+        side. If not, return itself.'''
         for element in side:
-            if element not in self.integer_list:
+            if element not in self.integer_list and element not in self.variable_list:
                 return self.build_tree(side)
         return side
 
     def build_tree(self, side):
+        '''take in a side of an equation, create a tree with the
+        operations as nodes, returns that tree.'''
         self.tree = tuple()
-        for element in self.order_of_ops:
-            if element in side:
-                index = side.find(element)
-                left_ele = side[:index]
-                right_ele = side[index+1:]
-                self.tree = (element, self.tree_base_case_check(left_ele), self.tree_base_case_check(right_ele))
+        if '/' in side or '*' in side:
+            indexdiv = side.find('/')
+            indexmul = side.find('*')
+            if indexmul > indexdiv and indexmul > -1:
+                index = indexmul
+                element = '*'
+            elif indexdiv > indexmul and indexdiv > -1:
+                index = indexdiv
+                element = '/'
+            left_ele = side[:index]
+            right_ele = side[index+1:]
+            self.tree = (element, self.tree_base_case_check(left_ele), self.tree_base_case_check(right_ele))
+
+        if '-' in side or '+' in side:
+            indexmin = side.find('-')
+            indexplus = side.find('+')
+            if indexplus > indexmin and indexplus > -1:
+                index = indexplus
+                element = '+'
+            elif indexmin > indexplus and indexmin > -1:
+                index = indexmin
+                element = '-'
+            left_ele = side[:index]
+            right_ele = side[index+1:]
+            self.tree = (element, self.tree_base_case_check(left_ele), self.tree_base_case_check(right_ele))
         return self.tree
 
+    def solve_tree(self, rightside, leftside):
+        for item in rightside:
+            if item in self.variable_list:
+                pass
+
     def check_triviality(self, answer):
+        '''returns 1 if getting a value from the subscriber;
+        otherwise returns 0'''
         if answer == '':
             return 0
         else:
@@ -100,18 +141,17 @@ class Calculator:
 
     def run(self):
         '''only prints the answer if it's getting a nontrivial input
-        will only print the output once
-        '''
+        will only print the output once '''
         answer = ''
         # while not rospy.is_shutdown():
         if self.check_triviality(self.eqn) == 1:
             prev_answer = answer
-            answer = self.initialize_tree(self.eqn)
+            answer = self.solve_algebra(self.eqn)
             if answer != prev_answer:
                 print(answer)
 
 
 if __name__ == '__main__':
     ctr = Calculator()
-    ctr.eqn = '2*x+1=3'
+    ctr.eqn = '2*x/3*4=3'
     ctr.run()
