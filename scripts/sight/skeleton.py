@@ -21,12 +21,15 @@ class Skeleton(object):
         rospy.Subscriber("/skeleton_markers", Marker, self.constructSkeleton, queue_size=10)
         rospy.Subscriber("/camera/rgb/image_raw", Image, self.renderImage, queue_size=10)
 
+        # self.skelepub = rospy.Publisher("/skeleton", , queue_size=10)
+
         self.listener = tf.TransformListener()
 
 
         self.bridge = CvBridge()
+        self.cv_image = None
         self.body_points = None
-        self.head = None
+        self.head = (0,0,0)
         self.running = True
 
 
@@ -58,38 +61,33 @@ class Skeleton(object):
         14 - left foot
         """
         self.body_points = skeleton.points
-        self.head = self.body_points[0]
-        print "raw", self.head
-        self.head = self.transform_skel2kinect()
+        temp = self.body_points[0]
+        print "raw", temp
+        self.head = self.transform_skel2kinect(temp)
         print "processed", self.head
         print " "
+
 
     def renderImage(self, image):
         """
         Renders an image using opencv
         """
-        cv_image = self.bridge.imgmsg_to_cv2(image, "bgr8")
-        imagex = int(self.head[0]) + 320
+        self.cv_image = self.bridge.imgmsg_to_cv2(image, "bgr8")
+        imagex = 320 - int(self.head[0])
         imagey = 240 - int(self.head[1])
-        cv2.circle(cv_image, (imagex, imagey), 10, 255, thickness = -1)
+        cv2.circle(self.cv_image, (imagex, imagey), 10, 255, thickness = -1)
 
 
-        cv2.imshow("chicken", cv_image)
-        cv2.waitKey(3)
-
-
-    def transform_skel2kinect(self):
+    def transform_skel2kinect(self, temp):
         """
         makes a transformation from the coordinates of the skeleton to the coordinates
         of the Kinect image
         """
-        try:
-            (trans,rot) = self.listener.lookupTransform("/camera_depth_frame","/head_1" , rospy.Time(0))
-        except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:
-            trans = None
-            print e
 
-        return trans
+        x = temp.y/temp.x * 640
+        y = temp.z/temp.x * 480
+        z = temp.x
+        return (x, y, z)
 
 
 
@@ -104,8 +102,11 @@ class Skeleton(object):
         cv2.namedWindow("chicken")
 
         while self.running:
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
+            if self.cv_image is not None:
+                cv2.imshow("chicken", self.cv_image)
+                cv2.waitKey(3)
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
 
             r.sleep()
 
