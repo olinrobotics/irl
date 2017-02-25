@@ -4,19 +4,17 @@ math_interp.py
 Purpose: input a string that is a math equation, output solution
 Author: Hannah Kolano
 hannah.kolano@studets.olin.edu
-
 HANNAH
 MAKE SURE ROSCORE IS RUNNING
 RUN IT AS $rosrun edwin math_interp.py
-
 NEXT STEP:
 take out cases of double operatives, etc.
+doesn't make the right OofOp tree :()
 '''
 from __future__ import division
 import rospy
 import rospkg
 from std_msgs.msg import String
-# data = '2*x+1=3'
 
 
 class Calculator:
@@ -26,10 +24,10 @@ class Calculator:
         rospy.init_node('doing_math')
         # self.pub = rospy.Publisher('/math_output', String, queue_size=10)
         self.eqn = ''
-        rospy.Subscriber('word_publish', String, self.cmd_callback)
+        # rospy.Subscriber('word_publish', String, self.cmd_callback)
 
         self.integer_list = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.']
-        self.order_of_ops = ['-', '+', '/', '*']
+        self.order_of_ops = [('*', '/'), ('+', '-')]
         self.operator_list = ['+', '-', '/', '*', '=']
         self.variable_list = ['x', 'y', 'z']
         self.opposite_operation = {'+': '-', '-': '+', '/': '*', '*': '/'}
@@ -38,23 +36,13 @@ class Calculator:
 
     def cmd_callback(self, data):
         '''callback'''
-        self.eqn = data
-
-    def removes_equals(self, eqn):
-        '''if there is an = at the end, removes it'''
-        if eqn[-1] == '=':
-            data = eqn[0:-1]
-        return data
+        given_string = str(data)
+        self.eqn = given_string[6:]
 
     def makes_sense(self, eqn):
         '''if data is something it can solve, send it to simple_equation.
         else, print why it can't solve it.'''
-<<<<<<< HEAD
-        if (eqn == ''):
-            return False
-=======
 
->>>>>>> 266d0d0f542573993cb5a8ebdaae7e9a843da9dc
         # self.split_into_list = list(data)
         # for element in self.split_into_list:
         #     if element not in self.basics_list:
@@ -65,53 +53,105 @@ class Calculator:
         #             return
         # return self.simple_equation(data)
 
-    def simple_equation(self, eqn):
+    def solve_simple(self, eqn):
         '''solves a simple expression'''
-        # eqn = self.removes_equals(eqn)
+        eqn = self.removes_equals(eqn)
         answer = eval(eqn)
         if type(answer) == float:
-            self.answer = "{0:.2f}".format(answer)
-        return self.answer
+            answer = "{0:.2f}".format(answer)
+        return answer
 
-    # def algebra_solver(self, eqn):
-        # root_node =
-        # i = 0
-        # while i < len(eqn):
-        #     if i i
+    def removes_equals(self, eqn):
+        '''if there is an = at the end, removes it'''
+        if eqn[-1] == '=':
+            data = eqn[0:-1]
+        return data
+
+    def solve_algebra(self, eqn):
+        '''solves algebra'''
+        sides = self.initialize_tree(eqn)
+        self.rightside = sides[0]                       # this can be consolidated
+        self.leftside = sides[1]                        #
+        print(self.rightside)                           #
+        print(self.leftside)                            #
+
+    def initialize_tree(self, eqn):
+        '''takes an equation, splits into two sides. Returns tuples of
+        the sides processed into a tree.'''
+        if '=' in eqn:
+            index = eqn.find('=')
+            left_side = eqn[:index]
+            right_side = eqn[index+1:]
+        right_side = self.tree_base_case_check(right_side)
+        left_side = self.tree_base_case_check(left_side)
+        return right_side, left_side
+
+    def tree_base_case_check(self, side):
+        '''takes in one side of the equation. if there's still an
+        operation present, keep processsing and return the processed
+        side. If not, return itself.'''
+        for element in side:
+            if element not in self.integer_list and element not in self.variable_list:
+                return self.build_tree(side)
+        return side
+
+    def build_tree(self, side):
+        '''take in a side of an equation, create a tree with the
+        operations as nodes, returns that tree.'''
+        self.tree = tuple()
+        if '/' in side or '*' in side:
+            indexdiv = side.find('/')
+            indexmul = side.find('*')
+            if indexmul > indexdiv and indexmul > -1:
+                index = indexmul
+                element = '*'
+            elif indexdiv > indexmul and indexdiv > -1:
+                index = indexdiv
+                element = '/'
+            left_ele = side[:index]
+            right_ele = side[index+1:]
+            self.tree = (element, self.tree_base_case_check(left_ele), self.tree_base_case_check(right_ele))
+
+        if '-' in side or '+' in side:
+            indexmin = side.find('-')
+            indexplus = side.find('+')
+            if indexplus > indexmin and indexplus > -1:
+                index = indexplus
+                element = '+'
+            elif indexmin > indexplus and indexmin > -1:
+                index = indexmin
+                element = '-'
+            left_ele = side[:index]
+            right_ele = side[index+1:]
+            self.tree = (element, self.tree_base_case_check(left_ele), self.tree_base_case_check(right_ele))
+        return self.tree
+
+    def solve_tree(self, rightside, leftside):
+        for item in rightside:
+            if item in self.variable_list:
+                pass
+
     def check_triviality(self, answer):
+        '''returns 1 if getting a value from the subscriber;
+        otherwise returns 0'''
         if answer == '':
-            return False
+            return 0
         else:
-            return True
+            return 1
 
     def run(self):
-        '''
-        does the running thing
-        '''
-        while not rospy.is_shutdown():
-            if check_triviality(self, self.eqn) == True
-                print(self.simple_equation(self.eqn))
+        '''only prints the answer if it's getting a nontrivial input
+        will only print the output once '''
+        answer = ''
+        # while not rospy.is_shutdown():
+        if self.check_triviality(self.eqn) == 1:
+            prev_answer = answer
+            answer = self.solve_algebra(self.eqn)
+            if answer != prev_answer:
+                print(answer)
 
-
-# class Tree(object):
-#     '''make the equation into a tree...hypothetically'''
-#
-#     def __init__(self, name='root', children=None):
-#         self.name = name
-#         self.children = []
-#         if children is not None:
-#             for child in children:
-#                 self.add_child(child)
-#
-#     def __repr__(self):
-#         return self.name
-#
-#     def add_child(self, node):
-#         assert isinstance(node, Tree)
-#         self.children.append(node)
 
 if __name__ == '__main__':
     ctr = Calculator()
+    ctr.eqn = '2*x/3*4=3'
     ctr.run()
-    # t = Tree('1+2+(3+4)')
-    # print(t)
