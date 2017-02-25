@@ -164,6 +164,15 @@ class HandwritingRecognition: # HR object
 
 
     def process_digits(self,test_data,detect_words = False):
+        '''
+            DESC: Straightens and cleans up contours gleaned from test data
+            ARGS:
+            self - HandWriting object - reference to current object
+            test_data - list - collection of symbols from data set
+            detect_words - boolean - represents whether or not to call the word
+            detection function
+            RTRN: Newly processed digits
+            '''
         if len(test_data) != 0:
             # Prepares input data for processing
             reshape_data = np.float32([char.HOG for char in test_data]).reshape(-1,64)
