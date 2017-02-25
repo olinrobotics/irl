@@ -39,6 +39,8 @@ add_message_files(
 	edwin_gestures.msg
 	People.msg
 	SceneAnalysis.msg
+	Bones.msg
+	HHH.msg
 
 )
 
