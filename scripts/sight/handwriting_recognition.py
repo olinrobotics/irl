@@ -28,6 +28,7 @@ class HandwritingRecognition: # HR object
             self - reference to current HR object
             init_param - Boolean providing alternate setup initialization
             RETURN: none
+            SHOW: provides initial state and values for program
             '''
         if init_param:
             # init_param allows us to instantiate the HR object in different contexts, i.e in WritingDemo.py
@@ -114,8 +115,7 @@ class HandwritingRecognition: # HR object
             RETURNS:
             '''
         path =  self.PARAMS_PATH + '/params/char_data/'
-        files = listdir(path) #Lists files in path folder
-
+        files = listdir(path) # Lists files in path folder (training data)
         train_data = np.float32(np.zeros((0,64)))
         responses = np.float32(np.zeros((0,1)))
         for f in files: # Loads the .pngs for the training data for each symbol
