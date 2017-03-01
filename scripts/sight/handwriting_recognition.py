@@ -133,7 +133,7 @@ class HandwritingRecognition: # HR object
             # Builds the labels for the training data
             responses = np.concatenate((responses,np.float32(np.repeat([self.decode_file(code)],100)[:,np.newaxis])),axis=0)
 
-        np.savez(self.PARAMS_PATH + '/params/svm_data.npz',train=train_data,train_labels=responses)
+        np.savez(self.PARAMS_PATH + '/params/svm_data.npz',train=train_data,train_labels=responses) # Saves training data and responses into an .npz file
 
         # Train the SVM neural network to recognize characters
 
@@ -215,6 +215,7 @@ class HandwritingRecognition: # HR object
             else:
                 return test_data
 
+
     # Resolves ambiguous letters (i,l)
     def resolve_letters(self,dot_contours,line_contours):
         i_contours = []
@@ -257,15 +258,15 @@ class HandwritingRecognition: # HR object
             return None
 
 
-    ''' function find_words()
-        PURPOSE:
-        ARGUMENTS:
-        self: object that refers to the current HandwritingRecognition object
-        char_list:
-        RETURNS:
-        '''
-    # This is incomplete
+    # [TODO] REFACTOR
     def find_words(self,char_list):
+        '''
+            DESC:
+            ARGS:
+            self - HR object - refers to the current object
+            char_list:
+            RTNS:
+            '''
         # Find lines (this is terrible - refactor)
         line_space = []
         char_list.sort(key = lambda roi: roi.y)
@@ -310,24 +311,26 @@ class HandwritingRecognition: # HR object
         # for word in lines:
         #     print ' '.join([str(x.result) for x in word])
 
-    ''' function update_frame
-        PURPOSE: update frame variable for use
-        ARGUMENTS:
-        self: object that refers to the current HandwritingRecognition object
-        RETURNS: None
-        SHOWS: None
-        '''
+
     def update_frame(self):
+        '''
+            DESC: update frame variable for use
+            ARGS:
+            self - HR object - refers to the current object
+            RTNS: None
+            SHOW: None
+            '''
         self.frame = self.curr_frame
 
-    ''' function output_image()
-        PURPOSE: Display current frame
-        ARGUMENTS:
-        self: object that refers to the current HandwritingRecognition object
-        RETURNS: None
-        SHOWS: Displays current frame
-        '''
+
     def output_image(self):
+        '''
+            DESC: Displays current frame
+            ARGS:
+            self - HR object - refers to the current object
+            RTNS: None
+            SHOWS: Displays current frame
+            '''
         new_frame = self.frame
         cv2.imshow('image', new_frame)
         cv2.waitKey(1)
