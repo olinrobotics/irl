@@ -9,7 +9,7 @@ MAKE SURE ROSCORE IS RUNNING
 RUN IT AS $rosrun edwin math_interp.py
 NEXT STEP:
 take out cases of double operatives, etc.
-doesn't make the right OofOp tree :()
+doesn't make the right OofOp tree :
 '''
 from __future__ import division
 import rospy
@@ -101,11 +101,16 @@ class Calculator:
         self.tree = tuple()
         if '/' in side or '*' in side:
             indexdiv = side.find('/')
+            if indexdiv == -1:
+                indexdiv = 10
             indexmul = side.find('*')
-            if indexmul > indexdiv and indexmul > -1:
+            if indexmul == -1:
+                indexmul = 10
+
+            if indexmul < indexdiv:
                 index = indexmul
                 element = '*'
-            elif indexdiv > indexmul and indexdiv > -1:
+            elif indexdiv < indexmul:
                 index = indexdiv
                 element = '/'
             left_ele = side[:index]
@@ -115,10 +120,10 @@ class Calculator:
         if '-' in side or '+' in side:
             indexmin = side.find('-')
             indexplus = side.find('+')
-            if indexplus > indexmin and indexplus > -1:
+            if indexplus < indexmin and indexplus > -1:
                 index = indexplus
                 element = '+'
-            elif indexmin > indexplus and indexmin > -1:
+            elif indexmin < indexplus and indexmin > -1:
                 index = indexmin
                 element = '-'
             left_ele = side[:index]
