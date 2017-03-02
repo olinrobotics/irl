@@ -19,7 +19,7 @@ from collections import namedtuple
 
 from std_msgs.msg import String
 from sensor_msgs.msg import Image
-from edwin.msg import Edwin_Shape
+from edwin.msg import Edwin_Shape, Bones
 from cv_bridge import CvBridge, CvBridgeError
 
 EDWIN_NAME = "edwin"
@@ -34,6 +34,7 @@ class Game:
 		self.bridge = CvBridge()
 		self.image_sub = rospy.Subscriber("usb_cam/image_raw", Image, self.img_callback)
 		self.hear_sub = rospy.Subscriber("decoded_speech", String, self.hear_callback)
+		self.skelesub = rospy.Subsriber("skeleton", Bones, self.skeleton_callback)
 
 		self.current_cmd = None
 		self.heard_cmd = None
@@ -56,6 +57,8 @@ class Game:
 		if self.ready_to_listen:
 			self.heard_cmd = data.data
 
+
+
 	def populate_dictionaries(self):
 		"""Fill up the Simon command dictionary possible command"""
 		self.command_2_speech["turn_around"] = "turn around"
@@ -63,7 +66,7 @@ class Game:
 		self.command_2_rules["turn_around"] = [(1,2), (2,0)]
 
 		self.command_2_speech["touch_head"] = "touch your head"
-		self.command_2_speech["touch_stomach"] = "touch your stomach"
+		self.command_2_speech["rub_tummy"] = "rub your tummy"
 		self.command_2_speech["high5_self"] = "give yourself a high five"
 		self.command_2_speech["hug_self"] = "hug yourself"
 		self.command_2_speech["breakdance"] = "breakdance!"

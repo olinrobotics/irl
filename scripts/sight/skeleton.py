@@ -1,4 +1,25 @@
 #!/usr/bin/env python
+
+"""
+To run skeleton.py, please run in terminals:
+
+roscore
+roslaunch skeleton_markers markers_from_tf.launch
+roslaunch openni_launch openni.launch
+
+roscd skeleton_markers
+rosrun rviz rviz -d markers_from_tf.rviz
+
+and then this script
+"""
+
+import sys
+import rospkg
+rospack = rospkg.RosPack()
+PACKAGE_PATH = rospack.get_path("edwin")
+sys.path.append(PACKAGE_PATH + '/sight')
+sys.path.append(PACKAGE_PATH + '/motion')
+
 import rospy
 import math
 import numpy as np
@@ -11,6 +32,14 @@ import tf
 import cv2
 from visualization_msgs.msg import Marker
 from cv_bridge import CvBridge, CvBridgeError
+
+"""
+This class constructs and processes a skeleton of the user that can track 15 body parts
+in 3D space. It then pushes these body points to various topics for usage elsewhere too.
+
+Note that depending on where the user stands the legs may not be accurately tracked, and the
+tracking is in meters from the origin, which is the Kinect.
+"""
 
 
 class Skeleton(object):
