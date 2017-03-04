@@ -1,6 +1,17 @@
 Header header
 
-geometry_msgs/Point head
-geometry_msgs/Point torso
-geometry_msgs/Point rhand
-geometry_msgs/Point lhand
+int32 headx
+int32 heady
+int32 headz
+
+int32 torsox
+int32 torsoy
+int32 torsoz
+
+int32 rhandx
+int32 rhandy
+int32 rhandz
+
+int32 lhandx
+int32 lhandy
+int32 lhandz

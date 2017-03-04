@@ -118,10 +118,10 @@ class Presence:
         """
         subscribes to skeleton to get and parse the current user's head
         """
-        self.head = msg.head.x, msg.head.y, msg.head.z
-        self.torso = msg.torso.x, msg.torso.y, msg.torso.z
-        self.Rhand = msg.Rhand.x, msg.Rhand.y, msg.Rhand.z
-        self.Lhand = msg.Lhand.x, msg.Lhand.y, msg.Lhand.z
+        self.head = msg.headx, msg.heady, msg.headz
+        self.torso = msg.torsox, msg.torsoy, msg.torsoz
+        self.Rhand = msg.Rhandx, msg.Rhandy, msg.Rhandz
+        self.Lhand = msg.Lhandx, msg.Lhandy, msg.Lhandz
 
 
 

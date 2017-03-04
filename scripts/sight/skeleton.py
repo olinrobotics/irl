@@ -69,7 +69,7 @@ class Skeleton(object):
         rospy.Subscriber("/skeleton_markers", Marker, self.constructSkeleton, queue_size=10)
 
         #subscribing to Kinect camera
-        rospy.Subscriber("/camera/rgb/image_raw", Image, self.renderImage, queue_size=10)
+        # rospy.Subscriber("/camera/rgb/image_raw", Image, self.renderImage, queue_size=10)
 
         #makes two publishers, one for the head and hands, and one for the entire body
         self.presencePub = rospy.Publisher("/presence", HHH, queue_size=10)
@@ -117,7 +117,11 @@ class Skeleton(object):
         self.Rhand = self.transform_skel2kinect(raw_Rhand)
         self.Lhand = self.transform_skel2kinect(raw_Lhand)
 
-        print "processed", type(self.body_points[0])
+        # print "shoulder", self.body_points[3]
+        # print "elbow", self.body_points[4]
+        # print "hand", self.body_points[5]
+
+        # print "processed", type(self.body_points[0])
 
 
     def renderImage(self, image):
@@ -181,10 +185,18 @@ class Skeleton(object):
 
             self.skelePub.publish(bones)
 
-        presence.head = self.head
-        presence.torso = self.torso
-        presence.rhand = self.Rhand
-        presence.lhand = self.Lhand
+        presence.headx = int(self.head[0])
+        presence.heady = int(self.head[1])
+        presence.headz = int(self.head[2])
+        presence.torsox = int(self.torso[0])
+        presence.torsoy = int(self.torso[1])
+        presence.torsoz = int(self.torso[2])
+        presence.rhandx = int(self.Rhand[0])
+        presence.rhandy = int(self.Rhand[1])
+        presence.rhandz = int(self.Rhand[2])
+        presence.lhandx = int(self.Lhand[0])
+        presence.lhandy = int(self.Lhand[1])
+        presence.lhandz = int(self.Lhand[2])
 
         self.presencePub.publish(presence)
 
@@ -198,11 +210,11 @@ class Skeleton(object):
         r = rospy.Rate(10)
         time.sleep(2)
 
-        cv2.namedWindow("chicken")
+        # cv2.namedWindow("chicken")
 
         while self.running:
             if self.cv_image is not None:
-                cv2.imshow("chicken", self.cv_image)
+                # cv2.imshow("chicken", self.cv_image)
                 cv2.waitKey(3)
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
