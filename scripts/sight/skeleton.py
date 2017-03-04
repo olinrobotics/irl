@@ -69,7 +69,7 @@ class Skeleton(object):
         rospy.Subscriber("/skeleton_markers", Marker, self.constructSkeleton, queue_size=10)
 
         #subscribing to Kinect camera
-        # rospy.Subscriber("/camera/rgb/image_raw", Image, self.renderImage, queue_size=10)
+        rospy.Subscriber("/camera/rgb/image_raw", Image, self.renderImage, queue_size=10)
 
         #makes two publishers, one for the head and hands, and one for the entire body
         self.presencePub = rospy.Publisher("/presence", HHH, queue_size=10)
@@ -210,11 +210,11 @@ class Skeleton(object):
         r = rospy.Rate(10)
         time.sleep(2)
 
-        # cv2.namedWindow("chicken")
+        cv2.namedWindow("chicken")
 
         while self.running:
             if self.cv_image is not None:
-                # cv2.imshow("chicken", self.cv_image)
+                cv2.imshow("chicken", self.cv_image)
                 cv2.waitKey(3)
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
