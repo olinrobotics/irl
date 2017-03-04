@@ -22,7 +22,7 @@ class Calculator:
         '''initializes the object'''
         rospy.init_node('doing_math')
         # self.pub = rospy.Publisher('/math_output', String, queue_size=10)
-        self.eqn = Equation()
+        self.eqn = ''
         self.tree = tuple()
         # rospy.Subscriber('word_publish', String, self.cmd_callback)
 
@@ -56,10 +56,10 @@ class Calculator:
     def solve_algebra(self, eqn):
         '''solves algebra'''
         sides = self.initialize_tree(eqn)
-        self.rightside = sides[0]                       # this can be consolidated
-        self.leftside = sides[1]                        #
-        print(self.rightside)                           #
-        print(self.leftside)                            #
+        self.rightsidetree = sides[0]
+        self.leftsidetree = sides[1]
+        self.rightsidestring = self.tree_to_string(self.rightsidetree)
+        self.leftsidestring = self.tree_to_string(self.leftsidetree)
 
     def initialize_tree(self, eqn):
         '''takes an equation, splits into two sides. Returns tuples of
@@ -130,6 +130,22 @@ class Calculator:
         '''takes a tree tuple and changes it back to a string'''
         pass
 
+    def tree_to_string(self, tree):
+        '''takes a tree and converts it back into a string'''
+        equation_string = ''
+        if type(tree) == tuple:
+            if type(tree[1]) == str and type(tree[2]) == tuple:
+                equation_string = tree[1] + tree[0] + self.tree_to_string(tree[2])
+            elif type(tree[1]) == tuple and type(tree[2]) == str:
+                equation_string = self.tree_to_string(tree[1]) + tree[0] + tree[2]
+            elif type(tree[1]) == str and type(tree[2]) == str:
+                equation_string = tree[1] + tree[0] + tree[2]
+            elif type(tree[1]) == tuple and type(tree[2]) == tuple:
+                equation_string = self.tree_to_string(tree[1]) + tree[0] + self.tree_to_string(tree[2])
+        elif type(tree) == str:
+            equation_string = tree
+        return equation_string
+
     def check_triviality(self, answer):
         '''returns 1 if getting a value from the subscriber;
         otherwise returns 0'''
@@ -145,7 +161,10 @@ class Calculator:
         # while not rospy.is_shutdown():
         if self.check_triviality(self.eqn) == 1:
             prev_answer = answer
-            answer = self.solve_algebra(self.eqn)
+            self.solve_algebra(self.eqn)
+            print(self.leftsidetree)
+            print(self.rightsidetree)
+            # print(left_answer)
             # if answer != prev_answer:
             #     print(answer)
 
@@ -163,9 +182,6 @@ class Equation(Calculator):
     def string_to_tree(self, side):
         side_tree = self.tree_base_case_check(side)
         return side_tree
-
-    def tree_to_string(self, tree):
-        pass
 
 
 if __name__ == '__main__':
