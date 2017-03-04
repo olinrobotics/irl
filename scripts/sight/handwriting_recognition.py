@@ -17,20 +17,21 @@ import cv2
 import img_processing as Process #Library of image processing functions in edwin/scripts/sight
 import csv
 
-class HandwritingRecognition: # HR object
+class HandwritingRecognition:
     '''DOCSTRING
-    DESC: Instantiates and runs a Handwriting Recognition object
-    PRMS:
-    MTDS:
-    nothing
-    __init__
-    test_ocr
-    img_callback
-    process_data_svm
-    decode_file
-    train_svm
-    process_digits
+        DESC: Instantiates and runs a Handwriting Recognition object
+        PRMS:
+        MTDS:
+        nothing - empty callback function for commands that require a callback function but don't need to perform an action
+        __init__ - initializes HandwritingRecognition object
+        test_ocr - tests the created SVM against a set of known data to determine accuracy (outdated)
+        img_callback - runs every time an image is recieved from the rostopic usb_cam
+        process_data_svm
+        decode_file
+        train_svm
+        process_digits
         '''
+
     def nothing(x): # empty callback function to pass as parameter
         pass
 
@@ -153,7 +154,7 @@ class HandwritingRecognition: # HR object
 
 
     def decode_file(self, code):
-        '''
+        '''DOCSTRING
             DESC: Translates file name (part before .png) into Unicode index
             for the character represented by the file name. Used to get around
             the inability to name files with symbols such as /,-,
@@ -163,16 +164,12 @@ class HandwritingRecognition: # HR object
             code - string - file name up to, but not including, .png
             RTRN: string directly representing character
             '''
-        if (code == 'mlt'):
-            return ord('*')
-        elif (code == 'dvd'):
-            return ord('/')
-        elif (code == 'pls'):
-            return ord('+')
-        elif (code == 'mns'):
-            return ord('-')
-        elif (len(code) == 1):
-            return ord(code)
+        if (code == 'mlt'): return ord('*')
+        elif (code == 'dvd'): return ord('/')
+        elif (code == 'pls'): return ord('+')
+        elif (code == 'mns'): return ord('-')
+        elif (code == 'dot'): return ord('.')
+        elif (len(code) == 1): return ord(code)
 
 
     def train_svm(self):
@@ -220,18 +217,21 @@ class HandwritingRecognition: # HR object
                 res_data.append(int(x.item(0)))
             for idx,roi in enumerate(self.chars):
                 roi.result = res_data[idx]
-                print(roi.result)
+                #print(roi.result)
                 # Formats results from SVM processing
 
             # Resolves contours that could be an 'i' or a 'j'
             # 0 = dots, 1 = lines
             lines = [val for val in self.chars if chr(val.result) == '1']
-            dots = [res for res in self.chars if chr(res.result) == '0']
+            dots = [res for res in self.chars if chr(res.result) == '0' or chr(res.result) == '.']
+            dashes = [obj for obj in self.chars if chr(obj.result) == '-']
             self.chars[:] = [val for val in self.chars if chr(val.result) != '1' \
-                and chr(val.result) != '0']
-            i_conts = self.resolve_letters(dots,lines)
+                and chr(val.result) != '0' and chr(val.result) != '.' and chr(val.result) != '-']
+            i_conts = self.resolve_symbols(dots,lines,dashes)
             if len(i_conts) > 0:
                 self.chars.extend(i_conts)
+
+            # Prints characters on screen in location corresponding to the image
             if self.frame is not None:
                 for roi in self.chars:
                     cv2.putText(self.frame,chr(int(roi.result)),(roi.x,roi.y+roi.h) \
@@ -243,24 +243,64 @@ class HandwritingRecognition: # HR object
 
 
     # Resolves ambiguous letters (i,l)
-    def resolve_letters(self,dot_contours,line_contours):
-        i_contours = []
-        l_contours = []
+    def resolve_symbols(self,dot_contours,line_contours,dash_contours):
+        '''DOCSTRING
+            DESC: resolves "fuzzy" symbols that are built out of smaller symbols
+            ARGS:
+            self - HandwritingRecognition object - self-referential
+            dot_contours - list - list of contours classified as .
+            line_contours - list - list of contours classified as |
+            dash_contours - list - list of contours classified as -
+            RTRN: dict of contours and corresponding ASCII values
+            '''
+
+        # lists of contours into which to sort unidentified contours
+        i_contours = [] # i
+        l_contours = [] # l
+        div_contours = [] #(division sign)
+        eq_contours = [] # =
+        min_contours = [] # -
+
+        # Goes through dots to look for '/','i',or '.'
         for dot in dot_contours:
             for line in line_contours:
-                # If this is true, a letter 'i' has been found
+
+                # If dot and line are close in x-direction and line is below dot
                 if abs(line.x - dot.x) < 50 and line.y > dot.y:
                     dot.result = ord('i')
                     dot.h += line.h
                     dot.y = line.y
+
                     # Remove the dot-line pair from our lists
                     line_contours[:] = [val for val in line_contours if val is not line]
                     dot_contours[:] = [val for val in dot_contours if val is not dot]
                     i_contours.append(dot) # Add the new character to the list
+                    break
+
+            for dash in dash_contours:
+
+                # checks for dot above a dash
+                if abs(dash.x - dot.x) < 50 and dash.y < dot.y:
+                    for dot2 in dot_contours:
+                        if abs(dash.x - dot2.x) < 50 and dash.y > dot2.y:
+                            # checks for a dot below the dash-below-dot struct
+                            dot.result = ord('/')
+                            dot.h += dash.h
+                            dot.y = line.y
+                            # Remove the dot-dash pair from our lists
+                            dash_contours[:] = [val for val in dash_contours if val is not dash]
+                            dot_contours[:] = [val for val in dot_contours if val is not dot and val is not dot2]
+                            div_contours.append(dot) # Add the new character to the list
+                            break
         for line in line_contours: # All remaining lines must be 'l' chars
             line.result = ord('l')
+
+        for dot in dot_contours: # All remaining dots must be '.' chars
+            dot.result = ord('.')
         try:
             line_contours.extend(i_contours)
+            line_contours.extend(div_contours)
+            line_contours.extend(eq_contours)
         except AttributeError:
             pass
         return line_contours
@@ -350,13 +390,14 @@ class HandwritingRecognition: # HR object
 
 
     def output_image(self):
-        '''
+        '''DOCSTRING
             DESC: Displays current frame
             ARGS:
             self - HR object - refers to the current object
             RTNS: None
             SHOWS: Displays current frame
             '''
+
         new_frame = self.frame
         cv2.imshow('image', new_frame)
         cv2.waitKey(1)
@@ -377,7 +418,6 @@ class HandwritingRecognition: # HR object
         if self.chars:
             self.chars.sort(key = lambda roi: roi.x)
             word = ''.join([chr(item.result) for item in self.chars])
-            print(word)
             return word
 
 
