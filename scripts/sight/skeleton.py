@@ -1,4 +1,25 @@
 #!/usr/bin/env python
+
+"""
+To run skeleton.py, please run in terminals:
+
+roscore
+roslaunch skeleton_markers markers_from_tf.launch
+roslaunch openni_launch openni.launch
+
+roscd skeleton_markers
+rosrun rviz rviz -d markers_from_tf.rviz
+
+and then this script
+"""
+
+import sys
+import rospkg
+rospack = rospkg.RosPack()
+PACKAGE_PATH = rospack.get_path("edwin")
+sys.path.append(PACKAGE_PATH + '/sight')
+sys.path.append(PACKAGE_PATH + '/motion')
+
 import rospy
 import math
 import numpy as np
@@ -11,6 +32,14 @@ import tf
 import cv2
 from visualization_msgs.msg import Marker
 from cv_bridge import CvBridge, CvBridgeError
+
+"""
+This class constructs and processes a skeleton of the user that can track 15 body parts
+in 3D space. It then pushes these body points to various topics for usage elsewhere too.
+
+Note that depending on where the user stands the legs may not be accurately tracked, and the
+tracking is in meters from the origin, which is the Kinect.
+"""
 
 
 class Skeleton(object):
@@ -40,7 +69,7 @@ class Skeleton(object):
         rospy.Subscriber("/skeleton_markers", Marker, self.constructSkeleton, queue_size=10)
 
         #subscribing to Kinect camera
-        rospy.Subscriber("/camera/rgb/image_raw", Image, self.renderImage, queue_size=10)
+        # rospy.Subscriber("/camera/rgb/image_raw", Image, self.renderImage, queue_size=10)
 
         #makes two publishers, one for the head and hands, and one for the entire body
         self.presencePub = rospy.Publisher("/presence", HHH, queue_size=10)
@@ -88,7 +117,11 @@ class Skeleton(object):
         self.Rhand = self.transform_skel2kinect(raw_Rhand)
         self.Lhand = self.transform_skel2kinect(raw_Lhand)
 
-        print "processed", type(self.body_points[0])
+        # print "shoulder", self.body_points[3]
+        # print "elbow", self.body_points[4]
+        # print "hand", self.body_points[5]
+
+        # print "processed", type(self.body_points[0])
 
 
     def renderImage(self, image):
@@ -152,10 +185,18 @@ class Skeleton(object):
 
             self.skelePub.publish(bones)
 
-        presence.head = self.head
-        presence.torso = self.torso
-        presence.rhand = self.Rhand
-        presence.lhand = self.Lhand
+        presence.headx = int(self.head[0])
+        presence.heady = int(self.head[1])
+        presence.headz = int(self.head[2])
+        presence.torsox = int(self.torso[0])
+        presence.torsoy = int(self.torso[1])
+        presence.torsoz = int(self.torso[2])
+        presence.rhandx = int(self.Rhand[0])
+        presence.rhandy = int(self.Rhand[1])
+        presence.rhandz = int(self.Rhand[2])
+        presence.lhandx = int(self.Lhand[0])
+        presence.lhandy = int(self.Lhand[1])
+        presence.lhandz = int(self.Lhand[2])
 
         self.presencePub.publish(presence)
 
@@ -169,11 +210,11 @@ class Skeleton(object):
         r = rospy.Rate(10)
         time.sleep(2)
 
-        cv2.namedWindow("chicken")
+        # cv2.namedWindow("chicken")
 
         while self.running:
             if self.cv_image is not None:
-                cv2.imshow("chicken", self.cv_image)
+                # cv2.imshow("chicken", self.cv_image)
                 cv2.waitKey(3)
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
