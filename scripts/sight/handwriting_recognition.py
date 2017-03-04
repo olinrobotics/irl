@@ -18,11 +18,24 @@ import img_processing as Process #Library of image processing functions in edwin
 import csv
 
 class HandwritingRecognition: # HR object
+    '''DOCSTRING
+    DESC: Instantiates and runs a Handwriting Recognition object
+    PRMS:
+    MTDS:
+    nothing
+    __init__
+    test_ocr
+    img_callback
+    process_data_svm
+    decode_file
+    train_svm
+    process_digits
+        '''
     def nothing(x): # empty callback function to pass as parameter
         pass
 
     def __init__(self, init_param=False):
-        '''
+        '''DOCSTRING
             DESC: runs once when program starts, sets up initial state, vars, etc.
             ARGS:
             self - reference to current HR object
@@ -64,6 +77,7 @@ class HandwritingRecognition: # HR object
         self.last_time = time.time()
         self.curr_data = ''
         self.found_word = False
+
 
     def test_ocr(self):
         '''
@@ -109,7 +123,7 @@ class HandwritingRecognition: # HR object
 
 
     def process_data_svm(self):
-        '''
+        '''DOCSTRING
             DESC:
             ARGS:
             RETURNS:
@@ -137,6 +151,7 @@ class HandwritingRecognition: # HR object
 
         # Train the SVM neural network to recognize characters
 
+
     def decode_file(self, code):
         '''
             DESC: Translates file name (part before .png) into Unicode index
@@ -161,10 +176,20 @@ class HandwritingRecognition: # HR object
 
 
     def train_svm(self):
+        '''DOCSTRING
+            DESC: Initializes, Parametrizes, and provides training data to SVM
+            ARGS:
+            self - HandwritingRecognition object - self-referential
+            RTRN: none
+            SHOW: creates and trains SVM at self.SVM
+            '''
+
+        # Sets parameters of svm to use
         svm_params = dict(kernel_type = cv2.SVM_LINEAR, svm_type = \
                             cv2.SVM_NU_SVC, nu=.105)
                             # gamma = 5.383
 
+        # reads data in svm_data.npz (created in self.process_data_svm) and formats for svm
         with np.load(self.PARAMS_PATH + '/params/svm_data.npz') as input_data:
             train_data = input_data['train']
             data_labels = input_data['train_labels']
@@ -195,6 +220,7 @@ class HandwritingRecognition: # HR object
                 res_data.append(int(x.item(0)))
             for idx,roi in enumerate(self.chars):
                 roi.result = res_data[idx]
+                print(roi.result)
                 # Formats results from SVM processing
 
             # Resolves contours that could be an 'i' or a 'j'
@@ -351,6 +377,7 @@ class HandwritingRecognition: # HR object
         if self.chars:
             self.chars.sort(key = lambda roi: roi.x)
             word = ''.join([chr(item.result) for item in self.chars])
+            print(word)
             return word
 
 
