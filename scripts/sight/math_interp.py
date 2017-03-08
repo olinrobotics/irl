@@ -10,7 +10,7 @@ RUN IT AS $rosrun edwin math_interp.py
 NEXT STEP:
 take out cases of double operatives, etc.
 figure out NEGATIVES and figure out how to change 2x to 2*x
-WORK ON THE SOLVE_ALGEBRA STUFF1!!
+
 '''
 from __future__ import division
 import rospy
@@ -57,24 +57,23 @@ class Calculator:
 
     def initialize_algebra(self, eqn):
         '''solves algebra'''
+        for variable in self.variable_list:
+            if variable in eqn:
+                self.variable = variable
         self.initialize_tree(eqn)
         self.rsstring = self.tree_to_string(self.rstree)
         self.lsstring = self.tree_to_string(self.lstree)
-        for variable in self.variable_list:
-            if variable in self.lsstring:
-                self.side_w_variable = 'left'
-                self.variable = variable
-            elif variable in self.rsstring:
-                self.side_w_variable = 'right'
-                self.variable = variable
 
     def initialize_tree(self, eqn):
         '''takes an equation, splits into two sides. Returns tuples of
         the sides processed into a tree.'''
-        if '=' in eqn:
-            index = eqn.find('=')
-            left_side = eqn[:index]
-            right_side = eqn[index+1:]
+        index = eqn.find('=')
+        left_side = eqn[:index]
+        right_side = eqn[index+1:]
+        if self.variable in left_side:
+            self.side_w_variable = 'left'
+        elif self.variable in right_side:
+            self.side_w_variable = 'right'
         self.rstree = self.tree_base_case_check(right_side)
         self.lstree = self.tree_base_case_check(left_side)
 
@@ -91,6 +90,8 @@ class Calculator:
         '''take in a side of an equation, create a tree with the
         operations as nodes, returns that tree.'''
         # print(side)
+        if self.variable not in side:
+            return str(eval(side))
         if '/' in side or '*' in side:
             indexdiv = side.find('/')
             indexmul = side.find('*')
