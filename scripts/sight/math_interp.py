@@ -10,11 +10,13 @@ RUN IT AS $rosrun edwin math_interp.py
 NEXT STEP:
 take out cases of double operatives, etc.
 figure out NEGATIVES and figure out how to change 2x to 2*x
+WORK ON THE SOLVE_ALGEBRA STUFF1!!
 '''
 from __future__ import division
 import rospy
 import rospkg
 from std_msgs.msg import String
+import math
 
 
 class Calculator:
@@ -53,13 +55,18 @@ class Calculator:
             data = eqn[0:-1]
         return data
 
-    def solve_algebra(self, eqn):
+    def initialize_algebra(self, eqn):
         '''solves algebra'''
-        sides = self.initialize_tree(eqn)
-        self.rightsidetree = sides[0]
-        self.leftsidetree = sides[1]
-        self.rightsidestring = self.tree_to_string(self.rightsidetree)
-        self.leftsidestring = self.tree_to_string(self.leftsidetree)
+        self.initialize_tree(eqn)
+        self.rsstring = self.tree_to_string(self.rstree)
+        self.lsstring = self.tree_to_string(self.lstree)
+        for variable in self.variable_list:
+            if variable in self.lsstring:
+                self.side_w_variable = 'left'
+                self.variable = variable
+            elif variable in self.rsstring:
+                self.side_w_variable = 'right'
+                self.variable = variable
 
     def initialize_tree(self, eqn):
         '''takes an equation, splits into two sides. Returns tuples of
@@ -68,9 +75,8 @@ class Calculator:
             index = eqn.find('=')
             left_side = eqn[:index]
             right_side = eqn[index+1:]
-        right_side = self.tree_base_case_check(right_side)
-        left_side = self.tree_base_case_check(left_side)
-        return right_side, left_side
+        self.rstree = self.tree_base_case_check(right_side)
+        self.lstree = self.tree_base_case_check(left_side)
 
     def tree_base_case_check(self, side):
         '''takes in one side of the equation. if there's still an
@@ -88,19 +94,12 @@ class Calculator:
         if '/' in side or '*' in side:
             indexdiv = side.find('/')
             indexmul = side.find('*')
-            if indexdiv == -1:
+            if indexmul > indexdiv:
                 index = indexmul
                 element = '*'
-            elif indexmul == -1:
+            else:
                 index = indexdiv
                 element = '/'
-            else:
-                if indexmul < indexdiv:
-                    index = indexmul
-                    element = '*'
-                else:
-                    index = indexdiv
-                    element = '/'
             left_ele = side[:index]
             right_ele = side[index+1:]
             self.tree = (element, self.tree_base_case_check(left_ele), self.tree_base_case_check(right_ele))
@@ -108,27 +107,16 @@ class Calculator:
         if '-' in side or '+' in side:
             indexplus = side.find('+')
             indexmin = side.find('-')
-            if indexplus == -1:
+            if indexmin > indexplus:
                 index = indexmin
                 element = '-'
-            elif indexmin == -1:
+            else:
                 index = indexplus
                 element = '+'
-            else:
-                if indexmin < indexplus:
-                    index = indexmin
-                    element = '-'
-                else:
-                    index = indexplus
-                    element = '+'
             left_ele = side[:index]
             right_ele = side[index+1:]
             self.tree = (element, self.tree_base_case_check(left_ele), self.tree_base_case_check(right_ele))
         return self.tree
-
-    def unpack_tree(self, rightside, leftside):
-        '''takes a tree tuple and changes it back to a string'''
-        pass
 
     def tree_to_string(self, tree):
         '''takes a tree and converts it back into a string'''
@@ -146,6 +134,83 @@ class Calculator:
             equation_string = tree
         return equation_string
 
+    def solve_algebra(self):
+        if self.side_w_variable == 'left':
+            if type(self.lstree[1]) == str:
+                mov_idx = 1
+                keep_idx = 2
+            elif type(self.lstree[2]) == str:
+                mov_idx = 2
+                keep_idx = 1
+
+            if self.lstree[0] == '+':
+                var_side, non_var_str, var_side_str, non_var_tree = self.plus_operation(self.lstree, self.rsstring, self.lsstring, self.rstree, mov_idx, keep_idx)
+            elif self.lstree[0] == '-':
+                var_side, non_var_str, var_side_str, non_var_tree = self.minus_operation(self.lstree, self.rsstring, self.lsstring, self.rstree)
+            elif self.lstree[0] == '*':
+                var_side, non_var_str, var_side_str, non_var_tree = self.multiply_operation(self.lstree, self.rsstring, self.lsstring, self.rstree, mov_idx, keep_idx)
+            elif self.lstree[0] == '/':
+                var_side, non_var_str, var_side_str, non_var_tree = self.divide_operation(self.lstree, self.rsstring, self.lsstring, self.rstree)
+
+            self.lstree = var_side
+            self.rsstring = non_var_str
+            self.lsstring = var_side_str
+            self.rstree = non_var_tree
+
+        if self.side_w_variable == 'right':
+            if type(self.rstree[1]) == str:
+                mov_idx = 1
+                keep_idx = 2
+            elif type(self.rstree[2]) == str:
+                mov_idx = 2
+                keep_idx = 1
+
+            if self.lstree[0] == '+':
+                var_side, non_var_str, var_side_str, non_var_tree = self.plus_operation(self.rstree, self.lsstring, self.rsstring, self.lstree, mov_idx, keep_idx)
+            elif self.lstree[0] == '-':
+                var_side, non_var_str, var_side_str, non_var_tree = self.minus_operation(self.rstree, self.lsstring, self.rsstring, self.lstree)
+            elif self.lstree[0] == '*':
+                var_side, non_var_str, var_side_str, non_var_tree = self.multiply_operation(self.rstree, self.lsstring, self.rsstring, self.lstree, mov_idx, keep_idx)
+            elif self.lstree[0] == '/':
+                var_side, non_var_str, var_side_str, non_var_tree = self.divide_operation(self.rstree, self.lsstring, self.rsstring, self.lstree)
+
+            self.rstree = var_side
+            self.lsstring = non_var_str
+            self.rsstring = var_side_str
+            self.lstree = non_var_tree
+        # print(self.lstree)
+        # print(self.lsstring)
+        # print(self.rstree)
+        # print(self.rsstring)
+
+    def plus_operation(self, var_side_tree, non_var_str, var_side_str, non_var_tree, mov_idx, keep_idx):
+        non_var_str = eval(str(non_var_str) + '-' + str(var_side_tree[mov_idx]))
+        var_side_tree = var_side_tree[keep_idx]
+        var_side_str = self.tree_to_string(var_side_tree)
+        non_var_tree = self.tree_base_case_check(non_var_tree)
+        return var_side_tree, non_var_str, var_side_str, non_var_tree
+
+    def minus_operation(self, var_side_tree, non_var_str, var_side_str, non_var_tree):
+        non_var_str = eval(str(non_var_str) + '+' + str(var_side_tree[2]))
+        var_side_tree = var_side_tree[1]
+        var_side_str = self.tree_to_string(var_side_tree)
+        non_var_tree = self.tree_base_case_check(non_var_tree)
+        return var_side_tree, non_var_str, var_side_str, non_var_tree
+
+    def multiply_operation(self, var_side_tree, non_var_str, var_side_str, non_var_tree, mov_idx, keep_idx):
+        non_var_str = eval(str(non_var_str) + '/' + str(var_side_tree[mov_idx]))
+        var_side_tree = var_side_tree[keep_idx]
+        var_side_str = self.tree_to_string(var_side_tree)
+        non_var_tree = self.tree_base_case_check(non_var_tree)
+        return var_side_tree, non_var_str, var_side_str, non_var_tree
+
+    def divide_operation(self, var_side_tree, non_var_str, var_side_str, non_var_tree):
+        non_var_str = eval(str(non_var_str) + '*' + str(var_side_tree[2]))
+        var_side_tree = var_side_tree[1]
+        var_side_str = self.tree_to_string(var_side_tree)
+        non_var_tree = self.tree_base_case_check(non_var_tree)
+        return var_side_tree, non_var_str, var_side_str, non_var_tree
+
     def check_triviality(self, answer):
         '''returns 1 if getting a value from the subscriber;
         otherwise returns 0'''
@@ -160,31 +225,20 @@ class Calculator:
         answer = ''
         # while not rospy.is_shutdown():
         if self.check_triviality(self.eqn) == 1:
-            prev_answer = answer
-            self.solve_algebra(self.eqn)
-            print(self.leftsidetree)
-            print(self.rightsidetree)
-            # print(left_answer)
+            self.initialize_algebra(self.eqn)
+            print(self.lstree)
+            print(self.lsstring)
+            print(self.rstree)
+            print(self.rsstring)
+            # prev_answer = answer
+            while self.rstree != self.variable and self.lsstring != self.variable:
+                self.solve_algebra()
+            print(str(self.rsstring) + '=' + str(self.lsstring))
             # if answer != prev_answer:
             #     print(answer)
 
 
-class Equation(Calculator):
-    def __init__(self):
-        self.left_tuple = tuple()
-        self.right_tuple = tuple()
-        self.left_string = ''
-        self.right_string = ''
-
-    def __str__(self):
-        return '%d = %d' % (self.left_string, self.right_string)
-
-    def string_to_tree(self, side):
-        side_tree = self.tree_base_case_check(side)
-        return side_tree
-
-
 if __name__ == '__main__':
     ctr = Calculator()
-    ctr.eqn = '5*x/2+3=5'
+    ctr.eqn = '2*x+4/2-2=4'
     ctr.run()
