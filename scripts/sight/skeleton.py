@@ -119,7 +119,7 @@ class Skeleton(object):
 
         # print "shoulder", self.body_points[3]
         # print "elbow", self.body_points[4]
-        # print "hand", self.body_points[5]
+        print "hand", self.body_points[5]
 
         # print "processed", type(self.body_points[0])
 

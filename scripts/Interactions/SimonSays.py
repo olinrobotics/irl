@@ -52,17 +52,25 @@ class SimonSays:
 		rospy.init_node('ss_gamemaster', anonymous = True)
 
 		#ROS subscriber variables
-		self.ready_to_listen = False
-		self.heard_cmd = None
-		self.body_points = None
-		self.frame = None
+		self.ready_to_listen = False       #stt
+		self.heard_cmd = None              #stt
+		self.listen_for_fail = None		   #stt
+		self.current_body_points = None    #skeleton
+		self.body_list = []				   #skeleton
+		self.frame = None                  #camera
 
 		#Edwin's current command of interest
-		self.current_cmd = None
+		self.current_cmd = None            #descriptive verbal command
+		self.current_act = None            #edwin arm_node command
+
+		#Edwin's history of past movements the user has made
+		self.history = []
+		self.history_length = 10 #depth of recorded history
+		self.threshold = .05  #threshold to determine movement
 
 		#max iterations per game, and variable to keep track of game procession
 		self.max_turns = max_turns
-		self.no_mistakes = True  #TODO: this must be incorporated into the code
+		self.no_mistakes = True  # detects if a mistake is made following a cmd; for Edwin or user
 
 		#the dictionaries that contain what Edwin will do based on a Simon command
 		self.command_2_speech = {}
@@ -78,7 +86,6 @@ class SimonSays:
 		#init ROS publishers for actuation and stated speech
 		self.behavior_pub = rospy.Publisher('behaviors_cmd', String, queue_size=10)
 		self.arm_pub = rospy.Publisher('arm_cmd', String, queue_size=10)
-		self.behav_pub = rospy.Publisher('behaviors_cmd', String, queue_size=10)
 		self.say_pub = rospy.Publisher('say_cmd', String, queue_size = 1)
 
 		#init ROS subscribers to camera, heard speech, and skeleton
@@ -93,9 +100,15 @@ class SimonSays:
 		except CvBridgeError as e:
 			print(e)
 
+
 	def hear_callback(self, speech):
 		if self.ready_to_listen:
 			self.heard_cmd = speech.data
+
+		self.listen_for_fail = speech.data
+		if self.listen_for_fail == "edwin that is incorrect":
+			self.no_mistakes = False
+
 
 	def skeleton_callback(self, skeleton):
 		"""
@@ -124,7 +137,28 @@ class SimonSays:
 		lf - left foot
         """
 
-		self.body_points = skeleton
+		#this variables allows for referencing specific body parts
+		self.current_body_points = skeleton
+
+		#this variable is simply for iterating through all parts
+		self.body_list = (self.current_body_points.h,
+						  self.current_body_points.n,
+						  self.current_body_points.t,
+						  self.current_body_points.rs,
+						  self.current_body_points.re,
+						  self.current_body_points.rh,
+						  self.current_body_points.rp,
+						  self.current_body_points.rk,
+						  self.current_body_points.rf,
+						  self.current_body_points.ls,
+						  self.current_body_points.le,
+						  self.current_body_points.lh,
+						  self.current_body_points.lp,
+						  self.current_body_points.lk,
+						  self.current_body_points.lf)
+		self.history.append(self.body_list)
+		if len(self.history) > self.history_length:
+			self.history.pop(0)
 
 
 
@@ -149,17 +183,16 @@ class SimonSays:
 		Fill up the Player command dictionary possible commands
 		"""
 		#TODO: make these commands into actual behaviors
-		self.command_2_speech["turn_around"] = ["turn_around"]
-		self.command_2_speech["touch_head"] = ["touch_head"]
-		self.command_2_speech["rub_tummy"] = ['rub_tummy']
-		self.command_2_speech["high5_self"] = ['high_five']
-		self.command_2_speech["hug_self"] = ["hug_self"]
-		self.command_2_speech["clap_hands"] = ["clap_hands"]
-		self.command_2_speech["flex_muscles"] = ["flex_muscles"]
-		self.command_2_speech["hands_up"] = ["sky_reach"]
-		self.command_2_speech["disco"] = ["disco"]
-		self.command_2_speech["bow"] = ["bow"]
-
+		self.command_2_motion["turn_around"] = ["turn_around"]
+		self.command_2_motion["touch_head"] = ["touch_head"]
+		self.command_2_motion["rub_tummy"] = ['rub_tummy']
+		self.command_2_motion["high5_self"] = ['high_five']
+		self.command_2_motion["hug_self"] = ["hug_self"]
+		self.command_2_motion["clap_hands"] = ["clap"]
+		self.command_2_motion["flex_muscles"] = ["flex"]
+		self.command_2_motion["hands_up"] = ["sky_reach"]
+		self.command_2_motion["disco"] = ["disco"]
+		self.command_2_motion["bow"] = ["bow"]
 
 
 	def check_stillness(self):
@@ -169,10 +202,15 @@ class SimonSays:
 		This function is a helper function to the check_simon_response method
 		It determines whether the user has moved based on the sliding window
 		"""
-		#TODO
-		pass
-
-
+		still = True
+		history_averages = np.mean(self.history, axis=0)
+		i = 0
+		for body_part in history_averages:
+			if np.abs(self.body_list[i] - body_part) > self.threshold:
+				still = False
+				return still
+			i += 1
+		return still
 
 
 	def simon_say_command(self):
@@ -182,8 +220,9 @@ class SimonSays:
 		This function issues a Simon command.
 		It is said outloud, so depends on the tts_engine to be running
 		"""
-		command = random.choice(self.command_dictionary.keys())
-		self.current_cmd = random.choice(["simon says, ", ""]) + self.command_dictionary[command]
+		command = random.choice(self.command_2_speech.keys())
+		self.current_cmd = random.choice(["simon says, ", ""]) + self.command_2_speech.get(command)
+		self.current_act = command
 		print self.current_cmd
 		self.say_pub.publish(self.current_cmd)
 
@@ -195,14 +234,18 @@ class SimonSays:
 		This function checks to see if the players have followed Edwin's cmd
 		This relies on skeleton tracker to be functional
 		"""
-		#TODO: finish this implementation, what happens with a simon says, and what happens when checking for stillness
 
 		if "simon says" in self.current_cmd:
 			print "checking for the simon command"
 			#will check with Katya and Yichen's module for the correct gesture
-			pass
+			response = "clap_hands"  #potential output from gesture recognition
+
+			if response in self.command_2_speech.keys():
+				self.no_mistakes = True
+			else:
+				self.no_mistakes = False
 		else:
-			self.check_stillness()
+			self.no_mistakes = self.check_stillness()
 
 
 	def player_listen_for_simon(self):
@@ -212,7 +255,6 @@ class SimonSays:
 
 		This relies on stt_engine to be running
 		"""
-		#TODO: check this implementation
 		self.ready_to_listen = True
 
 		#do nothing while waiting for the speech command
@@ -220,17 +262,24 @@ class SimonSays:
 			continue
 
 		if "simon says" in self.heard_cmd:
-			cmd = self.heard_cmd.substitute("simon says ", "")
-			motions = self.command_2_motion.get(cmd)
+			action = self.heard_cmd.replace("simon says ", "")
+			motions = self.command_2_motion.get(action, None)
 
 			if motions:
-				self.current_cmd = cmd
-				print "GOT CMD: ", cmd
-		else:
-			self.current_cmd = None
+				self.current_act = action
+				print "GOT CMD: ", self.current_act
+			else:
+				statement = "I do not think that was a valid Simon Says command"
+				self.say_pub.publish(statement)
 
-		#if simon says isn't in the command, than Edwin does nothing
+	    #if simon says isn't in the command, than Edwin does nothing
+		else:
+			self.current_act = None
+
 		self.ready_to_listen = False
+		self.heard_cmd = None
+
+
 
 	def player_follow_simon_cmd(self):
 		"""
@@ -239,16 +288,18 @@ class SimonSays:
 		This function takes the command from listen_for_simon() and interprets
 		The resulting command is sent to arm_node for physical motion
 		"""
-		#TODO: finish this implementation
+		if self.current_act:
+			motions = self.command_2_motion.get(self.current_act)
+			for m in motions:
+				print "GOT MOTION: ", m
+				self.behavior_pub.publish(m)
+			self.current_act = None
 
-		if self.current_cmd:
-			motions = self.command_2_motion.get(cmd, None)
-			if motions:
-				for m in motions:
-					print "GOT MOTION: ", m
-					self.behavior_pub.publish(m)
 
 	def run(self):
+		"""
+		Generic method, to be implemented by the children classes
+		"""
 		pass
 
 
@@ -273,9 +324,7 @@ class AutonomousSimon(SimonSays):
 			self.simon_say_command()
 			self.player_follow_simon_cmd()
 
-
 		print "Finished playing by myself, hope you enjoyed the demo!"
-
 
 
 
@@ -291,7 +340,6 @@ class EdwinSimon(SimonSays):
 
 
 	def run(self):
-
 		time.sleep(2)
 		print "playing as Simon"
 
@@ -301,7 +349,14 @@ class EdwinSimon(SimonSays):
 			self.simon_say_command()
 			self.simon_check_response()
 
+		if not self.no_mistakes:
+			statement = "Nice try, but you messed up. Game over."
+		else:
+			statement = "Congratulations, you finished the game!"
+		self.say_pub.publish(statement)
+
 		print "Finished playing with player, hope you enjoyed!"
+
 
 
 class EdwinPlayer(SimonSays):
@@ -324,19 +379,18 @@ class EdwinPlayer(SimonSays):
 			self.player_listen_for_simon()
 			self.player_follow_simon_cmd()
 
+		if not self.no_mistakes:
+			statement = "Oh no, I messed up. Good game."
+		else:
+			statement = "Okay, I am done following your commands. It was fun!"
+		self.say_pub.publish(statement)
+
 		print "Finished playing with Simon, hope you enjoyed!"
 
-"""
-Things I need to do for this code
-1. finish up implementations in the runs, the simon and player methods
-2. add in the abilty to lose
-3. finish up code arch
-4. write in behaviors to simon commands
-"""
 
 
 if __name__ == '__main__':
-	mode = raw_input("Is Edwin the simon or player?")
+	mode = raw_input("Is Edwin simon or the player?")
 
 	if mode == PLAYER_NAME:
 		game = EdwinPlayer()
