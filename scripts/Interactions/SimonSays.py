@@ -6,6 +6,10 @@ rosrun edwin arm_node.py
 rosrun edwin arm_behaviors.py
 rosrun edwin tts_engine.py
 rosrun edwin stt_engine.py
+
+roslaunch skeleton_markers markers_from_tf.launch
+roscd skeleton_markers
+rosrun rviz rviz markers_from_tf.rviz
 """
 
 import rospy
@@ -16,7 +20,6 @@ import random
 import time
 import math
 from collections import namedtuple
-
 from std_msgs.msg import String
 from sensor_msgs.msg import Image
 from edwin.msg import Edwin_Shape, Bones
@@ -61,7 +64,8 @@ class SimonSays:
 
 		#Edwin's current command of interest
 		self.current_cmd = None            #descriptive verbal command
-		self.current_act = None            #edwin arm_node command
+		self.current_act = None            #edwin command (not necessarily in arm_cmd form)
+		self.arm_act = None				   #edwin arm_node command
 
 		#Edwin's history of past movements the user has made
 		self.history = []
@@ -73,8 +77,8 @@ class SimonSays:
 		self.no_mistakes = True  # detects if a mistake is made following a cmd; for Edwin or user
 
 		#the dictionaries that contain what Edwin will do based on a Simon command
-		self.command_2_speech = {}
-		self.command_2_motion = {}
+		self.command_2_speech = {}     	    #specific command whose key points to verbal command
+		self.command_2_motion = {}			#specific command whose key points to edwin action
 
 		#populate the two dictionaries for when Edwin is Simon and when he is the player
 		self.populate_simon_dictionaries()
@@ -222,7 +226,8 @@ class SimonSays:
 		"""
 		command = random.choice(self.command_2_speech.keys())
 		self.current_cmd = random.choice(["simon says, ", ""]) + self.command_2_speech.get(command)
-		self.current_act = command
+		if "simon says, " in self.current_cmd:
+			self.current_act = command
 		print self.current_cmd
 		self.say_pub.publish(self.current_cmd)
 
@@ -269,7 +274,7 @@ class SimonSays:
 				self.current_act = action
 				print "GOT CMD: ", self.current_act
 			else:
-				statement = "I do not think that was a valid Simon Says command"
+				statement = "I did not catch that, could you repeat your command?"
 				self.say_pub.publish(statement)
 
 	    #if simon says isn't in the command, than Edwin does nothing
@@ -289,10 +294,11 @@ class SimonSays:
 		The resulting command is sent to arm_node for physical motion
 		"""
 		if self.current_act:
-			motions = self.command_2_motion.get(self.current_act)
-			for m in motions:
+			self.arm_act = self.command_2_motion.get(self.current_act)
+			for m in self.arm_act:
 				print "GOT MOTION: ", m
 				self.behavior_pub.publish(m)
+				time.sleep(1)
 			self.current_act = None
 
 
@@ -318,12 +324,26 @@ class AutonomousSimon(SimonSays):
 		time.sleep(2)
 		print "playing by myself"
 
+		move = "get_set"
+		self.behavior_pub.publish(move)
+		time.sleep(1)
+		statement = "I am going to demo Simon Says."
+		self.say_pub.publish(statement)
+
 		while self.max_turns > 0:
 			self.max_turns -= 1
 
 			self.simon_say_command()
 			self.player_follow_simon_cmd()
 
+		move = "done_game"
+		self.behavior_pub.publish(move)
+		statement = "Finished a round."
+		self.say_pub.publish(statement)
+		time.sleep(1)
+
+		statement = "look"
+		self.behavior_pub.publish(statement)
 		print "Finished playing by myself, hope you enjoyed the demo!"
 
 
@@ -343,6 +363,12 @@ class EdwinSimon(SimonSays):
 		time.sleep(2)
 		print "playing as Simon"
 
+		move = "leader"
+		self.behavior_pub.publish(move)
+		time.sleep(1)
+		statement = "Alright, I will be Simon. Ready? Set? Let's play!"
+		self.say_pub.publish(statement)
+
 		while self.max_turns > 0 and self.no_mistakes:
 			self.max_turns -= 1
 
@@ -351,9 +377,17 @@ class EdwinSimon(SimonSays):
 
 		if not self.no_mistakes:
 			statement = "Nice try, but you messed up. Game over."
+			move = "gloat"
 		else:
 			statement = "Congratulations, you finished the game!"
+			move = "praise"
+
+		self.behavior_pub.publish(move)
 		self.say_pub.publish(statement)
+		time.sleep(1)
+
+		statement = "look"
+		self.behavior_pub.publish(statement)
 
 		print "Finished playing with player, hope you enjoyed!"
 
@@ -373,6 +407,12 @@ class EdwinPlayer(SimonSays):
 		time.sleep(2)
 		print "playing as Player"
 
+		move = "get_set"
+		self.behavior_pub.publish(move)
+		time.sleep(1)
+		statement = "Alright, I will be the player. Ready? Set? Let's play!"
+		self.say_pub.publish(statement)
+
 		while self.max_turns > 0 and self.no_mistakes:
 			self.max_turns -= 1
 
@@ -381,10 +421,17 @@ class EdwinPlayer(SimonSays):
 
 		if not self.no_mistakes:
 			statement = "Oh no, I messed up. Good game."
+			move = "sad"
 		else:
 			statement = "Okay, I am done following your commands. It was fun!"
-		self.say_pub.publish(statement)
+			move = "praise"
 
+		self.behavior_pub.publish(move)
+		self.say_pub.publish(statement)
+		time.sleep(1)
+
+		statement = "look"
+		self.behavior_pub.publish(statement)
 		print "Finished playing with Simon, hope you enjoyed!"
 
 
