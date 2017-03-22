@@ -13,8 +13,8 @@ from sklearn.preprocessing import scale
 # Default data_set from sklean.datasets: http://scikit-learn.org/stable/modules/classes.html#module-sklearn.datasets
 # The data_set is a tuple (X, y) where X = an n_samples by n_features numpy array
 # and an array of length n_samples
-class Clusters:
-    def __init__(self, data_set=load_digits(), n_clusters=10, n_init=1,
+class Clusters():
+    def __init__(self, data_set=load_digits(), n_clusters=5, n_init=1,
                  init='k-means++'):
         self.data_set = data_set
         self.data = scale(self.data_set.data)
@@ -26,10 +26,11 @@ class Clusters:
         self.init = init
         self.estimator = KMeans(init=self.init, n_clusters=self.n_clusters,
                                 n_init=self.n_init)
+        # Fit data
+        self.estimator.fit(self.data)
 
     def bench_k_means(self):
         t0 = time()
-        self.estimator.fit(self.data)
         print('% 9s   %.2fs    %i   %.3f   %.3f   %.3f   %.3f   %.3f    %.3f'
               % (self.init, (time() - t0), self.estimator.inertia_,
                  metrics.homogeneity_score(self.labels, self.estimator.labels_),
@@ -41,9 +42,25 @@ class Clusters:
                                           metric='euclidean',
                                           sample_size=self.sample_size)))
 
+    # Return cluster centers
+    def get_cluster_centers(self):
+        return self.estimator.cluster_centers_
+
+    def get_estimator(self):
+        return self.estimator
+
+    # return classification goodness metric
+    def check_accuracy(self, test_data):
+        y_pred = self.estimator.predict(test_data)
+        return(y_pred)
+        # score = metrics.accuracy_score(y_true=y_true, y_pred=y_pred)
+        # return score
+
 
 if __name__ == "__main__":
     clusters_kmeans = Clusters()
     clusters_kmeans.bench_k_means()
     clusters_random = Clusters(init='random')
-    clusters_random.bench_k_means
+    clusters_random.bench_k_means()
+    # print(clusters_kmeans.get_cluster_centers())
+    print(clusters_kmeans.check_accuracy(clusters_kmeans.data))
