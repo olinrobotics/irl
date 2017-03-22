@@ -7,14 +7,18 @@ hannah.kolano@studets.olin.edu
 HANNAH
 MAKE SURE ROSCORE IS RUNNING
 RUN IT AS $rosrun edwin math_interp.py
+
 NEXT STEP:
-take out cases of double operatives, etc.
-figure out NEGATIVES and figure out how to change 2x to 2*x
+figure out NEGATIVES
+figure out how to change 2x to 2*x
+solve the 1/x/2 problem
+
 '''
 from __future__ import division
 import rospy
 import rospkg
 from std_msgs.msg import String
+import math
 
 
 class Calculator:
@@ -27,7 +31,6 @@ class Calculator:
         # rospy.Subscriber('word_publish', String, self.cmd_callback)
 
         self.integer_list = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.']
-        self.order_of_ops = [('*', '/'), ('+', '-')]
         self.operator_list = ['+', '-', '/', '*', '=']
         self.variable_list = ['x', 'y', 'z']
         self.opposite_operation = {'+': '-', '-': '+', '/': '*', '*': '/'}
@@ -53,30 +56,33 @@ class Calculator:
             data = eqn[0:-1]
         return data
 
-    def solve_algebra(self, eqn):
+    def initialize_algebra(self, eqn):
         '''solves algebra'''
-        sides = self.initialize_tree(eqn)
-        self.rightsidetree = sides[0]
-        self.leftsidetree = sides[1]
-        self.rightsidestring = self.tree_to_string(self.rightsidetree)
-        self.leftsidestring = self.tree_to_string(self.leftsidetree)
+        for variable in self.variable_list:
+            if variable in eqn:
+                self.variable = variable
+        self.initialize_tree(eqn)
+        self.rsstring = self.tree_to_string(self.rstree)
+        self.lsstring = self.tree_to_string(self.lstree)
 
     def initialize_tree(self, eqn):
         '''takes an equation, splits into two sides. Returns tuples of
         the sides processed into a tree.'''
-        if '=' in eqn:
-            index = eqn.find('=')
-            left_side = eqn[:index]
-            right_side = eqn[index+1:]
-        right_side = self.tree_base_case_check(right_side)
-        left_side = self.tree_base_case_check(left_side)
-        return right_side, left_side
+        index = eqn.find('=')
+        left_side = eqn[:index]
+        right_side = eqn[index+1:]
+        if self.variable in left_side:
+            self.side_w_variable = 'left'
+        elif self.variable in right_side:
+            self.side_w_variable = 'right'
+        self.rstree = self.tree_base_case_check(right_side)
+        self.lstree = self.tree_base_case_check(left_side)
 
     def tree_base_case_check(self, side):
         '''takes in one side of the equation. if there's still an
-        operation present, keep processsing and return the processed
+        operation present, keep processsing and return the processed (tree'd)
         side. If not, return itself.'''
-        for element in side:
+        for element in str(side):
             if element in self.operator_list:
                 return self.build_tree(side)
         return side
@@ -85,50 +91,34 @@ class Calculator:
         '''take in a side of an equation, create a tree with the
         operations as nodes, returns that tree.'''
         # print(side)
+        if self.variable not in side:
+            return str(eval(side))
         if '/' in side or '*' in side:
-            indexdiv = side.find('/')
-            indexmul = side.find('*')
-            if indexdiv == -1:
+            indexdiv = side.rfind('/')
+            indexmul = side.rfind('*')
+            if indexmul > indexdiv:
                 index = indexmul
                 element = '*'
-            elif indexmul == -1:
+            else:
                 index = indexdiv
                 element = '/'
-            else:
-                if indexmul < indexdiv:
-                    index = indexmul
-                    element = '*'
-                else:
-                    index = indexdiv
-                    element = '/'
             left_ele = side[:index]
             right_ele = side[index+1:]
             self.tree = (element, self.tree_base_case_check(left_ele), self.tree_base_case_check(right_ele))
 
         if '-' in side or '+' in side:
-            indexplus = side.find('+')
-            indexmin = side.find('-')
-            if indexplus == -1:
+            indexplus = side.rfind('+')
+            indexmin = side.rfind('-')
+            if indexmin > indexplus:
                 index = indexmin
                 element = '-'
-            elif indexmin == -1:
+            else:
                 index = indexplus
                 element = '+'
-            else:
-                if indexmin < indexplus:
-                    index = indexmin
-                    element = '-'
-                else:
-                    index = indexplus
-                    element = '+'
             left_ele = side[:index]
             right_ele = side[index+1:]
             self.tree = (element, self.tree_base_case_check(left_ele), self.tree_base_case_check(right_ele))
         return self.tree
-
-    def unpack_tree(self, rightside, leftside):
-        '''takes a tree tuple and changes it back to a string'''
-        pass
 
     def tree_to_string(self, tree):
         '''takes a tree and converts it back into a string'''
@@ -146,6 +136,57 @@ class Calculator:
             equation_string = tree
         return equation_string
 
+    def solve_algebra(self):
+        '''takes the self.trees and self.strings and does the next appropriate
+        operation to them'''
+        if self.side_w_variable == 'left':
+            vt_vs_nvt_nvs = [self.lstree, self.lsstring, self.rstree, self.rsstring]
+        elif self.side_w_variable == 'right':
+            vt_vs_nvt_nvs = [self.rstree, self.rsstring, self.lstree, self.lsstring]
+
+        if type(vt_vs_nvt_nvs[0][1]) == str:
+            mov_idx = 1
+            keep_idx = 2
+        elif type(vt_vs_nvt_nvs[0][2]) == str:
+            mov_idx = 2
+            keep_idx = 1
+
+        if vt_vs_nvt_nvs[0][0] == '+':
+            vt_vs_nvt_nvs[0], vt_vs_nvt_nvs[3] = self.do_op(vt_vs_nvt_nvs[0], vt_vs_nvt_nvs[3], '-', mov_idx, keep_idx)
+        elif vt_vs_nvt_nvs[0][0] == '-':
+            vt_vs_nvt_nvs[0], vt_vs_nvt_nvs[3] = self.do_op(vt_vs_nvt_nvs[0], vt_vs_nvt_nvs[3], '+')
+        elif vt_vs_nvt_nvs[0][0] == '*':
+            vt_vs_nvt_nvs[0], vt_vs_nvt_nvs[3] = self.do_op(vt_vs_nvt_nvs[0], vt_vs_nvt_nvs[3], '/', mov_idx, keep_idx)
+        elif vt_vs_nvt_nvs[0][0] == '/':
+            vt_vs_nvt_nvs[0], vt_vs_nvt_nvs[3] = self.do_op(vt_vs_nvt_nvs[0], vt_vs_nvt_nvs[3], '*')
+
+        vt_vs_nvt_nvs[1] = self.tree_to_string(vt_vs_nvt_nvs[0])
+        vt_vs_nvt_nvs[2] = self.tree_base_case_check(vt_vs_nvt_nvs[3])
+
+        if self.side_w_variable == 'left':
+            self.lstree, self.lsstring, self.rstree, self.rsstring = vt_vs_nvt_nvs
+        elif self.side_w_variable == 'right':
+            self.rstree, self.rsstring, self.lstree, self.lsstring = vt_vs_nvt_nvs
+
+        if self.variable in str(self.lsstring):
+            self.side_w_variable = 'left'
+        elif self.variable in str(self.rsstring):
+            self.side_w_variable = 'right'
+
+        # print(self.lstree)
+        # print(self.lsstring)
+        # print(self.rstree)
+        # print(self.rsstring)
+
+    def do_op(self, var_side_tree, non_var_str, string, mov_idx=2, keep_idx=1):
+        '''given a tree and the opposite side string, snips the operation
+        from the tree and moves it to the other side string.'''
+        non_var_str = str(non_var_str) + string + str(var_side_tree[mov_idx])
+        if self.variable not in non_var_str:
+            non_var_str = eval(non_var_str)
+        var_side_tree = var_side_tree[keep_idx]
+        return var_side_tree, non_var_str
+
     def check_triviality(self, answer):
         '''returns 1 if getting a value from the subscriber;
         otherwise returns 0'''
@@ -160,31 +201,20 @@ class Calculator:
         answer = ''
         # while not rospy.is_shutdown():
         if self.check_triviality(self.eqn) == 1:
-            prev_answer = answer
-            self.solve_algebra(self.eqn)
-            print(self.leftsidetree)
-            print(self.rightsidetree)
-            # print(left_answer)
+            self.initialize_algebra(self.eqn)
+            # print(self.lstree)
+            # print(self.lsstring)
+            # print(self.rstree)
+            # print(self.rsstring)
+            # prev_answer = answer
+            while self.rstree != self.variable and self.lsstring != self.variable:
+                self.solve_algebra()
+            print(str(self.rsstring) + '=' + str(self.lsstring))
             # if answer != prev_answer:
             #     print(answer)
 
 
-class Equation(Calculator):
-    def __init__(self):
-        self.left_tuple = tuple()
-        self.right_tuple = tuple()
-        self.left_string = ''
-        self.right_string = ''
-
-    def __str__(self):
-        return '%d = %d' % (self.left_string, self.right_string)
-
-    def string_to_tree(self, side):
-        side_tree = self.tree_base_case_check(side)
-        return side_tree
-
-
 if __name__ == '__main__':
     ctr = Calculator()
-    ctr.eqn = '5*x/2+3=5'
+    ctr.eqn = '3*6*y=18'
     ctr.run()
