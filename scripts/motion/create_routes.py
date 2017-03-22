@@ -29,6 +29,9 @@ class RouteCreator:
 
     def create_route_dictionary(self):
         ##Single set routes
+
+        ###################               General actions           #####################
+
         self.route_dictionary["R_stare"] = "R_stare; 3296, 2308, 999, 0, 0, 0"
         self.route_dictionary["R_ttt"] = "R_ttt; 200, 2400, 1800, 720, 240, 21"
         self.route_dictionary["R_look"] = "R_look; 2564, 1974, 3013, 110, 225, 0"
@@ -58,6 +61,28 @@ class RouteCreator:
         self.route_dictionary["R_wakeup"] = "R_wakeup; 0, 3523, 5032, 1, 0, 0"
         self.route_dictionary["R_playful"] = "R_playful; 2027, 981, 98, -11, 0, 72"
         self.route_dictionary["R_sleep"] = "R_sleep; 0, 1891, 1732, 48, 0, 0"
+
+        ###################               Simon Says actions           #####################
+
+        # self.behaviors["R_turn_around"] = "R_turn_around; "
+        # self.route_dictionary['R_touch_head'] = "R_touch_head; "
+        # self.route_dictionary['R_rub_tummy'] = "R_rub_tummy; "
+        # self.route_dictionary['R_high5_sel'] = "R_high5_self; "
+        # self.route_dictionary['R_hug_self'] = "R_hug_self; "
+        # self.route_dictionary['R_clap_hands'] = "R_clap_hands; "
+        # self.route_dictionary['R_flex_muscles'] = "R_flex_muscles; "
+        # self.route_dictionary['R_hands_up'] = "R_hands_up; "
+        # self.route_dictionary['R_disco'] = "R_disco; "
+        # self.route_dictionary['R_bow'] = "R_bow; "
+
+        self.route_dictionary['R_get_set'] = "R_get_set; 3498, 1999, 699, -99, 0"
+        self.route_dictionary['R_done_game_1'] = "R_done_game; 1000, 1000, 6998, 18.2, 16.9, 0"
+        self.route_dictionary['R_done_game_2'] = "R_done_game; 1300, 2000, 2000, 17.7, 16.8, 0"
+        # self.route_dictionary['R_leader'] = "R_leader; "
+        # self.route_dictionary['R_praise'] = "R_praise; "
+        # self.route_dictionary['R_look'] = "R_look; "
+        # self.route_dictionary['R_sad'] = "R_sad; "
+
 
         ##Routes with lists
         self.route_dictionary["R_1_lookaround"] = ["R_1_lookaround; 4000, 1500, 3000, 185, 240, 21", "R_2_lookaround; 500, 4000, 2000, 185, 240, 21", "R_3_lookaround; 3000, 2000, 4000, -39, 240, 21"]

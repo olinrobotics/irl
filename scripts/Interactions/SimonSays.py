@@ -90,7 +90,7 @@ class SimonSays:
 		#init ROS publishers for actuation and stated speech
 		self.behavior_pub = rospy.Publisher('behaviors_cmd', String, queue_size=10)
 		self.arm_pub = rospy.Publisher('arm_cmd', String, queue_size=10)
-		self.say_pub = rospy.Publisher('say_cmd', String, queue_size = 1)
+		self.say_pub = rospy.Publisher('edwin_speech_cmd', String, queue_size = 1)
 
 		#init ROS subscribers to camera, heard speech, and skeleton
 		self.image_sub = rospy.Subscriber("usb_cam/image_raw", Image, self.img_callback)
