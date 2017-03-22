@@ -14,68 +14,68 @@
 #include<string>
 #include <time.h>
 
-class FaceTracker{
-  public:
+using namespace std;
+using namespace cv;
+
+
+    //int ideal_x = (640/2);
+    //int ideal_y = (480/2);
+
     bool detect;
     time_t started_tracking;
+    //initialize ROS
+    ros::Publisher pub;
+    ros::Subscriber sub_control;
+    ros:Subscriber sub_bridge;
 
-    int main(int argc, char **argv){
-      FaceTracker self;
-      ros::init(argc, argv, "face_tracking", ros::init_options::AnonymousName);
-      ros::NodeHandle n  = ros::NodeHandle();
-      ros::Publisher pub = n.advertise<std_msgs::String>("/face_location", 10);
-      ros::Subscriber sub_control = n.subscribe("all_control", 10, cmd_callback);
+    cv_bridge::CvImagePtr frame;
 
-      CvBridge bridge = CvBridge();
-      ros::Subscriber sub_bridge = n.subscribe("usb_cam/image_raw", img_callback);
 
-      detect = true;
-      started_tracking = time(0);
-      std::string PACKAGE_PATH = ros::package::getPath("edwin");
-      CascadeClassifier face_cascade;
-      face_cascade.load(PACKAGE_PATH + "/params/haarcascade_frontalface_default.xml");
 
-      int ideal_x = 640/2;
-      int ideal_y = 480/2;
-    }
+    //initialize some things
+    String face_cascade_name = "haarcascade_frontalface_alt.xml";
+    CascadeClassifier face_cascade = CascadeClassifier();
+    face_cascade.load(PACKAGE_PATH + "/params/haarcascade_frontalface_default.xml");
+
+
 
     void img_callback(const sensor_msgs::ImageConstPtr& msg){
-      cv_bridge::CvImagePtr frame;
       try
       {
-        frame = cv_bridge::toCvCopy(msg, sensor_msgs:image_encodings::BGR8);
+        frame = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
       }
       catch (cv_bridge::Exception& e)
       {
-        ROS_ERROR("Could not convert from '%s' to 'bgr8'.", e.what())
+        ROS_ERROR("Could not convert from '%s' to 'bgr8'.", e.what());
       }
 
     }
 
     void cmd_callback(const std_msgs::String::ConstPtr& msg){
-      if (msg.find("ft stop") != string::npos){
+      msg -> data.c_str(); //figure out how to extract string from message.
+      if (msg.strstr("ft stop") != NULL){
         detect = false;
       }
-      else if (msg.find("ft go") != string::npos){
+      else if (msg.strstr("ft go") != NULL){
         started_tracking = time(0);
-        this.detect = true;
+        detect = true;
       }
     }
 
     void face_tracking(){
-      std::vector<rect> faces;
+      std::vector<Rect> faces;
       cv::Mat gray;
-      cv::cvtColor(frame, gray, CV_BGR2GRAY) //Convert the frame to gray.
+      cv::cvtColor(frame, gray, CV_BGR2GRAY); //Convert the frame to gray.
       face_cascade.detectMultiScale(gray, faces, 1.3, 5);
       float largest_face [4] = {0, 0, 0, 0};
       // Set Region of Interest
       cv::Rect roi_b;
       cv::Rect roi_c;
 
-      size_t ic  = 0; // ic is index of current element
+      int ic  = 0; // ic is index of current element
       int ac = 0; // ac is area of current element
 
-      size_t ib = 0; //ib is index of biggest element
+      int ib = 0; //ib is index of biggest element
       int ab = 0; //ab is area of a biggest element
 
       roi_b.x = faces[ib].x;
@@ -86,7 +86,7 @@ class FaceTracker{
       ab = roi_b.width * roi_b.height; // Get the area of biggest element, at beginning it is same as "current" element
 
 
-      for (ic = 0; ic < faces.size(); ic++){
+      for (ic = 0; ic < faces->size(); ic++){
         //roi_c.x = faces[ic].x;
         //roi_c.y = faces[ic].y;
         roi_c.width = (faces[ic].width);
@@ -94,8 +94,7 @@ class FaceTracker{
 
         ac = roi_c.width * roi_c.height; //get area of current element.
 
-        if (ac > ab)
-        {
+        if (ac > ab){
             ib = ic;
             roi_b.x = faces[ib].x;
             roi_b.y = faces[ib].y;
@@ -110,16 +109,32 @@ class FaceTracker{
       std::string locx = std::to_string(roi_b.x);
       std::string locy = std::to_string(roi_b.y);
 
-      pub.publish(locx + ":" + locy);
+      std::string pos = (locx + ":" + locy);
+      pub.publish(pos);
     }
 
-    void run(){
+    int main(int argc, char **argv){
+      ros::init(argc, argv, "face_tracking", ros::init_options::AnonymousName);
+      ros::NodeHandle n  = ros::NodeHandle();
+      ros::Publisher pub = n.advertise<std_msgs::String>("/face_location", 10);
+      ros::Subscriber sub_control = n.subscribe("all_control", 10, cmd_callback);
+
+      ros::Subscriber sub_bridge = n.subscribe("usb_cam/image_raw", img_callback);
+
+      detect = true;
+      started_tracking = time(0);
+      std::string PACKAGE_PATH = ros::package::getPath("edwin");
+
+
+
+      //Run sequence below
+      std::string pos;
       ros::Rate r(10);
+
       while (ros::ok()){
-        if (self.detect){
+        if (detect){
           face_tracking();
-        }
+          }
         r.sleep();
       }
     }
-};
