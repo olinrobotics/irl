@@ -11,20 +11,18 @@ RUN IT AS $rosrun edwin math_interp.py
 NEXT STEP:
 figure out NEGATIVES
 figure out how to change 2x to 2*x
-solve the 1/x/2 problem
-
 '''
 from __future__ import division
-import rospy
-import rospkg
-from std_msgs.msg import String
+# import rospy
+# import rospkg
+# from std_msgs.msg import String
 import math
 
 
 class Calculator:
     def __init__(self):
         '''initializes the object'''
-        rospy.init_node('doing_math')
+        # rospy.init_node('doing_math')
         # self.pub = rospy.Publisher('/math_output', String, queue_size=10)
         self.eqn = ''
         self.tree = tuple()
@@ -82,7 +80,8 @@ class Calculator:
         '''takes in one side of the equation. if there's still an
         operation present, keep processsing and return the processed (tree'd)
         side. If not, return itself.'''
-        for element in str(side):
+        side_string = str(side)
+        for element in side_string[1:]:
             if element in self.operator_list:
                 return self.build_tree(side)
         return side
@@ -90,7 +89,7 @@ class Calculator:
     def build_tree(self, side):
         '''take in a side of an equation, create a tree with the
         operations as nodes, returns that tree.'''
-        # print(side)
+        print(side)
         if self.variable not in side:
             return str(eval(side))
         if '/' in side or '*' in side:
@@ -106,9 +105,11 @@ class Calculator:
             right_ele = side[index+1:]
             self.tree = (element, self.tree_base_case_check(left_ele), self.tree_base_case_check(right_ele))
 
-        if '-' in side or '+' in side:
+        if ('-' in side and side.find('-') != 0 and side[indexmin-1] not in self.operator_list) or '+' in side:
             indexplus = side.rfind('+')
             indexmin = side.rfind('-')
+            # if side[indexmin-1] in self.operator_list:
+            #     indexmin = side[:indexmin].rfind('-')
             if indexmin > indexplus:
                 index = indexmin
                 element = '-'
@@ -118,6 +119,7 @@ class Calculator:
             left_ele = side[:index]
             right_ele = side[index+1:]
             self.tree = (element, self.tree_base_case_check(left_ele), self.tree_base_case_check(right_ele))
+        print(self.tree)
         return self.tree
 
     def tree_to_string(self, tree):
@@ -173,11 +175,6 @@ class Calculator:
         elif self.variable in str(self.rsstring):
             self.side_w_variable = 'right'
 
-        # print(self.lstree)
-        # print(self.lsstring)
-        # print(self.rstree)
-        # print(self.rsstring)
-
     def do_op(self, var_side_tree, non_var_str, string, mov_idx=2, keep_idx=1):
         '''given a tree and the opposite side string, snips the operation
         from the tree and moves it to the other side string.'''
@@ -186,6 +183,21 @@ class Calculator:
             non_var_str = eval(non_var_str)
         var_side_tree = var_side_tree[keep_idx]
         return var_side_tree, non_var_str
+
+    def parse_negs_and_mul(self, raw_eqn):
+        if '-' in raw_eqn:
+            index = raw_eqn.find('-')
+            if (index == 0 and raw_eqn[index+1] in self.integer_list) or raw_eqn[index-1] in self.operator_list:
+                print('I hit this point')
+                raw_eqn = raw_eqn[0:index] + '-1*' + raw_eqn[index+1:]
+                raw_eqn = self.parse_negs_and_mul(raw_eqn)
+        for digit in raw_eqn:
+            if digit == self.variable:
+                index = raw_eqn.find(digit)
+                if type(raw_eqn[index-1]) == int:
+                    raw_eqn = raw_eqn[0:index] + '*' + raw_eqn[index:]
+                    raw_eqn = self.parse_negs_and_mul(raw_eqn)
+        return raw_eqn
 
     def check_triviality(self, answer):
         '''returns 1 if getting a value from the subscriber;
@@ -202,11 +214,8 @@ class Calculator:
         # while not rospy.is_shutdown():
         if self.check_triviality(self.eqn) == 1:
             self.initialize_algebra(self.eqn)
-            # print(self.lstree)
-            # print(self.lsstring)
-            # print(self.rstree)
-            # print(self.rsstring)
             # prev_answer = answer
+            # print(self.parse_negs_and_mul(self.eqn))
             while self.rstree != self.variable and self.lsstring != self.variable:
                 self.solve_algebra()
             print(str(self.rsstring) + '=' + str(self.lsstring))
@@ -216,5 +225,5 @@ class Calculator:
 
 if __name__ == '__main__':
     ctr = Calculator()
-    ctr.eqn = '3*6*y=18'
+    ctr.eqn = 'x*-2=2'
     ctr.run()
