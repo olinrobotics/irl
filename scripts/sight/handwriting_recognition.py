@@ -79,7 +79,6 @@ class HandwritingRecognition:
         self.curr_data = ''
         self.found_word = False
 
-
     def test_ocr(self):
         '''
             DESC: Compares Support Vector Machine(SVM)-guessed set against
@@ -104,8 +103,7 @@ class HandwritingRecognition:
         # Compares predicted with actual results
         matches = [i for i, j in zip(result, labels) if i == j]
         accuracy = len(matches)
-        print 'Accuracy: ', accuracy
-
+        print('Accuracy: ', accuracy)
 
     def img_callback(self, data):
         '''
@@ -121,7 +119,6 @@ class HandwritingRecognition:
             self.curr_frame = self.bridge.imgmsg_to_cv2(data, "bgr8")
         except CvBridgeError as e:
             print(e)
-
 
     def process_data_svm(self):
         '''DOCSTRING
@@ -152,7 +149,6 @@ class HandwritingRecognition:
 
         # Train the SVM neural network to recognize characters
 
-
     def decode_file(self, code):
         '''DOCSTRING
             DESC: Translates file name (part before .png) into Unicode index
@@ -170,7 +166,6 @@ class HandwritingRecognition:
         elif (code == 'mns'): return ord('-')
         elif (code == 'dot'): return ord('.')
         elif (len(code) == 1): return ord(code)
-
 
     def train_svm(self):
         '''DOCSTRING
@@ -195,7 +190,6 @@ class HandwritingRecognition:
         self.SVM.train(train_data,data_labels,params=svm_params)
 
         # Returns a list of image Regions Of Interest(ROIs) (20x20) corresponding to digits found in the image
-
 
     def process_digits(self,test_data,detect_words = False):
         '''
@@ -241,9 +235,84 @@ class HandwritingRecognition:
             else:
                 return test_data
 
+    def resolve_symbols(self, dot_contours,line_contours,dash_contours): # Currently sorts: i,l
+        '''DOCSTRING
+            DESC: resolves "fuzzy" symbols that are built out of smaller symbols
+            ARGS:
+            self - HandwritingRecognition object - self-referential
+            dot_contours - list - list of contours classified as .
+            line_contours - list - list of contours classified as |
+            dash_contours - list - list of contours classified as -
+            RTRN: dict of contours and corresponding ASCII values
+            '''
 
-    # Resolves ambiguous letters (i,l)
-    def resolve_symbols(self,dot_contours,line_contours,dash_contours):
+        final_contours = []
+
+        # Goes through vertical lines to differentiate between (i,l,1)
+        for line in line_contours:
+
+            # Check for 'i' by checking each dot pos rel to line
+            for dot in dot_contours:
+
+                # If dot is in line along y and reasonably close in x-dir
+                if abs(line.x - dot.x) < 50 and (0 < dot.y - line.y < 150): #TODO: make limits on spacing scale with image size
+                    line.result = ord('i')
+                    dot.h += line.h
+                    dot.y = line.y
+
+                    # Remove the dot-line pair from lists left to sort
+                    line_contours[:] = [val for val in line_contours if val is not line]
+                    dot_contours[:] = [val for val in dot_contours if val is not dot]
+                    final_contours.append(line)
+                    break
+
+            #TODO: check adjacent contours to see if math or letter to diff 1 and l (need way to get adj. contours)
+
+        # Goes through dashes to differentiate between (/,=,)
+        for dash in dash_contours:
+
+            # Check for '=' by checking each dash pos rel to dash
+            for dash_2 in dash_contours:
+
+                # If dash is in line along y and reasonably close in x-dir:
+                if (abs(dash.x - dash_2.x) < 50) and (0 < dash_2.y-dash.y<150):
+                    dash.result = ord('=')
+                    dash_2.h += dash.h
+                    dash_2.y = dash.y
+
+                    # Remove dash-dash pair from lists left to sort
+                    dash_contours[:] = [val for val in dash_contours if (val is not dash and val is not dash_2)]
+                    final_contours.append(dash)
+                    break
+
+            # Check for '/' by checking each dot pos rel to dash
+            for dot in dot_contours: # Check for top dot
+
+                # If dot is in line along y and reasonably close in x-dir:
+                if (abs(dash.x - dot.x) < 50) and (0 < dash.y - dot.y < 150):
+
+                    for dot2 in dot_contours: # Check for bottom dot
+
+                        if (abs(dash.x - dot2.x) < 50) and (0 < dot2.y - dash.y < 150):
+                            dash.result = ord('/')
+                            dot.h += dash.h
+                            dot2.h -= dash.h
+                            dot.y = dash.y
+                            dot2.y = dash.y
+
+                            # remove dash-dot-dot triple from lists left to sort
+                            dash_contours[:] = [val for val in dash_contours if val is not dash]
+                            dot_contours[:] = [val for val in dot_contours if (val is not dot and val is not dot2)]
+                            final_contours.append(dash)
+                            break
+
+        # If no special chars, set reg chars
+        for dash in dash_contours: dash.result = ord('-')
+        for dot in dot_contours: dot.result = ord('.')
+        for line in line_contours: line.result = ord('l')
+        return final_contours
+
+    def resolve_letters(self,dot_contours,line_contours,dash_contours):
         '''DOCSTRING
             DESC: resolves "fuzzy" symbols that are built out of smaller symbols
             ARGS:
@@ -263,6 +332,7 @@ class HandwritingRecognition:
 
         # Goes through dots to look for '/','i',or '.'
         for dot in dot_contours:
+
             for line in line_contours:
 
                 # If dot and line are close in x-direction and line is below dot
@@ -286,7 +356,7 @@ class HandwritingRecognition:
                             # checks for a dot below the dash-below-dot struct
                             dot.result = ord('/')
                             dot.h += dash.h
-                            dot.y = line.y
+                            dot.y = dash.y
                             # Remove the dot-dash pair from our lists
                             dash_contours[:] = [val for val in dash_contours if val is not dash]
                             dot_contours[:] = [val for val in dot_contours if val is not dot and val is not dot2]
@@ -305,7 +375,6 @@ class HandwritingRecognition:
             pass
         return line_contours
 
-
     def detect_new_word(self,char_list):
         char_list.sort(key = lambda roi: roi.x) # Sort characters by x pos
         word = ''.join([chr(item.result) for item in char_list]) # Form a word
@@ -322,7 +391,6 @@ class HandwritingRecognition:
             self.curr_data = word
             self.found_word = False
             return None
-
 
     # [TODO] REFACTOR
     def find_words(self,char_list):
@@ -377,7 +445,6 @@ class HandwritingRecognition:
         # for word in lines:
         #     print ' '.join([str(x.result) for x in word])
 
-
     def update_frame(self):
         '''
             DESC: update frame variable for use
@@ -387,7 +454,6 @@ class HandwritingRecognition:
             SHOW: None
             '''
         self.frame = self.curr_frame
-
 
     def output_image(self):
         '''DOCSTRING
@@ -401,7 +467,6 @@ class HandwritingRecognition:
         new_frame = self.frame
         cv2.imshow('image', new_frame)
         cv2.waitKey(1)
-
 
     def get_image_text(self, frame):
         '''
@@ -420,13 +485,12 @@ class HandwritingRecognition:
             word = ''.join([chr(item.result) for item in self.chars])
             return word
 
-
     def run(self):
         r = rospy.Rate(10)
         time.sleep(2)
         self.process_data_svm()
         self.train_svm()
-        self.test_ocr() # print accuracy of current OCR
+        #self.test_ocr() # print accuracy of current OCR
         while not rospy.is_shutdown():
             e1 = cv2.getTickCount()
             self.update_frame()
