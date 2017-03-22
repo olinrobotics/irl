@@ -7,15 +7,36 @@ import time
 import csv
 from std_msgs.msg import String
 from edwin.msg import Bones
+from sklearn.neighbors import NearestNeighbors
 
 #with open('file.csv', newline='') as csvfile:
 #     spamreader = csv.reader(csvfile, delimiter=' ', quotechar='|')
 #     for row in spamreader:
 #         print(', '.join(row))
 
+
 with open('file.csv', 'rU') as file:
     table = [row for row in csv.reader(file)]
 print(table)
+
+with open('skeleton.csv', 'rU') as file:
+    label= [col['A'] for col in csv.reader(file)]
+    training_data = [col['E':'AE'] for col in csv.reader(file)]
+
+
+
+neighbors = KNeighborsClassifier(n_neighbors=7,algorithm='ball_tree')
+neighbors.fit( training_data, 'labels')
+"""list_of_files = ['l_hand_head','l_hand_r_hand','l_hand_r_shoulder','l_hand_stomach',
+                 'r_hand_head','r_hand_l_shoulder','r_hand_stomach']
+for i in list_of_files:
+    #with open('skeleton.csv','rU') as file:
+    with open(i, 'rU') as file:
+    #table = [row for row in csv.reader(file)]
+    for row in csv.reader(file):
+        write= csv.writer(file)
+        writer =writerow(row)"""
+
 
 class Gestures:
 
