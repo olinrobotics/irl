@@ -19,8 +19,6 @@ print(table)
 
 class Gestures:
 
-    
-
     def __init__(self,skeleton):
         self.skeleton = skeleton
         rospy.init_node('gestures', anonymous=True)
