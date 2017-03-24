@@ -106,7 +106,7 @@ class ArmBehaviors:
 
         ###################               Simon Says actions           #####################
         self.behaviors["gloat"] = "H: 1000	, WR: 1700, SPD: 350, R_laugh, SPD: 500, R_pretentious_look, WR: 500, SL: 1, WR: 700, SL: 1, WR: 900, SL: 1, WR: 1100"
-        self.behaviors["done_game"] = "SPD: 7000, R_done_game_1, SPD: 5000, R_done_game_2"
+        self.behaviors["done_game"] = "SPD: 7000, R_done_game_1, SL: 1, SPD: 5000, R_done_game_2"
         # self.behaviors["turn_around"] = " "
         # self.behaviors["bow"] = " "
 

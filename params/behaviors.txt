@@ -85,7 +85,7 @@ S'WA: 250, WA: -250, WA: 250, WA: -250, WA: 0, SPD: 700, R_impatient, SL: 1, R_a
 p42
 sS'done_game'
 p43
-S'SPD: 7000, R_done_game_1, SPD: 5000, R_done_game_2'
+S'SPD: 7000, R_done_game_1, SL: 1, SPD: 5000, R_done_game_2'
 p44
 sS'idle_wander'
 p45
