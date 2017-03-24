@@ -76,8 +76,8 @@ class RouteCreator:
         # self.route_dictionary['R_bow'] = "R_bow; "
 
         self.route_dictionary['R_get_set'] = "R_get_set; 3498, 1999, 699, -99, 0"
-        self.route_dictionary['R_done_game_1'] = "R_done_game; 1000, 1000, 6998, 18.2, 16.9, 0"
-        self.route_dictionary['R_done_game_2'] = "R_done_game; 1300, 2000, 2000, 17.7, 16.8, 0"
+        self.route_dictionary['R_done_game_1'] = "R_done_game; 1000, 1000, 6998, 182, 169, 0"
+        self.route_dictionary['R_done_game_2'] = "R_done_game; 1300, 2000, 2000, 177, 168, 0"
         # self.route_dictionary['R_leader'] = "R_leader; "
         # self.route_dictionary['R_praise'] = "R_praise; "
         # self.route_dictionary['R_look'] = "R_look; "
