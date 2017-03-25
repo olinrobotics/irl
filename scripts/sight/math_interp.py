@@ -3,20 +3,23 @@
 math_interp.py
 Purpose: input a string that is a math equation, output solution
 Author: Hannah Kolano
-hannah.kolano@studets.olin.edu
+hannah.kolano@students.olin.edu
 HANNAH
 MAKE SURE ROSCORE IS RUNNING
 RUN IT AS $rosrun edwin math_interp.py
 
 NEXT STEP:
-figure out NEGATIVES
-
+parenthesis
+squared
+sin/cos
+documentation
 '''
 from __future__ import division
 # import rospy
 # import rospkg
 # from std_msgs.msg import String
 import math
+m = math
 
 
 class Calculator:
@@ -29,11 +32,8 @@ class Calculator:
         # rospy.Subscriber('word_publish', String, self.cmd_callback)
 
         self.integer_list = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.']
-        self.operator_list = ['+', '-', '/', '*', '=']
+        self.operator_list = ['+', '-', '/', '*', '^', '=']
         self.variable_list = ['x', 'y', 'z']
-        self.opposite_operation = {'+': '-', '-': '+', '/': '*', '*': '/'}
-        self.basics_list = self.integer_list + self.operator_list
-        self.basics_and_variables = self.basics_list + self.variable_list
 
     def cmd_callback(self, data):
         '''callback'''
@@ -126,6 +126,12 @@ class Calculator:
             self.tree = (element, self.tree_base_case_check(left_ele), self.tree_base_case_check(right_ele))
             return self.tree
 
+        if '^' in side:
+            indexcarrot = side.rfind('^')
+            left_ele = side[:indexcarrot]
+            right_ele = side[indexcarrot+1:]
+            self.tree = ('^', self.tree_base_case_check(left_ele), self.tree_base_case_check(right_ele))
+
         print(self.tree)
         return self.tree
 
@@ -168,6 +174,8 @@ class Calculator:
             vt_vs_nvt_nvs[0], vt_vs_nvt_nvs[3] = self.do_op(vt_vs_nvt_nvs[0], vt_vs_nvt_nvs[3], '/', mov_idx, keep_idx)
         elif vt_vs_nvt_nvs[0][0] == '/':
             vt_vs_nvt_nvs[0], vt_vs_nvt_nvs[3] = self.do_op(vt_vs_nvt_nvs[0], vt_vs_nvt_nvs[3], '*')
+        elif vt_vs_nvt_nvs[0][0] == '^':
+            vt_vs_nvt_nvs[0], vt_vs_nvt_nvs[3] = self.logs_what(vt_vs_nvt_nvs[0], vt_vs_nvt_nvs[3], mov_idx, keep_idx)
 
         vt_vs_nvt_nvs[1] = self.tree_to_string(vt_vs_nvt_nvs[0])
         vt_vs_nvt_nvs[2] = self.tree_base_case_check(vt_vs_nvt_nvs[3])
@@ -191,11 +199,23 @@ class Calculator:
         var_side_tree = var_side_tree[keep_idx]
         return var_side_tree, non_var_str
 
+    def logs_what(self, var_side_tree, non_var_str, mov_idx, keep_idx):
+        if keep_idx == 1:
+            non_var_str = str(eval(str(non_var_str) + '**' + str(eval(('1.0' + '/' + str(var_side_tree[mov_idx]))))))
+            var_side_tree = var_side_tree[keep_idx]
+            return var_side_tree, non_var_str
+        if keep_idx == 2:
+            non_var_str = m.log10(eval(non_var_str))/m.log10(eval(var_side_tree[mov_idx]))
+            var_side_tree = var_side_tree[keep_idx]
+            return var_side_tree, non_var_str
+
     def parse_var_mul(self, raw_eqn):
+        '''if there is a variable with a coefficient, put a multiplication
+        sign between them'''
         for digit in raw_eqn:
             if digit == self.variable:
                 index = raw_eqn.find(digit)
-                if raw_eqn[index-1] in self.integer_list:
+                if raw_eqn[index-1] in self.integer_list and index != 0:
                     raw_eqn = raw_eqn[0:index] + '*' + raw_eqn[index:]
                     raw_eqn = self.parse_var_mul(raw_eqn)
         return raw_eqn
@@ -226,5 +246,5 @@ class Calculator:
 
 if __name__ == '__main__':
     ctr = Calculator()
-    ctr.eqn = '-1/x=20'
+    ctr.eqn = '7^2=x'
     ctr.run()
