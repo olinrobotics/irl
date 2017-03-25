@@ -51,7 +51,6 @@ class FaceDetect:
         self.debug = False
 
         sleep(2)
-        print "started dlib"
 
     # converts ros message to numpy
     def img_callback(self, data):
