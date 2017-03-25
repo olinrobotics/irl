@@ -105,7 +105,7 @@ class ArmBehaviors:
         self.behaviors["bored"] = "SPD: 400, R_bored, R_stare_away"
 
         ###################               Simon Says actions           #####################
-        # self.behaviors["turn_around"] = "turn_around; "
+        self.behaviors["turn_around"] = "SPD: 1000, R_turn_around"
         # self.behaviors['touch_head'] = "touch_head; "
         # self.behaviors['rub_tummy'] = "rub_tummy; "
         # self.behaviors['high5_sel'] = "high5_self; "
@@ -122,6 +122,7 @@ class ArmBehaviors:
         self.behaviors["leader"] = "R_leader"
         self.behaviors["look"] = "R_look"
         self.behaviors["sad"] = "SPD: 400, R_sad"
+        self.behaviors["praise"] = "SPD: 1000, R_praise"
 
         rospack = rospkg.RosPack()
         PACKAGE_PATH = rospack.get_path("edwin")

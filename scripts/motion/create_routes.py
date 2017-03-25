@@ -62,8 +62,7 @@ class RouteCreator:
         self.route_dictionary["R_sleep"] = "R_sleep; 0, 1891, 1732, 48, 0, 0"
 
         ###################               Simon Says actions           #####################
-
-        # self.behaviors["R_turn_around"] = "R_turn_around; "
+        self.route_dictionary["R_turn_around"] = "R_turn_around; 3207, 422, 3012, 109, 225, 0, -3207, 422, 3012, 109, 225, 0, 3207, 422, 3012, 109, 225, 0, 2564, 1974, 3013, 110, 225, 0"
         # self.route_dictionary['R_touch_head'] = "R_touch_head; "
         # self.route_dictionary['R_rub_tummy'] = "R_rub_tummy; "
         # self.route_dictionary['R_high5_sel'] = "R_high5_self; "
@@ -77,7 +76,7 @@ class RouteCreator:
         self.route_dictionary['R_get_set'] = "R_get_set; 3498, 1999, 1999, -32, 180, 0"
         self.route_dictionary['R_done_game'] = "R_done_game; 2488, 1917, 4809, 281, 150, 0, 2099, 1617, 2651, 600, 150, 0"
         self.route_dictionary['R_leader'] = "R_leader; 1205, 843, 6635, 285, 180, 0"
-        self.route_dictionary['R_praise'] = "R_praise; "
+        self.route_dictionary['R_praise'] = "R_praise; 3200, 2300, 2800, 444, 210, 0, 3200, 2300, 3600, -277, 180, 0, 3200, 2300, 2800, 444, 210, 0, 3200, 2300, 3600, -277, 180, 0, 3200, 2300, 2800, 444, 210, 0, 3200, 2300, 3600, -277, 180, 0, 3600, 2700, 3200, 76, 390, 0"
         self.route_dictionary['R_sad'] = "R_sad; -2499, 772, 700, 748, 150, 0, -2600, 772, 1500, 685, 150, 0, -2400, 772, 0, 853, -60, 0, -4558, 1467, 2271, 796, 150, 0"
 
 
