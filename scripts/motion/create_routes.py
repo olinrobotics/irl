@@ -36,8 +36,7 @@ class RouteCreator:
         self.route_dictionary["R_ttt"] = "R_ttt; 200, 2400, 1800, 720, 240, 21"
         self.route_dictionary["R_look"] = "R_look; 2564, 1974, 3013, 110, 225, 0"
         self.route_dictionary["R_impat"] = "R_impat; 0, 3621, 4860, 545, 120, 21"
-        self.route_dictionary["R_laugh"] = "R_laugh; 1000, 700, 7000, -456, 150, 21, 2000, 2000, 2000, 580, 90, 21, 1500, 1500, 3500, 338, 90, 21, 1700, 1700, 3200, 338, 90, 21, 1500, 1500, 3500, 338, 90, 21, 1700, 1700, 3200, 338, 90, 21, 1500, 1500, 3500, 338, 90, 21, 1700, 1700, 3200, 338, 90, 21"
-        self.route_dictionary["R_pretentious_look"] = "R_pretentious_look; 2000, 2000, 1300, 165, 90, 21"
+        self.route_dictionary["R_laugh"] = "R_laugh; 1000, 700, 7000, -456, 150, 21, 2000, 2000, 2000, 580, 90, 21, 1500, 1500, 3500, 338, 90, 21, 1700, 1700, 3200, 338, 90, 21, 1500, 1500, 3500, 338, 90, 21, 1700, 1700, 3200, 338, 90, 21, 1500, 1500, 3500, 338, 90, 21, 1700, 1700, 3200, 338, 90, 21,  997, 997, 6490, 306, 0, 21, 844, 1134, 6495, 306, 390, 21, 1131, 847, 6497, 305, -300, 21, 844, 1134, 6495, 306, 390, 21, 1131, 847, 6497, 305, -300, 21, 997, 997, 6490, 306, 0, 21"
         self.route_dictionary["R_curious"] = "R_curious; 3664, 1774, 3013, 0, 0, 0"
         self.route_dictionary["R_nudge"] = "R_nudge; 2500, 1900, 1700, 630, 270, 0, 3000, 2400, 2200, 57, 240, 0, 2700, 2100, 1700, 569, 270, 0, 3200, 2600, 2200, 22, 211, 0"
         self.route_dictionary["R_sad_turn"] = "R_sad_turn; 0, 2900, 200, 930, 270, 21"
@@ -75,13 +74,11 @@ class RouteCreator:
         # self.route_dictionary['R_disco'] = "R_disco; "
         # self.route_dictionary['R_bow'] = "R_bow; "
 
-        self.route_dictionary['R_get_set'] = "R_get_set; 3498, 1999, 699, -99, 0"
-        self.route_dictionary['R_done_game_1'] = "R_done_game_1; 1000, 1000, 6998, 182, 169, 0"
-        self.route_dictionary['R_done_game_2'] = "R_done_game_2; 1300, 2000, 2000, 177, 168, 0"
-        # self.route_dictionary['R_leader'] = "R_leader; "
-        # self.route_dictionary['R_praise'] = "R_praise; "
-        # self.route_dictionary['R_look'] = "R_look; "
-        # self.route_dictionary['R_sad'] = "R_sad; "
+        self.route_dictionary['R_get_set'] = "R_get_set; 3498, 1999, 1999, -32, 180, 0"
+        self.route_dictionary['R_done_game'] = "R_done_game; 2488, 1917, 4809, 281, 150, 0, 2099, 1617, 2651, 600, 150, 0"
+        self.route_dictionary['R_leader'] = "R_leader; 1205, 843, 6635, 285, 180, 0"
+        self.route_dictionary['R_praise'] = "R_praise; "
+        self.route_dictionary['R_sad'] = "R_sad; -2499, 772, 700, 748, 150, 0, -2600, 772, 1500, 685, 150, 0, -2400, 772, 0, 853, -60, 0, -4558, 1467, 2271, 796, 150, 0"
 
 
         ##Routes with lists
@@ -92,7 +89,7 @@ class RouteCreator:
 
 
     def setup_initial_routes(self):
-        inital_routes = ["R_ttt", "R_laugh", "R_nudge", "R_look", "R_sad_turn", "R_playful"]
+        inital_routes = ["R_ttt", "R_laugh", "R_nudge", "R_look", "R_sad_turn", "R_get_set"]
         for r in inital_routes:
             msg = "create_route:: " + self.route_dictionary[r]
             print "Sending message: ", msg

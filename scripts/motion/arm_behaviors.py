@@ -105,10 +105,23 @@ class ArmBehaviors:
         self.behaviors["bored"] = "SPD: 400, R_bored, R_stare_away"
 
         ###################               Simon Says actions           #####################
-        self.behaviors["gloat"] = "H: 1000	, WR: 1700, SPD: 350, R_laugh, SPD: 500, R_pretentious_look, WR: 500, SL: 1, WR: 700, SL: 1, WR: 900, SL: 1, WR: 1100"
-        self.behaviors["done_game"] = "SPD: 7000, R_done_game_1, SL: 1, SPD: 5000, R_done_game_2"
-        # self.behaviors["turn_around"] = " "
-        # self.behaviors["bow"] = " "
+        # self.behaviors["turn_around"] = "turn_around; "
+        # self.behaviors['touch_head'] = "touch_head; "
+        # self.behaviors['rub_tummy'] = "rub_tummy; "
+        # self.behaviors['high5_sel'] = "high5_self; "
+        # self.behaviors['hug_self'] = "hug_self; "
+        # self.behaviors['clap_hands'] = "clap_hands; "
+        # self.behaviors['flex_muscles'] = "flex_muscles; "
+        # self.behaviors['hands_up'] = "hands_up; "
+        # self.behaviors['disco'] = "disco; "
+        # self.behaviors['bow'] = "bow; "
+
+        self.behaviors["gloat"] = "H: 1000	, WR: 1700, SPD: 400, R_laugh "
+        self.behaviors["done_game"] = "SPD: 600, R_done_game"
+        self.behaviors["get_set"] = "SPD:600, R_get_set"
+        self.behaviors["leader"] = "R_leader"
+        self.behaviors["look"] = "R_look"
+        self.behaviors["sad"] = "SPD: 400, R_sad"
 
         rospack = rospkg.RosPack()
         PACKAGE_PATH = rospack.get_path("edwin")
