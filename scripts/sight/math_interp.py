@@ -83,7 +83,7 @@ class Calculator:
         operation present, keep processsing and return the processed (tree'd)
         side. If not, return itself.'''
         side_string = str(side)
-        if any(digit in self.operator_list for digit in side_string) and side_string[0] != '-':
+        if any(digit in self.operator_list for digit in side_string[1:]):
             return self.build_tree(side)
         return side
 
@@ -93,22 +93,24 @@ class Calculator:
         print(side)
         if self.variable not in side:
             return str(eval(side))
-        if ('-' in side and side.find('-') != 0) or '+' in side:
+        if ('-' in side and side.rfind('-') != 0) or '+' in side:
             indexplus = side.rfind('+')
             indexmin = side.rfind('-')
             if indexmin != -1 and side[indexmin-1] in self.operator_list:
                 indexmin = side[:indexmin].rfind('-')
-                return self.tree
             if indexmin > indexplus:
                 index = indexmin
                 element = '-'
-            else:
+            elif indexplus > indexmin:
                 index = indexplus
                 element = '+'
-            left_ele = side[:index]
-            right_ele = side[index+1:]
-            self.tree = (element, self.tree_base_case_check(left_ele), self.tree_base_case_check(right_ele))
-            return self.tree
+            elif indexplus == -1 and indexmin == -1:
+                element = 'NO'
+            if element == '+' or element == '-':
+                left_ele = side[:index]
+                right_ele = side[index+1:]
+                self.tree = (element, self.tree_base_case_check(left_ele), self.tree_base_case_check(right_ele))
+                return self.tree
 
         if '/' in side or '*' in side:
             indexdiv = side.rfind('/')
@@ -224,5 +226,5 @@ class Calculator:
 
 if __name__ == '__main__':
     ctr = Calculator()
-    ctr.eqn = '2+x*3=1'
+    ctr.eqn = '-1/x=20'
     ctr.run()
