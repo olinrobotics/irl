@@ -10,7 +10,7 @@ RUN IT AS $rosrun edwin math_interp.py
 
 NEXT STEP:
 figure out NEGATIVES
-figure out how to change 2x to 2*x
+
 '''
 from __future__ import division
 # import rospy
@@ -59,6 +59,8 @@ class Calculator:
         for variable in self.variable_list:
             if variable in eqn:
                 self.variable = variable
+                break
+        eqn = self.parse_var_mul(eqn)
         self.initialize_tree(eqn)
         self.rsstring = self.tree_to_string(self.rstree)
         self.lsstring = self.tree_to_string(self.lstree)
@@ -81,9 +83,8 @@ class Calculator:
         operation present, keep processsing and return the processed (tree'd)
         side. If not, return itself.'''
         side_string = str(side)
-        for element in side_string[1:]:
-            if element in self.operator_list:
-                return self.build_tree(side)
+        if any(digit in self.operator_list for digit in side_string) and side_string[0] != '-':
+            return self.build_tree(side)
         return side
 
     def build_tree(self, side):
@@ -92,6 +93,23 @@ class Calculator:
         print(side)
         if self.variable not in side:
             return str(eval(side))
+        if ('-' in side and side.find('-') != 0) or '+' in side:
+            indexplus = side.rfind('+')
+            indexmin = side.rfind('-')
+            if indexmin != -1 and side[indexmin-1] in self.operator_list:
+                indexmin = side[:indexmin].rfind('-')
+                return self.tree
+            if indexmin > indexplus:
+                index = indexmin
+                element = '-'
+            else:
+                index = indexplus
+                element = '+'
+            left_ele = side[:index]
+            right_ele = side[index+1:]
+            self.tree = (element, self.tree_base_case_check(left_ele), self.tree_base_case_check(right_ele))
+            return self.tree
+
         if '/' in side or '*' in side:
             indexdiv = side.rfind('/')
             indexmul = side.rfind('*')
@@ -104,21 +122,8 @@ class Calculator:
             left_ele = side[:index]
             right_ele = side[index+1:]
             self.tree = (element, self.tree_base_case_check(left_ele), self.tree_base_case_check(right_ele))
+            return self.tree
 
-        if ('-' in side and side.find('-') != 0 and side[indexmin-1] not in self.operator_list) or '+' in side:
-            indexplus = side.rfind('+')
-            indexmin = side.rfind('-')
-            # if side[indexmin-1] in self.operator_list:
-            #     indexmin = side[:indexmin].rfind('-')
-            if indexmin > indexplus:
-                index = indexmin
-                element = '-'
-            else:
-                index = indexplus
-                element = '+'
-            left_ele = side[:index]
-            right_ele = side[index+1:]
-            self.tree = (element, self.tree_base_case_check(left_ele), self.tree_base_case_check(right_ele))
         print(self.tree)
         return self.tree
 
@@ -146,10 +151,10 @@ class Calculator:
         elif self.side_w_variable == 'right':
             vt_vs_nvt_nvs = [self.rstree, self.rsstring, self.lstree, self.lsstring]
 
-        if type(vt_vs_nvt_nvs[0][1]) == str:
+        if self.variable in vt_vs_nvt_nvs[0][2]:
             mov_idx = 1
             keep_idx = 2
-        elif type(vt_vs_nvt_nvs[0][2]) == str:
+        elif self.variable in vt_vs_nvt_nvs[0][1]:
             mov_idx = 2
             keep_idx = 1
 
@@ -184,19 +189,13 @@ class Calculator:
         var_side_tree = var_side_tree[keep_idx]
         return var_side_tree, non_var_str
 
-    def parse_negs_and_mul(self, raw_eqn):
-        if '-' in raw_eqn:
-            index = raw_eqn.find('-')
-            if (index == 0 and raw_eqn[index+1] in self.integer_list) or raw_eqn[index-1] in self.operator_list:
-                print('I hit this point')
-                raw_eqn = raw_eqn[0:index] + '-1*' + raw_eqn[index+1:]
-                raw_eqn = self.parse_negs_and_mul(raw_eqn)
+    def parse_var_mul(self, raw_eqn):
         for digit in raw_eqn:
             if digit == self.variable:
                 index = raw_eqn.find(digit)
-                if type(raw_eqn[index-1]) == int:
+                if raw_eqn[index-1] in self.integer_list:
                     raw_eqn = raw_eqn[0:index] + '*' + raw_eqn[index:]
-                    raw_eqn = self.parse_negs_and_mul(raw_eqn)
+                    raw_eqn = self.parse_var_mul(raw_eqn)
         return raw_eqn
 
     def check_triviality(self, answer):
@@ -214,8 +213,8 @@ class Calculator:
         # while not rospy.is_shutdown():
         if self.check_triviality(self.eqn) == 1:
             self.initialize_algebra(self.eqn)
+            print(self.tree)
             # prev_answer = answer
-            # print(self.parse_negs_and_mul(self.eqn))
             while self.rstree != self.variable and self.lsstring != self.variable:
                 self.solve_algebra()
             print(str(self.rsstring) + '=' + str(self.lsstring))
@@ -225,5 +224,5 @@ class Calculator:
 
 if __name__ == '__main__':
     ctr = Calculator()
-    ctr.eqn = 'x*-2=2'
+    ctr.eqn = '2+x*3=1'
     ctr.run()
