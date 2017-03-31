@@ -56,6 +56,9 @@ class Clusters():
         # score = metrics.accuracy_score(y_true=y_true, y_pred=y_pred)
         # return score
 
+    def print_data_set(self):
+        print(self.data_set)
+
 
 if __name__ == "__main__":
     clusters_kmeans = Clusters()
@@ -63,4 +66,5 @@ if __name__ == "__main__":
     clusters_random = Clusters(init='random')
     clusters_random.bench_k_means()
     # print(clusters_kmeans.get_cluster_centers())
-    print(clusters_kmeans.check_accuracy(clusters_kmeans.data))
+    # print(clusters_kmeans.check_accuracy(clusters_kmeans.data))
+    clusters_kmeans.print_data_set()

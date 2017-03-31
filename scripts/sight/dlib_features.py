@@ -9,7 +9,6 @@ import cv2
 import dlib
 import glob
 from skimage import io
-import numpy as np
 
 from time import sleep
 from std_msgs.msg import String
@@ -52,7 +51,7 @@ class FaceDetect:
 
         self.debug = False
 
-        # sleep(2)
+        sleep(2)
 
     # converts ros message to numpy
     def img_callback(self, data):
@@ -76,6 +75,7 @@ class FaceDetect:
 
             xlist = []
             ylist = []
+            landmarks = []
 
             # For each point, draw a red circle with thickness2 on
             # the original frame
@@ -95,14 +95,9 @@ class FaceDetect:
 
             # Store all landmarks in one list in the format x1,y1,x2,y2,etc.
             if return_type == 'list':
-                landmarks = []
                 for x, y in zip(xlist, ylist):
                     landmarks.append(x)
                     landmarks.append(y)
-            elif return_type == 'nparray':
-                landmarks = np.array()
-                for x, y in zip(xlist, ylist):
-                    landmarks.append([x, y])
         if len(detections) > 0:
             return landmarks
         # If no faces are detected, return error message to other function to
