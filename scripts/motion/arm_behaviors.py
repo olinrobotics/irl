@@ -105,16 +105,19 @@ class ArmBehaviors:
         self.behaviors["bored"] = "SPD: 400, R_bored, R_stare_away"
 
         ###################               Simon Says actions           #####################
-        self.behaviors["turn_around"] = "SPD: 1000, R_turn_around"
-        # self.behaviors['touch_head'] = "touch_head; "
-        # self.behaviors['rub_tummy'] = "rub_tummy; "
-        # self.behaviors['high5_sel'] = "high5_self; "
-        # self.behaviors['hug_self'] = "hug_self; "
-        # self.behaviors['clap_hands'] = "clap_hands; "
-        # self.behaviors['flex_muscles'] = "flex_muscles; "
-        # self.behaviors['hands_up'] = "hands_up; "
-        # self.behaviors['disco'] = "disco; "
-        # self.behaviors['bow'] = "bow; "
+        # self.behaviors['touch_head'] = " "
+        # self.behaviors['high5_self'] = " "
+        # self.behaviors['hug_self'] = " "
+        # self.behaviors['dab'] = " "
+        self.behaviors['starfish'] = "SPD: 700, R_starfish"
+        self.behaviors['bow'] = "SPD: 500, R_bow "
+        #self.behaviors['heart'] = " "
+
+        # self.behaviors['wave'] = "R_wave"
+        # self.behaviors['disco'] = " "
+        self.behaviors['rub_tummy'] = "R_rub_tummy"
+
+
 
         self.behaviors["gloat"] = "H: 1000	, WR: 1700, SPD: 400, R_laugh "
         self.behaviors["done_game"] = "SPD: 600, R_done_game"

@@ -62,16 +62,11 @@ class RouteCreator:
         self.route_dictionary["R_sleep"] = "R_sleep; 0, 1891, 1732, 48, 0, 0"
 
         ###################               Simon Says actions           #####################
-        self.route_dictionary["R_turn_around"] = "R_turn_around; 3207, 422, 3012, 109, 225, 0, -3207, 422, 3012, 109, 225, 0, 3207, 422, 3012, 109, 225, 0, 2564, 1974, 3013, 110, 225, 0"
-        # self.route_dictionary['R_touch_head'] = "R_touch_head; "
-        # self.route_dictionary['R_rub_tummy'] = "R_rub_tummy; "
-        # self.route_dictionary['R_high5_sel'] = "R_high5_self; "
-        # self.route_dictionary['R_hug_self'] = "R_hug_self; "
-        # self.route_dictionary['R_clap_hands'] = "R_clap_hands; "
-        # self.route_dictionary['R_flex_muscles'] = "R_flex_muscles; "
-        # self.route_dictionary['R_hands_up'] = "R_hands_up; "
-        # self.route_dictionary['R_disco'] = "R_disco; "
-        # self.route_dictionary['R_bow'] = "R_bow; "
+
+        self.route_dictionary['R_starfish'] = "R_starfish; 1497, 998, 2002, 509, 150, 0, 117, 82, 7497, -877, 210, 0"
+        self.route_dictionary["R_bow"] = "R_bow; 1697, 1199, 4999, -374, 210, 0, 3698, 2999, 0, 655, 150, 0"
+        self.route_dictionary["R_rub_tummy"] = "R_rub_tummy; 245, 2439, 390, 1151, 240, 21, 275, 2774, 610, 1208, 240, 21, 245, 2439, 390, 1151, 240, 21, 275, 2774, 610, 1208, 240, 21, 245, 2439, 390, 1151, 240, 21, 275, 2774, 610, 1208, 240, 21, 245, 2439, 390, 1151, 240, 21"
+        # self.route_dictionary["R_disco"] = "R_disco; "
 
         self.route_dictionary['R_get_set'] = "R_get_set; 3498, 1999, 1999, -32, 180, 0"
         self.route_dictionary['R_done_game'] = "R_done_game; 2488, 1917, 4809, 281, 150, 0, 2099, 1617, 2651, 600, 150, 0"
