@@ -4,13 +4,10 @@ math_interp.py
 Purpose: input a string that is a math equation, output solution
 Author: Hannah Kolano
 hannah.kolano@students.olin.edu
-HANNAH
-MAKE SURE ROSCORE IS RUNNING
-RUN IT AS $rosrun edwin math_interp.py
 
-NEXT STEP:
-parenthesis
-squared
+NEXT STEPS:
+parenthesis (can't deal with more than one set of parenthesis, maybe make self.par a list?)
+square root
 sin/cos
 documentation
 '''
@@ -43,16 +40,18 @@ class Calculator:
     def solve_simple(self, eqn):
         '''solves a simple expression'''
         eqn = self.removes_equals(eqn)
+        if '^' in eqn:
+            eqn = eqn[:eqn.find('^')] + '**' + eqn[eqn.find('^')+1:]
         answer = eval(eqn)
         if type(answer) == float:
             answer = "{0:.2f}".format(answer)
-        return answer
+        return str(answer)
 
     def removes_equals(self, eqn):
         '''if there is an = at the end, removes it'''
         if eqn[-1] == '=':
-            data = eqn[0:-1]
-        return data
+            eqn = eqn[0:-1]
+        return eqn
 
     def initialize_algebra(self, eqn):
         '''solves algebra'''
@@ -83,6 +82,8 @@ class Calculator:
         operation present, keep processsing and return the processed (tree'd)
         side. If not, return itself.'''
         side_string = str(side)
+        if side_string == 'p':
+            return self.build_tree(self.par)
         if any(digit in self.operator_list for digit in side_string[1:]):
             return self.build_tree(side)
         return side
@@ -91,8 +92,14 @@ class Calculator:
         '''take in a side of an equation, create a tree with the
         operations as nodes, returns that tree.'''
         print(side)
-        if self.variable not in side:
-            return str(eval(side))
+        if self.variable not in side and 'p' not in side:
+            return self.solve_simple(side)
+        if '(' in side:
+            l_par, r_par = side.find('('), side.find(')')
+            self.par = side[l_par+1:r_par]
+            new_eqn = side[:l_par] + 'p' + side[r_par+1:]
+            self.tree = self.tree_base_case_check(new_eqn)
+            return self.tree
         if ('-' in side and side.rfind('-') != 0) or '+' in side:
             indexplus = side.rfind('+')
             indexmin = side.rfind('-')
@@ -144,10 +151,10 @@ class Calculator:
             elif type(tree[1]) == tuple and type(tree[2]) == str:
                 equation_string = self.tree_to_string(tree[1]) + tree[0] + tree[2]
             elif type(tree[1]) == str and type(tree[2]) == str:
-                equation_string = tree[1] + tree[0] + tree[2]
+                equation_string = '(' + tree[1] + tree[0] + tree[2] + ')'
             elif type(tree[1]) == tuple and type(tree[2]) == tuple:
                 equation_string = self.tree_to_string(tree[1]) + tree[0] + self.tree_to_string(tree[2])
-        elif type(tree) == str:
+        else:
             equation_string = tree
         return equation_string
 
@@ -159,10 +166,10 @@ class Calculator:
         elif self.side_w_variable == 'right':
             vt_vs_nvt_nvs = [self.rstree, self.rsstring, self.lstree, self.lsstring]
 
-        if self.variable in vt_vs_nvt_nvs[0][2]:
+        if self.variable in str(vt_vs_nvt_nvs[0][2]):
             mov_idx = 1
             keep_idx = 2
-        elif self.variable in vt_vs_nvt_nvs[0][1]:
+        elif self.variable in str(vt_vs_nvt_nvs[0][1]):
             mov_idx = 2
             keep_idx = 1
 
@@ -212,6 +219,7 @@ class Calculator:
     def parse_var_mul(self, raw_eqn):
         '''if there is a variable with a coefficient, put a multiplication
         sign between them'''
+        counter = 0
         for digit in raw_eqn:
             if digit == self.variable:
                 index = raw_eqn.find(digit)
@@ -235,16 +243,19 @@ class Calculator:
         # while not rospy.is_shutdown():
         if self.check_triviality(self.eqn) == 1:
             self.initialize_algebra(self.eqn)
-            print(self.tree)
+            # print(self.tree)
             # prev_answer = answer
-            while self.rstree != self.variable and self.lsstring != self.variable:
+            while self.rsstring != self.variable and self.lsstring != self.variable:
                 self.solve_algebra()
-            print(str(self.rsstring) + '=' + str(self.lsstring))
+                if self.rsstring == self.variable:
+                    print(str(self.rsstring) + '=' + str(round(self.lsstring, 1)))
+                if self.lsstring == self.variable:
+                    print(str(self.lsstring) + '=' + str(round(self.rsstring, 1)))
             # if answer != prev_answer:
             #     print(answer)
 
 
 if __name__ == '__main__':
     ctr = Calculator()
-    ctr.eqn = '7^2=x'
+    ctr.eqn = '2*(1+x)^3=64'
     ctr.run()
