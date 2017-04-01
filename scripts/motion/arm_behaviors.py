@@ -78,6 +78,9 @@ class ArmBehaviors:
 
 
     def create_behaviors(self):
+
+        ###################               General actions           #####################
+
         self.behaviors["happy_butt_wiggle"] = "R_curl_up, WA: 4500, WA: 5400, WA: 4500, WA: 5400, WA: 4500, WA: 5400, SL: .5, R_look"
         self.behaviors["curiosity"] =  "R_curious, WR: 800, H: 0"
         self.behaviors["greet"] = "R_greet1, WR:1500, H: 100, H: 0"
@@ -97,10 +100,15 @@ class ArmBehaviors:
         self.behaviors["idle_head_bobble"] = "R_head_bobble, R_look"
         self.behaviors["idle_wander"] = "R_squirrel, SL: 1, SPD: 300, R_follow_squirrel, SL: 1, SPD: 500, R_look"
         self.behaviors["idle_spin"] = "R_spin_position, WA: -17000, WA: 17000, WA: 5000, R_look"
-        # self.behaviors["pout"] = "R_disbelief, SL: 1, R_pout, WA: -7500, WA: -6500, WA: -7500, WA: -6500, R_look_back, R_pout, WA: -7500, WA: -6500, WA: -7500, WA: -6500, R_look"
         self.behaviors["pout"] = "R_sad_turn, WA: -1000, WA: 1000"
         self.behaviors["impatient"] = "WA: 250, WA: -250, WA: 250, WA: -250, WA: 0, SPD: 700, R_impatient, SL: 1, R_annoyed_nudge"
         self.behaviors["bored"] = "SPD: 400, R_bored, R_stare_away"
+
+        ###################               Simon Says actions           #####################
+        self.behaviors["gloat"] = "H: 1000	, WR: 1700, SPD: 350, R_laugh, SPD: 500, R_pretentious_look, WR: 500, SL: 1, WR: 700, SL: 1, WR: 900, SL: 1, WR: 1100"
+        self.behaviors["done_game"] = "SPD: 7000, R_done_game_1, SPD: 5000, R_done_game_2"
+        # self.behaviors["turn_around"] = " "
+        # self.behaviors["bow"] = " "
 
         rospack = rospkg.RosPack()
         PACKAGE_PATH = rospack.get_path("edwin")
@@ -141,10 +149,4 @@ if __name__ == '__main__':
     idle_head_bobble
     """
     behavior_eng = ArmBehaviors()
-    # behavior_eng.run_once("greet")
-
-    # behavior_eng.run_once("sad")
-    # behavior_eng.run_once("impatient")
-
     behavior_eng.run()
-    # behavior_eng.loop_all()
