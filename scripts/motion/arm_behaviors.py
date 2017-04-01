@@ -105,16 +105,16 @@ class ArmBehaviors:
         self.behaviors["bored"] = "SPD: 400, R_bored, R_stare_away"
 
         ###################               Simon Says actions           #####################
-        # self.behaviors['touch_head'] = " "
-        # self.behaviors['high5_self'] = " "
-        # self.behaviors['hug_self'] = " "
-        # self.behaviors['dab'] = " "
+        self.behaviors['touch_head'] = "SPD: 600, R_touch_head "
+        self.behaviors['high5_self'] = "R_high5_self "
+        self.behaviors['hug_self'] = "SPD: 600, R_hug_self"
+        self.behaviors['dab'] = "R_dab"
         self.behaviors['starfish'] = "SPD: 700, R_starfish"
         self.behaviors['bow'] = "SPD: 500, R_bow "
-        #self.behaviors['heart'] = " "
+        self.behaviors['heart'] = "R_heart"
 
-        # self.behaviors['wave'] = "R_wave"
-        # self.behaviors['disco'] = " "
+        self.behaviors['wave'] = "R_wave"
+        self.behaviors['disco'] = "SPD: 800, R_disco"
         self.behaviors['rub_tummy'] = "R_rub_tummy"
 
 

@@ -1,130 +1,150 @@
 (dp0
-S'curiosity'
+S'heart'
 p1
-S'R_curious, WR: 800, H: 0'
+S'R_heart'
 p2
-sS'sad'
+sS'curiosity'
 p3
-S'SPD: 400, R_sad'
+S'R_curious, WR: 800, H: 0'
 p4
-sS'sleep'
-p5
-S'R_sleep'
-p6
-sS'laugh'
-p7
-S'SPD: 700, R_laugh, SPD: 1000'
-p8
-sS'idle_3_lookaround'
-p9
-S'R_3_lookaround, WR: 0, SL: .5, WR: 800'
-p10
-sS'idle_spin'
-p11
-S'R_spin_position, WA: -17000, WA: 17000, WA: 5000, R_look'
-p12
-sS'nudge'
-p13
-S'R_look, H:0, H:-200, R_look'
-p14
-sS'angry'
-p15
-S'SPD: 200, R_stare, SPD: 1000'
-p16
-sS'idle_butt_wiggle'
-p17
-S'R_scrunch_up, WA: 1250, WA: 750, WA: 1250, WA: 750'
-p18
-sS'idle_2_lookaround'
-p19
-S'H: 0, R_2_lookaround'
-p20
-sS'leader'
-p21
-S'R_leader'
-p22
-sS'get_set'
-p23
-S'SPD:600, R_get_set'
-p24
-sS'starfish'
-p25
-S'SPD: 700, R_starfish'
-p26
-sS'rub_tummy'
-p27
-S'R_rub_tummy'
-p28
-sS'nod'
-p29
-S'R_stare, E:13000, E:12000'
-p30
-sS'idle_sniff'
-p31
-S'R_1_sniff, SPD: 1000, R_2_sniff, R_look'
-p32
 sS'wave'
-p33
+p5
 S'R_wave'
+p6
+sS'sad'
+p7
+S'SPD: 400, R_sad'
+p8
+sS'sleep'
+p9
+S'R_sleep'
+p10
+sS'laugh'
+p11
+S'SPD: 700, R_laugh, SPD: 1000'
+p12
+sS'disco'
+p13
+S'SPD: 800, R_disco'
+p14
+sS'idle_3_lookaround'
+p15
+S'R_3_lookaround, WR: 0, SL: .5, WR: 800'
+p16
+sS'idle_spin'
+p17
+S'R_spin_position, WA: -17000, WA: 17000, WA: 5000, R_look'
+p18
+sS'nudge'
+p19
+S'R_look, H:0, H:-200, R_look'
+p20
+sS'starfish'
+p21
+S'SPD: 700, R_starfish'
+p22
+sS'angry'
+p23
+S'SPD: 200, R_stare, SPD: 1000'
+p24
+sS'idle_butt_wiggle'
+p25
+S'R_scrunch_up, WA: 1250, WA: 750, WA: 1250, WA: 750'
+p26
+sS'idle_2_lookaround'
+p27
+S'H: 0, R_2_lookaround'
+p28
+sS'leader'
+p29
+S'R_leader'
+p30
+sS'get_set'
+p31
+S'SPD:600, R_get_set'
+p32
+sS'dab'
+p33
+S'R_dab'
 p34
-sS'idle_look_distance'
+sS'rub_tummy'
 p35
-S'R_look_distance, SL: 1, WR: 1500, SL: .5, WR: 2300, R_look'
+S'R_rub_tummy'
 p36
-sS'gloat'
+sS'nod'
 p37
-S'H: 1000\t, WR: 1700, SPD: 400, R_laugh '
+S'R_stare, E:13000, E:12000'
 p38
-sS'idle_head_bobble'
+sS'idle_sniff'
 p39
-S'R_head_bobble, R_look'
+S'R_1_sniff, SPD: 1000, R_2_sniff, R_look'
 p40
-sS'happy_butt_wiggle'
+sS'hug_self'
 p41
-S'R_curl_up, WA: 4500, WA: 5400, WA: 4500, WA: 5400, WA: 4500, WA: 5400, SL: .5, R_look'
+S'SPD: 600, R_hug_self'
 p42
-sS'idle_1_lookaround'
+sS'idle_look_distance'
 p43
-S'R_1_lookaround'
+S'R_look_distance, SL: 1, WR: 1500, SL: .5, WR: 2300, R_look'
 p44
-sS'look'
+sS'gloat'
 p45
-S'R_look'
+S'H: 1000\t, WR: 1700, SPD: 400, R_laugh '
 p46
-sS'bored'
+sS'idle_head_bobble'
 p47
-S'SPD: 400, R_bored, R_stare_away'
+S'R_head_bobble, R_look'
 p48
-sS'idle_yawn'
+sS'happy_butt_wiggle'
 p49
-S'SPD: 500, R_yawn, SL: .5, SPD: 500, R_slouch, SL: 1, R_look'
+S'R_curl_up, WA: 4500, WA: 5400, WA: 4500, WA: 5400, WA: 4500, WA: 5400, SL: .5, R_look'
 p50
-sS'pout'
+sS'idle_1_lookaround'
 p51
-S'R_sad_turn, WA: -1000, WA: 1000'
+S'R_1_lookaround'
 p52
-sS'greet'
+sS'look'
 p53
-S'R_greet1, WR:1500, H: 100, H: 0'
+S'R_look'
 p54
-sS'bow'
+sS'bored'
 p55
-S'SPD: 500, R_bow '
+S'SPD: 400, R_bored, R_stare_away'
 p56
-sS'impatient'
+sS'idle_yawn'
 p57
-S'WA: 250, WA: -250, WA: 250, WA: -250, WA: 0, SPD: 700, R_impatient, SL: 1, R_annoyed_nudge'
+S'SPD: 500, R_yawn, SL: .5, SPD: 500, R_slouch, SL: 1, R_look'
 p58
-sS'praise'
+sS'pout'
 p59
-S'SPD: 1000, R_praise'
+S'R_sad_turn, WA: -1000, WA: 1000'
 p60
-sS'done_game'
+sS'greet'
 p61
-S'SPD: 600, R_done_game'
+S'R_greet1, WR:1500, H: 100, H: 0'
 p62
-sS'idle_wander'
+sS'bow'
 p63
-S'R_squirrel, SL: 1, SPD: 300, R_follow_squirrel, SL: 1, SPD: 500, R_look'
+S'SPD: 500, R_bow '
 p64
+sS'impatient'
+p65
+S'WA: 250, WA: -250, WA: 250, WA: -250, WA: 0, SPD: 700, R_impatient, SL: 1, R_annoyed_nudge'
+p66
+sS'praise'
+p67
+S'SPD: 1000, R_praise'
+p68
+sS'touch_head'
+p69
+S'SPD: 600, R_touch_head '
+p70
+sS'done_game'
+p71
+S'SPD: 600, R_done_game'
+p72
+sS'idle_wander'
+p73
+S'R_squirrel, SL: 1, SPD: 300, R_follow_squirrel, SL: 1, SPD: 500, R_look'
+p74
 s.
