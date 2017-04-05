@@ -9,6 +9,7 @@ import cv2
 import dlib
 import glob
 from skimage import io
+import numpy as np
 
 from time import sleep
 from std_msgs.msg import String
@@ -75,7 +76,6 @@ class FaceDetect:
 
             xlist = []
             ylist = []
-            landmarks = []
 
             # For each point, draw a red circle with thickness2 on
             # the original frame
@@ -95,9 +95,14 @@ class FaceDetect:
 
             # Store all landmarks in one list in the format x1,y1,x2,y2,etc.
             if return_type == 'list':
+                landmarks = []
                 for x, y in zip(xlist, ylist):
                     landmarks.append(x)
                     landmarks.append(y)
+            if return_type == 'nparray':
+                landmarks = []
+                for i in range(len(xlist)-1):
+                    landmarks.append([xlist[i], ylist[i]])
         if len(detections) > 0:
             return landmarks
         # If no faces are detected, return error message to other function to

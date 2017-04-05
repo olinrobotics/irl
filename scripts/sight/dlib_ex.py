@@ -100,9 +100,13 @@ class FaceDetect:
                     landmarks.append(x)
                     landmarks.append(y)
             elif return_type == 'nparray':
-                landmarks = np.array()
-                for x, y in zip(xlist, ylist):
-                    landmarks.append([x, y])
+                landmarks = np.zeros((68, 2))
+                for i in range(68):
+                    x = xlist[i]
+                    y = ylist[i]
+                    print('i', i)
+                    print('x', x)
+                    print('y', y)
         if len(detections) > 0:
             return landmarks
         # If no faces are detected, return error message to other function to
