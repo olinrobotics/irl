@@ -168,13 +168,11 @@ class HandwritingRecognition:
         elif (code == 'dot'): return ord('.')
         elif (len(code) == 1): return ord(code)
 
+
     def train_svm(self):
         '''DOCSTRING
-            DESC: Initializes, Parametrizes, and provides training data to SVM
-            ARGS:
-            self - HandwritingRecognition object - self-referential
-            RTRN: none
-            SHOW: creates and trains SVM at self.SVM
+            Initializes, sets parameters/data for, and trains SVM to
+            distinguish between chars in provided test data
             '''
 
         # Sets parameters of svm to use
@@ -190,18 +188,13 @@ class HandwritingRecognition:
         self.SVM = cv2.SVM()
         self.SVM.train(train_data,data_labels,params=svm_params)
 
-        # Returns a list of image Regions Of Interest(ROIs) (20x20) corresponding to digits found in the image
 
     def process_digits(self,test_data,detect_words = False):
-        '''
-            DESC: Straightens and cleans up contours gleaned from test data
-            ARGS:
-            self - HandWriting object - reference to current object
-            test_data - list - collection of symbols from data set
-            detect_words - boolean - represents whether or not words are
-            detected
-            RTRN: Newly processed digits
-            '''
+        '''DOCSTRING
+            Given raw contour data from an image and boolean representing
+            whether or not to detect words, returns a 20x20 list of ROIs
+            corresponding to digits found in the image'''
+
         if len(test_data) != 0:
             # Prepares input data for processing
             reshape_data = np.float32([char.HOG for char in test_data]).reshape(-1,64)
@@ -231,7 +224,6 @@ class HandwritingRecognition:
                 for roi in self.chars:
                     cv2.putText(self.frame,chr(int(roi.result)),(roi.x,roi.y+roi.h) \
                                 ,cv2.FONT_HERSHEY_SIMPLEX, 4,(0,255,0))
-            print(detect_words)
             if detect_words:
                 self.detect_new_word(test_data)
             else:
@@ -345,11 +337,11 @@ class HandwritingRecognition:
         if word == self.curr_data: # If the current and prev words match
             # The word must remain consistent for 2 seconds
             if time.time() - self.last_time > 2 and self.found_word == False:
-                # We found a new word
                 self.last_word = word
                 self.found_word = True
                 self.pub.publish(word)
                 return word
+
         else: # A new word is found, reset the timer
             self.last_time = time.time()
             self.curr_data = word
