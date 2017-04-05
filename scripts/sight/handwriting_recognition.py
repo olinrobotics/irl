@@ -24,7 +24,6 @@ class HandwritingRecognition:
         MTDS:
         nothing - empty callback function for commands that require a callback function but don't need to perform an action
         __init__ - initializes HandwritingRecognition object
-        test_ocr - tests the created SVM against a set of known data to determine accuracy (outdated)
         img_callback - runs every time an image is recieved from the rostopic usb_cam
         process_data_svm
         decode_file
@@ -34,6 +33,7 @@ class HandwritingRecognition:
 
     def nothing(x): # empty callback function to pass as parameter
         pass
+
 
     def __init__(self, init_param=False):
         '''DOCSTRING
@@ -65,10 +65,10 @@ class HandwritingRecognition:
 
         # Builds window to view and control output
         cv2.namedWindow('image')
-        cv2.createTrackbar('X','image',0,255,self.nothing)
-        cv2.setTrackbarPos('X','image',255)
-        cv2.createTrackbar('Y','image',0,255,self.nothing)
-        cv2.setTrackbarPos('Y','image',7)
+        # cv2.createTrackbar('X','image',0,255,self.nothing)
+        # cv2.setTrackbarPos('X','image',255)
+        # cv2.createTrackbar('Y','image',0,255,self.nothing)
+        # cv2.setTrackbarPos('Y','image',7)
         self.test_data = np.zeros((200,200),np.uint8)
         self.test_filled = 0
         # print os.getcwd()
@@ -79,31 +79,6 @@ class HandwritingRecognition:
         self.curr_data = ''
         self.found_word = False
 
-    def test_ocr(self):
-        '''
-            DESC: Compares Support Vector Machine(SVM)-guessed set against
-            training data to determine accuracy of Optical Character Recognition
-            (OCR)
-            ARGS: self - reference to current HR object
-            RETURNS: none
-            SHOWS: prints accuracy of the SVM
-            '''
-        labels = []
-        # Prepares the labels from the text file
-        with open(self.PARAMS_PATH + '/params/train_data.txt', 'r') as test_data:
-            open_reader = csv.reader(test_data)
-            for line in open_reader:
-                labels.append(ord(line[0])) # adds label to list labels per line
-
-        test_img = cv2.imread(self.PARAMS_PATH + '/params/test_data.png') # reads image, saves as test_img
-        cells = [np.hsplit(row,10) for row in np.vsplit(test_img,10)] #
-        hogdata = [map(Process.hog,row) for row in cells]
-        test_data = np.float32(hogdata).reshape(-1,64)
-        result = [int(res) for res in self.SVM.predict_all(test_data)]
-        # Compares predicted with actual results
-        matches = [i for i, j in zip(result, labels) if i == j]
-        accuracy = len(matches)
-        print('Accuracy: ', accuracy)
 
     def img_callback(self, data):
         '''
@@ -119,6 +94,7 @@ class HandwritingRecognition:
             self.curr_frame = self.bridge.imgmsg_to_cv2(data, "bgr8")
         except CvBridgeError as e:
             print(e)
+
 
     def process_data_svm(self):
         '''DOCSTRING
@@ -149,16 +125,11 @@ class HandwritingRecognition:
 
         # Train the SVM neural network to recognize characters
 
+
     def decode_file(self, code):
         '''DOCSTRING
-            DESC: Translates file name (part before .png) into Unicode index
-            for the character represented by the file name. Used to get around
-            the inability to name files with symbols such as /,-,
-            *, etc.
-            ARGS:
-            self - HandWriting object - reference to current object
-            code - string - file name up to, but not including, .png
-            RTRN: string directly representing character
+            Given a file name to decode, returns char to which file name
+            corresponds
             '''
         if (code == 'mlt'): return ord('*')
         elif (code == 'dvd'): return ord('/')
@@ -168,13 +139,11 @@ class HandwritingRecognition:
         elif (code == 'dot'): return ord('.')
         elif (len(code) == 1): return ord(code)
 
+
     def train_svm(self):
         '''DOCSTRING
-            DESC: Initializes, Parametrizes, and provides training data to SVM
-            ARGS:
-            self - HandwritingRecognition object - self-referential
-            RTRN: none
-            SHOW: creates and trains SVM at self.SVM
+            Initializes, sets parameters/data for, and trains SVM to
+            distinguish between chars in provided test data
             '''
 
         # Sets parameters of svm to use
@@ -190,18 +159,13 @@ class HandwritingRecognition:
         self.SVM = cv2.SVM()
         self.SVM.train(train_data,data_labels,params=svm_params)
 
-        # Returns a list of image Regions Of Interest(ROIs) (20x20) corresponding to digits found in the image
 
     def process_digits(self,test_data,detect_words = False):
-        '''
-            DESC: Straightens and cleans up contours gleaned from test data
-            ARGS:
-            self - HandWriting object - reference to current object
-            test_data - list - collection of symbols from data set
-            detect_words - boolean - represents whether or not words are
-            detected
-            RTRN: Newly processed digits
-            '''
+        '''DOCSTRING
+            Given raw contour data from an image and boolean representing
+            whether or not to detect words, returns a 20x20 list of ROIs
+            corresponding to digits found in the image'''
+
         if len(test_data) != 0:
             # Prepares input data for processing
             reshape_data = np.float32([char.HOG for char in test_data]).reshape(-1,64)
@@ -231,11 +195,11 @@ class HandwritingRecognition:
                 for roi in self.chars:
                     cv2.putText(self.frame,chr(int(roi.result)),(roi.x,roi.y+roi.h) \
                                 ,cv2.FONT_HERSHEY_SIMPLEX, 4,(0,255,0))
-            print(detect_words)
             if detect_words:
                 self.detect_new_word(test_data)
             else:
                 return test_data
+
 
     def resolve_symbols(self, dot_contours,line_contours,dash_contours): # Currently sorts: i,!,l,=,/,
         '''DOCSTRING
@@ -333,6 +297,7 @@ class HandwritingRecognition:
 
         return final_contours
 
+
     def detect_new_word(self,char_list):
         '''DOCSTRING
             Given a list of characters, sorts the list and makes sure that the
@@ -345,11 +310,11 @@ class HandwritingRecognition:
         if word == self.curr_data: # If the current and prev words match
             # The word must remain consistent for 2 seconds
             if time.time() - self.last_time > 2 and self.found_word == False:
-                # We found a new word
                 self.last_word = word
                 self.found_word = True
                 self.pub.publish(word)
                 return word
+
         else: # A new word is found, reset the timer
             self.last_time = time.time()
             self.curr_data = word
@@ -445,7 +410,6 @@ class HandwritingRecognition:
             '''
 
         chars.sort(key = lambda roi: roi.x)
-        print(chars)
         word = ''.join([chr(item.result) for item in chars])
 
 
@@ -454,7 +418,6 @@ class HandwritingRecognition:
         time.sleep(2)
         self.process_data_svm()
         self.train_svm()
-        #self.test_ocr() # print accuracy of current OCR
         while not rospy.is_shutdown():
             e1 = cv2.getTickCount()
             self.update_frame()
