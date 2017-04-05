@@ -112,6 +112,7 @@ class ArmBehaviors:
         self.behaviors['starfish'] = "SPD: 700, R_starfish"
         self.behaviors['bow'] = "SPD: 500, R_bow "
         self.behaviors['heart'] = "R_heart"
+        self.behaviors['high5_self'] = "SPD: 800, R_high5_self"
 
         self.behaviors['wave'] = "R_wave"
         self.behaviors['disco'] = "SPD: 800, R_disco"
