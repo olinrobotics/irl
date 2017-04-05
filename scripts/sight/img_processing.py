@@ -78,7 +78,6 @@ def get_text_roi(frame, show_window=True):
     if show_window:
         # Build an image to show all number contours
         num_len = len(chars)
-        # print '# of contours: ', num_len
         if num_len < 35 and num_len > 0:
             new_img = np.ones((20,20*num_len),np.uint8) # Creates matrix of ones
             y = 0 # counter
@@ -117,6 +116,7 @@ def hog(img):
     hists = [np.bincount(b.ravel(), m.ravel(), bin_n) for b, m in zip(bin_cells, mag_cells)]
     hist = np.hstack(hists) # hist is a 64-bit vector
     return hist
+
 
 def get_paper_region(img):
     screenCnt = None
