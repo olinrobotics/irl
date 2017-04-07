@@ -24,7 +24,6 @@ class HandwritingRecognition:
         MTDS:
         nothing - empty callback function for commands that require a callback function but don't need to perform an action
         __init__ - initializes HandwritingRecognition object
-        test_ocr - tests the created SVM against a set of known data to determine accuracy (outdated)
         img_callback - runs every time an image is recieved from the rostopic usb_cam
         process_data_svm
         decode_file
@@ -34,6 +33,7 @@ class HandwritingRecognition:
 
     def nothing(x): # empty callback function to pass as parameter
         pass
+
 
     def __init__(self, init_param=False):
         '''DOCSTRING
@@ -65,10 +65,10 @@ class HandwritingRecognition:
 
         # Builds window to view and control output
         cv2.namedWindow('image')
-        cv2.createTrackbar('X','image',0,255,self.nothing)
-        cv2.setTrackbarPos('X','image',255)
-        cv2.createTrackbar('Y','image',0,255,self.nothing)
-        cv2.setTrackbarPos('Y','image',7)
+        # cv2.createTrackbar('X','image',0,255,self.nothing)
+        # cv2.setTrackbarPos('X','image',255)
+        # cv2.createTrackbar('Y','image',0,255,self.nothing)
+        # cv2.setTrackbarPos('Y','image',7)
         self.test_data = np.zeros((200,200),np.uint8)
         self.test_filled = 0
         # print os.getcwd()
@@ -79,31 +79,6 @@ class HandwritingRecognition:
         self.curr_data = ''
         self.found_word = False
 
-    def test_ocr(self):
-        '''
-            DESC: Compares Support Vector Machine(SVM)-guessed set against
-            training data to determine accuracy of Optical Character Recognition
-            (OCR)
-            ARGS: self - reference to current HR object
-            RETURNS: none
-            SHOWS: prints accuracy of the SVM
-            '''
-        labels = []
-        # Prepares the labels from the text file
-        with open(self.PARAMS_PATH + '/params/train_data.txt', 'r') as test_data:
-            open_reader = csv.reader(test_data)
-            for line in open_reader:
-                labels.append(ord(line[0])) # adds label to list labels per line
-
-        test_img = cv2.imread(self.PARAMS_PATH + '/params/test_data.png') # reads image, saves as test_img
-        cells = [np.hsplit(row,10) for row in np.vsplit(test_img,10)] #
-        hogdata = [map(Process.hog,row) for row in cells]
-        test_data = np.float32(hogdata).reshape(-1,64)
-        result = [int(res) for res in self.SVM.predict_all(test_data)]
-        # Compares predicted with actual results
-        matches = [i for i, j in zip(result, labels) if i == j]
-        accuracy = len(matches)
-        print('Accuracy: ', accuracy)
 
     def img_callback(self, data):
         '''
@@ -119,6 +94,7 @@ class HandwritingRecognition:
             self.curr_frame = self.bridge.imgmsg_to_cv2(data, "bgr8")
         except CvBridgeError as e:
             print(e)
+
 
     def process_data_svm(self):
         '''DOCSTRING
@@ -149,31 +125,25 @@ class HandwritingRecognition:
 
         # Train the SVM neural network to recognize characters
 
+
     def decode_file(self, code):
         '''DOCSTRING
-            DESC: Translates file name (part before .png) into Unicode index
-            for the character represented by the file name. Used to get around
-            the inability to name files with symbols such as /,-,
-            *, etc.
-            ARGS:
-            self - HandWriting object - reference to current object
-            code - string - file name up to, but not including, .png
-            RTRN: string directly representing character
+            Given a file name to decode, returns char to which file name
+            corresponds
             '''
         if (code == 'mlt'): return ord('*')
         elif (code == 'dvd'): return ord('/')
+        elif (code == 'div'): return ord('\\')
         elif (code == 'pls'): return ord('+')
         elif (code == 'mns'): return ord('-')
         elif (code == 'dot'): return ord('.')
         elif (len(code) == 1): return ord(code)
 
+
     def train_svm(self):
         '''DOCSTRING
-            DESC: Initializes, Parametrizes, and provides training data to SVM
-            ARGS:
-            self - HandwritingRecognition object - self-referential
-            RTRN: none
-            SHOW: creates and trains SVM at self.SVM
+            Initializes, sets parameters/data for, and trains SVM to
+            distinguish between chars in provided test data
             '''
 
         # Sets parameters of svm to use
@@ -189,18 +159,13 @@ class HandwritingRecognition:
         self.SVM = cv2.SVM()
         self.SVM.train(train_data,data_labels,params=svm_params)
 
-        # Returns a list of image Regions Of Interest(ROIs) (20x20) corresponding to digits found in the image
 
     def process_digits(self,test_data,detect_words = False):
-        '''
-            DESC: Straightens and cleans up contours gleaned from test data
-            ARGS:
-            self - HandWriting object - reference to current object
-            test_data - list - collection of symbols from data set
-            detect_words - boolean - represents whether or not words are
-            detected
-            RTRN: Newly processed digits
-            '''
+        '''DOCSTRING
+            Given raw contour data from an image and boolean representing
+            whether or not to detect words, returns a 20x20 list of ROIs
+            corresponding to digits found in the image'''
+
         if len(test_data) != 0:
             # Prepares input data for processing
             reshape_data = np.float32([char.HOG for char in test_data]).reshape(-1,64)
@@ -221,9 +186,9 @@ class HandwritingRecognition:
             dashes = [obj for obj in self.chars if chr(obj.result) == '-']
             self.chars[:] = [val for val in self.chars if chr(val.result) != '1' \
                 and chr(val.result) != '0' and chr(val.result) != '.' and chr(val.result) != '-']
-            i_conts = self.resolve_symbols(dots,lines,dashes)
-            if len(i_conts) > 0:
-                self.chars.extend(i_conts)
+            fuzzy_conts = self.resolve_symbols(dots,lines,dashes)
+            if len(fuzzy_conts) > 0:
+                self.chars.extend(fuzzy_conts)
 
             # Prints characters on screen in location corresponding to the image
             if self.frame is not None:
@@ -235,7 +200,8 @@ class HandwritingRecognition:
             else:
                 return test_data
 
-    def resolve_symbols(self, dot_contours,line_contours,dash_contours): # Currently sorts: i,l
+
+    def resolve_symbols(self, dot_contours,line_contours,dash_contours): # Currently sorts: i,!,l,=,/,
         '''DOCSTRING
             DESC: resolves "fuzzy" symbols that are built out of smaller symbols
             ARGS:
@@ -251,13 +217,25 @@ class HandwritingRecognition:
         # Goes through vertical lines to differentiate between (i,l,1)
         for line in line_contours:
 
-            # Check for 'i' by checking each dot pos rel to line
+            # Check for 'i' and '!' by checking each dot pos rel to line
             for dot in dot_contours:
 
                 # If dot is in line along y and reasonably close in x-dir
-                if abs(line.x - dot.x) < 50 and (0 < dot.y - line.y < 150): #TODO: make limits on spacing scale with image size
+                if abs(line.x - dot.x) < 50 and (0 < line.y - dot.y < 150): #TODO: make limits on spacing scale with image size
                     line.result = ord('i')
                     dot.h += line.h
+                    dot.y = line.y
+
+                    # Remove the dot-line pair from lists left to sort
+                    line_contours[:] = [val for val in line_contours if val is not line]
+                    dot_contours[:] = [val for val in dot_contours if val is not dot]
+                    final_contours.append(line)
+                    break
+
+                # If dot is in line along y and reasonably close in x-dir
+                if abs(line.x - dot.x) < 50 and (0 < dot.y - line.y < 150): #TODO: make limits on spacing scale with image size
+                    line.result = ord('!')
+                    dot.h -= line.h
                     dot.y = line.y
 
                     # Remove the dot-line pair from lists left to sort
@@ -307,85 +285,36 @@ class HandwritingRecognition:
                             break
 
         # If no special chars, set reg chars
-        for dash in dash_contours: dash.result = ord('-')
-        for dot in dot_contours: dot.result = ord('.')
-        for line in line_contours: line.result = ord('l')
+        for dash in dash_contours:
+            dash.result = ord('-')
+            final_contours.append(dash)
+        for dot in dot_contours:
+            dot.result = ord('.')
+            final_contours.append(dot)
+        for line in line_contours:
+            line.result = ord('l')
+            final_contours.append(line)
+
         return final_contours
 
-    def resolve_letters(self,dot_contours,line_contours,dash_contours):
-        '''DOCSTRING
-            DESC: resolves "fuzzy" symbols that are built out of smaller symbols
-            ARGS:
-            self - HandwritingRecognition object - self-referential
-            dot_contours - list - list of contours classified as .
-            line_contours - list - list of contours classified as |
-            dash_contours - list - list of contours classified as -
-            RTRN: dict of contours and corresponding ASCII values
-            '''
-
-        # lists of contours into which to sort unidentified contours
-        i_contours = [] # i
-        l_contours = [] # l
-        div_contours = [] #(division sign)
-        eq_contours = [] # =
-        min_contours = [] # -
-
-        # Goes through dots to look for '/','i',or '.'
-        for dot in dot_contours:
-
-            for line in line_contours:
-
-                # If dot and line are close in x-direction and line is below dot
-                if abs(line.x - dot.x) < 50 and line.y > dot.y:
-                    dot.result = ord('i')
-                    dot.h += line.h
-                    dot.y = line.y
-
-                    # Remove the dot-line pair from our lists
-                    line_contours[:] = [val for val in line_contours if val is not line]
-                    dot_contours[:] = [val for val in dot_contours if val is not dot]
-                    i_contours.append(dot) # Add the new character to the list
-                    break
-
-            for dash in dash_contours:
-
-                # checks for dot above a dash
-                if abs(dash.x - dot.x) < 50 and dash.y < dot.y:
-                    for dot2 in dot_contours:
-                        if abs(dash.x - dot2.x) < 50 and dash.y > dot2.y:
-                            # checks for a dot below the dash-below-dot struct
-                            dot.result = ord('/')
-                            dot.h += dash.h
-                            dot.y = dash.y
-                            # Remove the dot-dash pair from our lists
-                            dash_contours[:] = [val for val in dash_contours if val is not dash]
-                            dot_contours[:] = [val for val in dot_contours if val is not dot and val is not dot2]
-                            div_contours.append(dot) # Add the new character to the list
-                            break
-        for line in line_contours: # All remaining lines must be 'l' chars
-            line.result = ord('l')
-
-        for dot in dot_contours: # All remaining dots must be '.' chars
-            dot.result = ord('.')
-        try:
-            line_contours.extend(i_contours)
-            line_contours.extend(div_contours)
-            line_contours.extend(eq_contours)
-        except AttributeError:
-            pass
-        return line_contours
 
     def detect_new_word(self,char_list):
+        '''DOCSTRING
+            Given a list of characters, sorts the list and makes sure that the
+            identified characters stay consistent for two seconds, then
+            publishes them
+            '''
+
         char_list.sort(key = lambda roi: roi.x) # Sort characters by x pos
         word = ''.join([chr(item.result) for item in char_list]) # Form a word
         if word == self.curr_data: # If the current and prev words match
             # The word must remain consistent for 2 seconds
             if time.time() - self.last_time > 2 and self.found_word == False:
-                # We found a new word
                 self.last_word = word
                 self.found_word = True
                 self.pub.publish(word)
                 return word
+
         else: # A new word is found, reset the timer
             self.last_time = time.time()
             self.curr_data = word
@@ -446,23 +375,13 @@ class HandwritingRecognition:
         #     print ' '.join([str(x.result) for x in word])
 
     def update_frame(self):
-        '''
-            DESC: update frame variable for use
-            ARGS:
-            self - HR object - refers to the current object
-            RTNS: None
-            SHOW: None
-            '''
+        '''DOCSTRING
+            updates frame with the current frame '''
         self.frame = self.curr_frame
 
     def output_image(self):
         '''DOCSTRING
-            DESC: Displays current frame
-            ARGS:
-            self - HR object - refers to the current object
-            RTNS: None
-            SHOWS: Displays current frame
-            '''
+            Displays current frame'''
 
         new_frame = self.frame
         cv2.imshow('image', new_frame)
@@ -481,16 +400,24 @@ class HandwritingRecognition:
 
         # If chars exists,
         if self.chars:
-            self.chars.sort(key = lambda roi: roi.x)
-            word = ''.join([chr(item.result) for item in self.chars])
+            word = get_publish_text(chars)
             return word
+
+    def get_publish_text(self, chars):
+        '''DOCSTRING:
+            Given a list of Regions of Interest (roi), returns a list sorted
+            to make sense mathematically or syntactically (sentences)
+            '''
+
+        chars.sort(key = lambda roi: roi.x)
+        word = ''.join([chr(item.result) for item in chars])
+
 
     def run(self):
         r = rospy.Rate(10)
         time.sleep(2)
         self.process_data_svm()
         self.train_svm()
-        #self.test_ocr() # print accuracy of current OCR
         while not rospy.is_shutdown():
             e1 = cv2.getTickCount()
             self.update_frame()
