@@ -34,7 +34,8 @@ class Game:
 		self.bridge = CvBridge()
 		self.image_sub = rospy.Subscriber("usb_cam/image_raw", Image, self.img_callback)
 		self.hear_sub = rospy.Subscriber("decoded_speech", String, self.hear_callback)
-		self.skelesub = rospy.Subsriber("skeleton", Bones, self.skeleton_callback)
+		self.skelesub = rospy.Subscriber("skeleton", Bones, self.skeleton_callback)
+		self.gesturesub = rospy.Subscriber("skeleton_detect", String, self.gest_callback)
 
 		self.current_cmd = None
 		self.heard_cmd = None
@@ -47,6 +48,8 @@ class Game:
 
 		self.populate_dictionaries()
 
+		self.simonless_gest = None
+
 	def img_callback(self, data):
 		try:
 			self.frame = self.bridge.imgmsg_to_cv2(data, "bgr8")
@@ -56,6 +59,9 @@ class Game:
 	def hear_callback(self, data):
 		if self.ready_to_listen:
 			self.heard_cmd = data.data
+
+	def gest_callback(self,data):
+		self.gesture = data
 
 
 
@@ -97,13 +103,19 @@ class Game:
 		"""
 
 		if "simon says" in self.current_cmd:
-			command_rules = self.command_2_rules.get(self.current_cmd.substitute("simon says, ", ""), None)
-			if command_rules:
-				for rule in command_rules:
-					print "Checking rule: ", rule
+			command = self.current_cmd.substitute("simon says, ","")
+			command_gest  = self.command_dictionary.get(command)
+			if command_gest  == self.gesture:
+				print('Good job!')
+				self.simonless_gest = self.gesture
+			else:
+				print('Try again!')
 		else:
+			if self.simonless_gest == self.gesture:
+				print('Good job!')
+			else:
+				print('Try again!')
 			#check that kids aren't moving
-			pass
 
 		#TODO: add behavior for success / failure of following command
 
