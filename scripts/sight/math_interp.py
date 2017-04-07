@@ -6,10 +6,12 @@ Author: Hannah Kolano
 hannah.kolano@students.olin.edu
 
 NEXT STEPS:
-parenthesis (can't deal with more than one set of parenthesis, maybe make self.par a list?)
 square root
 sin/cos
 documentation
+identify solvable/not solvable problems
+    be able to do more than one instance of a variable?
+parse for 4() as multiplication
 '''
 from __future__ import division
 # import rospy
@@ -59,7 +61,6 @@ class Calculator:
         for variable in variable_list:
             if variable in eqn:
                 self.variable = variable
-                break
         eqn = self.parse_var_mul(eqn)
         self.initialize_tree(eqn)
         self.rsstring = self.tree_to_string(self.rstree)
@@ -141,7 +142,9 @@ class Calculator:
             self.tree = ('^', self.tree_base_case_check(left_ele), self.tree_base_case_check(right_ele))
             return self.tree
 
-    def par_parse(self, equation, nest_num = 1):
+    def par_parse(self, equation):
+        '''takes an equation and returns a parsed version of it. 
+        also adds placeholders and what they represent into self.place_dict'''
         while '(' in str(equation):
             start_par = equation.find('(')
 
@@ -150,17 +153,22 @@ class Calculator:
 
             if ind_close < ind_open or ind_open == -1:
                 p_holder = placeholder_list[self.counter]
-                self.place_dict[p_holder] = equation[start_par + 1:ind_close + start_par + 1]
-                self.counter += 1
+                inside_par = equation[start_par + 1:ind_close + start_par + 1]
+                if all(digit in operator_list or digit in integer_list for digit in inside_par):
+                    p_holder = self.solve_simple(inside_par)
+                else:
+                    self.place_dict[p_holder] = inside_par
+                    self.counter += 1
                 equation = equation[:start_par] + p_holder + equation[ind_close + start_par + 2:]
             elif ind_open < ind_close:
                 last_close = self.find_corr_close_par(equation[start_par+1:]) + start_par
                 outer_nest = equation[ind_open + start_par + 1:last_close+1]
-                parsed_outer = self.par_parse(outer_nest, 1)
+                parsed_outer = self.par_parse(outer_nest)
                 equation = equation[:ind_open + start_par + 1] + parsed_outer + equation[last_close+1:]
         return equation
 
     def find_corr_close_par(self, equation):
+        '''given an equation starting after a beginning (, returns the index of the corresponding )'''
         counter = 1
         index = 0
         for digit in equation:
@@ -240,19 +248,19 @@ class Calculator:
         return var_side_tree, non_var_str
 
     def logs_what(self, var_side_tree, non_var_str, mov_idx, keep_idx):
+        '''is the do_op operation but with powers.'''
         if keep_idx == 1:
             non_var_str = str(eval(str(non_var_str) + '**' + str(eval(('1.0' + '/' + str(var_side_tree[mov_idx]))))))
             var_side_tree = var_side_tree[keep_idx]
             return var_side_tree, non_var_str
         if keep_idx == 2:
-            non_var_str = m.log10(eval(non_var_str))/m.log10(eval(var_side_tree[mov_idx]))
+            non_var_str = m.log10(eval(str(non_var_str)))/m.log10(eval(str(var_side_tree[mov_idx])))
             var_side_tree = var_side_tree[keep_idx]
             return var_side_tree, non_var_str
 
     def parse_var_mul(self, raw_eqn):
         '''if there is a variable with a coefficient, put a multiplication
         sign between them'''
-        counter = 0
         for digit in raw_eqn:
             if digit == self.variable:
                 index = raw_eqn.find(digit)
@@ -276,19 +284,19 @@ class Calculator:
         # while not rospy.is_shutdown():
         if self.check_triviality(self.eqn) == 1:
             self.initialize_algebra(self.eqn)
-            # print(self.tree)
             # prev_answer = answer
-            while self.rsstring != self.variable and self.lsstring != self.variable:
+            while self.lstree != self.lsstring or self.rstree != self.rsstring:
                 self.solve_algebra()
-                if self.rsstring == self.variable:
-                    print(str(self.rsstring) + '=' + str(round(self.lsstring, 1)))
-                if self.lsstring == self.variable:
-                    print(str(self.lsstring) + '=' + str(round(self.rsstring, 1)))
+
+            if self.rsstring == self.variable:
+                print(self.lsstring)
+            elif self.lsstring == self.variable:
+                print(self.rsstring)
             # if answer != prev_answer:
             #     print(answer)
 
 
 if __name__ == '__main__':
     ctr = Calculator()
-    ctr.eqn = '((2+1)*3)+(17+3)/x=2'
+    ctr.eqn = 'x-2+6=3'
     ctr.run()
