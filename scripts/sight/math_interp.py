@@ -9,9 +9,6 @@ NEXT STEPS:
 square root
 sin/cos
 documentation
-identify solvable/not solvable problems
-    be able to do more than one instance of a variable?
-parse for 4() as multiplication
 '''
 from __future__ import division
 # import rospy
@@ -96,12 +93,15 @@ class Calculator:
         print(side)
         if all(digit in integer_list or digit in operator_list for digit in side):
             return self.solve_simple(side)
+
+        # If there are parenthesis, go through them first
         if '(' in side:
             self.place_dict = dict()
             self.counter = 0
             self.tree = self.tree_base_case_check(self.par_parse(side))
             return self.tree
 
+        # check first for addition and subtraction
         elif ('-' in side and side.rfind('-') != 0) or '+' in side:
             indexplus = side.rfind('+')
             indexmin = side.rfind('-')
@@ -121,6 +121,7 @@ class Calculator:
                 self.tree = (element, self.tree_base_case_check(left_ele), self.tree_base_case_check(right_ele))
                 return self.tree
 
+        # then check for division or multiplication
         elif '/' in side or '*' in side:
             indexdiv = side.rfind('/')
             indexmul = side.rfind('*')
@@ -135,6 +136,7 @@ class Calculator:
             self.tree = (element, self.tree_base_case_check(left_ele), self.tree_base_case_check(right_ele))
             return self.tree
 
+        # then check for powers
         elif '^' in side:
             indexcarrot = side.rfind('^')
             left_ele = side[:indexcarrot]
@@ -151,6 +153,7 @@ class Calculator:
             ind_open = equation[start_par + 1:].find('(')
             ind_close = equation[start_par + 1:].find(')')
 
+            # if it closes before a new one opens, add it to self.place_dict
             if ind_close < ind_open or ind_open == -1:
                 p_holder = placeholder_list[self.counter]
                 inside_par = equation[start_par + 1:ind_close + start_par + 1]
@@ -160,6 +163,7 @@ class Calculator:
                     self.place_dict[p_holder] = inside_par
                     self.counter += 1
                 equation = equation[:start_par] + p_holder + equation[ind_close + start_par + 2:]
+            # if another one opens, recursively go inside until it gets to one that closes
             elif ind_open < ind_close:
                 last_close = self.find_corr_close_par(equation[start_par+1:]) + start_par
                 outer_nest = equation[ind_open + start_par + 1:last_close+1]
@@ -202,18 +206,19 @@ class Calculator:
     def solve_algebra(self):
         '''takes the self.trees and self.strings and does the next appropriate
         operation to them'''
+        # vt - variable side tree; vs - variable side string; nvt - nonvariable side tree; nvs - nonvariable side string
         if self.side_w_variable == 'left':
             vt_vs_nvt_nvs = [self.lstree, self.lsstring, self.rstree, self.rsstring]
         elif self.side_w_variable == 'right':
             vt_vs_nvt_nvs = [self.rstree, self.rsstring, self.lstree, self.lsstring]
 
+        # figures out where in the tree the variable is
         if self.variable in str(vt_vs_nvt_nvs[0][2]):
-            mov_idx = 1
-            keep_idx = 2
+            mov_idx, keep_idx = 1, 2
         elif self.variable in str(vt_vs_nvt_nvs[0][1]):
-            mov_idx = 2
-            keep_idx = 1
+            mov_idx, keep_idx = 2, 1
 
+        # input the right variables and signs and do the operation
         if vt_vs_nvt_nvs[0][0] == '+':
             vt_vs_nvt_nvs[0], vt_vs_nvt_nvs[3] = self.do_op(vt_vs_nvt_nvs[0], vt_vs_nvt_nvs[3], '-', mov_idx, keep_idx)
         elif vt_vs_nvt_nvs[0][0] == '-':
@@ -225,14 +230,13 @@ class Calculator:
         elif vt_vs_nvt_nvs[0][0] == '^':
             vt_vs_nvt_nvs[0], vt_vs_nvt_nvs[3] = self.logs_what(vt_vs_nvt_nvs[0], vt_vs_nvt_nvs[3], mov_idx, keep_idx)
 
+        # reassign to the attributes
         vt_vs_nvt_nvs[1] = self.tree_to_string(vt_vs_nvt_nvs[0])
         vt_vs_nvt_nvs[2] = self.tree_base_case_check(vt_vs_nvt_nvs[3])
-
         if self.side_w_variable == 'left':
             self.lstree, self.lsstring, self.rstree, self.rsstring = vt_vs_nvt_nvs
         elif self.side_w_variable == 'right':
             self.rstree, self.rsstring, self.lstree, self.lsstring = vt_vs_nvt_nvs
-
         if self.variable in str(self.lsstring):
             self.side_w_variable = 'left'
         elif self.variable in str(self.rsstring):
@@ -262,12 +266,28 @@ class Calculator:
         '''if there is a variable with a coefficient, put a multiplication
         sign between them'''
         for digit in raw_eqn:
-            if digit == self.variable:
-                index = raw_eqn.find(digit)
-                if raw_eqn[index-1] in integer_list and index != 0:
+            if digit == self.variable or digit == '(':
+                if digit == self.variable:
+                    index = raw_eqn.find(digit)
+                elif digit == '(':
+                    index = raw_eqn.find(digit)
+                if raw_eqn[index-1] in integer_list and index !=0:
                     raw_eqn = raw_eqn[0:index] + '*' + raw_eqn[index:]
                     raw_eqn = self.parse_var_mul(raw_eqn)
         return raw_eqn
+
+    def determine_problem(self):
+        '''figures out what type of problem it is'''
+        if any(digit in variable_list for digit in self.eqn):
+            self.initialize_algebra(self.eqn)
+            while self.lstree != self.lsstring or self.rstree != self.rsstring:
+                self.solve_algebra()
+            if self.rsstring == self.variable:
+                print(self.lsstring)
+            elif self.lsstring == self.variable:
+                print(self.rsstring)
+        else:
+            print(self.solve_simple(self.eqn))
 
     def check_triviality(self, answer):
         '''returns 1 if getting a value from the subscriber;
@@ -283,20 +303,13 @@ class Calculator:
         answer = ''
         # while not rospy.is_shutdown():
         if self.check_triviality(self.eqn) == 1:
-            self.initialize_algebra(self.eqn)
             # prev_answer = answer
-            while self.lstree != self.lsstring or self.rstree != self.rsstring:
-                self.solve_algebra()
-
-            if self.rsstring == self.variable:
-                print(self.lsstring)
-            elif self.lsstring == self.variable:
-                print(self.rsstring)
+            self.determine_problem()
             # if answer != prev_answer:
             #     print(answer)
 
 
 if __name__ == '__main__':
     ctr = Calculator()
-    ctr.eqn = 'x-2+6=3'
+    ctr.eqn = 'x^2+3=7'
     ctr.run()
