@@ -11,55 +11,25 @@ from sklearn.neighbors import KNeighborsClassifier
 import pandas as pd
 import random
 
-#with open('file.csv', newline='') as csvfile:
-#     spamreader = csv.reader(csvfile, delimiter=' ', quotechar='|')
-#     for row in spamreader:
-#         print(', '.join(row))
-#def loadDataset(filename, split, trainingSet=[] , testSet=[]):
-"""def E_distance(data1, data2, len_data):
-    distance = 0
-    for x in data1:
-        if x > 1:
-            distance += (data1[x]-data2[x])**2
-    return math.sqrt(distance)
-"""
-
-
-
-"""with open('skeleton.csv', 'rU') as file:
-    label= [col['A'] for col in csv.reader(file)]
-    training_data = [col['E':'AE'] for col in csv.reader(file)
-list_of_files = ['l_hand_head','l_hand_r_hand','l_hand_r_shoulder','l_hand_stomach',
-                 'r_hand_head','r_hand_l_shoulder','r_hand_stomach']
-
-df = pd.read_csv(skeleton.csv)
-training_data= df['E':'AE']
-print(df['E':'AE'])
-"""
-
-
-"""list_of_files = ['l_hand_head','l_hand_r_hand','l_hand_r_shoulder','l_hand_stomach',
-                 'r_hand_head','r_hand_l_shoulder','r_hand_stomach']
-for i in list_of_files:
-    #with open('skeleton.csv','rU') as file:
-    with open(i, 'rU') as file:
-    #table = [row for row in csv.reader(file)]
-    for row in csv.reader(file):
-        write= csv.writer(file)
-        writer =writerow(row)"""
-
-
 class Gestures:
     def __init__(self,skeleton):
         self.skeleton = skeleton
         rospy.init_node('gestures', anonymous=True)
         rospy.Subscriber('/skeleton', Bones, self.data_callback)
+        self.t_f = False
+        self.t_f1 = False
+        self.number =0
+        self.bow = 0
+        self.disco = 0
+        self.check = 0
         self.pub = rospy.Publisher('skeleton_points', String, queue_size=10)
         self.trainingSet = []
         self.testSet = []
         self.labels_test =[]
         self.labels_train = []
         self.data_from_sub = []
+        self.gestures = {"bow":0,"bow1":0, "bow2":0, "dab":0,"disco":0,"disco1":0,"disco2":0,"heart":0,"high_five":0,"hug":0,
+          "rub_tummy":0,"star":0,"touch_head":0,"wave":0}
         with open('skeleton.csv', 'r') as csvfile:
             lines = csv.reader(csvfile)
             labels =[]
@@ -73,11 +43,11 @@ class Gestures:
             for i in dataset:
                 for l in range(len(i)):
                     if l % 3 == 0:
-                        i[l]= float(i[l])+float(i[3])
+                        i[l]= float(i[l])-float(i[3])
                     if l % 3 == 1:
-                        i[l]= float(i[l])+float(i[4])
+                        i[l]= float(i[l])-float(i[4])
                     if l % 3 == 2:
-                        i[l]= float(i[l])+float(i[5])
+                        i[l]= float(i[l])-float(i[5])
             #print(labels)
             #print(dataset)
             for x in range(len(dataset)-1):
@@ -104,26 +74,68 @@ class Gestures:
         self.data_from_sub.extend([data.lh.x,data.lh.y,data.lh.z])
         for l in range(len(self.data_from_sub)):
             if l % 3 == 0:
-                self.data_from_sub[l]= float(self.data_from_sub[l])+float(self.data_from_sub[3])
+                self.data_from_sub[l]= float(self.data_from_sub[l])-float(self.data_from_sub[3])
             if l % 3 == 1:
-                self.data_from_sub[l]= float(self.data_from_sub[l])+float(self.data_from_sub[4])
+                self.data_from_sub[l]= float(self.data_from_sub[l])-float(self.data_from_sub[4])
             if l % 3 == 2:
-                self.data_from_sub[l]= float(self.data_from_sub[l])+float(self.data_from_sub[5])
+                self.data_from_sub[l]= float(self.data_from_sub[l])-float(self.data_from_sub[5])
+
+    def training(self):
+        self.neighbors = KNeighborsClassifier(n_neighbors=4)
+        self.neighbors.fit( self.trainingSet, self.labels_train)
 
     def machine_learning(self):
-        self.neighbors = KNeighborsClassifier(n_neighbors=7)
-        self.neighbors.fit( self.trainingSet, self.labels_train)
-        #print(self.data_from_sub)
-        self.pub.publish(self.neighbors.predict([self.data_from_sub])[0])
-        #print(self.neighbors.predict([self.data_from_sub]))
-        #print(self.neighbors.score(self.testSet, self.labels_test))
+        result = self.neighbors.predict([self.data_from_sub])[0]
+        print(result)
+        if self.t_f == True:
+            if result == 'disco2':
+                self.pub.publish('disco')
+            if result == 'disco1':
+                self.checking('wave')
+        elif result == 'disco1':
+            self.t_f = True
+        elif self.t_f1 == True:
+            if result == 'bow2':
+                self.checking('bow')
+        elif result == 'bow1':
+            self.t_f1 == True
+        else:
+            self.checking(result)
+
+    def checking(self,gesture):
+        self.gestures[gesture] = self.gestures.get(gesture,0) +1
+
+    def publishing(self):
+        try:
+            if time.localtime().tm_sec % 7 == 0:
+                self.t_f = False
+                self.t_f1 = False
+                for key,val in self.gestures.items():
+                    if val == max(self.gestures.values()):
+                        key1 = key
+                print(self.gestures)
+                print(key1)
+                if key1 == 'disco2':
+                    self.pub.publish('disco')
+                elif key1 == 'disco1':
+                    self.pub.publish('wave')
+                elif key1 == 'bow1':
+                    self.pub.publish('bow')
+                elif key1 == 'bow2':
+                    self.pub.publish('bow')
+                else:
+                    self.pub.publish(key1)
+                self.gestures = dict()
+        except:
+            print('something is wrong')
 
     def run(self):
         r = rospy.Rate(10)
-        self.machine_learning()
+        self.training()
         while not rospy.is_shutdown():
             # self.close_points()
             self.machine_learning()
+            self.publishing()
             r.sleep()
 
 if __name__ == "__main__":
