@@ -18,6 +18,11 @@ from __future__ import division
 import math
 m = math
 
+integer_list = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.']
+operator_list = ['+', '-', '/', '*', '^', '(', ')', '=']
+variable_list = ['x', 'y', 'z']
+placeholder_list = ['p', 'q', 'r', 's', 't', 'u']
+
 
 class Calculator:
     def __init__(self):
@@ -27,10 +32,6 @@ class Calculator:
         self.eqn = ''
         self.tree = tuple()
         # rospy.Subscriber('word_publish', String, self.cmd_callback)
-
-        self.integer_list = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.']
-        self.operator_list = ['+', '-', '/', '*', '^', '=']
-        self.variable_list = ['x', 'y', 'z']
 
     def cmd_callback(self, data):
         '''callback'''
@@ -55,7 +56,7 @@ class Calculator:
 
     def initialize_algebra(self, eqn):
         '''solves algebra'''
-        for variable in self.variable_list:
+        for variable in variable_list:
             if variable in eqn:
                 self.variable = variable
                 break
@@ -82,9 +83,9 @@ class Calculator:
         operation present, keep processsing and return the processed (tree'd)
         side. If not, return itself.'''
         side_string = str(side)
-        if side_string == 'p':
-            return self.build_tree(self.par)
-        if any(digit in self.operator_list for digit in side_string[1:]):
+        if side_string in placeholder_list:
+            return self.build_tree(self.place_dict[side_string])
+        elif any((digit in operator_list or digit in placeholder_list)for digit in side_string[1:]):
             return self.build_tree(side)
         return side
 
@@ -92,18 +93,18 @@ class Calculator:
         '''take in a side of an equation, create a tree with the
         operations as nodes, returns that tree.'''
         print(side)
-        if self.variable not in side and 'p' not in side:
+        if all(digit in integer_list or digit in operator_list for digit in side):
             return self.solve_simple(side)
         if '(' in side:
-            l_par, r_par = side.find('('), side.find(')')
-            self.par = side[l_par+1:r_par]
-            new_eqn = side[:l_par] + 'p' + side[r_par+1:]
-            self.tree = self.tree_base_case_check(new_eqn)
+            self.place_dict = dict()
+            self.counter = 0
+            self.tree = self.tree_base_case_check(self.par_parse(side))
             return self.tree
-        if ('-' in side and side.rfind('-') != 0) or '+' in side:
+
+        elif ('-' in side and side.rfind('-') != 0) or '+' in side:
             indexplus = side.rfind('+')
             indexmin = side.rfind('-')
-            if indexmin != -1 and side[indexmin-1] in self.operator_list:
+            if indexmin != -1 and side[indexmin-1] in operator_list:
                 indexmin = side[:indexmin].rfind('-')
             if indexmin > indexplus:
                 index = indexmin
@@ -119,7 +120,7 @@ class Calculator:
                 self.tree = (element, self.tree_base_case_check(left_ele), self.tree_base_case_check(right_ele))
                 return self.tree
 
-        if '/' in side or '*' in side:
+        elif '/' in side or '*' in side:
             indexdiv = side.rfind('/')
             indexmul = side.rfind('*')
             if indexmul > indexdiv:
@@ -133,14 +134,46 @@ class Calculator:
             self.tree = (element, self.tree_base_case_check(left_ele), self.tree_base_case_check(right_ele))
             return self.tree
 
-        if '^' in side:
+        elif '^' in side:
             indexcarrot = side.rfind('^')
             left_ele = side[:indexcarrot]
             right_ele = side[indexcarrot+1:]
             self.tree = ('^', self.tree_base_case_check(left_ele), self.tree_base_case_check(right_ele))
+            return self.tree
 
-        print(self.tree)
-        return self.tree
+    def par_parse(self, equation, nest_num = 1):
+        while '(' in str(equation):
+            start_par = equation.find('(')
+
+            ind_open = equation[start_par + 1:].find('(')
+            ind_close = equation[start_par + 1:].find(')')
+
+            if ind_close < ind_open or ind_open == -1:
+                p_holder = placeholder_list[self.counter]
+                self.place_dict[p_holder] = equation[start_par + 1:ind_close + start_par + 1]
+                self.counter += 1
+                equation = equation[:start_par] + p_holder + equation[ind_close + start_par + 2:]
+            elif ind_open < ind_close:
+                last_close = self.find_corr_close_par(equation[start_par+1:]) + start_par
+                outer_nest = equation[ind_open + start_par + 1:last_close+1]
+                parsed_outer = self.par_parse(outer_nest, 1)
+                equation = equation[:ind_open + start_par + 1] + parsed_outer + equation[last_close+1:]
+        return equation
+
+    def find_corr_close_par(self, equation):
+        counter = 1
+        index = 0
+        for digit in equation:
+            if digit != '(' and digit != ')':
+                index += 1
+            else:
+                if digit == '(':
+                    counter += 1
+                elif digit == ')':
+                    counter += -1
+                if counter == 0:
+                    return index
+                index += 1
 
     def tree_to_string(self, tree):
         '''takes a tree and converts it back into a string'''
@@ -200,7 +233,7 @@ class Calculator:
     def do_op(self, var_side_tree, non_var_str, string, mov_idx=2, keep_idx=1):
         '''given a tree and the opposite side string, snips the operation
         from the tree and moves it to the other side string.'''
-        non_var_str = str(non_var_str) + string + str(var_side_tree[mov_idx])
+        non_var_str = str(non_var_str) + string + self.tree_to_string(var_side_tree[mov_idx])
         if self.variable not in non_var_str:
             non_var_str = eval(non_var_str)
         var_side_tree = var_side_tree[keep_idx]
@@ -223,7 +256,7 @@ class Calculator:
         for digit in raw_eqn:
             if digit == self.variable:
                 index = raw_eqn.find(digit)
-                if raw_eqn[index-1] in self.integer_list and index != 0:
+                if raw_eqn[index-1] in integer_list and index != 0:
                     raw_eqn = raw_eqn[0:index] + '*' + raw_eqn[index:]
                     raw_eqn = self.parse_var_mul(raw_eqn)
         return raw_eqn
@@ -257,5 +290,5 @@ class Calculator:
 
 if __name__ == '__main__':
     ctr = Calculator()
-    ctr.eqn = '2*(1+x)^3=64'
+    ctr.eqn = '((2+1)*3)+(17+3)/x=2'
     ctr.run()
