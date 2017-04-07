@@ -17,17 +17,17 @@ class FaceDetect:
 
     def __init__(self):
 
-        #detection boolean
+        # detection boolean
         self.detect = True
 
-        #initializes frame
+        # initializes frame
         self.frame = None
 
-        #initializes ros node for face detect, pubilishes to face location
+        # initializes ros node for face detect, pubilishes to face location
         rospy.init_node('face_detect', anonymous=True)
         self.pub = rospy.Publisher('/face_location', String, queue_size=10)
 
-        #definines cascade path
+        # definines cascade path
         # cascPath = sys.argv[1]
         # self.face_cascade = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
         rospack = rospkg.RosPack()

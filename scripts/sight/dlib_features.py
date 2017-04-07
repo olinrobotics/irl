@@ -20,13 +20,6 @@ from cv_bridge import CvBridge, CvBridgeError
 class FaceDetect:
 
     def __init__(self):
-        # initializes frame
-        self.frame = None
-
-        # initializes ros node for face detect, pubilishes to face location
-        rospy.init_node('face_detect', anonymous=True)
-        self.pub = rospy.Publisher('/face_location', String, queue_size=10)
-
         # definines file paths
         rospack = rospkg.RosPack()
         PACKAGE_PATH = rospack.get_path("edwin")
@@ -38,29 +31,7 @@ class FaceDetect:
         self.detect = True
         self.detector = dlib.get_frontal_face_detector()
         self.predictor = dlib.shape_predictor(self.predictor_path)
-        self.window = dlib.image_window()
-
-        # CvBridge to usb_cam, subscribes to usb cam
-        self.bridge = CvBridge()
-        rospy.Subscriber("usb_cam/image_raw", Image, self.img_callback)
-
-        # ros Publisher
-        self.pub = rospy.Publisher('/smile_detected', String, queue_size=10)
-
-        # newFace boolean to control how many expressions detected
-        self.new_face = True
-
         self.debug = False
-
-        sleep(2)
-
-    # converts ros message to numpy
-    def img_callback(self, data):
-        try:
-            self.frame = self.bridge.imgmsg_to_cv2(data, "bgr8")
-            h, w = self.frame.shape[:2]
-        except CvBridgeError as e:
-            print(e)
 
     def get_landmarks(self, clahe_image, return_type='list'):
         # code from:
@@ -76,6 +47,7 @@ class FaceDetect:
 
             xlist = []
             ylist = []
+            landmarks = []
 
             # For each point, draw a red circle with thickness2 on
             # the original frame
@@ -95,12 +67,10 @@ class FaceDetect:
 
             # Store all landmarks in one list in the format x1,y1,x2,y2,etc.
             if return_type == 'list':
-                landmarks = []
                 for x, y in zip(xlist, ylist):
                     landmarks.append(x)
                     landmarks.append(y)
             if return_type == 'nparray':
-                landmarks = []
                 for i in range(len(xlist)-1):
                     landmarks.append([xlist[i], ylist[i]])
         if len(detections) > 0:
@@ -171,7 +141,7 @@ class FaceDetect:
         #DIMENSIONS OF FACE
         #bottom center of face: 8, right center of face: 16
         height_face = (center_face_y - landmarks[self.landmarkY(8)])*2
-        width_face =  (landmarks[self.landmarkX(16)] - center_face_x)
+        width_face = (landmarks[self.landmarkX(16)] - center_face_x)
         area_face = height_face * width_face
 
         smile_msg = "False"
@@ -191,9 +161,6 @@ class FaceDetect:
         # if area_face > biggestArea:
         #     area_face = biggestArea
         msg = str(center_face_x) + ',' + str(center_face_y) + ':' + smile_msg
-
-
-
 
         if cv2.waitKey(1) & 0xFF == ord('q'): #Exit program when the user presses 'q'
             self.detect = False

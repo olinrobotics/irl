@@ -2,6 +2,7 @@
 # ref http://scikit-learn.org/stable/auto_examples/cluster/plot_kmeans_assumptions.html#sphx-glr-auto-examples-cluster-plot-kmeans-assumptions-py
 # http://scikit-learn.org/stable/auto_examples/cluster/plot_kmeans_digits.html
 from time import time
+import numpy as np
 
 from sklearn import metrics
 from sklearn.cluster import KMeans
@@ -12,8 +13,8 @@ from sklearn.preprocessing import scale
 # Default data_set from sklean.datasets: http://scikit-learn.org/stable/modules/classes.html#module-sklearn.datasets
 # The data_set is a tuple (X, y) where X = an n_samples by n_features numpy array
 # and an array of length n_samples
-class Classifier():
-    def __init__(self, data_set=load_digits(), n_clusters=5, n_init=10,
+class Clusters():
+    def __init__(self, data_set=load_digits(), n_clusters=5, n_init=1,
                  init='k-means++'):
         self.data_set = data_set
         self.data = scale(self.data_set.data)
@@ -60,9 +61,9 @@ class Classifier():
 
 
 if __name__ == "__main__":
-    clusters_kmeans = Classifier()
+    clusters_kmeans = Clusters()
     clusters_kmeans.bench_k_means()
-    clusters_random = Classifier(init='random')
+    clusters_random = Clusters(init='random')
     clusters_random.bench_k_means()
     # print(clusters_kmeans.get_cluster_centers())
     # print(clusters_kmeans.check_accuracy(clusters_kmeans.data))
