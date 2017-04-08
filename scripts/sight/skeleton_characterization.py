@@ -59,9 +59,9 @@ class SkeletonDetect:
         print('Gesture Dection is running')
 
     def control_callback(self,data):
-        if "gesture_detect:stop" in data:
+        if "gesture_detect:stop" in data.data:
             self.is_detecting = False
-        elif "gesture_detect:go" in data:
+        elif "gesture_detect:go" in data.data:
             self.is_detecting = True
 
     def skeleton_callback(self,data):
