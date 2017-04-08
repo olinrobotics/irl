@@ -25,65 +25,66 @@ EDWIN_NAME = "edwin"
 USER_NAME = "user"
 
 class Game:
-	def __init__(self, max_turns = 5):
-		self.say_pub = rospy.Publisher('say_cmd', String, queue_size = 1)
-		self.ctr_pub = rospy.Publisher('/all_control',String, queue_size=10)
-		rospy.Subscriber("/skeleton_detect", String, self.gest_callback, queue_size = 10)
+    def __init__(self, max_turns = 5):
+        self.say_pub = rospy.Publisher('say_cmd', String, queue_size = 1)
+        self.ctr_pub = rospy.Publisher('/all_control',String, queue_size=10)
+        rospy.Subscriber("/skeleton_detect", String, self.gest_callback, queue_size = 10)
 
-		self.current_cmd = None
+        self.current_cmd = None
 
-		self.max_turns = max_turns
-		self.command_dictionary = {}
+        self.max_turns = max_turns
+        self.command_dictionary = {}
 
-		self.populate_command_dictionaries()
+        self.populate_command_dictionaries()
 
-		self.simonless_gest = None
+        self.simonless_gest = None
 
-	def gest_callback(self,data):
-		self.gesture = data
+    def gest_callback(self,data):
+        self.gesture = data
 
-	def populate_command_dictionaries(self):
-		"""Fill the command dictionary"""
-		self.command_dictionary["touch_head"] = "Touch your head with left hand"
-		self.command_dictionary["rub_tummy"] = "Rub your tummy with both hands"
-		self.command_dictionary["high_five"] = "High five to your left"
-		self.command_dictionary["wave"] = "Wave to your right"
-		self.command_dictionary["hug"] = "Hug yourself"
-		self.command_dictionary["dab"] = "Dab into your right elbow"
-		self.command_dictionary["disco"] = "Disco with your right hand"
-		self.command_dictionary["bow"] = "Just Bow"
-		self.command_dictionary["star"] = "Do a starfish"
-		self.command_dictionary["heart"] = "Form a heart with your arms"
+    def populate_command_dictionaries(self):
+        self.command_dictionary["touch_head"] = "Touch your head with left hand"
+        self.command_dictionary["rub_tummy"] = "Rub your tummy with both hands"
+        self.command_dictionary["high_five"] = "High five to your left"
+        self.command_dictionary["wave"] = "Wave to your right"
+        self.command_dictionary["hug"] = "Hug yourself"
+        self.command_dictionary["dab"] = "Dab into your right elbow"
+        self.command_dictionary["disco"] = "Disco with your right hand"
+        self.command_dictionary["bow"] = "Just Bow"
+        self.command_dictionary["star"] = "Do a starfish"
+        self.command_dictionary["heart"] = "Form a heart with your arms"
 
-	def issue_simon_cmd(self):
-		"""If Simon is Edwin:
+    def issue_simon_cmd(self):
+        """If Simon is Edwin:
 
 		This function issues a Simon command.
 		It is said outloud, so depends on the tts_engine to be running"""
+        command = random.choice(self.command_dictionary.keys())
+        self.current_cmd = random.choice(["simon says, ", ""]) + command
+        print self.current_cmd
+        self.say_pub.publish(self.current_cmd)
+        time.sleep(1)
+        print(self.current_cmd)
+        if "simon says" in self.current_cmd:
+            self.ctr_pub.publish("gesture_detection:go")
+            print "yes"
+        else:
+            self.ctr_pub.publish("gesture_detection:stop")
 
-		command = random.choice(self.command_dictionary.keys())
-		self.current_cmd = random.choice(["simon says, ", ""]) + command
-		self.say_pub.publish(self.current_cmd)
-		time.sleep(1)
-		if "simon says" in self.current_cmd:
-			self.ctr_pub.publish("gesture_detection:go")
-		else:
-			self.ctr_pub.publish("gesture_detection:stop")
+    def check_simon_response(self):
+        """If Simon is Edwin:
 
-	def check_simon_response(self):
-		"""If Simon is Edwin:
-
-		This function checks to see if the players have followed Edwin's cmd
-		This relies on skeleton tracker to be functional
-		"""
-		if "simon says" in self.current_cmd:
-			command_gest = self.current_cmd.substitute("simon says, ","")
+        This function checks to see if the players have followed Edwin's cmd
+        This relies on skeleton tracker to be functional
+        """
+        if "simon says" in self.current_cmd:
+			command_gest = self.current_cmd.replace("simon says, ","")
 			if command_gest  == self.gesture:
 				print('Good job!')
 				self.simonless_gest = self.gesture
 			else:
 				print('Try again!')
-		else:
+        else:
 			if self.simonless_gest == self.gesture:
 				print('Good job!')
 			else:
@@ -113,7 +114,6 @@ class Game:
 		print "Finished with Simon Says, hope you enjoyed :)"
 
 if __name__ == '__main__':
-	rospy.init_node('ss_gamemaster', anonymous = True)
-	gm = Game()
-	gm.run()
-	# gm.run()
+    rospy.init_node('ss_gamemaster', anonymous = True)
+    gm = Game()
+    gm.run()
