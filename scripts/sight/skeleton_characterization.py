@@ -39,13 +39,16 @@ def find_max(d):
 class SkeletonDetect:
     def __init__(self):
         rospy.init_node('skeleton_detect',anonymous=True)
-        self.pub = rospy.Publisher('/skeleton_detect',String,queue_size = 10)
-        rospy.Subscriber('/skeleton',Bones,self.skeleton_callback)
+        self.detect_pub = rospy.Publisher('/skeleton_detect',String,queue_size = 10)
+        rospy.Subscriber('/all_control', String, self.control_callback, queue_size=10)
+        rospy.Subscriber('/skeleton', Bones, self.skeleton_callback, queue_size=10)
 
         self.test_data = []
         self.knn = KNeighborsClassifier(n_neighbors = 3)
         self.moving = {"disco1":False,"disco2":False,"bow1":False,"bow2":False}
         self.gesture = dict()
+        self.is_detecting = False
+
         #Read training data
         with open('skeleton.csv', 'r') as f:
             reader = csv.reader(f)
@@ -54,6 +57,12 @@ class SkeletonDetect:
             reader = csv.reader(f)
             self.Y_data = [col[0] for col in reader][1:]
         print('Gesture Dection is running')
+
+    def control_callback(self,data):
+        if "gesture_detect:stop" in data:
+            self.is_detecting = False
+        elif "gesture_detect:go" in data:
+            self.is_detecting = True
 
     def skeleton_callback(self,data):
         self.test_data = []
@@ -125,19 +134,20 @@ class SkeletonDetect:
         if time.localtime().tm_sec % time_interval == 0:
             try:
                 time.sleep(1)
-                self.pub.publish(find_max(self.gesture))
+                self.detect_pub.publish(find_max(self.gesture))
                 self.gesture = dict()
                 self.moving = {"disco1":False,"disco2":False,"bow1":False,"bow2":False}
             except:
-                self.pub.publish('Skeleton not detected')
+                self.detect_pub.publish('Gesture not detected')
 
     def run(self):
         r = rospy.Rate(5)
         self.train_data_processing()
         self.skeleton_detect_train()
         while not rospy.is_shutdown():
-            self.skeleton_detect_test()
-            self.publish_result()
+            if self.is_detecting:
+                self.skeleton_detect_test()
+                self.publish_result()
             r.sleep()
 
 if __name__ == '__main__':
