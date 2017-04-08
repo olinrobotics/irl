@@ -30,22 +30,21 @@ class Game:
 		self.arm_pub = rospy.Publisher('arm_cmd', String, queue_size=10)
 		self.behav_pub = rospy.Publisher('behaviors_cmd', String, queue_size=10)
 		self.say_pub = rospy.Publisher('say_cmd', String, queue_size = 1)
+        self.control = rospy.Publisher('control', String, queue_size = 10)
+        rospy.Subscriber('skeleton_detect', String, self.gest_callback, queue_size=10)
+        self.current_cmd = None
+        self.heard_cmd = None
+        self.ready_to_listen = False
 
-		self.gesturesub = rospy.Subscriber("skeleton_detect", String, self.gest_callback)
+        self.max_turns = max_turns
+        self.command_2_speech = {}
+        self.command_2_motion = {}
+        self.command_2_rules = {}
+        self.command_dictionary = {}
 
-		self.current_cmd = None
-		self.heard_cmd = None
-		self.ready_to_listen = False
+        self.populate_command_dictionaries()
 
-		self.max_turns = max_turns
-		self.command_2_speech = {}
-		self.command_2_motion = {}
-		self.command_2_rules = {}
-		self.command_dictionary = {}
-
-		self.populate_command_dictionaries()
-
-		self.simonless_gest = None
+        self.simonless_gest = None
 
 	def gest_callback(self,data):
 		self.gesture = data
@@ -79,7 +78,7 @@ class Game:
 		This function checks to see if the players have followed Edwin's cmd
 		This relies on skeleton tracker to be functional
 		"""
-
+        self.control.publish(True)
 		if "simon says" in self.current_cmd:
 			command = self.current_cmd.substitute("simon says, ","")
 			command_gest  = self.command_dictionary.get(command)
@@ -94,6 +93,7 @@ class Game:
 			else:
 				print('Try again!')
 			#check that kids aren't moving
+        self.control.publish(False)
 
 		#TODO: add behavior for success / failure of following command
 
