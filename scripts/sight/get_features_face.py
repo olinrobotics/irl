@@ -8,7 +8,7 @@ import numpy as np
 
 
 class Features:
-    def __init__(self, testing=False, samples=2, database='cohn-kanade'):
+    def __init__(self, testing=False, samples=70, database='cohn-kanade'):
         # dlib face detector
         self.detector = dlib.get_frontal_face_detector()
 
@@ -72,16 +72,15 @@ class Features:
 
         return clahe_image, reflected_clahe_image
 
-
     def split_landmarks(self, landmarks):
         '''
         splits landmarks (givin in list within list) into dictionary
         keys: 'cheeks', 'mouth', 'forhead', 'nose', 'eyes'
 
-        CHEEKS: 1-3, 14-16 (FACS 6)
+        CHEEKS: 1-3, 14-16 (FACS 6, 11)
         MOUTH: 4-13, 48-68 (FACS 10-28 sans 19, 21)
         FOREHEAD: 17-30 (FACS 1, 2, 4)
-        NOSE: 31-35 (FACS 9)
+        NOSE: 31-35 (FACS 9, 11)
         EYES: 36-47 (FACS 5-7, 41-46)
         '''
         split = dict()
@@ -107,12 +106,34 @@ class Features:
             region_landmarks = self.process_landmarks(clahe_images[0],
                                                       face_region)
             # append landmarks to Features
-            features.append(region_landmarks)
-            region_landmarks = self.process_landmarks(clahe_images[1],
+            if region_landmarks != '':
+                features.append(region_landmarks)
+            region_landmarks_reflected = self.process_landmarks(clahe_images[1],
+                                                                face_region)
+            # append landmarks to Features
+            if region_landmarks_reflected != '':
+                features.append(region_landmarks_reflected)
+
+        return np.asarray(features)
+
+    def get_test_data(self, face_region=None):
+        # Generator statement: generates lists of file paths
+        features = []
+        for i, f in enumerate(self.file_paths[-20:]):
+            print(f)
+            clahe_images = self.process(f)
+            region_landmarks = self.process_landmarks(clahe_images[0],
                                                       face_region)
             # append landmarks to Features
-            features.append(region_landmarks)
-            return np.asarray(features)
+            if region_landmarks != '':
+                features.append(region_landmarks)
+            region_landmarks_reflected = self.process_landmarks(clahe_images[1],
+                                                                face_region)
+            # append landmarks to Features
+            if region_landmarks_reflected != '':
+                features.append(region_landmarks_reflected)
+
+        return np.asarray(features)
 
 
 if __name__ == "__main__":

@@ -72,7 +72,8 @@ class FaceDetect:
                     landmarks.append(y)
             if return_type == 'nparray':
                 for i in range(len(xlist)-1):
-                    landmarks.append([xlist[i], ylist[i]])
+                    landmarks.append(xlist[i])
+                    landmarks.append(ylist[i])
         if len(detections) > 0:
             return landmarks
         # If no faces are detected, return error message to other function to
