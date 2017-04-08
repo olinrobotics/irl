@@ -170,15 +170,15 @@ class SimonSays:
 		"""
 		Fill up the Simon command dictionary possible commands
 		"""
-		self.command_2_speech["turn_around"] = "turn around"
-		self.command_2_speech["touch_head"] = "touch your head"
-		self.command_2_speech["rub_tummy"] = "rub your tummy"
-		self.command_2_speech["high5_self"] = "give yourself a high five"
+		self.command_2_speech["heart"] = "make a heart above your head"
+		self.command_2_speech["touch_head"] = "touch your head with your left hand"
+		self.command_2_speech["rub_tummy"] = "rub your tummy with both hands"
+		self.command_2_speech["high5_self"] = "give yourself a high five to your left"
 		self.command_2_speech["hug_self"] = "hug yourself"
-		self.command_2_speech["clap_hands"] = "clap your hands above your head"
-		self.command_2_speech["flex_muscles"] = "flex your muscles"
-		self.command_2_speech["hands_up"] = "put your hands way up"
-		self.command_2_speech["disco"] = "do the disco"
+		self.command_2_speech["starfish"] = "make a starfish"
+		self.command_2_speech["wave"] = "wave at the camera with your right hand"
+		self.command_2_speech["dab"] = "dab to the right"
+		self.command_2_speech["disco"] = "do the disco with your right hand"
 		self.command_2_speech["bow"] = "bow down to the master"
 
 
@@ -187,14 +187,14 @@ class SimonSays:
 		Fill up the Player command dictionary possible commands
 		"""
 		#TODO: make these commands into actual behaviors
-		self.command_2_motion["turn_around"] = ["turn_around"]
+		self.command_2_motion["heart"] = ["heart"]
 		self.command_2_motion["touch_head"] = ["touch_head"]
 		self.command_2_motion["rub_tummy"] = ['rub_tummy']
-		self.command_2_motion["high5_self"] = ['high_five']
+		self.command_2_motion["high5_self"] = ['high5_self']
 		self.command_2_motion["hug_self"] = ["hug_self"]
-		self.command_2_motion["clap_hands"] = ["clap"]
-		self.command_2_motion["flex_muscles"] = ["flex"]
-		self.command_2_motion["hands_up"] = ["sky_reach"]
+		self.command_2_motion["dab"] = ["dab"]
+		self.command_2_motion["starfish"] = ["starfish"]
+		self.command_2_motion["wave"] = ["wave"]
 		self.command_2_motion["disco"] = ["disco"]
 		self.command_2_motion["bow"] = ["bow"]
 
