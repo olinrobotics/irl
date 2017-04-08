@@ -8,10 +8,8 @@ from edwin.msg import *
 import time
 
 '''
-these need to be running for this to work:
-create_routes.py
-arm_behaviors.py
-arm_write.py
+run robot_write.launch
+also run arm_node.py first
 '''
 
 def z_calculation(input_y):
