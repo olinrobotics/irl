@@ -41,7 +41,7 @@ class SkeletonDetect:
         rospy.init_node('skeleton_detect',anonymous=True)
         self.detect_pub = rospy.Publisher('/skeleton_detect',String,queue_size = 10)
         rospy.Subscriber('/all_control', String, self.control_callback, queue_size=10)
-        rospy.Subscriber('/skeleton', Bones, self.skeleton_callback, queue_size=10)
+        rospy.Subscriber('/skeleton', Bones, self.skeleton_callback)
 
         self.test_data = []
         self.knn = KNeighborsClassifier(n_neighbors = 3)
