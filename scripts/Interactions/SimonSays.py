@@ -95,7 +95,8 @@ class SimonSays:
 		#init ROS subscribers to camera, heard speech, and skeleton
 		self.image_sub = rospy.Subscriber("usb_cam/image_raw", Image, self.img_callback)
 		self.hear_sub = rospy.Subscriber("decoded_speech", String, self.hear_callback)
-		self.skelesub = rospy.Subsriber("skeleton", Bones, self.skeleton_callback)
+		self.skelesub = rospy.Subscriber("skeleton", Bones, self.skeleton_callback)
+		self.gesturesub = rospy.Subscriber("skeleton_detect", String, self.gest_callback)
 
 		self.current_cmd = None
 		self.heard_cmd = None
@@ -110,6 +111,8 @@ class SimonSays:
 		self.populate_dictionaries()
 		self.populate_command_dictionaries()
 
+		self.simonless_gest = None
+
 	def img_callback(self, data):
 		try:
 			self.frame = self.bridge.imgmsg_to_cv2(data, "bgr8")
@@ -120,11 +123,12 @@ class SimonSays:
 	def hear_callback(self, speech):
 		if self.ready_to_listen:
 			self.heard_cmd = speech.data
-
 		self.listen_for_fail = speech.data
 		if self.listen_for_fail == "edwin that is incorrect":
 			self.no_mistakes = False
 
+	def gest_callback(self,data):
+		self.gesture = data
 
 	def skeleton_callback(self, skeleton):
 		"""
@@ -265,17 +269,19 @@ class SimonSays:
 		"""
 
 		if "simon says" in self.current_cmd:
-			print "checking for the simon command"
-			#will check with Katya and Yichen's module for the correct gesture
-			response = "clap_hands"  #potential output from gesture recognition
-
-			if response in self.command_2_speech.keys():
-				self.no_mistakes = True
+			command = self.current_cmd.substitute("simon says, ","")
+			command_gest  = self.command_dictionary.get(command)
+			if command_gest  == self.gesture:
+				print('Good job!')
+				self.simonless_gest = self.gesture
 			else:
-				self.no_mistakes = False
+				print('Try again!')
 		else:
-			self.no_mistakes = self.check_stillness()
-
+			if self.simonless_gest == self.gesture:
+				print('Good job!')
+			else:
+				print('Try again!')
+			#check that kids aren't moving
 
 	def player_listen_for_simon(self):
 		"""
