@@ -30,7 +30,9 @@ class Game:
         self.ctr_pub = rospy.Publisher('/all_control',String, queue_size=10)
         rospy.Subscriber("/skeleton_detect", String, self.gest_callback, queue_size = 10)
 
-        self.current_cmd = None
+
+		self.current_cmd = None
+		self.gesture = ""
 
         self.max_turns = max_turns
         self.command_dictionary = {}
@@ -78,6 +80,20 @@ class Game:
         This relies on skeleton tracker to be functional
         """
         if "simon says" in self.current_cmd:
+
+		command = random.choice(self.command_dictionary.keys())
+		self.current_cmd = random.choice(["simon says, ", ""]) + command
+		self.say_pub.publish(self.current_cmd)
+		time.sleep(1)
+
+	def check_simon_response(self):
+		"""If Simon is Edwin:
+
+		This function checks to see if the players have followed Edwin's cmd
+		This relies on skeleton tracker to be functional
+		"""
+		self.ctr_pub.publish("gesture_detection:go")
+		if "simon says" in self.current_cmd:
 			command_gest = self.current_cmd.replace("simon says, ","")
 			if command_gest  == self.gesture:
 				print('Good job!')
@@ -89,6 +105,7 @@ class Game:
 				print('Good job!')
 			else:
 				print('Try again!')
+		self.ctr_pub.publish("gesture_detection:stop")
 			#check that kids aren't moving
 		#TODO: add behavior for success / failure of following command
 
@@ -96,7 +113,7 @@ class Game:
 	def run(self):
 		"""Game mainloop. Runs for as long as max_turns is defined"""
 
-	 	time.sleep(2)
+		time.sleep(2)
 	 	print "running"
 
 		self.simon_ID = EDWIN_NAME
