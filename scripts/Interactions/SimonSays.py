@@ -34,7 +34,7 @@ class Game:
 		self.bridge = CvBridge()
 		self.image_sub = rospy.Subscriber("usb_cam/image_raw", Image, self.img_callback)
 		self.hear_sub = rospy.Subscriber("decoded_speech", String, self.hear_callback)
-		self.skelesub = rospy.Subscriber("skeleton", Bones, self.skeleton_callback)
+		#self.skelesub = rospy.Subscriber("skeleton", Bones, self.skeleton_callback)
 		self.gesturesub = rospy.Subscriber("skeleton_detect", String, self.gest_callback)
 
 		self.current_cmd = None
@@ -56,7 +56,8 @@ class Game:
 		try:
 			self.frame = self.bridge.imgmsg_to_cv2(data, "bgr8")
 		except CvBridgeError as e:
-			print(e)
+			print e
+
 
 	def hear_callback(self, data):
 		if self.ready_to_listen:
