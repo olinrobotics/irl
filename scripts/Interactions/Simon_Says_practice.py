@@ -27,20 +27,13 @@ USER_NAME = "user"
 
 class Game:
 	def __init__(self, max_turns = 5):
-		self.arm_pub = rospy.Publisher('arm_cmd', String, queue_size=10)
-		self.behav_pub = rospy.Publisher('behaviors_cmd', String, queue_size=10)
 		self.say_pub = rospy.Publisher('say_cmd', String, queue_size = 1)
-
-		self.gesturesub = rospy.Subscriber("skeleton_detect", String, self.gest_callback)
+		self.ctr_pub = rospy.Publisher('/all_control',String, queue_size=10)
+		rospy.Subscriber("/skeleton_detect", String, self.gest_callback, queue_size = 10)
 
 		self.current_cmd = None
-		self.heard_cmd = None
-		self.ready_to_listen = False
 
 		self.max_turns = max_turns
-		self.command_2_speech = {}
-		self.command_2_motion = {}
-		self.command_2_rules = {}
 		self.command_dictionary = {}
 
 		self.populate_command_dictionaries()
@@ -72,6 +65,11 @@ class Game:
 		command = random.choice(self.command_dictionary.keys())
 		self.current_cmd = random.choice(["simon says, ", ""]) + command
 		self.say_pub.publish(self.current_cmd)
+		time.sleep(1)
+		if "simon says" in self.current_cmd:
+			self.ctr_pub.publish("gesture_detection:go")
+		else:
+			self.ctr_pub.publish("gesture_detection:stop")
 
 	def check_simon_response(self):
 		"""If Simon is Edwin:
@@ -81,8 +79,7 @@ class Game:
 		"""
 
 		if "simon says" in self.current_cmd:
-			command = self.current_cmd.substitute("simon says, ","")
-			command_gest  = self.command_dictionary.get(command)
+			command_gest = self.current_cmd.substitute("simon says, ","")
 			if command_gest  == self.gesture:
 				print('Good job!')
 				self.simonless_gest = self.gesture
@@ -101,7 +98,7 @@ class Game:
 	def run(self):
 		"""Game mainloop. Runs for as long as max_turns is defined"""
 
-	 	time.sleep(5)
+	 	time.sleep(2)
 	 	print "running"
 
 		self.simon_ID = EDWIN_NAME
@@ -111,23 +108,15 @@ class Game:
 		while turn_count < self.max_turns:
 			turn_count += 1
 			#issue command
-			if self.simon_ID == EDWIN_NAME:
-				self.issue_simon_cmd()
-			else:
-				self.listen_for_simon()
+			self.issue_simon_cmd()
 
 			#check for response
-			if self.simon_ID == EDWIN_NAME:
-				self.check_simon_response()
-			else:
-				self.follow_simon_cmd()
+			self.check_simon_response()
 
 		print "Finished with Simon Says, hope you enjoyed :)"
 
 if __name__ == '__main__':
 	rospy.init_node('ss_gamemaster', anonymous = True)
 	gm = Game()
-	while True:
-		raw_input("enter to go to next")
-		gm.issue_simon_cmd()
+	gm.run()
 	# gm.run()
