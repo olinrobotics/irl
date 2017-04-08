@@ -25,7 +25,7 @@ EDWIN_NAME = "edwin"
 USER_NAME = "user"
 
 class Game:
-	def __init__(self, max_turns = 10):
+	def __init__(self, max_turns = 15):
 		self.say_pub = rospy.Publisher('say_cmd', String, queue_size = 1)
 		self.ctr_pub = rospy.Publisher('/all_control',String, queue_size=10)
 		rospy.Subscriber("/skeleton_detect", String, self.gest_callback, queue_size = 10)
@@ -60,8 +60,7 @@ class Game:
 		This function issues a Simon command.
 		It is said outloud, so depends on the tts_engine to be running"""
 		command = random.choice(self.command_dictionary.keys())
-		self.current_cmd = random.choice(["simon says, ", ""]) + command
-		print self.current_cmd
+		self.current_cmd = random.choice(["simon says, ", ""]) + self.command_dictionary[command]
 		self.say_pub.publish(self.current_cmd)
 		time.sleep(1)
 		if "simon says" in self.current_cmd:
@@ -88,9 +87,11 @@ class Game:
 		"""
 		if "simon says" in self.current_cmd:
 			command_gest = self.current_cmd.replace("simon says, ","")
-			for key,val in self.command_dictionary.items():
-				if val == command_gest:
+			for key,value in self.command_dictionary.items():
+				if value == command_gest:
 					command_gest = key
+			print('command_gest: %s'%command_gest)
+			print('self.gesture: %s'%self.gesture)
 			if command_gest  == self.gesture:
 				print('Good job yay!')
 				self.simonless_gest = self.gesture
@@ -116,12 +117,14 @@ class Game:
 		turn_count = 0
 		while turn_count < self.max_turns:
 			turn_count += 1
+			self.ctr_pub.publish("gesture_detect:go")
+
 			#issue command
 			self.issue_simon_cmd()
-
+			time.sleep(15)
 			#check for response
 			self.check_simon_response()
-
+		self.ctr_pub.publish("gesture_detect:stop")
 		print "Finished with Simon Says, hope you enjoyed :)"
 
 if __name__ == '__main__':
