@@ -8,7 +8,7 @@ import numpy as np
 
 
 class Features:
-    def __init__(self, testing=False, samples=70, database='cohn-kanade'):
+    def __init__(self, testing=False, samples=486, database='cohn-kanade'):
         # dlib face detector
         self.detector = dlib.get_frontal_face_detector()
 
@@ -16,14 +16,26 @@ class Features:
         rospack = rospkg.RosPack()
         PACKAGE_PATH = rospack.get_path("edwin")
         if database == 'cohn-kanade':
+            # path to face images
             self.faces_folder_path = PACKAGE_PATH + \
                 '/params/database/cohn-kanade-images'
-            self.emotion_labels_folder_path = PACKAGE_PATH + '/params/Emotion'
+            # path to FACS labels
+            self.FACS_labels_folder_path = PACKAGE_PATH + \
+                '/params/database/FACS'
+            # path to emotion labesl
+            self.emotion_labels_folder_path = PACKAGE_PATH + \
+                '/params/database/Emotion'
+
             self.face_detect = dl.FaceDetect()
+            # list of file paths for face images
             self.file_paths = [os.path.join(root, file) for root, dir, files in
                                os.walk(self.faces_folder_path) for file in files]
+            # list of file paths for FACS labels
+            self.FACS_file_paths = [os.path.join(root, file) for root, dir, files in
+                                    os.walk(self.FACS_labels_folder_path) for file in files]
         self.testing = testing
         self.samples = samples
+        self.labels = dict()
 
     def read_file(self, f):
         # read file at file path f
@@ -119,24 +131,51 @@ class Features:
     def get_test_data(self, face_region=None):
         # Generator statement: generates lists of file paths
         features = []
-        for i, f in enumerate(self.file_paths[-20:]):
-            print(f)
+        for i, f in enumerate(self.file_paths[20:40]):
             clahe_images = self.process(f)
             region_landmarks = self.process_landmarks(clahe_images[0],
                                                       face_region)
-            # append landmarks to Features
+            # append landmarks to features
             if region_landmarks != '':
                 features.append(region_landmarks)
             region_landmarks_reflected = self.process_landmarks(clahe_images[1],
                                                                 face_region)
-            # append landmarks to Features
+            # append reflected landmarks to features
             if region_landmarks_reflected != '':
                 features.append(region_landmarks_reflected)
 
         return np.asarray(features)
 
+    def get_labels(self):
+        for f in self.FACS_file_paths[:3]:
+            # list of FACS labels for a given file
+            FACS_list = []
+            f_name = f[:-9]
+            with open(f, 'r') as r:
+                lines = r.readlines()
+                FACS_read = False
+                for l in lines:
+                    # print(l)
+                    # print(j = l.split(" "))
+                    j = l.split(" ")
+                    i = 0
+                    while i < len(j):
+                        elem = j[i]
+                        if elem != "":
+                            val = float(elem)
+                            i = len(j) + 10
+                        else:
+                            i += 1
+
+                    print("L IS: ", l)
+                    print("VAL IS: ", val)
+                    FACS = int(val*(10**exp))
+                    FACS_list.append(FACS)
+                self.labels[f_name] = FACS_list
+        print(self.labels)
+
 
 if __name__ == "__main__":
     f = Features()
-    features = f.get_features(face_region='nose')
-    print(features)
+    # features = f.get_features(face_region='nose')
+    f.get_labels()

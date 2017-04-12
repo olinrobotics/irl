@@ -5,7 +5,8 @@ import get_features_face as gf
 
 
 class FACSTrainer:
-    def __init__(self, face_region, samples=20, n_init=5):
+    def __init__(self, face_region, samples=486, n_init=5):
+        self.face_region = face_region
         self.features = gf.Features(samples=samples)
         # get training data from database using get_features_face script
         self.train_data_set = self.features.get_features(face_region=face_region)
@@ -27,8 +28,15 @@ class FACSTrainer:
     def fit_data(self):
         self.classifier.fit(self.train_data_set, y=None)
 
+    def save_classifier(self):
+        joblib.dump(self.classifier, self.face_region + '.pkl')
+
+# class FACSPredictor
+
 
 if __name__ == "__main__":
-    nose_trainer = FACSTrainer(face_region='nose')
-    nose_trainer.fit_data()
-    print(nose_trainer.classifier.predict(nose_trainer.test_data_set))
+    features = gf.Features()
+    test_data = features.get_test_data(face_region='nose')
+    nose_trainer = joblib.load('nose.pkl')
+
+    print(nose_trainer.predict(test_data))
