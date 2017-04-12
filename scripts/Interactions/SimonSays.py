@@ -42,7 +42,7 @@ regardless of his role is:
 SIMON_NAME = "simon"
 PLAYER_NAME = "player"
 
-class SimonSays:
+class SimonSays(object):
 	"""
 	The master class of the game Simon Says, which holds all the general actions of the Game
 	To be the parent of the actual game modes:
@@ -95,7 +95,7 @@ class SimonSays:
 		#init ROS subscribers to camera, heard speech, and skeleton
 		self.image_sub = rospy.Subscriber("usb_cam/image_raw", Image, self.img_callback)
 		self.hear_sub = rospy.Subscriber("decoded_speech", String, self.hear_callback)
-		self.skelesub = rospy.Subsriber("skeleton", Bones, self.skeleton_callback)
+		self.skelesub = rospy.Subscriber("skeleton", Bones, self.skeleton_callback)
 
 
 	def img_callback(self, data):
@@ -326,7 +326,7 @@ class AutonomousSimon(SimonSays):
 
 		move = "get_set"
 		self.behavior_pub.publish(move)
-		time.sleep(1)
+		time.sleep(3)
 		statement = "I am going to demo Simon Says."
 		self.say_pub.publish(statement)
 
@@ -334,13 +334,14 @@ class AutonomousSimon(SimonSays):
 			self.max_turns -= 1
 
 			self.simon_say_command()
+			time.sleep(3)
 			self.player_follow_simon_cmd()
 
 		move = "done_game"
 		self.behavior_pub.publish(move)
 		statement = "Finished a round."
 		self.say_pub.publish(statement)
-		time.sleep(1)
+		time.sleep(3)
 
 		statement = "look"
 		self.behavior_pub.publish(statement)

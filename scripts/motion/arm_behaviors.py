@@ -111,7 +111,7 @@ class ArmBehaviors:
         self.behaviors['dab'] = "R_dab"
         self.behaviors['starfish'] = "SPD: 700, R_starfish"
         self.behaviors['bow'] = "SPD: 500, R_bow "
-        self.behaviors['heart'] = "R_heart"
+        self.behaviors['heart'] = "SPD: 800, R_heart"
         self.behaviors['high5_self'] = "SPD: 800, R_high5_self"
 
         self.behaviors['wave'] = "R_wave"
@@ -122,7 +122,7 @@ class ArmBehaviors:
 
         self.behaviors["gloat"] = "H: 1000	, WR: 1700, SPD: 400, R_laugh "
         self.behaviors["done_game"] = "SPD: 600, R_done_game"
-        self.behaviors["get_set"] = "SPD:600, R_get_set"
+        self.behaviors["get_set"] = "SPD: 600, R_get_set"
         self.behaviors["leader"] = "R_leader"
         self.behaviors["look"] = "R_look"
         self.behaviors["sad"] = "SPD: 400, R_sad"
