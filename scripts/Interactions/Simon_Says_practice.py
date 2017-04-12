@@ -30,6 +30,7 @@ class Game:
 		self.ctr_pub = rospy.Publisher('/all_control',String, queue_size=10)
 		rospy.Subscriber("/skeleton_detect", String, self.gest_callback, queue_size = 10)
 		self.current_cmd = None
+		self.first = True
 		self.gesture = ""
 
 		self.max_turns = max_turns
@@ -41,6 +42,7 @@ class Game:
 
 	def gest_callback(self,data):
 		self.gesture = data.data
+		#print(self.gesture)
 
 	def populate_command_dictionaries(self):
 		self.command_dictionary["touch_head"] = "Touch your head with left hand"
@@ -60,7 +62,12 @@ class Game:
 		This function issues a Simon command.
 		It is said outloud, so depends on the tts_engine to be running"""
 		command = random.choice(self.command_dictionary.keys())
-		self.current_cmd = random.choice(["simon says, ", ""]) + self.command_dictionary[command]
+		if self.first == True:
+			self.current_cmd = "simon says, " + self.command_dictionary[command]
+			print(self.current_cmd)
+			self.first = False
+		else:
+			self.current_cmd = random.choice(["simon says, ", ""]) + self.command_dictionary[command]
 		self.say_pub.publish(self.current_cmd)
 		time.sleep(1)
 		if "simon says" in self.current_cmd:
@@ -68,16 +75,6 @@ class Game:
 		else:
 			self.ctr_pub.publish("gesture_detect:stop")
 
-	def check_simon_response(self):
-		"""If Simon is Edwin:
-		This function checks to see if the players have followed Edwin's cmd
-		This relies on skeleton tracker to be functional
-		"""
-		if "simon says" in self.current_cmd:
-			command = random.choice(self.command_dictionary.keys())
-			self.current_cmd = random.choice(["simon says, ", ""]) + command
-			self.say_pub.publish(self.current_cmd)
-			time.sleep(1)
 
 	def check_simon_response(self):
 		"""If Simon is Edwin:
@@ -85,18 +82,20 @@ class Game:
 		This function checks to see if the players have followed Edwin's cmd
 		This relies on skeleton tracker to be functional
 		"""
+		#print(self.current_cmd)
+		#print(self.gesture)
 		if "simon says" in self.current_cmd:
 			command_gest = self.current_cmd.replace("simon says, ","")
 			for key,value in self.command_dictionary.items():
 				if value == command_gest:
 					command_gest = key
-			print('command_gest: %s'%command_gest)
-			print('self.gesture: %s'%self.gesture)
+			#print('command_gest: %s'%command_gest)
+			#print('self.gesture: %s'%self.gesture)
 			if command_gest  == self.gesture:
-				print('Good job yay!')
+				print('Good job!')
 				self.simonless_gest = self.gesture
 			else:
-				print('Try again yay!')
+				print('Try again!')
 		else:
 			if self.simonless_gest == self.gesture:
 				print('Good job!')
@@ -115,13 +114,14 @@ class Game:
 
 		#two phases of simon says, issue command, check for follower response
 		turn_count = 0
+		time.sleep(5)
 		while turn_count < self.max_turns:
 			turn_count += 1
 			self.ctr_pub.publish("gesture_detect:go")
 
 			#issue command
 			self.issue_simon_cmd()
-			time.sleep(15)
+			time.sleep(12)
 			#check for response
 			self.check_simon_response()
 		self.ctr_pub.publish("gesture_detect:stop")
