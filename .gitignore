@@ -1,7 +1,7 @@
 *.pyc
 *~
-scripts/sound/media/*
-tools/*
+/scripts/sound/media/*
+/tools/
 *.jpg
 *.zip
 *.o
