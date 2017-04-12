@@ -3,6 +3,7 @@ import rospy
 import cv2
 import cv2.cv as cv
 import numpy as np
+from scipy import stats
 
 from std_msgs.msg import String
 from sensor_msgs.msg import Image
@@ -28,16 +29,19 @@ class visualmenu:
 
         #the areas.
 
-        self.range1 = [[0,320], [0,480]] #minx, maxx, miny, maxy
-        self.range2 = [[320,640], [0,480]]
+        self.range1 = [[0,210], [0,480]] #minx, maxx, miny, maxy
+        self.range2 = [[211,429], [0,480]]
+        self.range3 = [[430,640], [0,480]]
 
         self.list1 = self.get_area_coords(self.range1)
         self.list2 = self.get_area_coords(self.range2)
+        self.list3 = self.get_area_coords(self.range3)
 
-        self.area_list = [self.list1, self.list2]
+        self.area_list = [self.list1, self.list2, self.list3]
 
         self.detect = True
         self.cap = cv2.VideoCapture(0)
+        self.median = []
 
 
     def img_callback(self, data):
@@ -78,9 +82,9 @@ class visualmenu:
 
         coords = (cx,cy)
 
-        cv2.circle(blur, coords, 10, (255, 0, 0), 2)
+        #cv2.circle(blur, coords, 10, (255, 0, 0), 2)
         cv2.imshow("composite", composite)
-        cv2.imshow("blur", blur)
+        #cv2.imshow("blur", blur)
         cv2.waitKey(1)
         return coords
 
@@ -96,7 +100,7 @@ class visualmenu:
         for i in cList:
             blur_copy = blur.copy()
             colorHigh = i + 10
-            colorLow = i - 20
+            colorLow = i - 15
 
             mask = cv2.inRange(blur_copy, colorLow, colorHigh)
             mask = cv2.erode(mask, None, iterations=2)
@@ -120,6 +124,7 @@ class visualmenu:
 
         for i in self.area_list:
             if xy in i:
+
                 return self.area_list.index(i) #Is there a simpler way?
 
 
@@ -192,7 +197,7 @@ class visualmenu:
             if k == ord('q'):
                 break
             else:
-                grab, frame = self.cap.read()
+                frame = self.get_frame()
 
                 cv2.putText(frame,
                 "Put your hand in the box and press 'q' when you are ready to calibrate",
@@ -223,7 +228,7 @@ class visualmenu:
 
             #Once target is set, find the median
         for j in range(0,50):
-            grab, frame = self.cap.read()
+            frame = self.get_frame()
             #Overall frame for the hand
             cv2.rectangle(frame, (160, 40), (480, 440), colorGuess, 3)
 
@@ -247,12 +252,41 @@ class visualmenu:
         cv2.destroyAllWindows()
         return cList
 
-    def get_detected_area(self):
-        pass
-
     def get_frame(self):
         grab, frame = self.cap.read()
+        frame = cv2.flip(frame, 1)
         return frame
+
+    def get_median(self, option): #Technically the mode, but that would be confusing.
+        if len(self.median) < 50:
+            self.median.append(option)
+        elif len(self.median) == 50:
+            self.median.pop(0)
+            self.median.append(option)
+            med = self.median[:]
+            med = stats.mode(med)
+            med = int(med[0])
+
+            return med
+
+
+
+
+    def dispMenu(self, frame, coords,option):
+
+
+
+        if option == 0:
+            cv2.rectangle(frame, (0,0), (210, 480), (255,0,0), -1)
+        elif option == 1:
+            cv2.rectangle(frame, (211,0), (429, 480), (0,255,0), -1)
+        elif option == 2:
+            cv2.rectangle(frame, (430,0), (640, 480), (0,0,255), -1)
+
+        cv2.circle(frame, coords, 10, (255, 0, 0), 2)
+        cv2.imshow("Menu", frame)
+        cv2.waitKey(1)
+
 
     def run(self):
         #r = rospy.Rate(10)
@@ -262,9 +296,13 @@ class visualmenu:
         colorList = self.calibrate_color()
 
         while self.detect:
-            frames = self.process_frame(self.get_frame(), colorList)
-            coords = self.findHand(frames)
+            frame = self.get_frame()
+            processed_frame = self.process_frame(frame, colorList)
+            coords = self.findHand(processed_frame)
             option = self.check_pos(coords)
+
+            self.dispMenu(frame, coords, option)
+
 
 
             # if option == 0:
