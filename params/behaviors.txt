@@ -83,8 +83,12 @@ sS'impatient'
 p41
 S'WA: 250, WA: -250, WA: 250, WA: -250, WA: 0, SPD: 700, R_impatient, SL: 1, R_annoyed_nudge'
 p42
-sS'idle_wander'
+sS'done_game'
 p43
-S'R_squirrel, SL: 1, SPD: 300, R_follow_squirrel, SL: 1, SPD: 500, R_look'
+S'SPD: 7000, R_done_game_1, SPD: 5000, R_done_game_2'
 p44
+sS'idle_wander'
+p45
+S'R_squirrel, SL: 1, SPD: 300, R_follow_squirrel, SL: 1, SPD: 500, R_look'
+p46
 s.

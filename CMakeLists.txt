@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
 	cv_bridge
 	image_transport
 	geometry_msgs
+	sensor_msgs
 	tf
 )
 
@@ -38,6 +39,8 @@ add_message_files(
 	edwin_gestures.msg
 	People.msg
 	SceneAnalysis.msg
+	Bones.msg
+	HHH.msg
 
 )
 
@@ -46,6 +49,7 @@ generate_messages(
   DEPENDENCIES
   geometry_msgs
   std_msgs
+  sensor_msgs
 )
 
 
