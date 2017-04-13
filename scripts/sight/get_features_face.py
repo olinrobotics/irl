@@ -147,21 +147,21 @@ class Features:
         return np.asarray(features)
 
     def get_labels(self):
-        for f in self.FACS_file_paths[:3]:
+        for f in self.FACS_file_paths:
             # list of FACS labels for a given file
             FACS_list = []
             f_name = f[:-9]
             with open(f, 'r') as r:
                 lines = r.readlines()
-                FACS_read = False
                 for l in lines:
-                    # print(l)
-                    # print(j = l.split(" "))
                     j = l.split(" ")
                     i = 0
                     while i < len(j):
                         elem = j[i]
+                        elem = elem.strip()
                         if elem != "":
+                            elem.strip()
+                            print("ELEM IS: ", elem)
                             val = float(elem)
                             i = len(j) + 10
                         else:
@@ -169,8 +169,7 @@ class Features:
 
                     print("L IS: ", l)
                     print("VAL IS: ", val)
-                    FACS = int(val*(10**exp))
-                    FACS_list.append(FACS)
+                    FACS_list.append(val)
                 self.labels[f_name] = FACS_list
         print(self.labels)
 
