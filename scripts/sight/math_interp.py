@@ -6,14 +6,15 @@ Author: Hannah Kolano
 hannah.kolano@students.olin.edu
 
 NEXT STEPS:
+error checking
 square root
 sin/cos
 documentation
 '''
 from __future__ import division
-# import rospy
-# import rospkg
-# from std_msgs.msg import String
+import rospy
+import rospkg
+from std_msgs.msg import String
 import math
 m = math
 
@@ -26,11 +27,11 @@ placeholder_list = ['p', 'q', 'r', 's', 't', 'u']
 class Calculator:
     def __init__(self):
         '''initializes the object'''
-        # rospy.init_node('doing_math')
-        # self.pub = rospy.Publisher('/math_output', String, queue_size=10)
+        rospy.init_node('doing_math')
+        self.pub = rospy.Publisher('/math_output', String, queue_size=10)
         self.eqn = ''
         self.tree = tuple()
-        # rospy.Subscriber('word_publish', String, self.cmd_callback)
+        rospy.Subscriber('word_publish', String, self.cmd_callback)
 
     def cmd_callback(self, data):
         '''callback'''
@@ -55,13 +56,23 @@ class Calculator:
 
     def initialize_algebra(self, eqn):
         '''solves algebra'''
+        if not all(digit in variable_list or digit in integer_list or digit in operator_list for digit in eqn):
+            raise ValueError('I found something weird')
+        found_variables = []
         for variable in variable_list:
             if variable in eqn:
                 self.variable = variable
-        eqn = self.parse_var_mul(eqn)
-        self.initialize_tree(eqn)
-        self.rsstring = self.tree_to_string(self.rstree)
-        self.lsstring = self.tree_to_string(self.lstree)
+                index = self.eqn.find(variable)
+                found_variables.append(variable)
+                if self.eqn[index+1].find(variable) != -1:
+                    raise ValueError('I found two instances of the same variable')
+        if len(found_variables) > 1:
+            raise ValueError('I found too many variables')
+        else:
+            eqn = self.parse_var_mul(eqn)
+            self.initialize_tree(eqn)
+            self.rsstring = self.tree_to_string(self.rstree)
+            self.lsstring = self.tree_to_string(self.lstree)
 
     def initialize_tree(self, eqn):
         '''takes an equation, splits into two sides. Returns tuples of
@@ -279,15 +290,20 @@ class Calculator:
     def determine_problem(self):
         '''figures out what type of problem it is'''
         if any(digit in variable_list for digit in self.eqn):
-            self.initialize_algebra(self.eqn)
-            while self.lstree != self.lsstring or self.rstree != self.rsstring:
-                self.solve_algebra()
-            if self.rsstring == self.variable:
-                print(self.lsstring)
-            elif self.lsstring == self.variable:
-                print(self.rsstring)
-        else:
+            try:
+                self.initialize_algebra(self.eqn)
+                while self.lstree != self.lsstring or self.rstree != self.rsstring:
+                    self.solve_algebra()
+                if self.rsstring == self.variable:
+                    print(self.lsstring)
+                elif self.lsstring == self.variable:
+                    print(self.rsstring)
+            except ValueError as err:
+                print(err)
+        elif all(digit in variable_list or digit in integer_list or digit in operator_list for digit in self.eqn):
             print(self.solve_simple(self.eqn))
+        else:
+            print('what?')
 
     def check_triviality(self, answer):
         '''returns 1 if getting a value from the subscriber;
@@ -301,15 +317,15 @@ class Calculator:
         '''only prints the answer if it's getting a nontrivial input
         will only print the output once '''
         answer = ''
-        # while not rospy.is_shutdown():
+        while not rospy.is_shutdown():
         if self.check_triviality(self.eqn) == 1:
-            # prev_answer = answer
+            prev_answer = answer
             self.determine_problem()
-            # if answer != prev_answer:
-            #     print(answer)
+            if answer != prev_answer:
+                print(answer)
 
 
 if __name__ == '__main__':
     ctr = Calculator()
-    ctr.eqn = 'x^2+3=7'
+    # ctr.eqn = '3x=@'
     ctr.run()
