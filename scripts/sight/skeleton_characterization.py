@@ -32,9 +32,9 @@ def move_to_origin(body):
 	return new_body
 
 def find_max(d):
-    #Find the key in d that has the biggest value
-    m = max(d.values())
-    return [k for k,v in d.items() if v==m][0]
+	#Find the key in d that has the biggest value
+	m = max(d.values())
+	return [k for k,v in d.items() if v==m][0]
 
 class SkeletonDetect:
 	def __init__(self):
@@ -65,7 +65,7 @@ class SkeletonDetect:
 			self.is_detecting = False
 		else:
 			split_data = data.data.split(" ")
-			self.time_interval= split_data[1]
+			self.time_interval= int(split_data[1])
 			self.old_time = time.localtime().tm_sec
 			self.is_detecting = True
 
@@ -100,15 +100,15 @@ class SkeletonDetect:
 		self.test_data.append(data.lh.z)
 		self.test_data = move_to_origin(self.test_data)
 
-def train_data_processing(self):
-	#Process tTaining datra
-	for i in range(len(self.X_data)):
-		self.X_data[i] = move_to_origin(self.X_data[i])
+	def train_data_processing(self):
+		#Process tTaining datra
+		for i in range(len(self.X_data)):
+			self.X_data[i] = move_to_origin(self.X_data[i])
 
 	def skeleton_detect_train(self):
-	#KNN machine learning
-	self.knn.fit(self.X_data,self.Y_data)
-	print("Finish Training")
+		#KNN machine learning
+		self.knn.fit(self.X_data,self.Y_data)
+		print("Finish Training")
 
 	#Testing accuracy
 	'''
@@ -136,9 +136,8 @@ def train_data_processing(self):
 			pass
 
 	def publish_result(self):
-		if time.localtime().tm_sec =  self.old_time + self.time_interval:
+		if time.localtime().tm_sec ==  (self.old_time + self.time_interval) % 60 :
 			try:
-				time.sleep(1)
 				self.detect_pub.publish(find_max(self.gesture))
 				self.gesture = dict()
 				self.moving = {"disco1":False,"disco2":False,"bow1":False,"bow2":False}

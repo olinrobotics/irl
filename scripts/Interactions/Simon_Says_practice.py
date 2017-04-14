@@ -35,6 +35,7 @@ class Game:
 
 		self.max_turns = max_turns
 		self.command_dictionary = {}
+		self.msg = ""
 
 		self.populate_command_dictionaries()
 
@@ -47,9 +48,8 @@ class Game:
 	def populate_command_dictionaries(self):
 		self.command_dictionary["touch_head"] = "Touch your head with left hand"
 		self.command_dictionary["rub_tummy"] = "Rub your tummy with both hands"
-		self.command_dictionary["high_five"] = "High five to your left"
+		self.command_dictionary["high_five"] = "Clap to your left"
 		self.command_dictionary["wave"] = "Wave to your right"
-		self.command_dictionary["hug"] = "Hug yourself"
 		self.command_dictionary["dab"] = "Dab into your right elbow"
 		self.command_dictionary["disco"] = "Disco with your right hand"
 		self.command_dictionary["bow"] = "Just Bow"
@@ -62,6 +62,8 @@ class Game:
 		This function issues a Simon command.
 		It is said outloud, so depends on the tts_engine to be running"""
 		command = random.choice(self.command_dictionary.keys())
+		while self.command_dictionary[command] in self.current_cmd:
+			command = random.choice(self.command_dictionary.keys())
 		if self.first == True:
 			self.current_cmd = "simon says, " + self.command_dictionary[command]
 			print(self.current_cmd)
@@ -69,11 +71,13 @@ class Game:
 		else:
 			self.current_cmd = random.choice(["simon says, ", ""]) + self.command_dictionary[command]
 		self.say_pub.publish(self.current_cmd)
+		time.sleep(2)
 		if "simon says" in self.current_cmd:
 			if "Wave" in self.current_cmd or "Disco" in self.current_cmd or "Bow" in self.current_cmd or "Hug" in self.current_cmd:
-				self.ctr_pub.publish("gesture_detect:go 3")
+				self.msg = "gesture_detect:go 4"
 			else:
-				self.ctr_pub.publish("gesture_detect:go 1")
+				self.msg = "gesture_detect:go 2"
+		self.ctr_pub.publish(self.msg)
 
 	def check_simon_response(self):
 		"""If Simon is Edwin:
@@ -120,9 +124,9 @@ class Game:
 			#issue command
 			self.issue_simon_cmd()
 			if "Wave" in self.current_cmd or "Disco" in self.current_cmd or "Bow" in self.current_cmd or "Hug" in self.current_cmd:
-				time.sleep(5)
+				time.sleep(4)
 			else:
-				time.sleep(3)
+				time.sleep(2)
 			#check for response
 			self.check_simon_response()
 		self.ctr_pub.publish("gesture_detect:stop")
