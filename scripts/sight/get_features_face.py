@@ -33,9 +33,17 @@ class Features:
             # list of file paths for FACS labels
             self.FACS_file_paths = [os.path.join(root, file) for root, dir, files in
                                     os.walk(self.FACS_labels_folder_path) for file in files]
+
+        self.FACS = {'cheeks': [6, 11],
+                     'mouth': [10, 11, 12, 13, 14, 15, 15, 17, 18, 20, 22, 23,
+                               24, 25, 26, 27, 28],
+                     'forehead': [1, 2, 4],
+                     'nose': [9, 11],
+                     'eyes': [5, 6, 7, 41, 42, 43, 44, 45, 46]}
         self.testing = testing
         self.samples = samples
         self.labels = dict()
+        self.targets = []
 
     def read_file(self, f):
         # read file at file path f
@@ -101,9 +109,10 @@ class Features:
         split['forehead'] = landmarks[16:29]
         split['nose'] = landmarks[30:34]
         split['eyes'] = landmarks[4:6] + landmarks[40:45]
+        self.split = split
         return split
 
-    def process_landmarks(self, clahe_image, face_region):
+    def process_landmarks(self, clahe_image, face_region=None):
         landmarks = self.face_detect.get_landmarks(clahe_image,
                                                    return_type='nparray')
         split = self.split_landmarks(landmarks)
@@ -161,20 +170,50 @@ class Features:
                         elem = elem.strip()
                         if elem != "":
                             elem.strip()
-                            print("ELEM IS: ", elem)
                             val = float(elem)
                             i = len(j) + 10
                         else:
                             i += 1
-
-                    print("L IS: ", l)
-                    print("VAL IS: ", val)
                     FACS_list.append(val)
                 self.labels[f_name] = FACS_list
-        print(self.labels)
+
+    def get_labels_for_region(self, face_region=None):
+        '''
+        CHEEKS: 1-3, 14-16 (FACS 6, 11)
+        MOUTH: 4-13, 48-68 (FACS 10-28 sans 19, 21)
+        FOREHEAD: 17-30 (FACS 1, 2, 4)
+        NOSE: 31-35 (FACS 9, 11)
+        EYES: 36-47 (FACS 5-7, 41-46)
+        '''
+        # dictionary of keys face region and values FACS for that region
+        self.labels_region = dict()
+        for f in self.labels.keys():
+            print(f)
+            for FAC in self.FACS[face_region]:
+                print(FAC)
+                if FAC in self.labels[f]:
+                    self.labels_region[f] = FAC
+
+
+
+    def get_targets(self):
+        self.labels = self.get_labels_for_region()
+        # get targets for face region_
+        for f in self.file_paths:
+            f_name = f[:-4]
+            if f_name in self.labels.keys():
+                self.targets.append(self.labels_region[f_name])
+        # if no label, make target = -1
+            else:
+                self.targets.append(-1)
+
+        print(self.targets)
+
 
 
 if __name__ == "__main__":
     f = Features()
     # features = f.get_features(face_region='nose')
     f.get_labels()
+    f.get_labels_for_region(face_region='nose')
+    f.get_targets()
