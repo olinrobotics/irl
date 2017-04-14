@@ -6,7 +6,6 @@ rosrun edwin arm_behaviors.py
 rosrun edwin tts_engine.py
 rosrun edwin stt_engine.py
 """
-
 import rospy
 import cv2
 import cv2.cv as cv
@@ -32,13 +31,10 @@ class Game:
 		self.current_cmd = None
 		self.first = True
 		self.gesture = ""
-
 		self.max_turns = max_turns
 		self.command_dictionary = {}
 		self.msg = ""
-
 		self.populate_command_dictionaries()
-
 		self.simonless_gest = None
 
 	def gest_callback(self,data):
@@ -58,15 +54,15 @@ class Game:
 
 	def issue_simon_cmd(self):
 		"""If Simon is Edwin:
-
 		This function issues a Simon command.
 		It is said outloud, so depends on the tts_engine to be running"""
 		command = random.choice(self.command_dictionary.keys())
+		# makes sure that command is not the same twice in a row
 		while self.command_dictionary[command] in self.current_cmd:
 			command = random.choice(self.command_dictionary.keys())
+		#makes sure that first command contains 'simon says'
 		if self.first == True:
 			self.current_cmd = "simon says, " + self.command_dictionary[command]
-			print(self.current_cmd)
 			self.first = False
 		else:
 			self.current_cmd = random.choice(["simon says, ", ""]) + self.command_dictionary[command]
@@ -74,6 +70,7 @@ class Game:
 		time.sleep(2)
 		if "simon says" in self.current_cmd:
 			if "Wave" in self.current_cmd or "Disco" in self.current_cmd or "Bow" in self.current_cmd or "Hug" in self.current_cmd:
+				#publishes to all_control that tells it to go and wait 4 seconds for complicated gestures
 				self.msg = "gesture_detect:go 4"
 			else:
 				self.msg = "gesture_detect:go 2"
@@ -85,15 +82,12 @@ class Game:
 		This function checks to see if the players have followed Edwin's cmd
 		This relies on skeleton tracker to be functional
 		"""
-		#print(self.current_cmd)
-		#print(self.gesture)
 		if "simon says" in self.current_cmd:
 			command_gest = self.current_cmd.replace("simon says, ","")
 			for key,value in self.command_dictionary.items():
 				if value == command_gest:
 					command_gest = key
-			#print('command_gest: %s'%command_gest)
-			#print('self.gesture: %s'%self.gesture)
+			#compares command to the gesture recived from subscriber
 			if command_gest  == self.gesture:
 				print('Good job!')
 				self.simonless_gest = self.gesture
@@ -104,7 +98,6 @@ class Game:
 				print('Good job!')
 			else:
 				print('Try again!')
-			#check that kids aren't moving
 		#TODO: add behavior for success / failure of following command
 
 	def run(self):
