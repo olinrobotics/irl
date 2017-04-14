@@ -69,12 +69,11 @@ class Game:
 		else:
 			self.current_cmd = random.choice(["simon says, ", ""]) + self.command_dictionary[command]
 		self.say_pub.publish(self.current_cmd)
-		time.sleep(1)
 		if "simon says" in self.current_cmd:
-			self.ctr_pub.publish("gesture_detect:go")
-		else:
-			self.ctr_pub.publish("gesture_detect:stop")
-
+			if "Wave" in self.current_cmd or "Disco" in self.current_cmd or "Bow" in self.current_cmd or "Hug" in self.current_cmd:
+				self.ctr_pub.publish("gesture_detect:go 3")
+			else:
+				self.ctr_pub.publish("gesture_detect:go 1")
 
 	def check_simon_response(self):
 		"""If Simon is Edwin:
@@ -115,13 +114,15 @@ class Game:
 		#two phases of simon says, issue command, check for follower response
 		turn_count = 0
 		time.sleep(5)
+		self.ctr_pub.publish("gesture_detect:go")
 		while turn_count < self.max_turns:
 			turn_count += 1
-			self.ctr_pub.publish("gesture_detect:go")
-
 			#issue command
 			self.issue_simon_cmd()
-			time.sleep(12)
+			if "Wave" in self.current_cmd or "Disco" in self.current_cmd or "Bow" in self.current_cmd or "Hug" in self.current_cmd:
+				time.sleep(5)
+			else:
+				time.sleep(3)
 			#check for response
 			self.check_simon_response()
 		self.ctr_pub.publish("gesture_detect:stop")
