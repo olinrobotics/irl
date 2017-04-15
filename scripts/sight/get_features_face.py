@@ -159,7 +159,8 @@ class Features:
         for f in self.FACS_file_paths:
             # list of FACS labels for a given file
             FACS_list = []
-            f_name = f[:-9]
+            print(f)
+            f_name = f[-36:-9]
             with open(f, 'r') as r:
                 lines = r.readlines()
                 for l in lines:
@@ -177,7 +178,7 @@ class Features:
                     FACS_list.append(val)
                 self.labels[f_name] = FACS_list
 
-    def get_labels_for_region(self, face_region=None):
+    def get_labels_for_region(self, face_region):
         '''
         CHEEKS: 1-3, 14-16 (FACS 6, 11)
         MOUTH: 4-13, 48-68 (FACS 10-28 sans 19, 21)
@@ -186,34 +187,37 @@ class Features:
         EYES: 36-47 (FACS 5-7, 41-46)
         '''
         # dictionary of keys face region and values FACS for that region
-        self.labels_region = dict()
+        self.get_labels()
+        labels_region = dict()
         for f in self.labels.keys():
-            print(f)
             for FAC in self.FACS[face_region]:
-                print(FAC)
                 if FAC in self.labels[f]:
-                    self.labels_region[f] = FAC
+                    labels_region[f] = FAC
+                else:
+                    labels_region[f] = 0.0
+        return labels_region
 
-
-
-    def get_targets(self):
-        self.labels = self.get_labels_for_region()
+    def get_targets(self, face_region):
+        labels_region = self.get_labels_for_region(face_region='nose')
         # get targets for face region_
         for f in self.file_paths:
-            f_name = f[:-4]
+            f_name = f[-31:-4]
+            # print(f_name)
+            # print(labels_region[f_name])
             if f_name in self.labels.keys():
-                self.targets.append(self.labels_region[f_name])
+                print('yass', labels_region[f_name])
+                self.targets.append(labels_region[f_name])
         # if no label, make target = -1
             else:
                 self.targets.append(-1)
 
-        print(self.targets)
-
+        self.targets = np.asarray(self.targets)
+        return self.targets
 
 
 if __name__ == "__main__":
     f = Features()
+    # f.get_labels()
     # features = f.get_features(face_region='nose')
-    f.get_labels()
-    f.get_labels_for_region(face_region='nose')
-    f.get_targets()
+    targets = f.get_targets(face_region='nose')
+    print(targets)
