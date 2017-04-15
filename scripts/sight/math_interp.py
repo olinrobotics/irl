@@ -7,8 +7,6 @@ hannah.kolano@students.olin.edu
 
 NEXT STEPS:
 error checking
-square root
-sin/cos
 documentation
 '''
 from __future__ import division
@@ -329,3 +327,4 @@ if __name__ == '__main__':
     ctr = Calculator()
     # ctr.eqn = '3x=@'
     ctr.run()
+
