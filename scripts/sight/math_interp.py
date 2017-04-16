@@ -7,8 +7,6 @@ hannah.kolano@students.olin.edu
 
 NEXT STEPS:
 error checking
-square root
-sin/cos
 documentation
 '''
 from __future__ import division
@@ -40,19 +38,14 @@ class Calculator:
 
     def solve_simple(self, eqn):
         '''solves a simple expression'''
-        eqn = self.removes_equals(eqn)
+        if eqn[-1] == '=':
+            eqn = eqn[0:-1]
         if '^' in eqn:
             eqn = eqn[:eqn.find('^')] + '**' + eqn[eqn.find('^')+1:]
         answer = eval(eqn)
         if type(answer) == float:
             answer = "{0:.2f}".format(answer)
         return str(answer)
-
-    def removes_equals(self, eqn):
-        '''if there is an = at the end, removes it'''
-        if eqn[-1] == '=':
-            eqn = eqn[0:-1]
-        return eqn
 
     def initialize_algebra(self, eqn):
         '''solves algebra'''
@@ -295,13 +288,13 @@ class Calculator:
                 while self.lstree != self.lsstring or self.rstree != self.rsstring:
                     self.solve_algebra()
                 if self.rsstring == self.variable:
-                    print(self.lsstring)
+                    return self.lsstring
                 elif self.lsstring == self.variable:
-                    print(self.rsstring)
+                    self.rsstring
             except ValueError as err:
                 print(err)
         elif all(digit in variable_list or digit in integer_list or digit in operator_list for digit in self.eqn):
-            print(self.solve_simple(self.eqn))
+            return self.solve_simple(self.eqn)
         else:
             print('what?')
 
@@ -323,6 +316,7 @@ class Calculator:
                 self.determine_problem()
                 if answer != prev_answer:
                     print(answer)
+
 
 
 if __name__ == '__main__':
