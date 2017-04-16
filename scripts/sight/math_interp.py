@@ -156,7 +156,7 @@ class Calculator:
             return self.tree
 
     def par_parse(self, equation):
-        '''takes an equation and returns a parsed version of it. 
+        '''takes an equation and returns a parsed version of it.
         also adds placeholders and what they represent into self.place_dict'''
         while '(' in str(equation):
             start_par = equation.find('(')
@@ -318,11 +318,11 @@ class Calculator:
         will only print the output once '''
         answer = ''
         while not rospy.is_shutdown():
-        if self.check_triviality(self.eqn) == 1:
-            prev_answer = answer
-            self.determine_problem()
-            if answer != prev_answer:
-                print(answer)
+            if self.check_triviality(self.eqn) == 1:
+                prev_answer = answer
+                self.determine_problem()
+                if answer != prev_answer:
+                    print(answer)
 
 
 if __name__ == '__main__':

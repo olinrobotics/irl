@@ -18,31 +18,23 @@ import img_processing as Process #Library of image processing functions in edwin
 import csv
 
 class HandwritingRecognition:
-    '''DOCSTRING
-        DESC: Instantiates and runs a Handwriting Recognition object
-        PRMS:
-        MTDS:
-        nothing - empty callback function for commands that require a callback function but don't need to perform an action
-        __init__ - initializes HandwritingRecognition object
-        img_callback - runs every time an image is recieved from the rostopic usb_cam
-        process_data_svm
-        decode_file
-        train_svm
-        process_digits
+    ''' DOCSTRING:
+        Contains the attributes and methods to implement Edwin's handwriting
+        recognition capability
         '''
 
-    def nothing(x): # empty callback function to pass as parameter
+    def nothing(x):
+        """ DOCSTRING:
+            Provides empty callback function for other functions needing a
+            function for param
+            """
         pass
 
 
     def __init__(self, init_param=False):
         '''DOCSTRING
-            DESC: runs once when program starts, sets up initial state, vars, etc.
-            ARGS:
-            self - reference to current HR object
-            init_param - Boolean providing alternate setup initialization
-            RETURN: none
-            SHOW: provides initial state and values for program
+            Initializes ros nodes, state vars, windows, etc. for current HR obj;
+            Contains lists differentiating alpha & numeric symbols
             '''
         if init_param:
             # init_param allows us to instantiate the HR object in different contexts, i.e in WritingDemo.py
@@ -79,22 +71,22 @@ class HandwritingRecognition:
         self.curr_data = ''
         self.found_word = False
 
+        # Lists of alpha symbols & numeric symbols for classify_writing method
+        alpha_symb = "AaBbCcDdEeFfGgHhIiJjKkLMmNnPpQqRrTtUuVvWwYyZz"
+        self.alpha_symb = list(alpha_symb)
+        numer_symb = "2346789+-/*="
+        self.numer_symb = list(numer_symb)
 
     def img_callback(self, data):
         '''
-            DESC: Callback function for usb cam subscription; stores frame from
-            camera to self
-            ARGS:
-            self - object - reference to current HR object
-            data - image - data sent over subscriber
-            RTRN: none
-            SHOW: stores usb-cam frame in self.curr_frame
+            DESC: Callback function for usb cam subscription; given data from
+            subscription (image), saves image for later use
             '''
         try:
+            # Saves image; converts to opencv format
             self.curr_frame = self.bridge.imgmsg_to_cv2(data, "bgr8")
         except CvBridgeError as e:
             print(e)
-
 
     def process_data_svm(self):
         '''DOCSTRING
@@ -125,7 +117,6 @@ class HandwritingRecognition:
 
         # Train the SVM neural network to recognize characters
 
-
     def decode_file(self, code):
         '''DOCSTRING
             Given a file name to decode, returns char to which file name
@@ -137,8 +128,10 @@ class HandwritingRecognition:
         elif (code == 'pls'): return ord('+')
         elif (code == 'mns'): return ord('-')
         elif (code == 'dot'): return ord('.')
+        elif (code == 'crt'): return ord('^')
+        elif (code == 'lpr'): return ord('(')
+        elif (code == 'rpr'): return ord(')')
         elif (len(code) == 1): return ord(code)
-
 
     def train_svm(self):
         '''DOCSTRING
@@ -158,7 +151,6 @@ class HandwritingRecognition:
 
         self.SVM = cv2.SVM()
         self.SVM.train(train_data,data_labels,params=svm_params)
-
 
     def process_digits(self,test_data,detect_words = False):
         '''DOCSTRING
@@ -189,7 +181,7 @@ class HandwritingRecognition:
             fuzzy_conts = self.resolve_symbols(dots,lines,dashes)
             if len(fuzzy_conts) > 0:
                 self.chars.extend(fuzzy_conts)
-
+            self.classify_writing(self.chars)
             # Prints characters on screen in location corresponding to the image
             if self.frame is not None:
                 for roi in self.chars:
@@ -199,7 +191,6 @@ class HandwritingRecognition:
                 self.detect_new_word(test_data)
             else:
                 return test_data
-
 
     def resolve_symbols(self, dot_contours,line_contours,dash_contours): # Currently sorts: i,!,l,=,/,
         '''DOCSTRING
@@ -292,11 +283,40 @@ class HandwritingRecognition:
             dot.result = ord('.')
             final_contours.append(dot)
         for line in line_contours:
-            line.result = ord('l')
+            line.result = ord('1')
             final_contours.append(line)
 
         return final_contours
 
+    def classify_writing(self, chars):
+        """ DOCSTRING:
+            Given set of chars to interpret, returns list written alphabetically
+            or numerically dependent on the ratio of alpha to numeric chars
+            present, as determined by lists in HR object init() method
+
+            Classification: 0 - null, 1 - alphabetic, 2 - numeric
+            """
+
+        classify = 0
+
+        chars = [chr(int(roi.result)) for roi in chars]
+        alpha_chars = [char for char in chars if char in self.alpha_symb] # list of chars classified as alphabetic
+        numer_chars = [char for char in chars if char in self.numer_symb] # list of chars classified as numeric
+
+        if len(chars) == 0:
+            classify = 0
+        elif len(alpha_chars) == 0:
+            classify = 2
+        elif len(numer_chars) == 0:
+            classify = 1
+        else:
+            ratio = len(alpha_chars)/len(numer_chars)
+            if ratio < 0.5:
+                classify = 2
+            else:
+                classify = 1
+        print(classify)
+        return classify
 
     def detect_new_word(self,char_list):
         '''DOCSTRING
