@@ -5,12 +5,14 @@ import st
 import numpy as np
 from std_msgs.msg import String, Int16
 import time
+from edwin.src import arm_cmd
 
 class ArmCommands:
     def __init__(self):
         rospy.init_node('robot_arm', anonymous=True)
-
-        rospy.Subscriber('/arm_cmd', String, self.arm_callback, queue_size=1)
+        s = rospy.Service('arm_cmd', arm_cmd, self.arm_callback)
+        print "Service ONLINE"
+        # rospy.Subscriber('/arm_cmd', String, self.arm_callback, queue_size=1)
         self.debug_pub = rospy.Publisher('arm_debug', String, queue_size=10)
         self.status_pub = rospy.Publisher('arm_status', Int16, queue_size=10)
 
@@ -32,7 +34,7 @@ class ArmCommands:
 
     def arm_callback(self, cmdin):
         self.arm.joint()
-        cmd = cmdin.data
+        cmd = cmdin.cmd
         cmd = str(cmdin).replace("data: ", "")
         if len(cmd.split(':: ')) > 1:
             param = cmd.split(':: ')[1]
@@ -143,10 +145,15 @@ class ArmCommands:
         elif cmd == "sleeping":
             time.sleep(float(param))
 
+
+        return ["I have completed the command"]
+
     def run(self):
-        r = rospy.Rate(10)
-        while not rospy.is_shutdown():
-            r.sleep()
+        print "Service is ready to go"
+        rospy.spin()
+        # r = rospy.Rate(10)
+        # while not rospy.is_shutdown():
+        #     r.sleep()
 
 if __name__ == "__main__":
     arm_eng = ArmCommands()
