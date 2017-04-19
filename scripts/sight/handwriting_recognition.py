@@ -18,17 +18,8 @@ import img_processing as Process #Library of image processing functions in edwin
 import csv
 
 class HandwritingRecognition:
-    '''DOCSTRING
-        DESC: Instantiates and runs a Handwriting Recognition object
-        PRMS:
-        MTDS:
-        nothing - empty callback function for commands that require a callback function but don't need to perform an action
-        __init__ - initializes HandwritingRecognition object
-        img_callback - runs every time an image is recieved from the rostopic usb_cam
-        process_data_svm
-        decode_file
-        train_svm
-        process_digits
+    ''' DOCSTRING:
+        Instantiates & runs obj to publish handwriting text to rostopic
         '''
 
     def nothing(x): # empty callback function to pass as parameter
@@ -36,7 +27,7 @@ class HandwritingRecognition:
 
 
     def __init__(self, init_param=False):
-        '''DOCSTRING
+        ''' DOCSTRING:
             DESC: runs once when program starts, sets up initial state, vars, etc.
             ARGS:
             self - reference to current HR object
@@ -373,6 +364,7 @@ class HandwritingRecognition:
         # print ''
         # for word in lines:
         #     print ' '.join([str(x.result) for x in word])
+
 
     def update_frame(self):
         '''DOCSTRING
