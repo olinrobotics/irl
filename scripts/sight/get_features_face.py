@@ -112,6 +112,12 @@ class Features:
         self.split = split
         return split
 
+    def unpack_landmarks(landmarks):
+        '''returns landmarks given as list of form [[x1, y1], [x2, y2]]
+        as list of form [x1, y1, x2, y2]'''
+        # TODO: this function, and your mom
+        pass
+
     def process_landmarks(self, clahe_image, face_region=None):
         landmarks = self.face_detect.get_landmarks(clahe_image,
                                                    return_type='nparray')
@@ -159,7 +165,6 @@ class Features:
         for f in self.FACS_file_paths:
             # list of FACS labels for a given file
             FACS_list = []
-            print(f)
             f_name = f[-36:-9]
             with open(f, 'r') as r:
                 lines = r.readlines()
@@ -178,7 +183,7 @@ class Features:
                     FACS_list.append(val)
                 self.labels[f_name] = FACS_list
 
-    def get_labels_for_region(self, face_region):
+    def get_labels_region(self, face_region):
         '''
         CHEEKS: 1-3, 14-16 (FACS 6, 11)
         MOUTH: 4-13, 48-68 (FACS 10-28 sans 19, 21)
@@ -198,17 +203,18 @@ class Features:
         return labels_region
 
     def get_targets(self, face_region):
-        labels_region = self.get_labels_for_region(face_region='nose')
+        labels_region = self.get_labels_region(face_region='nose')
         # get targets for face region_
         for f in self.file_paths:
             f_name = f[-31:-4]
-            # print(f_name)
-            # print(labels_region[f_name])
             if f_name in self.labels.keys():
-                print('yass', labels_region[f_name])
+                # appends FAC Unit to target twice to account for reflection
+                self.targets.append(labels_region[f_name])
                 self.targets.append(labels_region[f_name])
         # if no label, make target = -1
             else:
+                # appends FAC Unit to target twice to account for reflection
+                self.targets.append(-1)
                 self.targets.append(-1)
 
         self.targets = np.asarray(self.targets)
@@ -218,6 +224,7 @@ class Features:
 if __name__ == "__main__":
     f = Features()
     # f.get_labels()
-    # features = f.get_features(face_region='nose')
+    features = f.get_features(face_region='nose')
     targets = f.get_targets(face_region='nose')
-    print(targets)
+    print(type(targets))
+    print(features)

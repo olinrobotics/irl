@@ -15,7 +15,7 @@ iris = datasets.load_iris()
 
 X = iris.data[:, :2]
 y = iris.target
-print(y)
+print(type(y))
 
 # # step size in the mesh
 # h = .02
