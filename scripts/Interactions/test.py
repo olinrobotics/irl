@@ -15,7 +15,7 @@ class ArmCommands:
 
     def arm_callback(self, cmdin):
         print cmdin.cmd
-
+        time.sleep(5)
         return ["I have completed the command"]
 
     def run(self):
