@@ -19,8 +19,11 @@ class FACSTrainer:
         self.features = gf.Features(samples=samples)
         # get training data from database using get_features_face script
         self.train_data_set = self.features.get_features(face_region=face_region)
+        print(self.train_data_set.shape)
         # targets labeled at FAC Unit, 0 for neutral, or -1 for unlabeled
         self.targets = self.features.get_targets(face_region=face_region)
+        print(self.targets)
+        print(self.targets.shape)
         # n_clusters - depends on face_region, number of FACS in the region
         # plus one for neutral
         # FAC Unit 4 on the forehead is broken into 3 parts: left, right, both
@@ -41,7 +44,7 @@ class FACSTrainer:
         self.classifier = LabelPropagation()
 
     def fit_data(self):
-        self.classifier.fit(X=np.transpose(np.asmatrix(self.train_data_set)), y=self.targets)
+        self.classifier.fit(X=self.train_data_set, y=self.targets)
 
     def save_classifier(self):
         joblib.dump(self.classifier, self.params_path + self.face_region + '.pkl')

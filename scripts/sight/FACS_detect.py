@@ -32,6 +32,8 @@ class FACSDetect:
         self.new_face = True
         # detector from dlib_features.py
         self.face_detector = dl.FaceDetect()
+        # features from get_features_face.py
+        self.features = gf.Features()
         # a window: how neat!
         self.window = dlib.image_window()
 
@@ -51,5 +53,9 @@ class FACSDetect:
             return
 
         # TODO: process here using get_features_face
+        clahe_image = self.features.process_image(self.frame)
         # TODO: get landmarks
+        landmarks = self.face_detector.get_landmarks(clahe_image)
+
         # TODO: landmarks = split_landmarks
+        split = self.face_detector.split_landmarks(landmarks)
