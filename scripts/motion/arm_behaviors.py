@@ -16,7 +16,6 @@ class ArmBehaviors:
         rospy.Subscriber('/behaviors_cmd', String, self.behavior_callback, queue_size=10)
         rospy.Subscriber('arm_status', Int16, self.status_callback, queue_size=10)
         self.pub = rospy.Publisher('/arm_cmd', String, queue_size=10)
-        self.sound_pub = rospy.Publisher('/edwin_sound', String, queue_size=10)
         self.behaviors = {}
         self.moving = False
 

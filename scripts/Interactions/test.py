@@ -1,18 +1,30 @@
 #!/usr/bin/env python
-
-from edwin.srv import *
 import rospy
+import math
+import numpy as np
+from std_msgs.msg import String, Int16
 import time
+from edwin.srv import arm_cmd
 
-def handle_add_two_ints(req):
-    print "Returning [%s + %s = %s]"%(req.a, req.b, (req.a + req.b))
-    return ["i'm a chicken"]
+class ArmCommands:
+    def __init__(self):
+        rospy.init_node('robot_arm', anonymous=True)
+        s = rospy.Service('arm_cmd', arm_cmd, self.arm_callback)
+        print "Service ONLINE"
 
-def add_two_ints_server():
-    rospy.init_node('add_two_ints_server')
-    s = rospy.Service('add_two_ints', AddTwoInts, handle_add_two_ints)
-    print "Ready to add two ints."
-    rospy.spin()
+
+    def arm_callback(self, cmdin):
+        print cmdin.cmd
+
+        return ["I have completed the command"]
+
+    def run(self):
+        print "Service is ready to go"
+        rospy.spin()
+        # r = rospy.Rate(10)
+        # while not rospy.is_shutdown():
+        #     r.sleep()
 
 if __name__ == "__main__":
-    add_two_ints_server()
+    arm_eng = ArmCommands()
+    arm_eng.run()
