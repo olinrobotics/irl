@@ -3,6 +3,7 @@
 import sys
 import rospy
 from edwin.srv import *
+import time
 
 class SrvTest(object):
 
@@ -23,9 +24,11 @@ class SrvTest(object):
         r = rospy.Rate(10)
         while not rospy.is_shutdown():
             self.behavior_pub.publish('heart')
+            time.sleep(1)
             while self.status == 0:
                 print "waiting on look to finish"
             self.behavior_pub.publish('bow')
+            time.sleep(1)
             while self.status == 0:
                 print "waiting on bow to finish"
             r.sleep()
