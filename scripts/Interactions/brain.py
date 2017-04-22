@@ -29,13 +29,16 @@ class EdwinBrain:
     def __init__(self):
         rospy.init_node('edwin_brain', anonymous=True)
         rospy.Subscriber('/arm_debug', String, self.arm_debug_callback, queue_size = 1)
+        rospy.Subscriber('/vm_choice', String, self.visualmenu_callback, queue_size = 1)
 
         self.arm_pub = rospy.Publisher('/arm_cmd', String, queue_size=2)
         self.behav_pub = rospy.Publisher('/behaviors_cmd', String, queue_size=2)
         self.control_pub = rospy.Publisher('/all_control', String, queue_size=2)
 
+
         self.idling = False
         self.exit = False #should be catch all to exit all long running commands
+        self.command = None
 
         time.sleep(0.2)
         print "edwin brain is running"
@@ -51,9 +54,17 @@ class EdwinBrain:
             self.control_pub.publish("idle:init")
             self.idling = True
 
+    def visualmenu_callback(self, data):
+        try:
+            self.command = data.data
+        except data.data == None:
+            print("nothing to be had")
+
+
     def demo(self):
         while True:
-            cmd = str(raw_input("Demo ID: "))
+            #cmd = str(raw_input("Demo ID: "))
+            cmd = self.command
             self.control_pub.publish("idle:stop")
             if cmd == "w":
                 g = WritingDemo.Game()
