@@ -30,7 +30,6 @@ class HandwritingRecognition:
             """
         pass
 
-
     def __init__(self, init_param=False):
         '''DOCSTRING
             Initializes ros nodes, state vars, windows, etc. for current HR obj;
@@ -114,8 +113,6 @@ class HandwritingRecognition:
             responses = np.concatenate((responses,np.float32(np.repeat([self.decode_file(code)],100)[:,np.newaxis])),axis=0)
 
         np.savez(self.PARAMS_PATH + '/params/svm_data.npz',train=train_data,train_labels=responses) # Saves training data and responses into an .npz file
-
-        # Train the SVM neural network to recognize characters
 
     def decode_file(self, code):
         '''DOCSTRING
