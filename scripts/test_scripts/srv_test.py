@@ -2,33 +2,41 @@
 
 import sys
 import rospy
+from std_msgs.msg import String
 from edwin.srv import *
 import time
 
 class SrvTest(object):
 
     def __init__(self):
+        rospy.init_node('tester', anonymous=True)
         self.status = -1
-        self.behavior_pub = rospy.Publisher('/behaviors_cmd', String, queue_size=10)
+        self.pub2 = rospy.Publisher('/behaviors_cmd', String, queue_size=10)
         rospy.Subscriber('/arm_status', String, self.callback, queue_size=10)
 
     def callback(self, data):
-        if data. == "busy":
+        print "srv_test callback", data.data
+        if data.data == "busy" or data.data == "error":
             self.status = 0
-        elif data == "done":
+        elif data.data == "free":
             self.status = 1
 
 
     def run(self):
 
+
         r = rospy.Rate(10)
+        print "starting up"
+        time.sleep(3)
         while not rospy.is_shutdown():
-            self.behavior_pub.publish('heart')
-            time.sleep(1)
+            self.pub2.publish("heart")
+            print "published heart"
+            time.sleep(5)
             while self.status == 0:
-                print "waiting on look to finish"
-            self.behavior_pub.publish('bow')
-            time.sleep(1)
+                print "waiting on heart to finish"
+            self.pub2.publish('bow')
+            print "published bow"
+            time.sleep(3)
             while self.status == 0:
                 print "waiting on bow to finish"
             r.sleep()

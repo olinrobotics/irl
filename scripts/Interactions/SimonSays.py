@@ -87,6 +87,10 @@ class SimonSays(object):
 		#for the image
 		self.bridge = CvBridge()
 
+		#for checking actuation in services
+		self.status = -1
+
+
 		#init ROS publishers for actuation and stated speech
 		self.behavior_pub = rospy.Publisher('behaviors_cmd', String, queue_size=10)
 		self.arm_pub = rospy.Publisher('arm_cmd', String, queue_size=10)
@@ -96,6 +100,15 @@ class SimonSays(object):
 		self.image_sub = rospy.Subscriber("usb_cam/image_raw", Image, self.img_callback)
 		self.hear_sub = rospy.Subscriber("decoded_speech", String, self.hear_callback)
 		self.skelesub = rospy.Subscriber("skeleton", Bones, self.skeleton_callback)
+		self.status_sub = rospy.Subscriber('/arm_status', String, self.callback, queue_size=10)
+
+
+	def callback(self, data):
+        print "srv_test callback", data.data
+        if data.data == "busy" or data.data == "error":
+            self.status = 0
+        elif data.data == "free":
+            self.status = 1
 
 
 	def img_callback(self, data):
@@ -198,23 +211,32 @@ class SimonSays(object):
 		self.command_2_motion["disco"] = ["disco"]
 		self.command_2_motion["bow"] = ["bow"]
 
-
-	def check_stillness(self):
+	def check_completion(self):
 		"""
-		If Edwin is Simon:
-
-		This function is a helper function to the check_simon_response method
-		It determines whether the user has moved based on the sliding window
+		makes sure that actions run in order by waiting for response from service
 		"""
-		still = True
-		history_averages = np.mean(self.history, axis=0)
-		i = 0
-		for body_part in history_averages:
-			if np.abs(self.body_list[i] - body_part) > self.threshold:
-				still = False
-				return still
-			i += 1
-		return still
+
+		time.sleep(3)
+		while self.status == 0:
+			print "waiting for completion"
+
+
+	# def check_stillness(self):
+	# 	"""
+	# 	If Edwin is Simon:
+	#
+	# 	This function is a helper function to the check_simon_response method
+	# 	It determines whether the user has moved based on the sliding window
+	# 	"""
+	# 	still = True
+	# 	history_averages = np.mean(self.history, axis=0)
+	# 	i = 0
+	# 	for body_part in history_averages:
+	# 		if np.abs(self.body_list[i] - body_part) > self.threshold:
+	# 			still = False
+	# 			return still
+	# 		i += 1
+	# 	return still
 
 
 	def simon_say_command(self):
@@ -242,6 +264,8 @@ class SimonSays(object):
 
 		if "simon says" in self.current_cmd:
 			print "checking for the simon command"
+
+			#TODO: integrate Katya/Yichen's stuff
 			#will check with Katya and Yichen's module for the correct gesture
 			response = "clap_hands"  #potential output from gesture recognition
 
@@ -298,6 +322,7 @@ class SimonSays(object):
 			for m in self.arm_act:
 				print "GOT MOTION: ", m
 				self.behavior_pub.publish(m)
+				self.check_completion()
 				time.sleep(1)
 			self.current_act = None
 
@@ -326,6 +351,7 @@ class AutonomousSimon(SimonSays):
 
 		move = "get_set"
 		self.behavior_pub.publish(move)
+		self.check_completion()
 		time.sleep(3)
 		statement = "I am going to demo Simon Says."
 		self.say_pub.publish(statement)
@@ -339,12 +365,14 @@ class AutonomousSimon(SimonSays):
 
 		move = "done_game"
 		self.behavior_pub.publish(move)
+		self.check_completion()
 		statement = "Finished a round."
 		self.say_pub.publish(statement)
 		time.sleep(3)
 
 		statement = "look"
 		self.behavior_pub.publish(statement)
+		self.check_completion()
 		print "Finished playing by myself, hope you enjoyed the demo!"
 
 
@@ -366,6 +394,7 @@ class EdwinSimon(SimonSays):
 
 		move = "leader"
 		self.behavior_pub.publish(move)
+		self.check_completion()
 		time.sleep(1)
 		statement = "Alright, I will be Simon. Ready? Set? Let's play!"
 		self.say_pub.publish(statement)
@@ -384,11 +413,13 @@ class EdwinSimon(SimonSays):
 			move = "praise"
 
 		self.behavior_pub.publish(move)
+		self.check_completion()
 		self.say_pub.publish(statement)
 		time.sleep(1)
 
 		statement = "look"
 		self.behavior_pub.publish(statement)
+		self.check_completion()
 
 		print "Finished playing with player, hope you enjoyed!"
 
@@ -410,6 +441,7 @@ class EdwinPlayer(SimonSays):
 
 		move = "get_set"
 		self.behavior_pub.publish(move)
+		self.check_completion()
 		time.sleep(1)
 		statement = "Alright, I will be the player. Ready? Set? Let's play!"
 		self.say_pub.publish(statement)
@@ -428,11 +460,13 @@ class EdwinPlayer(SimonSays):
 			move = "praise"
 
 		self.behavior_pub.publish(move)
+		self.check_completion()
 		self.say_pub.publish(statement)
 		time.sleep(1)
 
 		statement = "look"
 		self.behavior_pub.publish(statement)
+		self.check_completion()
 		print "Finished playing with Simon, hope you enjoyed!"
 
 

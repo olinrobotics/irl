@@ -12,10 +12,10 @@ class ArmCommands:
         rospy.init_node('robot_arm', anonymous=True)
         s = rospy.Service('arm_cmd', arm_cmd, self.arm_callback)
         print "Service ONLINE"
-        
+
         # rospy.Subscriber('/arm_cmd', String, self.arm_callback, queue_size=1)
         self.debug_pub = rospy.Publisher('arm_debug', String, queue_size=10)
-        self.status_pub = rospy.Publisher('arm_status', Int16, queue_size=10)
+        # self.status_pub = rospy.Publisher('arm_status', String, queue_size=10)
 
         self.debug = False
         self.plan = []
@@ -36,7 +36,7 @@ class ArmCommands:
     def arm_callback(self, cmdin):
         self.arm.joint()
         cmd = cmdin.cmd
-        cmd = str(cmdin).replace("data: ", "")
+        cmd = str(cmd).replace("data: ", "")
         if len(cmd.split(':: ')) > 1:
             param = cmd.split(':: ')[1]
             cmd = cmd.split(':: ')[0]
