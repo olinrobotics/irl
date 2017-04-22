@@ -88,19 +88,40 @@ class HandwritingRecognition:
             print(e)
 
     def process_data_svm(self):
-        '''DOCSTRING
-            DESC:
-            ARGS:
-            RETURNS:
+        '''DOCSTRING:
+            Saves .npz files of training data & training_labels for SVMS
+            (alphabetic, numeric, symbolic (both alpha and num))
             '''
+
         path =  self.PARAMS_PATH + '/params/char_data/'
         files = listdir(path) # Lists files in path folder (training data)
+        alpha_files = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','.','!']
+        alpha_files = [alphafile + 'png' for alphafile in alpha_files]
+        num_files = ['0','1','2','3','4','5','6','7','8','9','mns','pls','div','dot','x','a','b','lpr','crt']
+        alpha_files = [numfile + 'png' for numfile in num_files]
+        train_data, responses = self.build_train_data(files,path)
+        train_alphadata, alpha_responses = self.build_train_data(alpha_files,path)
+        train_numdata, num_responses = self.build_train_data(numfiles,path)
+        np.savez(self.PARAMS_PATH + '/params/svm_data.npz',train=train_data,train_labels=responses) # Saves training data and labels into .npz file
+        np.savez(self.PARAMS_PATH + '/params/svm_alphadata.npz',train=train_alphadata,train_labels=alpha_responses) # Saves alphabetic training data & labels into .npz file
+        np.savez(self.PARAMS_PATH + '/params/svm_numdata.npz',train=train_numdata,train_labels=num_responses) # Saves numeric training data & labels into .npz file
+
+
+    def build_train_data(self,files,path):
+        """ DOCSTRING:
+            Given list of test data files & path to files; returns train_data &
+            labels for training SVM
+            """
+
         train_data = np.float32(np.zeros((0,64)))
         responses = np.float32(np.zeros((0,1)))
+
         for f in files: # Loads the .pngs for the training data for each symbol
             file_path = path + f
+            print(file_path)
             code = f.split('.',1)[0]
             train_img = cv2.imread(file_path)
+
             cells_data = []
             # Processes the training data into a usable format
             gray = cv2.cvtColor(train_img,cv2.COLOR_BGR2GRAY)
@@ -108,11 +129,12 @@ class HandwritingRecognition:
             # deskewed = [map(self.deskew,row) for row in cells]
             hogdata = [map(Process.hog,row) for row in cells]
 
+            # Builds training data
             train_data = np.concatenate((train_data,np.float32(hogdata).reshape(-1,64)),axis=0)
-            # Builds the labels for the training data
+            # Builds labels for training data
             responses = np.concatenate((responses,np.float32(np.repeat([self.decode_file(code)],100)[:,np.newaxis])),axis=0)
 
-        np.savez(self.PARAMS_PATH + '/params/svm_data.npz',train=train_data,train_labels=responses) # Saves training data and responses into an .npz file
+        return train_data, responses
 
     def decode_file(self, code):
         '''DOCSTRING
@@ -131,7 +153,7 @@ class HandwritingRecognition:
         elif (len(code) == 1): return ord(code)
 
     def train_svm(self):
-        '''DOCSTRING
+        '''DOCSTRING:
             Initializes, sets parameters/data for, and trains SVM to
             distinguish between chars in provided test data
             '''
