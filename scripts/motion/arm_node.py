@@ -5,14 +5,17 @@ import st
 import numpy as np
 from std_msgs.msg import String, Int16
 import time
+from edwin.srv import arm_cmd
 
 class ArmCommands:
     def __init__(self):
         rospy.init_node('robot_arm', anonymous=True)
+        s = rospy.Service('arm_cmd', arm_cmd, self.arm_callback)
+        print "Service ONLINE"
 
-        rospy.Subscriber('/arm_cmd', String, self.arm_callback, queue_size=1)
+        # rospy.Subscriber('/arm_cmd', String, self.arm_callback, queue_size=1)
         self.debug_pub = rospy.Publisher('arm_debug', String, queue_size=10)
-        self.status_pub = rospy.Publisher('arm_status', Int16, queue_size=10)
+        # self.status_pub = rospy.Publisher('arm_status', String, queue_size=10)
 
         self.debug = False
         self.plan = []
@@ -32,8 +35,8 @@ class ArmCommands:
 
     def arm_callback(self, cmdin):
         self.arm.joint()
-        cmd = cmdin.data
-        cmd = str(cmdin).replace("data: ", "")
+        cmd = cmdin.cmd
+        cmd = str(cmd).replace("data: ", "")
         if len(cmd.split(':: ')) > 1:
             param = cmd.split(':: ')[1]
             cmd = cmd.split(':: ')[0]
@@ -91,12 +94,12 @@ class ArmCommands:
             print "setting accel to ", param
             self.arm.set_accel(float(param))
         elif cmd == "run_route":
-            self.status_pub.publish(1)
+            # self.status_pub.publish(1)
             res = self.arm.run_route(param)
 
             if not res:
                 self.debug_pub.publish("ROUTE NOT FOUND: " + param)
-            self.status_pub.publish(0)
+            # self.status_pub.publish(0)
         elif cmd == "move_to":
             #NOTE: move_to is in units of mm
             temp = param.split(", ")
@@ -104,49 +107,55 @@ class ArmCommands:
             y = temp[1]
             z = temp[2]
             pitch = temp[3]
-            self.status_pub.publish(1)
+            # self.status_pub.publish(1)
             self.arm.move_to(x,y,z,self.arm.debug)
-            self.status_pub.publish(0)
+            # self.status_pub.publish(0)
         elif cmd == "rotate_wrist":
-            self.status_pub.publish(1)
+            # self.status_pub.publish(1)
             self.arm.rotate_wrist(param)
-            self.status_pub.publish(0)
+            # self.status_pub.publish(0)
         elif cmd == "rotate_wrist_rel":
-            self.status_pub.publish(1)
+            # self.status_pub.publish(1)
             self.arm.rotate_wrist_rel(param)
-            self.status_pub.publish(0)
+            # self.status_pub.publish(0)
         elif cmd == "rotate_hand":
-            self.status_pub.publish(1)
+            # self.status_pub.publish(1)
             self.arm.rotate_hand(param)
-            self.status_pub.publish(0)
+            # self.status_pub.publish(0)
         elif cmd == "rotate_elbow":
-            self.status_pub.publish(1)
+            # self.status_pub.publish(1)
             self.arm.rotate_elbow(param)
-            self.status_pub.publish(0)
+            # self.status_pub.publish(0)
         elif cmd == "rotate_shoulder":
-            self.status_pub.publish(1)
+            # self.status_pub.publish(1)
             self.arm.rotate_shoulder(param)
-            self.status_pub.publish(0)
+            # self.status_pub.publish(0)
         elif cmd == "rotate_waist":
-            self.status_pub.publish(1)
+            # self.status_pub.publish(1)
             self.arm.rotate_waist(param)
-            self.status_pub.publish(0)
+            # self.status_pub.publish(0)
         elif cmd == "rotate_waist_rel":
-            self.status_pub.publish(1)
+            # self.status_pub.publish(1)
             print "RELATIVE WA ROTATION"
             self.arm.rotate_waist(param)
-            self.status_pub.publish(0)
+            # self.status_pub.publish(0)
         elif cmd == "rotate_hand_rel":
-            self.status_pub.publish(1)
+            # self.status_pub.publish(1)
             self.arm.rotate_hand_rel(param)
-            self.status_pub.publish(0)
+            # self.status_pub.publish(0)
         elif cmd == "sleeping":
             time.sleep(float(param))
 
+
+        return ["I have completed the command"]
+
+
     def run(self):
-        r = rospy.Rate(10)
-        while not rospy.is_shutdown():
-            r.sleep()
+        print "Service is ready to go"
+        rospy.spin()
+        # r = rospy.Rate(10)
+        # while not rospy.is_shutdown():
+        #     r.sleep()
 
 if __name__ == "__main__":
     arm_eng = ArmCommands()

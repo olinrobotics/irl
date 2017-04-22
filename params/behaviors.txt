@@ -1,7 +1,7 @@
 (dp0
 S'heart'
 p1
-S'R_heart'
+S'SPD: 700, R_heart'
 p2
 sS'curiosity'
 p3
@@ -65,7 +65,7 @@ S'SPD: 800, R_high5_self'
 p32
 sS'get_set'
 p33
-S'SPD:600, R_get_set'
+S'SPD: 600, R_get_set'
 p34
 sS'dab'
 p35

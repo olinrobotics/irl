@@ -8,13 +8,15 @@ import numpy as np
 from std_msgs.msg import String, Int16
 import rospkg
 import pickle
+from edwin.srv import *
 import os, sys
 
 class RouteCreator:
     def __init__(self, default_init):
         rospy.init_node('route_creator', anonymous=True)
-        self.arm_pub = rospy.Publisher('/arm_cmd', String, queue_size=2)
+        # self.arm_pub = rospy.Publisher('/arm_cmd', String, queue_size=2)
         self.debug_pub = rospy.Publisher('/arm_debug', String, queue_size=1)
+        self.arm_status = rospy.Publisher('/arm_status', String, queue_size=10)
         rospy.Subscriber('/arm_debug', String, self.create_callback, queue_size=2)
         time.sleep(1)
 
@@ -88,12 +90,26 @@ class RouteCreator:
         pickle.dump(self.route_dictionary.keys(), open(self.PACKAGE_PATH + '/params/routes.txt', 'w'))
 
 
+    def request_cmd(self, cmd):
+        rospy.wait_for_service('arm_cmd', timeout=15)
+        cmd_fnc = rospy.ServiceProxy('arm_cmd', arm_cmd)
+        print "I have requested the command"
+
+        try:
+            resp1 = cmd_fnc(cmd)
+            print "command done"
+
+
+        except rospy.ServiceException, e:
+            print "Service call failed: %s"%e
+
+
     def setup_initial_routes(self):
         inital_routes = ["R_ttt", "R_laugh", "R_nudge", "R_look", "R_sad_turn", "R_get_set"]
         for r in inital_routes:
             msg = "create_route:: " + self.route_dictionary[r]
             print "Sending message: ", msg
-            self.arm_pub.publish(msg)
+            self.request_cmd(msg)
             time.sleep(.5)
 
         self.debug_pub.publish("ROUTE CREATE DONE")
@@ -118,6 +134,7 @@ class RouteCreator:
 
         print "MISSED ROUTE: ", missed_route
         route = self.route_dictionary.get(missed_route, None)
+        self.arm_status.publish('busy')
 
         if route == None:
             print "Route: " + missed_route + " not found"
@@ -126,14 +143,16 @@ class RouteCreator:
             for r in routes:
                 msg = "create_route:: " + r
                 print "Sending message: ", msg
-                self.arm_pub.publish(msg)
+                self.request_cmd(msg)
         elif type(route) == str:
             msg = "create_route:: " + route
             print "Sending message: ", msg
-            self.arm_pub.publish(msg)
+            self.request_cmd(msg)
 
         time.sleep(1.5)
-        self.arm_pub.publish("run_route:: " + route.split(";")[0])
+        self.request_cmd("run_route:: " + route.split(";")[0])
+
+        self.arm_status.publish("free")
 
     def run(self):
         r = rospy.Rate(10)
