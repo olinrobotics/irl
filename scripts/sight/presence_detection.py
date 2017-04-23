@@ -1,4 +1,19 @@
 #!/usr/bin/env python
+"""
+To run presence_detection.py, please run in terminal:
+
+roscore
+roslaunch openni_launch openni.launch
+rosrun edwin edwin_bodies
+
+"""
+import sys
+import rospkg
+rospack = rospkg.RosPack()
+PACKAGE_PATH = rospack.get_path("edwin")
+sys.path.append(PACKAGE_PATH + '/sight')
+sys.path.append(PACKAGE_PATH + '/motion')
+
 import rospy
 import math
 import numpy as np
@@ -6,6 +21,19 @@ from std_msgs.msg import String, Int16
 from edwin.msg import *
 import time
 import tf
+
+"""
+Presence Detection can find and track the nearest user to Edwin. It can also detect
+hand waves have Edwin physically follow the user around the room.
+
+Update March 2017
+
+This code has also been augmented to follow specifically the user's head rather
+than the center of mass of their body, which allows for a more accurate and realistic
+interaction. The parameters and code logic was also improved for smoother and cleaner
+execution.
+
+"""
 
 class Coordinates:
     """
@@ -53,7 +81,14 @@ class Presence:
         #keeps track of whether someone waved a Edwin or not
         self.waved = False
 
+        #looping
         self.running = True
+
+        #tracking the user's information
+        self.head = None
+        self.torso = None
+        self.Rhand = None
+        self.Lhand = None
 
         #subscribing to edwin_bodies, from Kinect
         rospy.Subscriber('body', SceneAnalysis, self.presence_callback, queue_size=10)
@@ -63,6 +98,9 @@ class Presence:
 
         #subsrcibing to st.py's arm_debug, from Edwin
         rospy.Subscriber('arm_debug', String, self.edwin_location, queue_size=10)
+
+        #subscribing to the skeleton topic, from Skeleton Markers, to get the head
+        rospy.Subscriber('presence', HHH, self.get_HHH, queue_size=10)
 
         #setting up ROS publishers to Edwin commands
         self.behavior_pub = rospy.Publisher('behaviors_cmd', String, queue_size=10)
@@ -74,6 +112,18 @@ class Presence:
 
         time.sleep(2)
         print "Starting presence_detection.py"
+
+
+    def get_HHH(self, msg):
+        """
+        subscribes to skeleton to get and parse the current user's head
+        """
+        self.head = msg.headx, msg.heady, msg.headz
+        self.torso = msg.torsox, msg.torsoy, msg.torsoz
+        self.Rhand = msg.Rhandx, msg.Rhandy, msg.Rhandz
+        self.Lhand = msg.Lhandx, msg.Lhandy, msg.Lhandz
+
+
 
     def edwin_location(self, res):
         """
@@ -168,14 +218,12 @@ class Presence:
         follows the nearest person's body around
         """
         #finds the person of interest's coordinates and then converts them to Edwin coordinates
-        print "PEOPLE: ", self.peoples
         attn = self.attention()
-        print "ATTN: ", self.attention()
         for person in self.peoples:
             if (person is not None) and (attn == person.ID):
-                print "PERSON: ", person
-                trans = self.kinect_to_edwin_transform(person)
-                print "TRANS: ", trans
+
+                #adjustment to use self.head rather than the person's actual XYZ
+                trans = self.kinect_to_edwin_transform(self.head)
                 if trans is not None:
                     xcoord, ycoord, zcoord = self.edwin_transform(trans)
 
@@ -213,7 +261,7 @@ class Presence:
         kinect reference frame = center of Kinect camera
         edwin reference frame = center of edwin' base, the plateau below his butt
         """
-        self.br.sendTransform((person.X, person.Y, person.Z),
+        self.br.sendTransform((person[0], person[1], person[2]),
                             tf.transformations.quaternion_from_euler(0, 0, 0),
                             rospy.Time.now(),
                             "human",
