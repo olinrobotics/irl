@@ -25,7 +25,7 @@ S'SPD: 700, R_laugh, SPD: 1000'
 p12
 sS'disco'
 p13
-S'SPD: 750, R_disco'
+S'SPD: 800, R_disco'
 p14
 sS'idle_3_lookaround'
 p15

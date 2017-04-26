@@ -136,7 +136,7 @@ class ArmBehaviors:
         self.behaviors['heart'] = "SPD: 700, R_heart"
         self.behaviors['high5_self'] = "SPD: 800, R_high5_self"
         self.behaviors['wave'] = "SPD: 650, R_wave"
-        self.behaviors['disco'] = "SPD: 750, R_disco"
+        self.behaviors['disco'] = "SPD: 800, R_disco"
         self.behaviors['rub_tummy'] = "SPD: 700, R_rub_tummy"
 
 
