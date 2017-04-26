@@ -3,7 +3,8 @@ import rospy
 import math
 import st
 import numpy as np
-from std_msgs.msg import String, Int16
+from std_msgs.msg import String, Int16, Header
+from sensor_msgs.msg import JointState
 import time
 from edwin.srv import arm_cmd
 
@@ -16,6 +17,9 @@ class ArmCommands:
         # rospy.Subscriber('/arm_cmd', String, self.arm_callback, queue_size=1)
         self.debug_pub = rospy.Publisher('arm_debug', String, queue_size=10)
         # self.status_pub = rospy.Publisher('arm_status', String, queue_size=10)
+
+        self.joint_state_pub = rospy.Publisher('joint_states', JointState, queue_size=10)
+        self.joint_state_msg = JointState()
 
         self.debug = False
         self.plan = []
@@ -47,7 +51,9 @@ class ArmCommands:
             self.arm.energize()
         elif cmd == "where":
             location = self.arm.where()
-            print location
+
+            #print 'location', location
+            
         elif cmd == "create_route":
             print "CREATING NEW ROUTE"
             param = param.split("; ")
@@ -145,6 +151,29 @@ class ArmCommands:
             # self.status_pub.publish(0)
         elif cmd == "sleeping":
             time.sleep(float(param))
+        elif cmd == "get_joint_states":
+            self.status_pub.publish(1)
+            joint_states = self.arm.get_joint_states()
+
+            h = Header()
+            h.frame_id = "base_link"
+            h.stamp = rospy.Time.now()
+
+            self.joint_state_msg.header = h
+            self.joint_state_msg.name = ['joint_1','joint_2','joint_3','joint_4','joint_5']
+            # TODO : fix these names ... here for compatibility with URDF model
+            self.joint_state_msg.position = joint_states
+            self.joint_state_msg.velocity = [0 for _ in range(5)]
+            self.joint_state_msg.effort = [0 for _ in range(5)]
+
+            self.joint_state_pub.publish(self.joint_state_msg)
+
+            self.status_pub.publish(0)
+        elif cmd == "test":
+            self.status_pub.publish(1)
+            self.arm.test()
+            self.status_pub.publish(0)
+
 
 
         return ["I have completed the command"]
