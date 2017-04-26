@@ -218,25 +218,7 @@ class SimonSays(object):
 
 		time.sleep(3)
 		while self.status == 0:
-			print "waiting for completion"
-
-
-	# def check_stillness(self):
-	# 	"""
-	# 	If Edwin is Simon:
-	#
-	# 	This function is a helper function to the check_simon_response method
-	# 	It determines whether the user has moved based on the sliding window
-	# 	"""
-	# 	still = True
-	# 	history_averages = np.mean(self.history, axis=0)
-	# 	i = 0
-	# 	for body_part in history_averages:
-	# 		if np.abs(self.body_list[i] - body_part) > self.threshold:
-	# 			still = False
-	# 			return still
-	# 		i += 1
-	# 	return still
+			print "waiting for completion of action"
 
 
 	def simon_say_command(self):
@@ -248,7 +230,6 @@ class SimonSays(object):
 		"""
 		command = random.choice(self.command_2_speech.keys())
 		self.current_cmd = random.choice(["simon says, ", ""]) + self.command_2_speech.get(command)
-		# self.current_cmd = "simon says, " + self.command_2_speech.get(command)
 		if "simon says, " in self.current_cmd:
 			self.current_act = command
 		print self.current_cmd
@@ -262,21 +243,10 @@ class SimonSays(object):
 
 		This function checks to see if the players have followed Edwin's cmd
 		This relies on skeleton tracker to be functional
+
+		To be implemented when Edwin is Simon
 		"""
-
-		if "simon says" in self.current_cmd:
-			print "checking for the simon command"
-
-			#TODO: integrate Katya/Yichen's stuff
-			#will check with Katya and Yichen's module for the correct gesture
-			response = "clap_hands"  #potential output from gesture recognition
-
-			if response in self.command_2_speech.keys():
-				self.no_mistakes = True
-			else:
-				self.no_mistakes = False
-		else:
-			self.no_mistakes = self.check_stillness()
+		pass
 
 
 	def player_listen_for_simon(self):
@@ -390,8 +360,93 @@ class EdwinSimon(SimonSays):
 	def __init__(self):
 		super(EdwinSimon, self).__init__()
 
+		# additional variables specific to when Edwin is Simon
+
+		# communicator to finding gestures
+		self.ctr_pub = rospy.Publisher('/all_control',String, queue_size=10)
+
+		# finds gestures
+		rospy.Subscriber("/skeleton_detect", String, self.gest_callback, queue_size = 10)
+
+		self.first = True           # makes sure the first go is always simon says
+		self.gesture = ""			# stores the found gesture
+		self.msg = ""				# message variable for self.ctr_pub
+		self.simonless_gest = None	# stores the previous simon says for finding stillness
+
+
+	def gest_callback(self,data):
+		"""
+		receives the data from what gesture was found from the user, who is the player
+		"""
+
+		self.gesture = data.data
+
+
+	def simon_say_command(self):
+		"""
+		If Simon is Edwin:
+		This function issues a Simon command.
+		"""
+
+		command = random.choice(self.command_dictionary.keys())
+
+		# makes sure that command is not the same twice in a row
+		while self.command_dictionary[command] in self.current_cmd:
+			command = random.choice(self.command_dictionary.keys())
+
+		#makes sure that first command contains 'simon says'
+		if self.first == True:
+			self.current_cmd = "simon says, " + self.command_dictionary[command]
+			self.first = False
+		else:
+			self.current_cmd = random.choice(["simon says, ", ""]) + self.command_dictionary[command]
+
+		self.say_pub.publish(self.current_cmd)
+		time.sleep(2)
+
+		if "simon says" in self.current_cmd
+			if any(word in self.current_cmd for word in ["wave", "disco", "bow", "hug"]):
+				#publishes to all_control that tells it to go and wait 4 seconds for complicated gestures
+				self.msg = "gesture_detect:go 4"
+			else:
+				self.msg = "gesture_detect:go 2"
+		self.ctr_pub.publish(self.msg)
+
+
+	def simon_check_response(self):
+		"""
+		If Simon is Edwin:
+		This function checks to see if the players have followed Edwin's cmd
+		This relies on skeleton tracker to be functional
+		"""
+		if "simon says" in self.current_cmd:
+			command_gest = self.current_cmd.replace("simon says, ","")
+			for key,value in self.command_dictionary.items():
+				if value == command_gest:
+					command_gest = key
+
+			#compares command to the gesture received from subscriber
+			if command_gest  == self.gesture:
+				print('Good job!')
+				self.simonless_gest = self.gesture
+				self.no_mistakes = True
+			else:
+				print('Try again!')
+				self.no_mistakes = False
+		else:
+			if self.simonless_gest == self.gesture:
+				print('Good job!')
+				self.no_mistakes = True
+			else:
+				print('Try again!')
+				self.no_mistakes = False
+
 
 	def run(self):
+		"""
+		main run loop
+		"""
+
 		time.sleep(2)
 		print "playing as Simon"
 
@@ -401,11 +456,19 @@ class EdwinSimon(SimonSays):
 		time.sleep(1)
 		statement = "Alright, I will be Simon. Ready? Set? Let's play!"
 		self.say_pub.publish(statement)
+		time.sleep(2)
+
+		self.ctr_pub.publish("gesture_detect:go")
 
 		while self.max_turns > 0 and self.no_mistakes:
 			self.max_turns -= 1
 
 			self.simon_say_command()
+			if any(word in self.current_cmd for word in ["wave", "disco", "bow", "hug"]):
+				time.sleep(4)
+			else:
+				time.sleep(2)
+
 			self.simon_check_response()
 
 		if not self.no_mistakes:
@@ -415,10 +478,12 @@ class EdwinSimon(SimonSays):
 			statement = "Congratulations, you finished the game!"
 			move = "praise"
 
+		self.ctr_pub.publish("gesture_detect:stop")
+
 		self.behavior_pub.publish(move)
 		self.check_completion()
 		self.say_pub.publish(statement)
-		time.sleep(1)
+		time.sleep(2)
 
 		statement = "look"
 		self.behavior_pub.publish(statement)
