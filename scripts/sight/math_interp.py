@@ -6,9 +6,9 @@ Author: Hannah Kolano
 hannah.kolano@students.olin.edu
 '''
 from __future__ import division
-# import rospy
+import rospy
 import rospkg
-# from std_msgs.msg import String
+from std_msgs.msg import String
 import math as m
 
 integer_list = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.']
@@ -20,11 +20,11 @@ placeholder_list = ['p', 'q', 'r', 's', 't', 'u']
 class Calculator:
     def __init__(self):
         '''initializes the object'''
-        # rospy.init_node('doing_math')
-        # self.pub = rospy.Publisher('/math_output', String, queue_size=10)
+        rospy.init_node('doing_math')
+        self.pub = rospy.Publisher('/math_output', String, queue_size=10)
         self.eqn = ''
         self.tree = tuple()
-        # rospy.Subscriber('word_publish', String, self.cmd_callback)
+        rospy.Subscriber('word_publish', String, self.cmd_callback)
 
     def cmd_callback(self, data):
         '''callback'''
@@ -138,7 +138,7 @@ class Calculator:
             return self.tree
 
     def par_parse(self, equation):
-        '''takes an equation and returns a parsed version of it. 
+        '''takes an equation and returns a parsed version of it.
         also adds placeholders and what they represent into self.place_dict'''
         while '(' in str(equation):
             start_par = equation.find('(')
@@ -284,17 +284,16 @@ class Calculator:
     def run(self):
         '''only prints the answer if it's getting a nontrivial input
         will only print the output once '''
-        # answer = ''
-        # while not rospy.is_shutdown():
-        # if answer != '':
-        #     prev_answer = answer
-        answer = self.determine_problem()
-            # if answer != prev_answer:
-        print(answer)
+        answer = ''
+        while not rospy.is_shutdown():
+            if answer != '':
+                prev_answer = answer
+                self.determine_problem()
+                if answer != prev_answer:
+                    print(answer)
 
 
 if __name__ == '__main__':
     ctr = Calculator()
     ctr.eqn = 'x=5*-3'
     ctr.run()
-
