@@ -100,15 +100,15 @@ class SimonSays(object):
 		self.image_sub = rospy.Subscriber("usb_cam/image_raw", Image, self.img_callback)
 		self.hear_sub = rospy.Subscriber("decoded_speech", String, self.hear_callback)
 		self.skelesub = rospy.Subscriber("skeleton", Bones, self.skeleton_callback)
-		self.status_sub = rospy.Subscriber('/arm_status', String, self.callback, queue_size=10)
+		self.status_sub = rospy.Subscriber('/arm_status', String, self.status_callback, queue_size=10)
 
 
-	def callback(self, data):
-        print "srv_test callback", data.data
-        if data.data == "busy" or data.data == "error":
-            self.status = 0
-        elif data.data == "free":
-            self.status = 1
+	def status_callback(self, data):
+		print "arm status callback", data.data
+		if data.data == "busy" or data.data == "error":
+			self.status = 0
+		elif data.data == "free":
+			self.status = 1
 
 
 	def img_callback(self, data):
@@ -248,10 +248,12 @@ class SimonSays(object):
 		"""
 		command = random.choice(self.command_2_speech.keys())
 		self.current_cmd = random.choice(["simon says, ", ""]) + self.command_2_speech.get(command)
+		# self.current_cmd = "simon says, " + self.command_2_speech.get(command)
 		if "simon says, " in self.current_cmd:
 			self.current_act = command
 		print self.current_cmd
 		self.say_pub.publish(self.current_cmd)
+		time.sleep(2)
 
 
 	def simon_check_response(self):
@@ -355,6 +357,7 @@ class AutonomousSimon(SimonSays):
 		time.sleep(3)
 		statement = "I am going to demo Simon Says."
 		self.say_pub.publish(statement)
+		time.sleep(2)
 
 		while self.max_turns > 0:
 			self.max_turns -= 1

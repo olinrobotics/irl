@@ -9,7 +9,7 @@ S'R_curious, WR: 800, H: 0'
 p4
 sS'wave'
 p5
-S'R_wave'
+S'SPD: 650, R_wave'
 p6
 sS'sad'
 p7
@@ -25,7 +25,7 @@ S'SPD: 700, R_laugh, SPD: 1000'
 p12
 sS'disco'
 p13
-S'SPD: 800, R_disco'
+S'SPD: 750, R_disco'
 p14
 sS'idle_3_lookaround'
 p15
@@ -69,11 +69,11 @@ S'SPD: 600, R_get_set'
 p34
 sS'dab'
 p35
-S'R_dab'
+S'SPD: 900, R_dab'
 p36
 sS'rub_tummy'
 p37
-S'R_rub_tummy'
+S'SPD: 700, R_rub_tummy'
 p38
 sS'nod'
 p39
@@ -85,7 +85,7 @@ S'R_1_sniff, SPD: 1000, R_2_sniff, R_look'
 p42
 sS'hug_self'
 p43
-S'SPD: 600, R_hug_self'
+S'SPD: 500, R_hug_self'
 p44
 sS'idle_look_distance'
 p45

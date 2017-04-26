@@ -128,16 +128,16 @@ class ArmBehaviors:
 
         ###################               Simon Says actions           #####################
         self.behaviors['touch_head'] = "SPD: 600, R_touch_head "
-        self.behaviors['high5_self'] = "R_high5_self "
-        self.behaviors['hug_self'] = "SPD: 600, R_hug_self"
-        self.behaviors['dab'] = "R_dab"
+        self.behaviors['high5_self'] = "SPD: 700, R_high5_self "
+        self.behaviors['hug_self'] = "SPD: 500, R_hug_self"
+        self.behaviors['dab'] = "SPD: 900, R_dab"
         self.behaviors['starfish'] = "SPD: 700, R_starfish"
         self.behaviors['bow'] = "SPD: 500, R_bow "
         self.behaviors['heart'] = "SPD: 700, R_heart"
         self.behaviors['high5_self'] = "SPD: 800, R_high5_self"
-        self.behaviors['wave'] = "R_wave"
-        self.behaviors['disco'] = "SPD: 800, R_disco"
-        self.behaviors['rub_tummy'] = "R_rub_tummy"
+        self.behaviors['wave'] = "SPD: 650, R_wave"
+        self.behaviors['disco'] = "SPD: 750, R_disco"
+        self.behaviors['rub_tummy'] = "SPD: 700, R_rub_tummy"
 
 
         self.behaviors["gloat"] = "H: 1000	, WR: 1700, SPD: 400, R_laugh "
