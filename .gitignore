@@ -2,6 +2,7 @@
 *.bag
 *~
 scripts/sound/media/*
+tools/*
 *.jpg
 *.zip
 *.o
