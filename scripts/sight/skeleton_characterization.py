@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import rospy
 import rospkg
 
@@ -18,9 +19,9 @@ from edwin.msg import Bones
 
 def move_to_origin(body):
 	'''
-    Move the skeleton so that the neck is on the origin
-    Returns the new skeleton array
-    '''
+	Move the skeleton so that the neck is on the origin
+	Returns the new skeleton array
+	'''
 	new_body = body
 	dx = float(body[3])
 	dy = float(body[4])
@@ -41,37 +42,40 @@ def find_max(d):
 
 class SkeletonDetect:
 	def __init__(self):
-        #Initialize ROS nodes
+		#Initialize ROS nodes
 		rospy.init_node('skeleton_detect',anonymous=True)
 		self.detect_pub = rospy.Publisher('/skeleton_detect',String,queue_size = 10)
 		rospy.Subscriber('/all_control', String, self.control_callback, queue_size=10)
 		rospy.Subscriber('/skeleton', Bones, self.skeleton_callback)
 
-        #Initialize class variables
+		#Initialize class variables
 		self.time_interval= 0
 		self.test_data = []
 		self.knn = KNeighborsClassifier(n_neighbors = 3)
-        self.old_time = 0
+		self.old_time = 0
 		self.is_detecting = False
-        self.gesture = dict()
+		self.gesture = dict()
 
-        #Dictionary for detecting moving gestures
+		#Dictionary for detecting moving gestures
 		self.moving = {"disco1":False,"disco2":False,"bow1":False,"bow2":False}
 
+		rospack = rospkg.RosPack()
+		PACKAGE_PATH = rospack.get_path("edwin")
+		filepath = PACKAGE_PATH + "/scripts/sight/skeleton.csv"
 		#Read training data
-		with open('skeleton.csv', 'r') as f:
-		    reader = csv.reader(f)
-		    self.X_data = [col[1:] for col in reader][1:]
-		with open('skeleton.csv','r') as f:
-		    reader = csv.reader(f)
-		    self.Y_data = [col[0] for col in reader][1:]
+		with open(filepath, 'r') as f:
+			reader = csv.reader(f)
+			self.X_data = [col[1:] for col in reader][1:]
+		with open(filepath, 'r') as f:
+			reader = csv.reader(f)
+			self.Y_data = [col[0] for col in reader][1:]
 
-		print("Gesture Dection is running")
+		print("Gesture Detection is running")
 
 	def control_callback(self,data):
-        """
-        Parse /all_control message
-        """
+		"""
+		Parse /all_control message
+		"""
 		if "gesture_detect:stop" in data.data:
 			self.is_detecting = False
 		else:
@@ -81,9 +85,9 @@ class SkeletonDetect:
 			self.is_detecting = True
 
 	def skeleton_callback(self,data):
-        """
-        Parse /skeleton message from skeleton.py
-        """
+		"""
+		Parse /skeleton message from skeleton.py
+		"""
 		self.test_data = []
 		self.test_data.append(data.h.x)
 		self.test_data.append(data.h.y)
@@ -116,40 +120,40 @@ class SkeletonDetect:
 
 	def train_data_processing(self):
 		"""
-        Preprocess training data
-        """
+		Preprocess training data
+		"""
 		for i in range(len(self.X_data)):
 			self.X_data[i] = move_to_origin(self.X_data[i])
 
 	def skeleton_detect_train(self):
 		"""
-        K-nearest neighbor machine learning code
-        """
+		K-nearest neighbor machine learning code
+		"""
 		self.knn.fit(self.X_data,self.Y_data)
 		print("Finish Training")
 
-        #Testing accuracy
-        '''
-        X_train, X_test, Y_train, Y_test = train_test_split(self.X_data, self.Y_data, test_size=0.2, random_state=42)
-        self.knn.fit(X_train,Y_train)
-        print(self.knn.score(X_test,Y_test))
-        '''
+		#Testing accuracy
+		'''
+		X_train, X_test, Y_train, Y_test = train_test_split(self.X_data, self.Y_data, test_size=0.2, random_state=42)
+		self.knn.fit(X_train,Y_train)
+		print(self.knn.score(X_test,Y_test))
+		'''
 
 	def skeleton_detect_test(self):
-        """
-        Predict gesture from input skeleton
-        """
+		"""
+		Predict gesture from input skeleton
+		"""
 		try:
 			result = self.knn.predict([self.test_data])[0]
 			print(result)
 
-            #Set Key Frame to true
+			#Set Key Frame to true
 			self.moving['disco1'] = self.moving['disco1'] or result == "disco1"
 			self.moving['disco2'] = self.moving['disco2'] or result == "disco2"
 			self.moving['bow1'] = self.moving['bow1'] or result == "bow1"
 			self.moving['bow2'] = self.moving['bow2'] or result == "bow2"
 
-            #Add predicted result to current gesture dictionary
+			#Add predicted result to current gesture dictionary
 			if result != "disco1" and result != "disco2" and result != "bow1" and result != "bow2":
 				self.gesture[result] = self.gesture.get(result,0) + 1
 			elif result == "disco1" and not self.moving['disco2']:
@@ -162,9 +166,9 @@ class SkeletonDetect:
 			pass
 
 	def publish_result(self):
-        """
-        Publish the predicted gesture after a time interval
-        """
+		"""
+		Publish the predicted gesture after a time interval
+		"""
 		if time.localtime().tm_sec ==  (self.old_time + self.time_interval) % 60 :
 			try:
 				self.detect_pub.publish(find_max(self.gesture))
