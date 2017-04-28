@@ -91,13 +91,20 @@ class LayoutExample(QWidget):
 
 	@Slot()
 	def set_this_up(self):
+		os.system("gnome-terminal -e 'bash -c \"roscore; exec bash\"'")
+		time.sleep(1)
 		os.system("gnome-terminal -e 'bash -c \"roslaunch skeleton_markers markers_from_tf.launch; exec bash\"'")
-		os.system("gnome-terminal -e 'bash -c \"roscd skeleton_markers;rosrun rviz rviz -d markers_from_tf.rviz;  exec bash\"'")
+		time.sleep(1)
+		os.system("gnome-terminal -e 'bash -c \"cd ../; cd skeleton_markers/; rosrun rviz rviz -d markers_from_tf.rviz; exec bash\"'")
+		time.sleep(1)
 		os.system("gnome-terminal -e 'bash -c \"rosrun edwin skeleton.py;  exec bash\"'")
+		time.sleep(1)
 
 	@Slot()
 	def lets_play(self):
-		os.system("gnome-terminal -e 'bash -c \"cd edwin; exec bash\"'")
+		os.system("gnome-terminal -e 'bash -c \"cd scripts; cd sight; python3 skeleton_characterization.py; exec bash\"'")
+		time.sleep(1)
+		os.system("gnome-terminal -e 'bash -c \"cd sciipts; cd Interactions; python Simon_Says_practice.py; exec bash\'\"s'")
 		#os.system("gnome-terminal -e 'bash -c \"roscd edwin/scripts/sight/; python3 skeleton_characterization.py; exec bash\"'")
 		#os.system("gnome-terminal -e 'bash -c \"roscd edwin/scripts/Interactions/; python Simon_Says_practice.py; exec bash\"'")
 
