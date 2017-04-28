@@ -6,11 +6,12 @@ Author: Hannah Kolano
 hannah.kolano@students.olin.edu
 '''
 from __future__ import division
-import rospy
-import rospkg
-from std_msgs.msg import String
+# import rospy
+# import rospkg
+# from std_msgs.msg import String
 import math as m
 
+# global variables
 integer_list = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.']
 operator_list = ['+', '-', '/', '*', '^', '(', ')', '=']
 variable_list = ['x', 'y', 'z']
@@ -25,14 +26,16 @@ class Calculator:
         self.eqn = ''
         self.tree = tuple()
         rospy.Subscriber('word_publish', String, self.cmd_callback)
-
+s
     def cmd_callback(self, data):
         '''callback'''
+        # first several characters are not part of the equation, so removes them
         self.eqn = str(data)[6:]
 
     def solve_simple(self, eqn):
-        '''solves a simple expression'''
+        '''takes in a simple equation; solves it; returns a string of the answer'''
         eqn = eqn[0:-1] if eqn[-1] == '=' else eqn
+        # changes carets to ** because that's what python reads as exponents
         if '^' in eqn:
             eqn = eqn[:eqn.find('^')] + '**' + eqn[eqn.find('^')+1:]
         answer = eval(eqn)
@@ -40,7 +43,9 @@ class Calculator:
         return str(answer)
 
     def fixes_letters(self, eqn):
-        '''takes an equation and turns the letters into the numbers they probably represent'''
+        ''' takes in an equation; 
+        turns the letters into the numbers they probably represent; 
+        returns the parsed equation '''
         replace = {'o':'0', 'l':'1', 't':'+', 'q':'9'}
         for letter in replace.keys():
             if letter in eqn:
@@ -49,7 +54,8 @@ class Calculator:
         return eqn
 
     def initialize_algebra(self, eqn):
-        '''finds any weird errors; if it's clean, solves algebra'''
+        '''takes in an equation; finds any weird errors; if it's clean, solves algebra
+        does not return anything'''
         eqn = self.fixes_letters(eqn)
         if not all(digit in variable_list or digit in integer_list or digit in operator_list for digit in eqn):
             raise ValueError("I do not know that character")
@@ -67,13 +73,14 @@ class Calculator:
             if eqn[n] in actual_ops and eqn[n+1] in actual_ops and eqn[n+1] != '-':
                 raise ValueError('Two operations in a row?')
         else:
+            # if it's clean, initialize the tree
             eqn = self.parse_var_mul(eqn)
             self.initialize_tree(eqn)
             self.rsstring, self.lsstring = self.tree_to_string(self.rstree), self.tree_to_string(self.lstree)
 
     def initialize_tree(self, eqn):
-        '''takes an equation, splits into two sides. Returns tuples of
-        the sides processed into a tree.'''
+        '''takes an equation, splits into two sides. Returns nothing. 
+        creates self.rstree and self.lsstree from the equation.'''
         index = eqn.find('=')
         left_side, right_side = eqn[:index], eqn[index+1:]
         self.side_w_variable = 'left' if self.variable in left_side else 'right'
@@ -84,6 +91,7 @@ class Calculator:
         operation present, keep processsing and return the processed (tree'd)
         side. If not, return itself.'''
         side_string = str(side)
+        # check if it is a placeholder, in which case build the tree from the held portion of the equation.
         if side_string in placeholder_list:
             return self.build_tree(self.place_dict[side_string])
         elif any((digit in operator_list or digit in placeholder_list)for digit in side_string[1:]):
@@ -182,7 +190,7 @@ class Calculator:
                 index += 1
 
     def tree_to_string(self, tree):
-        '''takes a tree and converts it back into a string'''
+        '''takes a tree. returns a string the tree represents.'''
         equation_string = ''
         if type(tree) == tuple:
             if type(tree[1]) == str and type(tree[2]) == tuple:
@@ -234,8 +242,9 @@ class Calculator:
         self.side_w_variable = 'left' if self.variable in str(self.lsstring) else 'right'
 
     def do_op(self, var_side_tree, non_var_str, string, mov_idx=2, keep_idx=1):
-        '''given a tree and the opposite side string, snips the operation
-        from the tree and moves it to the other side string.'''
+        '''takes the tree of the side with the variable, the strong of the opposite side, 
+        and a string of the operation it needs to do, snips the operation
+        from the tree and moves it to the other side string. returns new tree and string.'''
         non_var_str = str(non_var_str) + string + self.tree_to_string(var_side_tree[mov_idx])
         non_var_str = eval(non_var_str) if self.variable not in non_var_str else non_var_str
         var_side_tree = var_side_tree[keep_idx]
@@ -258,7 +267,7 @@ class Calculator:
         for digit in raw_eqn:
             if digit == self.variable or digit == '(':
                 index = raw_eqn.find(digit) if digit == self.variable else raw_eqn.find(digit)
-                if raw_eqn[index-1] in integer_list and index !=0:
+                if (raw_eqn[index-1] in integer_list or raw_eqn[index-1] in variable_list) and index !=0:
                     raw_eqn = raw_eqn[0:index] + '*' + raw_eqn[index:]
                     raw_eqn = self.parse_var_mul(raw_eqn)
         return raw_eqn
@@ -288,12 +297,12 @@ class Calculator:
         while not rospy.is_shutdown():
             if answer != '':
                 prev_answer = answer
-                self.determine_problem()
+                answer = self.determine_problem()
                 if answer != prev_answer:
                     print(answer)
 
 
 if __name__ == '__main__':
     ctr = Calculator()
-    ctr.eqn = 'x=5*-3'
+    ctr.eqn = ''
     ctr.run()
