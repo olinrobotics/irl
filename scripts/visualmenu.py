@@ -28,15 +28,6 @@ class visualmenu:
         self.bridge = CvBridge()
         rospy.Subscriber("usb_cam/camera_raw", Image, self.img_callback)
 
-        #the areas.
-
-        # self.range1 = [[0,210], [0,480]] #minx, maxx, miny, maxy
-        # self.range2 = [[211,429], [0,480]]
-        # self.range3 = [[430,640], [0,480]]
-        #
-        # self.list1 = self.get_area_coords(self.range1)
-        # self.list2 = self.get_area_coords(self.range2)
-        # self.list3 = self.get_area_coords(self.range3)
 
         self.detect = True
         self.frame = None
@@ -50,10 +41,12 @@ class visualmenu:
         self.decision_length = 40 #amount of time in the recorded queue to m
                                     #Decision.
 
-        #Initialize two buttons:
-        self.create_button((150, 240))
-        self.create_button((490, 240))
-        self.create_button((320,240))
+        self.button_point_list = [(150, 240), (490, 240), (320,240)]
+        self.activities_list = ["WritingDemo", "PresenceDemo", "TicTacToe"]
+
+        #Initialize buttons:
+        for i in self.button_point_list:
+            self.create_button(i)
 
 ############
 #ROS section
@@ -342,16 +335,25 @@ class visualmenu:
 
     def dispMenu(self, frame, option, coords):
         med = self.get_median(option)
-        if med == None:
-            for i in self.region_list:
+        if med == None: #Nothing selected.
+            for j in range(0, len(self.region_list)):
+                i = self.region_list[j]
                 point1 = (i[0][0], i[1][0])
                 point2 = (i[0][1], i[1][1])
                 cv2.rectangle(frame, point1, point2, (0,0,255), -1)
+                cv2.putText(frame, self.activities_list[j],
+                self.button_point_list[j], cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), 2)
+
         else:
             i = self.region_list[med]
             point1 = (i[0][0], i[1][0])
             point2 = (i[0][1], i[1][1])
             cv2.rectangle(frame, point1, point2, (0,255,0), -1)
+
+            cv2.putText(frame, self.activities_list[med],
+            self.button_point_list[med], cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), 2)
+
+
             cv2.waitKey(200)
             self.run_choice(med)
 

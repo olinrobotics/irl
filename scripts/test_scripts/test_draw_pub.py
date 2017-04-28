@@ -31,14 +31,14 @@ def run():
 	msg.shape = "123456"
 	msg.x = -500
 	msg.y = 5700
-	msg.z = -500
+	msg.z = -835
 	pub.publish(msg)
 	time.sleep(5)
 
 	msg.shape = "7890!?"
 	msg.x = -500
 	msg.y = 5400
-	msg.z = -500
+	msg.z = -835
 	pub.publish(msg)
 	time.sleep(5)
 	#

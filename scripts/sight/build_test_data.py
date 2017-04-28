@@ -90,6 +90,7 @@ class BuildData:
             else:
                 print('ERROR: Unknown input:',ans1)
 
+
     def img_callback(self, data):
         '''
             DESC: Run for every image receipt by usb_cam; converts usbcam image

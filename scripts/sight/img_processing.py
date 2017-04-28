@@ -38,7 +38,8 @@ def get_text_roi(frame, show_window=True):
     bound = 5
     kernel = np.ones((2,2),np.uint8)
 
-    frame_gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY) # Filter to grayscale
+    frame_blur = cv2.GaussianBlur(frame,(5,5),0)
+    frame_gray = cv2.cvtColor(frame_blur,cv2.COLOR_BGR2GRAY) # Filter to grayscale
     frame_gray = cv2.filter2D(frame_gray.copy(),-1,kernel_sharpen_3) # Filter to sharpen
     # frame_gray = cv2.GaussianBlur(frame_gray, (5,5),0) # Gaussian blur to remove noise
 
