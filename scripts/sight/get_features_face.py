@@ -35,7 +35,7 @@ class Features:
                                     os.walk(self.FACS_labels_folder_path) for file in files]
 
         self.FACS = {'cheeks': [6, 11],
-                     'mouth': [10, 11, 12, 13, 14, 15, 15, 17, 18, 20, 22, 23,
+                     'mouth': [10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 22, 23,
                                24, 25, 26, 27, 28],
                      'forehead': [1, 2, 4],
                      'nose': [9, 11],
@@ -141,10 +141,13 @@ class Features:
         # Generator statement: generates lists of file paths
         features = []
         for i, f in enumerate(self.file_paths[:self.samples]):
+            # tuple of clahe image and reflected clahe image
             clahe_images = self.process_file(f)
+            # finds landmarks for the region (dim: 1 x features)
             region_landmarks = self.process_landmarks(clahe_images[0],
                                                       face_region)
-            # append landmarks to Features
+
+            # append list of regional landmarks to Features
             if region_landmarks != '':
                 features.append(region_landmarks)
 
@@ -154,6 +157,7 @@ class Features:
             if region_landmarks_reflected != '':
                 features.append(region_landmarks_reflected)
 
+        # dim: samples x features
         return np.asarray(features)
 
     def get_test_data(self, face_region=None):
@@ -196,6 +200,8 @@ class Features:
                     FACS_list.append(val)
                 self.labels[f_name] = FACS_list
 
+        return self.labels
+
     def get_labels_region(self, face_region):
         '''
         CHEEKS: 1-3, 14-16 (FACS 6, 11)
@@ -205,38 +211,43 @@ class Features:
         EYES: 36-47 (FACS 5-7, 41-46)
         '''
         # dictionary of keys face region and values FACS for that region
-        self.get_labels()
+        labels = self.get_labels()
         labels_region = dict()
         for f in self.labels.keys():
             for FAC in self.FACS[face_region]:
-                if FAC in self.labels[f]:
+                if FAC in labels[f]:
                     labels_region[f] = FAC
                 else:
                     labels_region[f] = 0.0
         return labels_region
 
     def get_targets(self, face_region):
+        # dictionary that maps file name to label for region
         labels_region = self.get_labels_region(face_region='nose')
+
         # get targets for face region_
-        for f in self.file_paths[:5]:
-            print(f)
+        print('length files in sample', len(self.file_paths[:self.samples]))
+        for f in self.file_paths[:self.samples]:
             f_name = f[-31:-4]
             if f_name in self.labels.keys():
                 # appends FAC Unit to target twice to account for reflection
+                self.targets.append(labels_region[f_name])
                 self.targets.append(labels_region[f_name])
         # if no label, make target = -1
             else:
                 # appends FAC Unit to target twice to account for reflection
                 self.targets.append(-1)
-            print(len(self.targets))
+                self.targets.append(-1)
 
         self.targets = np.asarray(self.targets)
         return self.targets
 
 
 if __name__ == "__main__":
-    f = Features()
+    f = Features(samples=5)
     # f.get_labels()
     features = f.get_features(face_region='nose')
     targets = f.get_targets(face_region='nose')
-    print(targets)
+    print(features)
+    print('length targets', len(targets))
+    print('size features', np.shape(features))

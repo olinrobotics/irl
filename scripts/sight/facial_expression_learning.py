@@ -17,13 +17,7 @@ class FACSTrainer:
         # face region and features object
         self.face_region = face_region
         self.features = gf.Features(samples=samples)
-        # get training data from database using get_features_face script
-        self.train_data_set = self.features.get_features(face_region=face_region)
-        print(self.train_data_set.shape)
-        # targets labeled at FAC Unit, 0 for neutral, or -1 for unlabeled
-        self.targets = self.features.get_targets(face_region=face_region)
-        print(self.targets)
-        print(self.targets.shape)
+
         # n_clusters - depends on face_region, number of FACS in the region
         # plus one for neutral
         # FAC Unit 4 on the forehead is broken into 3 parts: left, right, both
@@ -36,18 +30,25 @@ class FACSTrainer:
                       'eyes': 12}
         self.n_clusters = n_clusters[face_region]
 
-        classif_file_path = self.params_path + face_region + 'pkl'
+        classif_file_path = self.params_path + '/' + face_region + '.pkl'
+        print(classif_file_path)
 
-        # if os._exists(classif_file_path):
-        #     self.classifier = joblib.load(classif_file_path)
-        # else:
-        self.classifier = LabelPropagation()
+        if os._exists(classif_file_path):
+            self.classifier = joblib.load(classif_file_path)
+        else:
+            # get training data from database using get_features_face script
+            self.train_data_set = self.features.get_features(face_region=face_region)
+            # targets labeled at FAC Unit, 0 for neutral, or -1 for unlabeled
+            self.targets = self.features.get_targets(face_region=face_region)
+            self.classifier = LabelPropagation(gamma=0.25, max_iter=5)
 
     def fit_data(self):
         self.classifier.fit(X=self.train_data_set, y=self.targets)
 
     def save_classifier(self):
-        joblib.dump(self.classifier, self.params_path + self.face_region + '.pkl')
+        filepath = self.params_path + '/' + self.face_region + '.pkl'
+        print(filepath)
+        joblib.dump(self.classifier, filepath)
 
 # class FACSPredictor
 
@@ -62,4 +63,8 @@ if __name__ == "__main__":
     nose_trainer = FACSTrainer(face_region='nose')
     nose_trainer.fit_data()
     nose_trainer.save_classifier()
-    # nose_trainer.save_classifier
+
+    X = nose_trainer.features.get_test_data(face_region='nose')
+
+    predict = nose_trainer.classifier.predict(X)
+    print(predict)

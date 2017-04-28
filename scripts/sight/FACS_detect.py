@@ -37,6 +37,8 @@ class FACSDetect:
         # a window: how neat!
         self.window = dlib.image_window()
 
+        self.nose_classier = FACSTrainer(face_region='nose')
+
         # wait 2 seconds
         sleep(2)
 
@@ -52,10 +54,23 @@ class FACSDetect:
         if self.frame is None:
             return
 
-        # TODO: process here using get_features_face
+        # process using get_features_face
         clahe_image = self.features.process_image(self.frame)
-        # TODO: get landmarks
+
+        # get landmarks
         landmarks = self.face_detector.get_landmarks(clahe_image)
 
-        # TODO: landmarks = split_landmarks
+        # landmarks = split_landmarks
         split = self.face_detector.split_landmarks(landmarks)
+
+        print(split)
+
+    def run(self):
+        while not rospy.is_shutdown():
+            if self.detect:
+                self.face_detect()
+
+
+if __name__ == '__main__':
+    fd = FACSDetect()
+    fd.run()
