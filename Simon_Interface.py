@@ -88,6 +88,8 @@ class LayoutExample(QWidget):
 	def data_collect(self):
 		''' Show the constructed greeting. '''
 		self.data = data.data
+		if self.user[self.simon_user.currentIndex()] == 'Edwin is Simon':
+			self.command.setText('%s,%s' % (self.data))
 
 	@Slot()
 	def set_this_up(self):
@@ -107,12 +109,6 @@ class LayoutExample(QWidget):
 		os.system("gnome-terminal -e 'bash -c \"cd sciipts; cd Interactions; python Simon_Says_practice.py; exec bash\'\"s'")
 		#os.system("gnome-terminal -e 'bash -c \"roscd edwin/scripts/sight/; python3 skeleton_characterization.py; exec bash\"'")
 		#os.system("gnome-terminal -e 'bash -c \"roscd edwin/scripts/Interactions/; python Simon_Says_practice.py; exec bash\"'")
-
-
-	@Slot()
-	def display_commands(self):
-		if self.user[self.simon_user.currentIndex()] == 'Edwin is Simon':
-			self.command.setText('%s,%s' % (self.data))
 
 	def run(self):
 		# Show the form

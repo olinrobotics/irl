@@ -57,9 +57,12 @@ class Game:
 		This function issues a Simon command.
 		It is said outloud, so depends on the tts_engine to be running"""
 		command = random.choice(self.command_dictionary.keys())
-		# makes sure that command is not the same twice in a row
-		while self.command_dictionary[command] in self.current_cmd:
-			command = random.choice(self.command_dictionary.keys())
+		try:
+			# makes sure that command is not the same twice in a row
+			while self.command_dictionary[command] in self.current_cmd:
+				command = random.choice(self.command_dictionary.keys())
+		except:
+			pass
 		#makes sure that first command contains 'simon says'
 		if self.first == True:
 			self.current_cmd = "simon says, " + self.command_dictionary[command]
