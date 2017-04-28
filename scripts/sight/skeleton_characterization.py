@@ -128,11 +128,12 @@ class SkeletonDetect:
 		print("Finish Training")
 
 		#Testing accuracy
-		'''
+
+		"""
 		X_train, X_test, Y_train, Y_test = train_test_split(self.X_data, self.Y_data, test_size=0.2, random_state=42)
 		self.knn.fit(X_train,Y_train)
 		print(self.knn.score(X_test,Y_test))
-		'''
+		"""
 
 	def skeleton_detect_test(self):
 		"""

@@ -93,8 +93,10 @@ class LayoutExample(QWidget):
 		os.system("gnome-terminal -e 'bash -c \"roslaunch skeleton_markers markers_from_tf.launch; exec bash\"'")
 		time.sleep(1)
 		os.system("gnome-terminal -e 'bash -c \"cd ../; cd ../;  cd skeleton_markers/;  rosrun rviz rviz -d markers_from_tf.rviz;  exec bash\"'")
+
 		time.sleep(1)
 		os.system("gnome-terminal -e 'bash -c \"rosrun edwin skeleton.py;  exec bash\"'")
+		time.sleep(1)
 
 	@Slot()
 	def lets_play(self):
@@ -102,7 +104,6 @@ class LayoutExample(QWidget):
 		os.system("gnome-terminal -e 'bash -c \"cd scripts/; cd sight/; python3 skeleton_characterization.py; exec bash\"'")
 		time.sleep(5)
 		os.system("gnome-terminal -e 'bash -c \"cd Interactions/; python Simon_Says_practice.py; exec bash\"'")
-
 
 	def run(self):
 		# Show the form
