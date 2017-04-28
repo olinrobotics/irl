@@ -110,22 +110,38 @@ class SimonSays(object):
 		elif data.data == "free":
 			self.status = 1
 
+		self.current_cmd = None
+		self.heard_cmd = None
+		self.ready_to_listen = False
+
+		self.max_turns = max_turns
+		self.command_2_speech = {}
+		self.command_2_motion = {}
+		self.command_2_rules = {}
+		self.command_dictionary = {}
+
+		self.populate_dictionaries()
+		self.populate_command_dictionaries()
+
+		self.simonless_gest = None
 
 	def img_callback(self, data):
 		try:
 			self.frame = self.bridge.imgmsg_to_cv2(data, "bgr8")
 		except CvBridgeError as e:
-			print(e)
+			print e
+
 
 
 	def hear_callback(self, speech):
 		if self.ready_to_listen:
 			self.heard_cmd = speech.data
-
 		self.listen_for_fail = speech.data
 		if self.listen_for_fail == "edwin that is incorrect":
 			self.no_mistakes = False
 
+	def gest_callback(self,data):
+		self.gesture = data
 
 	def skeleton_callback(self, skeleton):
 		"""
@@ -194,6 +210,19 @@ class SimonSays(object):
 		self.command_2_speech["disco"] = "do the disco with your right hand"
 		self.command_2_speech["bow"] = "bow down to the master"
 
+	def populate_command_dictionaries(self):
+		"""Fill the command dictionary"""
+		self.command_dictionary["touch_head"] = "Touch your head with left hand"
+		self.command_dictionary["rub_tummy"] = "Rub your tummy with both hands"
+		self.command_dictionary["high_five"] = "High five to your left"
+		self.command_dictionary["wave"] = "Wave to your right"
+		self.command_dictionary["hug"] = "Hug yourself"
+		self.command_dictionary["dab"] = "Dab into your right elbow"
+		self.command_dictionary["disco"] = "Disco with your right hand"
+		self.command_dictionary["bow"] = "Just Bow"
+		self.command_dictionary["star"] = "Do a starfish"
+		self.command_dictionary["heart"] = "Form a heart with your arms"
+
 
 	def populate_player_dictionaries(self):
 		"""
@@ -226,13 +255,12 @@ class SimonSays(object):
 		If Edwin is Simon:
 
 		This function issues a Simon command.
-		It is said outloud, so depends on the tts_engine to be running
-		"""
-		command = random.choice(self.command_2_speech.keys())
-		self.current_cmd = random.choice(["simon says, ", ""]) + self.command_2_speech.get(command)
+		It is said outloud, so depends on the tts_engine to be running"""
+
+		command = random.choice(self.command_dictionary.keys())
+		self.current_cmd = random.choice(["simon says, ", ""]) + command
 		if "simon says, " in self.current_cmd:
 			self.current_act = command
-		print self.current_cmd
 		self.say_pub.publish(self.current_cmd)
 		time.sleep(2)
 
