@@ -69,16 +69,12 @@ class LayoutExample(QWidget):
 		self.setup_button = QPushButton('&Initial Setup',self)
 		self.setup_button.clicked.connect(self.set_this_up)
 
-		self.build_button = QPushButton('&Continue', self)
-		self.build_button.clicked.connect(self.display_commands)
-
 		self.configured_button = QPushButton('&Ready to play?',self)
 		self.configured_button.clicked.connect(self.lets_play)
 
 		# Add it to the button box
 		self.button_box.addWidget(self.setup_button)
 		self.button_box.addWidget(self.configured_button)
-		self.button_box.addWidget(self.build_button)
 
 		# Add the button box to the bottom of the main VBox layout
 		self.layout.addLayout(self.button_box)
@@ -97,18 +93,18 @@ class LayoutExample(QWidget):
 		time.sleep(1)
 		os.system("gnome-terminal -e 'bash -c \"roslaunch skeleton_markers markers_from_tf.launch; exec bash\"'")
 		time.sleep(1)
-		os.system("gnome-terminal -e 'bash -c \"cd ../; cd skeleton_markers/; rosrun rviz rviz -d markers_from_tf.rviz; exec bash\"'")
+		os.system("gnome-terminal -e 'bash -c \"cd ../; cd ../;  cd skeleton_markers/;  rosrun rviz rviz -d markers_from_tf.rviz;  exec bash\"'")
+
 		time.sleep(1)
 		os.system("gnome-terminal -e 'bash -c \"rosrun edwin skeleton.py;  exec bash\"'")
 		time.sleep(1)
 
 	@Slot()
 	def lets_play(self):
-		os.system("gnome-terminal -e 'bash -c \"cd scripts; cd sight; python3 skeleton_characterization.py; exec bash\"'")
-		time.sleep(1)
-		os.system("gnome-terminal -e 'bash -c \"cd sciipts; cd Interactions; python Simon_Says_practice.py; exec bash\'\"s'")
-		#os.system("gnome-terminal -e 'bash -c \"roscd edwin/scripts/sight/; python3 skeleton_characterization.py; exec bash\"'")
-		#os.system("gnome-terminal -e 'bash -c \"roscd edwin/scripts/Interactions/; python Simon_Says_practice.py; exec bash\"'")
+		#os.system("gnome-terminal -e 'bash -c \"roscd edwin; exec bash\"'")
+		os.system("gnome-terminal -e 'bash -c \"cd scripts/; cd sight/; python3 skeleton_characterization.py; exec bash\"'")
+		time.sleep(5)
+		os.system("gnome-terminal -e 'bash -c \"cd Interactions/; python Simon_Says_practice.py; exec bash\"'")
 
 	def run(self):
 		# Show the form

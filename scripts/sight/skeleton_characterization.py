@@ -18,9 +18,9 @@ from edwin.msg import Bones
 
 def move_to_origin(body):
 	'''
-    Move the skeleton so that the neck is on the origin
-    Returns the new skeleton array
-    '''
+	Move the skeleton so that the neck is on the origin
+	Returns the new skeleton array
+	'''
 	new_body = body
 	dx = float(body[3])
 	dy = float(body[4])
@@ -41,13 +41,12 @@ def find_max(d):
 
 class SkeletonDetect:
 	def __init__(self):
-        #Initialize ROS nodes
+		#Initialize ROS nodes
 		rospy.init_node('skeleton_detect',anonymous=True)
 		self.detect_pub = rospy.Publisher('/skeleton_detect',String,queue_size = 10)
 		rospy.Subscriber('/all_control', String, self.control_callback, queue_size=10)
 		rospy.Subscriber('/skeleton', Bones, self.skeleton_callback)
-
-        #Initialize class variables
+		#Initialize class variables
 		self.time_interval= 0
 		self.test_data = []
 		self.knn = KNeighborsClassifier(n_neighbors = 3)
@@ -55,7 +54,7 @@ class SkeletonDetect:
 		self.is_detecting = False
 		self.gesture = dict()
 
-        #Dictionary for detecting moving gestures
+		#Dictionary for detecting moving gestures
 		self.moving = {"disco1":False,"disco2":False,"bow1":False,"bow2":False}
 
 		#Read training data
@@ -129,6 +128,7 @@ class SkeletonDetect:
 		print("Finish Training")
 
 		#Testing accuracy
+
 		"""
 		X_train, X_test, Y_train, Y_test = train_test_split(self.X_data, self.Y_data, test_size=0.2, random_state=42)
 		self.knn.fit(X_train,Y_train)
