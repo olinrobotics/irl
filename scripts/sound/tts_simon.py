@@ -11,7 +11,7 @@ class SpeechEngine:
         rospy.Subscriber("edwin_speech_cmd", String, self.callback, queue_size=10)
 
         espeak.set_parameter(espeak.Parameter.Rate,150)
-        espeak.set_parameter(espeak.Parameter.Pitch,50)
+        espeak.set_parameter(espeak.Parameter.Pitch,70)
 
         espeak.set_voice("en")
         print "Ready to speak!"

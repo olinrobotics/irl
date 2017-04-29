@@ -65,8 +65,10 @@ class SimonSays(object):
 		#Edwin's current command of interest
 		self.current_cmd = None            #descriptive verbal command
 		self.current_act = None            #edwin command (not necessarily in arm_cmd form)
-		self.previous_cmd = -1		   #prevents the same action from being called twice
+		self.previous_cmd = -1		       #prevents the same action from being called twice
 		self.arm_act = None				   #edwin arm_node command
+		self.simon_or_naw = True		   #whether or not Edwin knows simon says or not
+		self.missed_statement = False      #boolean to determine whether something was caught
 
 		#Edwin's history of past movements the user has made
 		self.history = []
@@ -80,10 +82,12 @@ class SimonSays(object):
 		#the dictionaries that contain what Edwin will do based on a Simon command
 		self.command_2_speech = {}     	    #specific command whose key points to verbal command
 		self.command_2_motion = {}			#specific command whose key points to edwin action
+		self.command_dictionary = {}		#finding gestures
 
 		#populate the two dictionaries for when Edwin is Simon and when he is the player
 		self.populate_simon_dictionaries()
 		self.populate_player_dictionaries()
+		self.populate_command_dictionaries()
 
 		#for the image
 		self.bridge = CvBridge()
@@ -124,7 +128,7 @@ class SimonSays(object):
 		if self.ready_to_listen:
 			self.heard_cmd = speech.data
 		self.listen_for_fail = speech.data
-		if "incorrect" in self.listen_for_fail:
+		if ("incorrect" in self.listen_for_fail) or ("wrong" in self.listen_for_fail):
 			self.no_mistakes = False
 
 	def gest_callback(self,data):
@@ -189,12 +193,12 @@ class SimonSays(object):
 		self.command_2_speech["touch_head"] = "touch your head with your left hand"
 		self.command_2_speech["rub_tummy"] = "rub your tummy with both hands"
 		self.command_2_speech["high5_self"] = "give yourself a high five to your left"
-		self.command_2_speech["hug_self"] = "hug yourself"
+		# self.command_2_speech["hug_self"] = "hug yourself"
 		self.command_2_speech["starfish"] = "make a starfish"
-		self.command_2_speech["wave"] = "wave at the camera with your right hand"
-		self.command_2_speech["dab"] = "dab to the right"
-		self.command_2_speech["disco"] = "do the disco with your right hand"
-		self.command_2_speech["bow"] = "bow down to the master"
+		# self.command_2_speech["wave"] = "wave at the camera with your right hand"
+		# self.command_2_speech["dab"] = "do the dab to the right"
+		# self.command_2_speech["disco"] = "do the disco with your right hand"
+		# self.command_2_speech["bow"] = "bow down to the master"
 
 
 	def populate_player_dictionaries(self):
@@ -212,6 +216,19 @@ class SimonSays(object):
 		self.command_2_motion["disco"] = ["disco"]
 		self.command_2_motion["bow"] = ["bow"]
 
+
+	def populate_command_dictionaries(self):
+		self.command_dictionary["touch_head"] = "touch_head"
+		self.command_dictionary["rub_tummy"] = "rub_tummy"
+		self.command_dictionary["high_five"] = "high5_self"
+		self.command_dictionary["wave"] = "wave"
+		self.command_dictionary["dab"] = "dab"
+		self.command_dictionary["disco"] = "disco"
+		self.command_dictionary["bow"] = "bow"
+		self.command_dictionary["star"] = "starfish"
+		self.command_dictionary["heart"] = "heart"
+
+
 	def check_completion(self):
 		"""
 		makes sure that actions run in order by waiting for response from service
@@ -219,7 +236,7 @@ class SimonSays(object):
 
 		time.sleep(3)
 		while self.status == 0:
-			print "waiting for completion of action"
+			print "waiting"
 
 
 	def simon_say_command(self):
@@ -233,13 +250,16 @@ class SimonSays(object):
 		command = random.choice(self.command_2_speech.keys())
 		while command == self.previous_cmd:
 			command = random.choice(self.command_2_speech.keys())
+		print "PREV:", self.previous_cmd, "CURRENT", command
 		self.previous_cmd = command
 		self.current_cmd = random.choice(["simon says, ", ""]) + self.command_2_speech.get(command)
 		if "simon says, " in self.current_cmd:
-			for key, action in self.command_2_motion.items():
-				print key, action
-				if command == action[0]:
-					self.current_act = key
+			self.simon_or_naw = True
+		else:
+			self.simon_or_naw = False
+		for key, action in self.command_2_motion.items():
+			if command == action[0]:
+				self.current_act = key
 		self.say_pub.publish(self.current_cmd)
 		time.sleep(2)
 
@@ -270,52 +290,66 @@ class SimonSays(object):
 			continue
 
 		if "simon says" in self.heard_cmd:
-			action = None
+			self.simon_or_naw = True
 			player_speak = self.heard_cmd.replace("simon says ", "")
-			motions = self.command_2_motion.keys()
-			for motion in motions:
-				motion = motion.split(" ")
-				for word in motion:
-					if word in player_speak:
-						action = self.command_2_motion.get(word, None)
-						break
-
-			if action:
-				self.current_act = action[0]
-				print "GOT CMD: ", self.current_act
-			else:
-				statement = "I did not catch that, could you repeat your command?"
-				self.say_pub.publish(statement)
-				time.sleep(2)
-
-	    #if simon says isn't in the command, than Edwin does nothing
 		else:
-			self.current_act = None
+			self.simon_or_naw = False
+			player_speak = self.heard_cmd
+
+		action = None
+		motions = self.command_2_motion.keys()
+		for motion in motions:
+			motion = motion.split(" ")
+			for word in motion:
+				if word in player_speak:
+					for key in motions:
+						if word in key:
+							action = self.command_2_motion.get(key, None)
+							break
+
+		if action:
+			self.current_act = action[0]
+			print "GOT CMD: ", self.current_act
+		else:
+			statement = "I did not catch that, could you repeat your command?"
+			self.say_pub.publish(statement)
+			time.sleep(2)
+			self.missed_statement = True
 
 		self.ready_to_listen = False
 		self.heard_cmd = None
 
 
 
-	def player_follow_simon_cmd(self):
+	def player_follow_simon_cmd(self, difficulty):
 		"""
 		If Edwin is the player:
 
 		This function takes the command from listen_for_simon() and interprets
 		The resulting command is sent to arm_node for physical motion
 		"""
-		if self.current_act:
-			self.arm_act = self.command_2_motion.get(self.current_act)
-			for m in self.arm_act:
-				print "GOT MOTION: ", m
-				self.behavior_pub.publish(m)
+		if self.simon_or_naw and self.current_act:
+			self.arm_act = self.current_act
+			print "GOT MOTION: ", self.arm_act
+			self.behavior_pub.publish(self.arm_act)
+			self.check_completion()
+			time.sleep(1)
+			self.current_act = None
+		elif self.current_act:
+			chance = np.random.rand()
+			if chance >= difficulty:
+				self.arm_act = self.current_act
+				print "GOT MOTION: ", self.arm_act
+				self.behavior_pub.publish(self.arm_act)
 				self.check_completion()
 				time.sleep(1)
-			self.current_act = None
-		else:
-			statement = "Haha, you can't fool me"
-			self.say_pub.publish(statement)
-			time.sleep(2)
+				self.current_act = None
+
+			else:
+				self.current_act = None
+				statement = random.choice(["Haha, you can't fool me", "Gotcha ya, enough playing around", "Get wrecked, I know what you're doing", "Can't fool me"])
+				self.say_pub.publish(statement)
+				time.sleep(2)
 
 
 	def run(self):
@@ -344,7 +378,7 @@ class AutonomousSimon(SimonSays):
 		self.behavior_pub.publish(move)
 		self.check_completion()
 		time.sleep(2)
-		statement = "I am going to demo Simon Says."
+		statement = random.choice(["I am going to demo Simon Says.", "Watch me play Simon Says", "Simon Says is cool! Watch this"])
 		self.say_pub.publish(statement)
 		time.sleep(2)
 
@@ -353,12 +387,12 @@ class AutonomousSimon(SimonSays):
 
 			self.simon_say_command()
 			time.sleep(1)
-			self.player_follow_simon_cmd()
+			self.player_follow_simon_cmd(1)
 
 		move = "done_game"
 		self.behavior_pub.publish(move)
 		self.check_completion()
-		statement = "Finished a game. Hope you enjoyed!"
+		statement = random.choice(["Finished a game. Hope you enjoyed!", "Whew, that was easy", "Fun fun fun"])
 		self.say_pub.publish(statement)
 		time.sleep(3)
 
@@ -399,6 +433,7 @@ class EdwinSimon(SimonSays):
 		"""
 
 		self.gesture = data.data
+		print self.gesture
 
 
 	def simon_say_command(self):
@@ -422,15 +457,15 @@ class EdwinSimon(SimonSays):
 			self.current_cmd = random.choice(["simon says, ", ""]) + self.command_2_speech.get(command)
 
 		self.say_pub.publish(self.current_cmd)
-		time.sleep(2)
+		time.sleep(4)
+		if any(word in self.current_cmd for word in ["wave", "disco", "bow", "hug"]):
+			#publishes to all_control that tells it to go and wait 4 seconds for complicated gestures
+			self.msg = "gesture_detect:go 4"
+		else:
+			self.msg = "gesture_detect:go 2"
 
-		if "simon says" in self.current_cmd:
-			if any(word in self.current_cmd for word in ["wave", "disco", "bow", "hug"]):
-				#publishes to all_control that tells it to go and wait 4 seconds for complicated gestures
-				self.msg = "gesture_detect:go 4"
-			else:
-				self.msg = "gesture_detect:go 2"
 		self.ctr_pub.publish(self.msg)
+
 
 
 	def simon_check_response(self):
@@ -443,22 +478,28 @@ class EdwinSimon(SimonSays):
 			command_gest = self.current_cmd.replace("simon says, ","")
 			for key,value in self.command_2_speech.items():
 				if value == command_gest:
-					command_gest = key
+					for gesture, speech in self.command_dictionary.items():
+						if speech == key:
+							command_gest = gesture
 
 			#compares command to the gesture received from subscriber
+			print "COMMAND", command_gest
+			print "GESTURE", self.gesture
 			if command_gest  == self.gesture:
-				print('Good job!')
+				print('Good job! Simon')
 				self.simonless_gest = self.gesture
 				self.no_mistakes = True
 			else:
-				print('Try again!')
+				print('Try again! Simon')
 				self.no_mistakes = False
 		else:
+			print "SIMONLESS", self.simonless_gest
+			print "GESTURE", self.gesture
 			if self.simonless_gest == self.gesture:
-				print('Good job!')
+				print('Good job! Simonless')
 				self.no_mistakes = True
 			else:
-				print('Try again!')
+				print('Try again! Simonless')
 				self.no_mistakes = False
 
 
@@ -474,9 +515,9 @@ class EdwinSimon(SimonSays):
 		self.behavior_pub.publish(move)
 		self.check_completion()
 		time.sleep(1)
-		statement = "Alright, I will be Simon. Ready? Set? Let's play!"
+		statement = random.choice(["Alright, I will be Simon. Ready? Set? Let's play!", "Okay I'm Simon. Are you ready? Let's go!", "Who's Simon? I'm Simon. Hold on to your socks. Here we go!"])
 		self.say_pub.publish(statement)
-		time.sleep(2)
+		time.sleep(6)
 
 		self.ctr_pub.publish("gesture_detect:go 1")
 
@@ -485,17 +526,18 @@ class EdwinSimon(SimonSays):
 
 			self.simon_say_command()
 			if any(word in self.current_cmd for word in ["wave", "disco", "bow", "hug"]):
-				time.sleep(4)
+				time.sleep(5)
 			else:
-				time.sleep(2)
+				time.sleep(3)
+
 
 			self.simon_check_response()
 
 		if not self.no_mistakes:
-			statement = "Nice try, but you messed up. Game over."
+			statement = random.choice(["Nice try, but you messed up. Game over.", "Get wrecked, baby, it's over.", "Hahahahah, I'm too quick for you! Sorry, but you lost"])
 			move = "gloat"
 		else:
-			statement = "Congratulations, you finished the game!"
+			statement = random.choice(["Congratulations, you finished the game!", "Nice job, you completed my game!", "Wow so good, you're done without a sweat!"])
 			move = "praise"
 
 		self.ctr_pub.publish("gesture_detect:stop")
@@ -520,8 +562,10 @@ class EdwinPlayer(SimonSays):
 	2. Edwin will perform the command based on what he heard
 	3. Game continues until the user says Edwin is wrong, or until 5 turns
 	"""
-	def __init__(self):
+	def __init__(self, difficulty):
 		super(EdwinPlayer, self).__init__()
+		self.difficulty = float(difficulty) * 0.1
+
 
 	def run(self):
 		time.sleep(2)
@@ -531,7 +575,7 @@ class EdwinPlayer(SimonSays):
 		self.behavior_pub.publish(move)
 		self.check_completion()
 		time.sleep(1)
-		statement = "Alright, I will be the player. Ready? Set? Let's play!"
+		statement = random.choice(["Alright, I will be the player. Ready? Set? Let's play!", "I'm the player. Gimme your best shot! Let's go!", "Okay okay I'll be the player. I'm ready when you are."])
 		self.say_pub.publish(statement)
 		time.sleep(2)
 
@@ -540,15 +584,19 @@ class EdwinPlayer(SimonSays):
 
 			self.player_listen_for_simon()
 			time.sleep(2)
-			self.player_follow_simon_cmd()
+			self.player_follow_simon_cmd(self.difficulty)
 
-			print "next turn please"
+			if self.missed_statement == True:
+				self.max_turns += 1
+				self.missed_statement = False
+			else:
+				print "next turn please"
 
 		if not self.no_mistakes:
-			statement = "Oh no, I messed up. Good game."
+			statement = random.choice(["Oh no, I messed up. Good game though.", "Darn, I'm bad. Nice game.", "Ugh, a mistake! Excuse me while I go cry in a corner..."])
 			move = "sad"
 		else:
-			statement = "Yay! We made it to the end of the game. It was fun!"
+			statement = random.choice(["Yay! We made it to the end of the game. It was fun!", "Oh yes! I finished woo!", "Ohohohohoho baby I'm so good! I did it! Good game."])
 			move = "praise"
 
 		self.behavior_pub.publish(move)
@@ -564,10 +612,11 @@ class EdwinPlayer(SimonSays):
 
 
 if __name__ == '__main__':
-	mode = raw_input("Is Edwin simon or the player?")
+	mode = raw_input("Is Edwin simon or the player?\n")
 
 	if mode == PLAYER_NAME:
-		game = EdwinPlayer()
+		difficulty = raw_input("How good should Edwin be?\n")
+		game = EdwinPlayer(difficulty)
 	elif mode == SIMON_NAME:
 		game = EdwinSimon()
 	else:

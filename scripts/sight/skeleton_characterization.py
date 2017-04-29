@@ -178,7 +178,7 @@ class SkeletonDetect:
 				self.detect_pub.publish('Gesture not detected')
 
 	def run(self):
-		r = rospy.Rate(5)
+		r = rospy.Rate(10)
 		self.train_data_processing()
 		self.skeleton_detect_train()
 		while not rospy.is_shutdown():
