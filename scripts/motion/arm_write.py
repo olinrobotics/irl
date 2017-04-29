@@ -158,7 +158,7 @@ class Writer:
         self.letter_dictionary["["] = [(0,0,"u"), (0,0,"d"), (w/3,0,"d"), (w/3,w,"d"),
                                        (0,w,"d")]
 
-        self.letter_dictionary["]"] = [(w,0,"u"), (w,0,"d"), (2w/3,0,"d"), (2w/3,w,"d"),
+        self.letter_dictionary["]"] = [(w,0,"u"), (w,0,"d"), (2*w/3,0,"d"), (2*w/3,w,"d"),
                                        (w,0,"d")]
 
 
