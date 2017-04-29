@@ -4,6 +4,7 @@ import cv2
 import cv2.cv as cv
 import numpy as np
 from scipy import stats
+import math
 
 from std_msgs.msg import String
 from sensor_msgs.msg import Image
@@ -18,36 +19,43 @@ class visualmenu:
     #Dimensions of a camera screen are 640 x 480.
 
     def __init__(self):
-        #self.choice_pub = rospy.Publisher("choice_cmd", String, queue_size=10)
 
-        #self.game_state = rospy.Subscriber("all_control", String, self.cmd_callback)
+        rospy.init_node('visualmenu')
+        self.choice_pub = rospy.Publisher("vm_choice", String, queue_size=10)
+        self.game_state = rospy.Subscriber("all_control", String, self.cmd_callback)
 
 
-        #self.bridge = CvBridge()
-        #rospy.Subscriber("usb_cam/image_raw", Image, self.img_callback)
-        #self.image_sub = rospy.subscriber("usb_cam/camera_raw", Image, self.image_callback)
+        self.bridge = CvBridge()
+        rospy.Subscriber("usb_cam/camera_raw", Image, self.img_callback)
 
-        #the areas.
-
-        self.range1 = [[0,210], [0,480]] #minx, maxx, miny, maxy
-        self.range2 = [[211,429], [0,480]]
-        self.range3 = [[430,640], [0,480]]
-
-        self.list1 = self.get_area_coords(self.range1)
-        self.list2 = self.get_area_coords(self.range2)
-        self.list3 = self.get_area_coords(self.range3)
-
-        self.area_list = [self.list1, self.list2, self.list3]
 
         self.detect = True
+        self.frame = None
+        self.mode = 1 #mode1 = local camera, mode 2 = ROS camera feed.
         self.cap = cv2.VideoCapture(0)
-        self.median = []
 
+        self.median = []
+        self.region_list = []
+        self.area_list = []
+        self.colorList = self.calibrate_color()
+        self.decision_length = 40 #amount of time in the recorded queue to m
+                                    #Decision.
+
+        self.button_point_list = [(150, 240), (490, 240), (320,240)]
+        self.activities_list = ["WritingDemo", "PresenceDemo", "TicTacToe"]
+
+        #Initialize buttons:
+        for i in self.button_point_list:
+            self.create_button(i)
+
+############
+#ROS section
+############
 
     def img_callback(self, data):
         try:
             self.frame = self.bridge.imgmsg_to_cv2(data, "bgr8")
-            h, w = self.frame.shape[:2]
+            #h, w = self.frame.shape[:2]
         except CvBridgeError as e:
             print(e)
 
@@ -58,6 +66,10 @@ class visualmenu:
         elif "vm go" in data.data:
             self.started_tracking = time.time()
             self.detect = True
+
+#################
+#Image Processing
+#################
 
     def findHand(self, frame):
 
@@ -117,23 +129,10 @@ class visualmenu:
         frames = [composite, blur]
         return frames
 
+###############
+#Initialization
+###############
 
-    def check_pos(self, coords):
-        xy = coords
-        #print xy
-
-        for i in self.area_list:
-            if xy in i:
-
-                return self.area_list.index(i) #Is there a simpler way?
-
-
-    def get_area_coords(self, params):
-        coord_list = []
-        for x in range(params[0][0], params[0][1]):
-            for y in range(params[1][0], params[1][1]):
-                coord_list.append((x,y))
-        return coord_list
 
     def calibrate_color(self):
         #With an initial guess, the person calibrates their hand color onto the machine,
@@ -193,7 +192,7 @@ class visualmenu:
 
 
         while True:
-            k = cv2.waitKey(100) & 0xFF
+            k = cv2.waitKey(1) & 0xFF
             if k == ord('q'):
                 break
             else:
@@ -238,6 +237,7 @@ class visualmenu:
                 point2 = tuple((np.asarray(i) + 5))
                 cv2.rectangle(frame, point1, point2, colorGuess, -1)
 
+            #Read all the points' colors, add to list.
             for k in range(0,len(cList)):
                 point = pList[k]
                 cList[k].append((int(frame[point][0]), int(frame[point][1]), int(frame[point][2])))
@@ -246,21 +246,46 @@ class visualmenu:
             cv2.imshow("test", frame)
             cv2.waitKey(1)
 
-        for l in range(0,len(cList)): #pare down to finding the medium
+        for l in range(0,len(cList)): #pare down to finding the mode?
+            # med = cList[l]
+            # med = stats.mode(med)
+            # med = int(med[0])
+            # cList[l] = med
             cList[l] = np.mean(cList[l], axis=0)
 
         cv2.destroyAllWindows()
         return cList
 
+################
+#General Utility
+################
+
+    def check_pos(self, coords):
+        xy = coords
+        #xy = (640, 240)#testing coordinate.  Seems to falter on the ends of lists.
+
+        for i in self.area_list:
+            if xy in i:
+
+                return self.area_list.index(i) #Is there a simpler way?
+
     def get_frame(self):
-        grab, frame = self.cap.read()
-        frame = cv2.flip(frame, 1)
-        return frame
+        if self.mode == 1:
+            grab, frame = self.cap.read()
+            frame = cv2.flip(frame, 1)
+            return frame
+
+        elif self.mode == 2 and self.frame != None:
+            frame = cv2.flip(self.frame, 1)
+            return frame
 
     def get_median(self, option): #Technically the mode, but that would be confusing.
-        if len(self.median) < 50:
+        if option == None:
+            self.median = []
+
+        elif len(self.median) < self.decision_length:
             self.median.append(option)
-        elif len(self.median) == 50:
+        elif len(self.median) == self.decision_length:
             self.median.pop(0)
             self.median.append(option)
             med = self.median[:]
@@ -271,37 +296,149 @@ class visualmenu:
 
 
 
+    def get_area_coords(self, params):
+        coord_list = []
+        for x in range(params[0][0], params[0][1]+1): #plus one is important.
+            for y in range(params[1][0], params[1][1]+1):
+                coord_list.append((x,y))
 
-    def dispMenu(self, frame, coords,option):
+        return coord_list
+
+##################
+#Visual components
+##################
+
+    def dispRegion(self, frame, coords,option):
 
 
+        # if option == 0:
+        #     cv2.rectangle(frame, (0,0), (210, 480), (255,0,0), -1)
+        # elif option == 1:
+        #     cv2.rectangle(frame, (211,0), (429, 480), (0,255,0), -1)
+        # elif option == 2:
+        #     cv2.rectangle(frame, (430,0), (640, 480), (0,0,255), -1)
 
-        if option == 0:
-            cv2.rectangle(frame, (0,0), (210, 480), (255,0,0), -1)
-        elif option == 1:
-            cv2.rectangle(frame, (211,0), (429, 480), (0,255,0), -1)
-        elif option == 2:
-            cv2.rectangle(frame, (430,0), (640, 480), (0,0,255), -1)
+        x = self.region_list[option][0]
+        y = self.region_list[option][1]
+        point1 = (x[0], y[0])
+        point2 = (x[1], y[1])
+        cv2.rectangle(frame, point1, point2, (0,255,0), -1)
+
+
+        # cv2.putText(frame,
+        # str(option),
+        # point1, cv2.FONT_HERSHEY_PLAIN, 5, (255,255,255), 2)
+
+        cv2.circle(frame, coords, 10, (255, 0, 0), 2)
+        cv2.imshow("Menu", frame)
+        cv2.waitKey(1)
+
+    def dispMenu(self, frame, option, coords):
+        med = self.get_median(option)
+        if med == None: #Nothing selected.
+            for j in range(0, len(self.region_list)):
+                i = self.region_list[j]
+                point1 = (i[0][0], i[1][0])
+                point2 = (i[0][1], i[1][1])
+                cv2.rectangle(frame, point1, point2, (0,0,255), -1)
+                cv2.putText(frame, self.activities_list[j],
+                self.button_point_list[j], cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), 2)
+
+        else:
+            i = self.region_list[med]
+            point1 = (i[0][0], i[1][0])
+            point2 = (i[0][1], i[1][1])
+            cv2.rectangle(frame, point1, point2, (0,255,0), -1)
+
+            cv2.putText(frame, self.activities_list[med],
+            self.button_point_list[med], cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), 2)
+
+
+            cv2.waitKey(200)
+            self.run_choice(med)
+
+            #Do publish a certain message of some kind.
 
         cv2.circle(frame, coords, 10, (255, 0, 0), 2)
         cv2.imshow("Menu", frame)
         cv2.waitKey(1)
 
 
+
+
+    def splitScreen(self, n):
+        regions = []
+
+        if n == 3:
+            regions = [[[0,210], [0,480]], [[211,429], [0,480]], [[430,640], [0,480]]]
+
+        elif n%7 != 0:
+            col = int(math.ceil(math.sqrt(n)))
+            row = int(math.ceil(n/float(col)))
+            dx = int(640/col)
+            dy = int(480/row)
+
+            for x in range(0, col):
+                for y in range(0, row):
+                    region = [[x*dx,(x+1)*dx],[y*dy,(y+1)*dy]] #same format, minx, maxx, miny, maxy
+                    regions.append(region)
+
+        else:
+            print "pick a valid number and pray"
+
+        self.region_list = regions
+        areas = regions[:] #slice to create a new list
+
+        for i in range(0, len(areas)):
+            areas[i] = self.get_area_coords(areas[i])
+        self.area_list = areas
+
+
+    def create_button(self, coords): #Coords is an x, y
+        length = 150
+        x = coords[0]
+        y = coords[1]
+
+        region = [[x-length/2, x+length/2],[y-length/2, y+length/2]]
+
+        self.region_list.append(region)
+
+        self.area_list.append(self.get_area_coords(region))
+
+################
+#Game Logic
+################
+
+    def run_choice(self, option):
+        if option == 0:
+            self.choice_pub.publish("w") #writingDemo
+        elif option == 1:
+            self.choice_pub.publish("pd") #presenceDemo
+        elif option == 2:
+            self.choice_pub.publish("ttt") #tengen toppa gurann lagann
+                                           # jk.  Actually tictactoe.
+
+        self.detect = False
+
+################
+#Program running
+################
+
     def run(self):
         #r = rospy.Rate(10)
         #time.sleep(2)
 
         #while not rospy.is_shutdown():
-        colorList = self.calibrate_color()
+
+        #Initial Calibration
 
         while self.detect:
             frame = self.get_frame()
-            processed_frame = self.process_frame(frame, colorList)
+            processed_frame = self.process_frame(frame, self.colorList)
             coords = self.findHand(processed_frame)
             option = self.check_pos(coords)
 
-            self.dispMenu(frame, coords, option)
+            self.dispMenu(frame, option, coords)
 
 
 

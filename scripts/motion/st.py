@@ -44,7 +44,7 @@ CARTESIAN = 'CARTESIAN'
 SPEED = 'SPEED'
 ACCEL = 'ACCEL'
 MOVETO = 'MOVETO'
-HAND = 'HAND'
+HAND = 'L-HAND'
 WRIST = 'WRIST'
 ELBOW = 'ELBOW'
 SHOULDER = 'SHOULDER'
@@ -535,7 +535,6 @@ class StArm():
             self.prev_pos.set([0, 0, 0, 0, 0])
 
         return (self.curr_pos, self.prev_pos)
-
     def check_if_done(self):
         cmd = TELL + 'FOOBAR'        # Not a real command. If it responds with an error, other processes are done.
         self.cxn.flushInput()
@@ -544,6 +543,36 @@ class StArm():
 
     def dummy(self):
         return "no you're a dummy!"
+
+    def get_joint_states(self):
+        # WAIST SHOULDER ELBOW L-HAND R-H/WR
+        #Wrist 1:3 (300 = 9 deg.) CCW
+        #Hand 1:1 (300 = 3 deg.) CCW, CW for WRIST
+        #Elbow 1:1 (300 = 3 deg.) CW
+        #Shoulder 2:1 (600 = 3 deg.) CCW
+        #Waist 1:1 (eyeball) CW
+        cmd = "WHERE"
+        self.cxn.flushInput()
+        self.cxn.write(cmd + CR)
+        res = self.block_on_result(cmd)
+        lines = res.split('\r\n')
+        joints = [int(j) for j in lines[2].split()]
+        joints[1] /= 2.  #600 = 3 deg
+        joints[4] *= 3.  #300 = 9 deg
+        joints[4] -= joints[3] # counteract
+        joints[2], joints[4] = -joints[2], -joints[4] #opposite turning direction
+        joints = [j/100*3.1415/180 for j in joints] #to radians
+        return joints
+
+
+    def test(self):
+        res = []
+        for r in ['B-RATIO', 'S-RATIO', 'E-RATIO', 'W-RATIO', 'T-RATIO']:
+            cmd = r + QUERY
+            self.cxn.flushInput()
+            self.cxn.write(cmd + CR)
+            res.append(self.block_on_result(cmd))
+        print res
 
     def lock_wrist_angle(self,TF = True):
         if TF:
