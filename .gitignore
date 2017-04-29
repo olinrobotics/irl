@@ -1,4 +1,5 @@
 *.pyc
+*.bag
 *~
 scripts/sound/media/*
 tools/*
