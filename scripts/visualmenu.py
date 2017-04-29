@@ -19,7 +19,6 @@ class visualmenu:
     #Dimensions of a camera screen are 640 x 480.
 
     def __init__(self):
-
         rospy.init_node('visualmenu')
         self.choice_pub = rospy.Publisher("vm_choice", String, queue_size=10)
         self.game_state = rospy.Subscriber("all_control", String, self.cmd_callback)

@@ -153,7 +153,7 @@ class PushCupGame:
         contour = video # Duplicate video feed so as to display both raw footage and final contoured footage
 
         # Changes BGR video to GRAY and dynamically thresholds it [2]
-        vidgray = cv2.cvtColor(video,cv2.COLOR_BGR2GRAY)
+        vidgray = cv2.cvtColor(video,cv2.COLOR_BGR2GRAY)    
         ret,thresh = cv2.threshold(vidgray,100,200,cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
 
         # Uses kernel to clean noise from image (2x) [1]
