@@ -17,32 +17,24 @@ import cv2
 import img_processing as Process #Library of image processing functions in edwin/scripts/sight
 import csv
 
+# Source: http://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_ml/py_svm/py_svm_opencv/py_svm_opencv.html
 class HandwritingRecognition:
-    '''DOCSTRING
-        DESC: Instantiates and runs a Handwriting Recognition object
-        PRMS:
-        MTDS:
-        nothing - empty callback function for commands that require a callback function but don't need to perform an action
-        __init__ - initializes HandwritingRecognition object
-        img_callback - runs every time an image is recieved from the rostopic usb_cam
-        process_data_svm
-        decode_file
-        train_svm
-        process_digits
+    ''' DOCSTRING:
+        Contains the attributes and methods to implement Edwin's handwriting
+        recognition capability
         '''
 
-    def nothing(x): # empty callback function to pass as parameter
+    def nothing(x):
+        """ DOCSTRING:
+            Provides empty callback function for other functions needing a
+            function for param
+            """
         pass
 
-
     def __init__(self, init_param=False):
-        '''DOCSTRING
-            DESC: runs once when program starts, sets up initial state, vars, etc.
-            ARGS:
-            self - reference to current HR object
-            init_param - Boolean providing alternate setup initialization
-            RETURN: none
-            SHOW: provides initial state and values for program
+        ''' DOCSTRING:
+            Initializes ros nodes, state vars, windows, etc. for current HR obj;
+            Contains lists differentiating alpha & numeric symbols
             '''
         if init_param:
             # init_param allows us to instantiate the HR object in different contexts, i.e in WritingDemo.py
@@ -79,37 +71,87 @@ class HandwritingRecognition:
         self.curr_data = ''
         self.found_word = False
 
+        # Lists of alpha symbols & numeric symbols for classify_writing method
+        alpha_symb = "AaBbCcDdEeFfGgHhIiJjKkLMmNnPpQqRrTtUuVvWwYyZz"
+        self.alpha_symb = list(alpha_symb)
+        numer_symb = "2346789+-/*="
+        self.numer_symb = list(numer_symb)
 
     def img_callback(self, data):
-        '''
-            DESC: Callback function for usb cam subscription; stores frame from
-            camera to self
-            ARGS:
-            self - object - reference to current HR object
-            data - image - data sent over subscriber
-            RTRN: none
-            SHOW: stores usb-cam frame in self.curr_frame
+        ''' DOCSTRING:
+            Given img data from usb cam, saves img for later use; called every
+            time img recieved from usb cam
             '''
         try:
+            # Saves image; converts to opencv format
             self.curr_frame = self.bridge.imgmsg_to_cv2(data, "bgr8")
         except CvBridgeError as e:
-            print(e)
-
+            print('ERR:%d',e)
 
     def process_data_svm(self):
-        '''DOCSTRING
-            DESC:
-            ARGS:
-            RETURNS:
+        '''DOCSTRING:
+            Saves .npz files of training data & training_labels for SVMs
+            (alphabetic, numeric, symbolic (both alpha and num))
             '''
+
         path =  self.PARAMS_PATH + '/params/char_data/'
         files = listdir(path) # Lists files in path folder (training data)
+
+        # Builds alphabetic character data list
+        alpha_files = ['1','a','b','c','d','e','f','g','h','j','k','m','n','o','p','q','r','s','t','u','v','w',
+                        'x','y','z','dot',]
+        alpha_files = [alphafile + '.png' for alphafile in alpha_files]
+
+        # Builds numeric character data list
+        num_files = ['0','1','2','3','4','5','6','7','8','9','mns','pls','div','dot','x','a','b','lpr','crt']
+        num_files = [numfile + '.png' for numfile in num_files]
+
+        # Builds training data & labels for alphabetic, numeric, and both; saves
+        # data as .npz files
+        train_data, responses = self.build_train_data(files,path)
+        train_alphadata, alpha_responses = self.build_train_data(alpha_files,path)
+        train_numdata, num_responses = self.build_train_data(num_files,path)
+        np.savez(self.PARAMS_PATH + '/params/svm_data.npz',train=train_data,train_labels=responses) # Saves training data and labels into .npz file
+        np.savez(self.PARAMS_PATH + '/params/svm_alphadata.npz',train=train_alphadata,train_labels=alpha_responses) # Saves alphabetic training data & labels into .npz file
+        np.savez(self.PARAMS_PATH + '/params/svm_numdata.npz',train=train_numdata,train_labels=num_responses) # Saves numeric training data & labels into .npz file
+
+    def train_svm(self,file_name):
+        '''DOCSTRING:
+            Given .npz file of training data and labels, initializes, sets
+            parameters/data for, and trains SVM to distinguish between chars in
+            provided test data; returns SVM
+            '''
+
+        # Sets parameters of svm to use
+        svm_params = dict(kernel_type = cv2.SVM_LINEAR, svm_type = \
+                            cv2.SVM_NU_SVC, nu=.105)
+                            # gamma = 5.383
+
+        # reads data in .svm file and formats for svm
+        with np.load(self.PARAMS_PATH + '/params/' + file_name + '.npz') as input_data:
+            train_data = input_data['train']
+            data_labels = input_data['train_labels']
+
+        SVM = cv2.SVM()
+        SVM.train(train_data,data_labels,params=svm_params)
+        return SVM
+
+    def build_train_data(self,files,path):
+        """ DOCSTRING:
+            Given list of test data files & path to files; returns train_data &
+            labels for training SVM
+            """
+
         train_data = np.float32(np.zeros((0,64)))
         responses = np.float32(np.zeros((0,1)))
+
         for f in files: # Loads the .pngs for the training data for each symbol
             file_path = path + f
+            #print(file_path)
             code = f.split('.',1)[0]
             train_img = cv2.imread(file_path)
+            print(file_path)
+
             cells_data = []
             # Processes the training data into a usable format
             gray = cv2.cvtColor(train_img,cv2.COLOR_BGR2GRAY)
@@ -117,18 +159,16 @@ class HandwritingRecognition:
             # deskewed = [map(self.deskew,row) for row in cells]
             hogdata = [map(Process.hog,row) for row in cells]
 
+            # Builds training data
             train_data = np.concatenate((train_data,np.float32(hogdata).reshape(-1,64)),axis=0)
-            # Builds the labels for the training data
+            # Builds labels for training data
             responses = np.concatenate((responses,np.float32(np.repeat([self.decode_file(code)],100)[:,np.newaxis])),axis=0)
 
-        np.savez(self.PARAMS_PATH + '/params/svm_data.npz',train=train_data,train_labels=responses) # Saves training data and responses into an .npz file
-
-        # Train the SVM neural network to recognize characters
-
+        return train_data, responses
 
     def decode_file(self, code):
-        '''DOCSTRING
-            Given a file name to decode, returns char to which file name
+        ''' DOCSTRING:
+            Given file name to decode, returns char to which file name
             corresponds
             '''
         if (code == 'mlt'): return ord('*')
@@ -137,28 +177,25 @@ class HandwritingRecognition:
         elif (code == 'pls'): return ord('+')
         elif (code == 'mns'): return ord('-')
         elif (code == 'dot'): return ord('.')
+        elif (code == 'crt'): return ord('^')
+        elif (code == 'lpr'): return ord('(')
+        elif (code == 'rpr'): return ord(')')
         elif (len(code) == 1): return ord(code)
 
 
-    def train_svm(self):
-        '''DOCSTRING
-            Initializes, sets parameters/data for, and trains SVM to
-            distinguish between chars in provided test data
-            '''
+    def SVM_predict(self,svm,data):
+        """ DOCSTRING:
+            Given SVM & data set, returns resulting predicted data from SVM
+            """
 
-        # Sets parameters of svm to use
-        svm_params = dict(kernel_type = cv2.SVM_LINEAR, svm_type = \
-                            cv2.SVM_NU_SVC, nu=.105)
-                            # gamma = 5.383
+        results = svm.predict_all(data)
+        res_data = []
+        for x in results:
+            res_data.append(int(x.item(0)))
+        for idx,roi in enumerate(self.chars):
+            roi.result = res_data[idx]
 
-        # reads data in svm_data.npz (created in self.process_data_svm) and formats for svm
-        with np.load(self.PARAMS_PATH + '/params/svm_data.npz') as input_data:
-            train_data = input_data['train']
-            data_labels = input_data['train_labels']
-
-        self.SVM = cv2.SVM()
-        self.SVM.train(train_data,data_labels,params=svm_params)
-
+        return res_data
 
     def process_digits(self,test_data,detect_words = False):
         '''DOCSTRING
@@ -170,14 +207,7 @@ class HandwritingRecognition:
             # Prepares input data for processing
             reshape_data = np.float32([char.HOG for char in test_data]).reshape(-1,64)
 
-            results = self.SVM.predict_all(reshape_data)
-            res_data = []
-            for x in results:
-                res_data.append(int(x.item(0)))
-            for idx,roi in enumerate(self.chars):
-                roi.result = res_data[idx]
-                #print(roi.result)
-                # Formats results from SVM processing
+            res_data = self.SVM_predict(self.SVM,reshape_data)
 
             # Resolves contours that could be an 'i' or a 'j'
             # 0 = dots, 1 = lines
@@ -190,16 +220,26 @@ class HandwritingRecognition:
             if len(fuzzy_conts) > 0:
                 self.chars.extend(fuzzy_conts)
 
+            # Check if sentence or equation, apply corresponding SVM
+            classification = self.classify_writing(self.chars)
+            if classification == 1:
+                res_data_2 = self.SVM_predict(self.SVM_alpha,reshape_data)
+                print('alphabet!')
+            elif classification == 2:
+                res_data_2 = self.SVM_predict(self.SVM_num,reshape_data)
+                print('numbers!')
+
             # Prints characters on screen in location corresponding to the image
             if self.frame is not None:
                 for roi in self.chars:
                     cv2.putText(self.frame,chr(int(roi.result)),(roi.x,roi.y+roi.h) \
                                 ,cv2.FONT_HERSHEY_SIMPLEX, 4,(0,255,0))
+
+            # TODO: word detection
             if detect_words:
                 self.detect_new_word(test_data)
             else:
                 return test_data
-
 
     def resolve_symbols(self, dot_contours,line_contours,dash_contours): # Currently sorts: i,!,l,=,/,
         '''DOCSTRING
@@ -292,11 +332,40 @@ class HandwritingRecognition:
             dot.result = ord('.')
             final_contours.append(dot)
         for line in line_contours:
-            line.result = ord('l')
+            line.result = ord('1')
             final_contours.append(line)
 
         return final_contours
 
+    def classify_writing(self, chars):
+        """ DOCSTRING:
+            Given set of chars to interpret, returns list written alphabetically
+            or numerically dependent on the ratio of alpha to numeric chars
+            present, as determined by lists in HR object init() method
+
+            Classification: 0 - null, 1 - alphabetic, 2 - numeric
+            """
+
+        classify = 0
+
+        chars = [chr(int(roi.result)) for roi in chars]
+        alpha_chars = [char for char in chars if char in self.alpha_symb] # list of chars classified as alphabetic
+        numer_chars = [char for char in chars if char in self.numer_symb] # list of chars classified as numeric
+
+        if len(chars) == 0:
+            classify = 0
+        elif len(alpha_chars) == 0:
+            classify = 2
+        elif len(numer_chars) == 0:
+            classify = 1
+        else:
+            ratio = len(alpha_chars)/len(numer_chars)
+            if ratio < 0.5:
+                classify = 2
+            else:
+                classify = 1
+        print(classify)
+        return classify
 
     def detect_new_word(self,char_list):
         '''DOCSTRING
@@ -374,6 +443,7 @@ class HandwritingRecognition:
         # for word in lines:
         #     print ' '.join([str(x.result) for x in word])
 
+
     def update_frame(self):
         '''DOCSTRING
             updates frame with the current frame '''
@@ -413,12 +483,22 @@ class HandwritingRecognition:
         word = ''.join([chr(item.result) for item in chars])
 
 
-    def run(self):
+    def run(self,rebuild):
+        ''' DOCSTRING:
+            given bool representing whether or not to rebuild training data sets
+            runs HR initialization code and main loop code
+            '''
+
         r = rospy.Rate(10)
         time.sleep(2)
-        self.process_data_svm()
-        self.train_svm()
-        while not rospy.is_shutdown():
+
+        # If new training data, set rebuild to True to rebuild SVMs
+        if rebuild == True: self.process_data_svm()
+        self.SVM = self.train_svm('svm_data')
+        self.SVM_alpha = self.train_svm('svm_alphadata')
+        self.SVM_num = self.train_svm('svm_numdata')
+
+        while not rospy.is_shutdown(): # MAIN LOOP
             e1 = cv2.getTickCount()
             self.update_frame()
             # out_image = Process.get_paper_region(self.frame)
@@ -432,4 +512,4 @@ class HandwritingRecognition:
 
 if __name__ == '__main__':
     hr = HandwritingRecognition()
-    hr.run()
+    hr.run(False)

@@ -38,7 +38,8 @@ def get_text_roi(frame, show_window=True):
     bound = 5
     kernel = np.ones((2,2),np.uint8)
 
-    frame_gray = cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY) # Filter to grayscale
+    frame_blur = cv2.GaussianBlur(frame,(5,5),0)
+    frame_gray = cv2.cvtColor(frame_blur,cv2.COLOR_BGR2GRAY) # Filter to grayscale
     frame_gray = cv2.filter2D(frame_gray.copy(),-1,kernel_sharpen_3) # Filter to sharpen
     # frame_gray = cv2.GaussianBlur(frame_gray, (5,5),0) # Gaussian blur to remove noise
 
@@ -51,8 +52,8 @@ def get_text_roi(frame, show_window=True):
     contours,hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,
                                             cv2.CHAIN_APPROX_NONE)
     cv2.drawContours(frame,contours,-1,(255,0,0),2)
-    # Build the list of number contours and number locations
-
+    
+    # Build the list of symbol contours and locations
     if len(contours) < 35: # If reasonable # of contours
 
         # For each contour, draw bounding rectangle, make sure it's a reasonable
@@ -89,7 +90,6 @@ def get_text_roi(frame, show_window=True):
 
     # Deskews a 20x20 character image
 
-
 def deskew(img):
     SZ = 20
     affine_flags = cv2.WARP_INVERSE_MAP|cv2.INTER_LINEAR
@@ -104,7 +104,6 @@ def deskew(img):
 
     # Retursn the HOG for a given imagej
 
-
 def hog(img):
     bin_n = 16
     gx = cv2.Sobel(img, cv2.CV_32F,1,0) # x gradient
@@ -116,7 +115,6 @@ def hog(img):
     hists = [np.bincount(b.ravel(), m.ravel(), bin_n) for b, m in zip(bin_cells, mag_cells)]
     hist = np.hstack(hists) # hist is a 64-bit vector
     return hist
-
 
 def get_paper_region(img):
     screenCnt = None
