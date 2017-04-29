@@ -52,8 +52,8 @@ def get_text_roi(frame, show_window=True):
     contours,hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,
                                             cv2.CHAIN_APPROX_NONE)
     cv2.drawContours(frame,contours,-1,(255,0,0),2)
-    # Build the list of number contours and number locations
-
+    
+    # Build the list of symbol contours and locations
     if len(contours) < 35: # If reasonable # of contours
 
         # For each contour, draw bounding rectangle, make sure it's a reasonable
