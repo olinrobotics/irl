@@ -25,7 +25,7 @@ USER_NAME = "user"
 
 class Game:
 	def __init__(self, max_turns = 15):
-		self.say_pub = rospy.Publisher('say_cmd', String, queue_size = 1)
+		self.say_pub = rospy.Publisher('/say_cmd', String, queue_size = 1)
 		self.ctr_pub = rospy.Publisher('/all_control',String, queue_size=10)
 		rospy.Subscriber("/skeleton_detect", String, self.gest_callback, queue_size = 10)
 		self.current_cmd = None

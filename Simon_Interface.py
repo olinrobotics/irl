@@ -1,5 +1,5 @@
 import sys
-from PySide.QtCore import Slot
+from PySide.QtCore import *
 from PySide.QtGui import *
 import rospy
 import cv2
@@ -25,13 +25,18 @@ qt_app = QApplication(sys.argv)
 class LayoutExample(QWidget):
 
 	def __init__(self):
+		rospy.init_node("SimonSaysGui", anonymous=True)
 		rospy.Subscriber("/say_cmd", String, self.data_collect, queue_size = 10)
+		self.cmd = ''
+		self.is_playing = False
 		# Initialize the object as a QWidget and
 		# set its title and minimum width
 		QWidget.__init__(self)
 		self.setWindowTitle('SimonSays')
 		self.setMinimumWidth(600)
 		self.setMinimumHeight(400)
+		self.timer = QTimer()
+
 
 		# Create the QVBoxLayout that lays out the whole form
 		self.layout = QVBoxLayout()
@@ -81,34 +86,41 @@ class LayoutExample(QWidget):
 		# Set the VBox layout as the window's main layout
 		self.setLayout(self.layout)
 
-	def data_collect(self):
+	def data_collect(self,data):
 		''' Show the constructed greeting. '''
-		self.data = data.data
-		if self.user[self.simon_user.currentIndex()] == 'Edwin is Simon':
-			self.command.setText('%s,%s' % (self.data))
+		self.cmd = data.data
+
+	@Slot()
+	def update_text(self):
+		if self.is_playing == True:
+			self.command.setText(self.cmd)
 
 	@Slot()
 	def set_this_up(self):
-		os.system("gnome-terminal -e 'bash -c \"roscore; exec bash\"'")
-		time.sleep(1)
 		os.system("gnome-terminal -e 'bash -c \"roslaunch skeleton_markers markers_from_tf.launch; exec bash\"'")
 		time.sleep(1)
-		os.system("gnome-terminal -e 'bash -c \"cd ../; cd ../;  cd skeleton_markers/;  rosrun rviz rviz -d markers_from_tf.rviz;  exec bash\"'")
-
+		os.system("gnome-terminal -e 'bash -c \"cd ../; cd skeleton_markers/;  rosrun rviz rviz -d markers_from_tf.rviz;  exec bash\"'")
 		time.sleep(1)
 		os.system("gnome-terminal -e 'bash -c \"rosrun edwin skeleton.py;  exec bash\"'")
 		time.sleep(1)
 
 	@Slot()
 	def lets_play(self):
+		self.is_playing = True
 		#os.system("gnome-terminal -e 'bash -c \"roscd edwin; exec bash\"'")
 		os.system("gnome-terminal -e 'bash -c \"cd scripts/; cd sight/; python3 skeleton_characterization.py; exec bash\"'")
-		time.sleep(5)
-		os.system("gnome-terminal -e 'bash -c \"cd Interactions/; python Simon_Says_practice.py; exec bash\"'")
+		time.sleep(1)
+		os.system("gnome-terminal -e 'bash -c \"cd scripts/; cd Interactions/; python Simon_Says_practice.py; exec bash\"'")
+		time.sleep(1)
 
 	def run(self):
 		# Show the form
 		self.show()
+
+		#Set Timer for update label
+		self.connect(self.timer, SIGNAL("timeout()"), self.update_text)
+		self.timer.start(300)
+
 		# Run the qt application
 		qt_app.exec_()
 
