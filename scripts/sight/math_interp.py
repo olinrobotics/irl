@@ -6,9 +6,9 @@ Author: Hannah Kolano
 hannah.kolano@students.olin.edu
 '''
 from __future__ import division
-# import rospy
+import rospy
 # import rospkg
-# from std_msgs.msg import String
+from std_msgs.msg import String
 import math as m
 
 # global variables
@@ -26,7 +26,7 @@ class Calculator:
         self.eqn = ''
         self.tree = tuple()
         rospy.Subscriber('word_publish', String, self.cmd_callback)
-s
+
     def cmd_callback(self, data):
         '''callback'''
         # first several characters are not part of the equation, so removes them
@@ -43,8 +43,8 @@ s
         return str(answer)
 
     def fixes_letters(self, eqn):
-        ''' takes in an equation; 
-        turns the letters into the numbers they probably represent; 
+        ''' takes in an equation;
+        turns the letters into the numbers they probably represent;
         returns the parsed equation '''
         replace = {'o':'0', 'l':'1', 't':'+', 'q':'9'}
         for letter in replace.keys():
@@ -79,7 +79,7 @@ s
             self.rsstring, self.lsstring = self.tree_to_string(self.rstree), self.tree_to_string(self.lstree)
 
     def initialize_tree(self, eqn):
-        '''takes an equation, splits into two sides. Returns nothing. 
+        '''takes an equation, splits into two sides. Returns nothing.
         creates self.rstree and self.lsstree from the equation.'''
         index = eqn.find('=')
         left_side, right_side = eqn[:index], eqn[index+1:]
@@ -242,7 +242,7 @@ s
         self.side_w_variable = 'left' if self.variable in str(self.lsstring) else 'right'
 
     def do_op(self, var_side_tree, non_var_str, string, mov_idx=2, keep_idx=1):
-        '''takes the tree of the side with the variable, the strong of the opposite side, 
+        '''takes the tree of the side with the variable, the strong of the opposite side,
         and a string of the operation it needs to do, snips the operation
         from the tree and moves it to the other side string. returns new tree and string.'''
         non_var_str = str(non_var_str) + string + self.tree_to_string(var_side_tree[mov_idx])
