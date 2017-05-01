@@ -43,7 +43,13 @@ add_message_files(
 	HHH.msg
 
 )
-
+add_service_files(
+	DIRECTORY
+	srv
+	FILES
+	AddTwoInts.srv
+	arm_cmd.srv
+)
 ##Generate added messages and services with any dependencies listed here
 generate_messages(
   DEPENDENCIES
