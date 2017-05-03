@@ -107,6 +107,7 @@ class SimonSays(object):
 		self.skelesub = rospy.Subscriber("skeleton", Bones, self.skeleton_callback)
 		self.status_sub = rospy.Subscriber('/arm_status', String, self.status_callback, queue_size=10)
 
+		self.always_simon = False
 
 	def status_callback(self, data):
 		print "arm status callback", data.data
@@ -193,12 +194,14 @@ class SimonSays(object):
 		self.command_2_speech["touch_head"] = "touch your head with your left hand"
 		self.command_2_speech["rub_tummy"] = "rub your tummy with both hands"
 		self.command_2_speech["high5_self"] = "give yourself a high five to your left"
-		# self.command_2_speech["hug_self"] = "hug yourself"
 		self.command_2_speech["starfish"] = "make a starfish"
-		# self.command_2_speech["wave"] = "wave at the camera with your right hand"
-		# self.command_2_speech["dab"] = "do the dab to the right"
-		# self.command_2_speech["disco"] = "do the disco with your right hand"
-		# self.command_2_speech["bow"] = "bow down to the master"
+
+		##NON WORKING GESTURES
+		self.command_2_speech["hug_self"] = "hug yourself"
+		self.command_2_speech["wave"] = "wave at the camera with your right hand"
+		self.command_2_speech["dab"] = "do the dab to the right"
+		self.command_2_speech["disco"] = "do the disco with your right hand"
+		self.command_2_speech["bow"] = "bow down to the master"
 
 
 	def populate_player_dictionaries(self):
@@ -236,8 +239,7 @@ class SimonSays(object):
 
 		time.sleep(3)
 		while self.status == 0:
-			print "waiting"
-
+			pass
 
 	def simon_say_command(self):
 		"""
@@ -252,7 +254,10 @@ class SimonSays(object):
 			command = random.choice(self.command_2_speech.keys())
 		print "PREV:", self.previous_cmd, "CURRENT", command
 		self.previous_cmd = command
-		self.current_cmd = random.choice(["simon says, ", ""]) + self.command_2_speech.get(command)
+		if self.always_simon:
+			self.current_cmd = "simon says, " + self.command_2_speech.get(command)
+		else:
+			self.current_cmd = random.choice(["simon says, ", ""]) + self.command_2_speech.get(command)
 		if "simon says, " in self.current_cmd:
 			self.simon_or_naw = True
 		else:
@@ -329,16 +334,25 @@ class SimonSays(object):
 		The resulting command is sent to arm_node for physical motion
 		"""
 		if self.simon_or_naw and self.current_act:
-			self.arm_act = self.current_act
+			self.arm_act = self.command_2_motion.get(self.current_act, None)
+			if self.arm_act is None:
+				return
+			else:
+				self.arm_act = self.arm_act[0]
 			print "GOT MOTION: ", self.arm_act
 			self.behavior_pub.publish(self.arm_act)
 			self.check_completion()
 			time.sleep(1)
 			self.current_act = None
+
 		elif self.current_act:
 			chance = np.random.rand()
 			if chance >= difficulty:
-				self.arm_act = self.current_act
+				self.arm_act = self.command_2_motion.get(self.current_act, None)
+				if self.arm_act is None:
+					return
+				else:
+					self.arm_act = self.arm_act[0]
 				print "GOT MOTION: ", self.arm_act
 				self.behavior_pub.publish(self.arm_act)
 				self.check_completion()
@@ -621,6 +635,6 @@ if __name__ == '__main__':
 		game = EdwinSimon()
 	else:
 		game = AutonomousSimon()
-
+		game.always_simon = True
 
 	game.run()
