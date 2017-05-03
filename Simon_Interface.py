@@ -26,8 +26,10 @@ class LayoutExample(QWidget):
 
 	def __init__(self):
 		rospy.init_node("SimonSaysGui", anonymous=True)
-		rospy.Subscriber("/say_cmd", String, self.data_collect, queue_size = 10)
-		self.cmd = ''
+		rospy.Subscriber("/say_cmd", String, self.command_callback, queue_size = 10)
+		rospy.Subscriber("/display_result", String, self.result_callback, queue_size=10)
+		self.cmd = ""
+		self.res = ""
 		self.is_playing = False
 		# Initialize the object as a QWidget and
 		# set its title and minimum width
@@ -54,7 +56,9 @@ class LayoutExample(QWidget):
 		self.form_layout.addRow('&Who is Simon?:', self.simon_user)
 
 		self.command = QLabel('',self)
-		self.form_layout.addRow('Commands:',self.command)
+		self.result = QLabel('',self)
+		self.form_layout.addRow('Command:', self.command)
+		self.form_layout.addRow('Result:', self.result)
 
 		# Create the entry control to specify a
 		# recipient and set its placeholder text
@@ -86,17 +90,26 @@ class LayoutExample(QWidget):
 		# Set the VBox layout as the window's main layout
 		self.setLayout(self.layout)
 
-	def data_collect(self,data):
-		''' Show the constructed greeting. '''
+	def command_callback(self,data):
 		self.cmd = data.data
+
+	def result_callback(self,data):
+		self.res = data.data
 
 	@Slot()
 	def update_text(self):
+		'''
+		Update the text message
+		'''
 		if self.is_playing == True:
 			self.command.setText(self.cmd)
+			self.result.setText(self.res)
 
 	@Slot()
 	def set_this_up(self):
+		'''
+		After the user presses the Initial Setup button
+		'''
 		os.system("gnome-terminal -e 'bash -c \"roslaunch skeleton_markers markers_from_tf.launch; exec bash\"'")
 		time.sleep(1)
 		os.system("gnome-terminal -e 'bash -c \"cd ../; cd skeleton_markers/;  rosrun rviz rviz -d markers_from_tf.rviz;  exec bash\"'")
@@ -106,8 +119,10 @@ class LayoutExample(QWidget):
 
 	@Slot()
 	def lets_play(self):
+		'''
+		After the user presses the Ready to Play button
+		'''
 		self.is_playing = True
-		#os.system("gnome-terminal -e 'bash -c \"roscd edwin; exec bash\"'")
 		os.system("gnome-terminal -e 'bash -c \"cd scripts/; cd sight/; python3 skeleton_characterization.py; exec bash\"'")
 		time.sleep(1)
 		os.system("gnome-terminal -e 'bash -c \"cd scripts/; cd Interactions/; python Simon_Says_practice.py; exec bash\"'")

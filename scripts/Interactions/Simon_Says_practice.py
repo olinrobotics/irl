@@ -27,6 +27,7 @@ class Game:
 	def __init__(self, max_turns = 15):
 		self.say_pub = rospy.Publisher('/say_cmd', String, queue_size = 1)
 		self.ctr_pub = rospy.Publisher('/all_control',String, queue_size=10)
+		self.res_pub = rospy.Publisher('/display_result',String, queue_size=1)
 		rospy.Subscriber("/skeleton_detect", String, self.gest_callback, queue_size = 10)
 		self.current_cmd = None
 		self.first = True
@@ -92,16 +93,15 @@ class Game:
 					command_gest = key
 			#compares command to the gesture recived from subscriber
 			if command_gest  == self.gesture:
-				print('Good job!')
+				self.res_pub.publish('Good Job!')
 				self.simonless_gest = self.gesture
 			else:
-				print('Try again!')
+				self.res_pub.publish('Try Again!')
 		else:
 			if self.simonless_gest == self.gesture:
-				print('Good job!')
+				self.res_pub.publish('Good Job!')
 			else:
-				print('Try again!')
-		#TODO: add behavior for success / failure of following command
+				self.res_pub.publish('Try Again!')
 
 	def run(self):
 		"""Game mainloop. Runs for as long as max_turns is defined"""
