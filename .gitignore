@@ -1,4 +1,5 @@
 *.pyc
+*.bag
 *~
 scripts/sound/media/*
 tools/*
@@ -6,3 +7,4 @@ tools/*
 *.zip
 *.o
 *.a
+Stereo/

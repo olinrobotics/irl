@@ -29,6 +29,7 @@ class ArmGui:
 
     def behave_move(self, num):
         msg = str(self.behav_s.get())
+        print msg
         print "sending: ", msg
         self.pub2.publish(msg)
 

@@ -32,7 +32,7 @@ class HandwritingRecognition:
         pass
 
     def __init__(self, init_param=False):
-        '''DOCSTRING
+        ''' DOCSTRING:
             Initializes ros nodes, state vars, windows, etc. for current HR obj;
             Contains lists differentiating alpha & numeric symbols
             '''
@@ -445,6 +445,7 @@ class HandwritingRecognition:
         # print ''
         # for word in lines:
         #     print ' '.join([str(x.result) for x in word])
+
 
     def update_frame(self):
         ''' DOCSTRING:

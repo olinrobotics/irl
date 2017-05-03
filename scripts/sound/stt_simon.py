@@ -46,8 +46,8 @@ class SpeechDetector:
         PACKAGE_PATH = rospack.get_path("edwin")
 
         # These will need to be modified according to where the pocketsphinx folder is
-        MODELDIR = os.path.join(PACKAGE_PATH, "tools/pocketsphinx/model")
-        DATADIR = os.path.join(PACKAGE_PATH, "tools/pocketsphinx/test/data")
+        MODELDIR = os.path.join(PACKAGE_PATH, "tools/pocketsphinx-python/pocketsphinx/model/")
+        DATADIR = os.path.join(PACKAGE_PATH, "tools/pocketsphinx-python/pocketsphinx/test/data/")
 
 
         # Create a decoder with certain model
@@ -82,7 +82,8 @@ class SpeechDetector:
         stream.close()
         p.terminate()
 
-        self.THRESHOLD = r + 100
+        # self.THRESHOLD = 3000
+        self.THRESHOLD = r + 500
 
         # if r < 3000:
         #     self.THRESHOLD = 3500
