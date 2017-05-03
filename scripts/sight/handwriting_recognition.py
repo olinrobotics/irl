@@ -196,8 +196,24 @@ class HandwritingRecognition:
 
         return res_data
 
-    def SVM__build_chars(self,svm,)
-    #def process_digits(self,test_data,detect_words = False):
+    def SVM_build_chars(self,svm,data):
+        """ DOCSTRING:
+            Given SVM and data from which to build prediction, edits self.chars
+            to reflect the current SVM & data set
+            """
+        res_data = self.SVM_predict(svm,data)
+
+        # Resolves fuzzy contours (i,j,=) (multi-contour characters)
+        lines = [val for val in self.chars if chr(val.result) == '1']
+        dots = [res for res in self.chars if chr(res.result) == '0' or chr(res.result) == '.']
+        dashes = [obj for obj in self.chars if chr(obj.result) == '-']
+        self.chars[:] = [val for val in self.chars if chr(val.result) != '1' \
+            and chr(val.result) != '0' and chr(val.result) != '.' and chr(val.result) != '-']
+        fuzzy_conts = self.resolve_symbols(dots,lines,dashes)
+        if len(fuzzy_conts) > 0:
+            self.chars.extend(fuzzy_conts)
+
+    def process_digits(self,test_data,detect_words = False):
         '''DOCSTRING
             Given raw contour data from an image and boolean representing
             whether or not to detect words, returns a 20x20 list of ROIs
@@ -207,26 +223,15 @@ class HandwritingRecognition:
             # Prepares input data for processing
             reshape_data = np.float32([char.HOG for char in test_data]).reshape(-1,64)
 
-            res_data = self.SVM_predict(self.SVM,reshape_data)
-
-            # Resolves fuzzy contours (i,j,=) (multi-contour characters)
-            lines = [val for val in self.chars if chr(val.result) == '1']
-            dots = [res for res in self.chars if chr(res.result) == '0' or chr(res.result) == '.']
-            dashes = [obj for obj in self.chars if chr(obj.result) == '-']
-            self.chars[:] = [val for val in self.chars if chr(val.result) != '1' \
-                and chr(val.result) != '0' and chr(val.result) != '.' and chr(val.result) != '-']
-            fuzzy_conts = self.resolve_symbols(dots,lines,dashes)
-            if len(fuzzy_conts) > 0:
-                self.chars.extend(fuzzy_conts)
+            # Predicts symbols from reshaped data
+            self.SVM_build_chars(self.SVM, reshape_data)
 
             # Check if sentence or equation, apply corresponding SVM
             classification = self.classify_writing(self.chars)
             if classification == 1:
-                res_data_2 = self.SVM_predict(self.SVM_alpha,reshape_data)
-                print('alphabet!')
+                self.SVM_build_chars(self.SVM_alpha,reshape_data)
             elif classification == 2:
-                res_data_2 = self.SVM_predict(self.SVM_num,reshape_data)
-                print('numbers!')
+                self.SVM_build_chars(self.SVM_num,reshape_data)
 
             # Prints characters on screen in location corresponding to the image
             if self.frame is not None:
@@ -363,7 +368,6 @@ class HandwritingRecognition:
                 classify = 2
             else:
                 classify = 1
-        print(classify)
         return classify
 
     def detect_new_word(self,char_list):
