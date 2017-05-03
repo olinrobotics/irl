@@ -197,7 +197,8 @@ class HandwritingRecognition:
 
         return res_data
 
-    def process_digits(self,test_data,detect_words = False):
+    def SVM__build_chars(self,svm,)
+    #def process_digits(self,test_data,detect_words = False):
         '''DOCSTRING
             Given raw contour data from an image and boolean representing
             whether or not to detect words, returns a 20x20 list of ROIs
@@ -209,8 +210,7 @@ class HandwritingRecognition:
 
             res_data = self.SVM_predict(self.SVM,reshape_data)
 
-            # Resolves contours that could be an 'i' or a 'j'
-            # 0 = dots, 1 = lines
+            # Resolves fuzzy contours (i,j,=) (multi-contour characters)
             lines = [val for val in self.chars if chr(val.result) == '1']
             dots = [res for res in self.chars if chr(res.result) == '0' or chr(res.result) == '.']
             dashes = [obj for obj in self.chars if chr(obj.result) == '-']
@@ -444,9 +444,10 @@ class HandwritingRecognition:
         #     print ' '.join([str(x.result) for x in word])
 
     def update_frame(self):
-        '''DOCSTRING
-            updates frame with the current frame '''
-        self.frame = self.curr_frame
+        ''' DOCSTRING:
+            updates frame with the current frame; cuts out Edwin's eyelid
+            '''
+        self.frame = Process.get_edwin_vision(self.curr_frame)
 
     def output_image(self):
         '''DOCSTRING
