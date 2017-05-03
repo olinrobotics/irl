@@ -10,11 +10,13 @@ import rospy
 # import rospkg
 from std_msgs.msg import String
 import math as m
+from edwin.msg import *
+import time
 
 # global variables
 integer_list = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.']
 operator_list = ['+', '-', '/', '*', '^', '(', ')', '=']
-variable_list = ['x', 'y', 'z']
+variable_list = ['a', 'b']
 placeholder_list = ['p', 'q', 'r', 's', 't', 'u']
 
 
@@ -22,15 +24,16 @@ class Calculator:
     def __init__(self):
         '''initializes the object'''
         rospy.init_node('doing_math')
-        self.pub = rospy.Publisher('/math_output', String, queue_size=10)
-        self.eqn = ''
+        self.pub = rospy.Publisher('/write_cmd', Edwin_Shape, queue_size=10)
         self.tree = tuple()
+        self.eqn = ''
         rospy.Subscriber('word_publish', String, self.cmd_callback)
 
     def cmd_callback(self, data):
         '''callback'''
         # first several characters are not part of the equation, so removes them
         self.eqn = str(data)[6:]
+        # self.pub.publish(data)
 
     def solve_simple(self, eqn):
         '''takes in a simple equation; solves it; returns a string of the answer'''
@@ -295,14 +298,19 @@ class Calculator:
         will only print the output once '''
         answer = ''
         while not rospy.is_shutdown():
-            if answer != '':
-                prev_answer = answer
+            if self.eqn != '':
                 answer = self.determine_problem()
-                if answer != prev_answer:
-                    print(answer)
+                if answer != '':
+                    msg = Edwin_Shape()
+                    msg.shape = str(answer)
+                    msg.x = -500
+                    msg.y = 5700
+                    msg.z = -835
+                    self.pub.publish(msg)
+                    time.sleep(5)
+                    break
 
 
 if __name__ == '__main__':
     ctr = Calculator()
-    ctr.eqn = ''
     ctr.run()

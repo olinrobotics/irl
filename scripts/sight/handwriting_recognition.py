@@ -103,9 +103,8 @@ class HandwritingRecognition:
         alpha_files = [alphafile + '.png' for alphafile in alpha_files]
 
         # Builds numeric character data list
-        num_files = ['0','1','2','3','4','5','6','7','8','9','mns','pls','div','dot','x','a','b','lpr','crt']
+        num_files = ['0','1','2','3','4','5','6','7','8','9','mns','pls','div','dot','x','a','b','lpr','crt','rpr']
         num_files = [numfile + '.png' for numfile in num_files]
-
         # Builds training data & labels for alphabetic, numeric, and both; saves
         # data as .npz files
         train_data, responses = self.build_train_data(files,path)
@@ -509,6 +508,8 @@ class HandwritingRecognition:
             e2 = cv2.getTickCount()
             # print (e2-e1)/cv2.getTickFrequency()
             r.sleep()
+
+        cv2.destroyAllWindows()
 
 if __name__ == '__main__':
     hr = HandwritingRecognition()
