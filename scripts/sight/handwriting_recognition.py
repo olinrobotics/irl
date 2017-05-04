@@ -103,9 +103,8 @@ class HandwritingRecognition:
         alpha_files = [alphafile + '.png' for alphafile in alpha_files]
 
         # Builds numeric character data list
-        num_files = ['0','1','2','3','4','5','6','7','8','9','mns','pls','div','dot','x','a','b','lpr','crt']
+        num_files = ['0','1','2','3','4','5','6','7','8','9','mns','pls','div','dot','x','a','b','lpr','crt','rpr']
         num_files = [numfile + '.png' for numfile in num_files]
-
         # Builds training data & labels for alphabetic, numeric, and both; saves
         # data as .npz files
         train_data, responses = self.build_train_data(files,path)
@@ -197,6 +196,23 @@ class HandwritingRecognition:
 
         return res_data
 
+    def SVM_build_chars(self,svm,data):
+        """ DOCSTRING:
+            Given SVM and data from which to build prediction, edits self.chars
+            to reflect the current SVM & data set
+            """
+        res_data = self.SVM_predict(svm,data)
+
+        # Resolves fuzzy contours (i,j,=) (multi-contour characters)
+        lines = [val for val in self.chars if chr(val.result) == '1']
+        dots = [res for res in self.chars if chr(res.result) == '0' or chr(res.result) == '.']
+        dashes = [obj for obj in self.chars if chr(obj.result) == '-']
+        self.chars[:] = [val for val in self.chars if chr(val.result) != '1' \
+            and chr(val.result) != '0' and chr(val.result) != '.' and chr(val.result) != '-']
+        fuzzy_conts = self.resolve_symbols(dots,lines,dashes)
+        if len(fuzzy_conts) > 0:
+            self.chars.extend(fuzzy_conts)
+
     def process_digits(self,test_data,detect_words = False):
         '''DOCSTRING
             Given raw contour data from an image and boolean representing
@@ -207,27 +223,15 @@ class HandwritingRecognition:
             # Prepares input data for processing
             reshape_data = np.float32([char.HOG for char in test_data]).reshape(-1,64)
 
-            res_data = self.SVM_predict(self.SVM,reshape_data)
-
-            # Resolves contours that could be an 'i' or a 'j'
-            # 0 = dots, 1 = lines
-            lines = [val for val in self.chars if chr(val.result) == '1']
-            dots = [res for res in self.chars if chr(res.result) == '0' or chr(res.result) == '.']
-            dashes = [obj for obj in self.chars if chr(obj.result) == '-']
-            self.chars[:] = [val for val in self.chars if chr(val.result) != '1' \
-                and chr(val.result) != '0' and chr(val.result) != '.' and chr(val.result) != '-']
-            fuzzy_conts = self.resolve_symbols(dots,lines,dashes)
-            if len(fuzzy_conts) > 0:
-                self.chars.extend(fuzzy_conts)
+            # Predicts symbols from reshaped data
+            self.SVM_build_chars(self.SVM, reshape_data)
 
             # Check if sentence or equation, apply corresponding SVM
             classification = self.classify_writing(self.chars)
             if classification == 1:
-                res_data_2 = self.SVM_predict(self.SVM_alpha,reshape_data)
-                print('alphabet!')
+                self.SVM_build_chars(self.SVM_alpha,reshape_data)
             elif classification == 2:
-                res_data_2 = self.SVM_predict(self.SVM_num,reshape_data)
-                print('numbers!')
+                self.SVM_build_chars(self.SVM_num,reshape_data)
 
             # Prints characters on screen in location corresponding to the image
             if self.frame is not None:
@@ -364,7 +368,6 @@ class HandwritingRecognition:
                 classify = 2
             else:
                 classify = 1
-        print(classify)
         return classify
 
     def detect_new_word(self,char_list):
@@ -445,9 +448,10 @@ class HandwritingRecognition:
 
 
     def update_frame(self):
-        '''DOCSTRING
-            updates frame with the current frame '''
-        self.frame = self.curr_frame
+        ''' DOCSTRING:
+            updates frame with the current frame; cuts out Edwin's eyelid
+            '''
+        self.frame = Process.get_edwin_vision(self.curr_frame)
 
     def output_image(self):
         '''DOCSTRING
@@ -509,6 +513,8 @@ class HandwritingRecognition:
             e2 = cv2.getTickCount()
             # print (e2-e1)/cv2.getTickFrequency()
             r.sleep()
+
+        cv2.destroyAllWindows()
 
 if __name__ == '__main__':
     hr = HandwritingRecognition()
