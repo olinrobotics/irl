@@ -105,23 +105,19 @@ class Skeleton(object):
         14 - left foot
         """
         #gets the skeleton and extracts the head and hands
-        self.body_points = skeleton.points
-        raw_head = self.body_points[0]
-        raw_torso = self.body_points[2]
-        raw_Rhand = self.body_points[5]
-        raw_Lhand = self.body_points[11]
 
-        #converts the head and hands to Kinect coordinate frame
-        self.head = self.transform_skel2kinect(raw_head)
-        self.torso = self.transform_skel2kinect(raw_torso)
-        self.Rhand = self.transform_skel2kinect(raw_Rhand)
-        self.Lhand = self.transform_skel2kinect(raw_Lhand)
+        if len(skeleton.points) == 15:
+            self.body_points = skeleton.points
+            raw_head = self.body_points[0]
+            raw_torso = self.body_points[2]
+            raw_Rhand = self.body_points[5]
+            raw_Lhand = self.body_points[11]
 
-        # print "shoulder", self.body_points[3]
-        # print "elbow", self.body_points[4]
-        print "hand", self.body_points[5]
-
-        # print "processed", type(self.body_points[0])
+            #converts the head and hands to Kinect coordinate frame
+            self.head = self.transform_skel2kinect(raw_head)
+            self.torso = self.transform_skel2kinect(raw_torso)
+            self.Rhand = self.transform_skel2kinect(raw_Rhand)
+            self.Lhand = self.transform_skel2kinect(raw_Lhand)
 
 
     def renderImage(self, image):
@@ -187,7 +183,7 @@ class Skeleton(object):
 
         presence.headx = int(self.head[0])
         presence.heady = int(self.head[1])
-        presence.headz = int(self.head[2])
+        presence.headz = int(self.head[2]*1000)
         presence.torsox = int(self.torso[0])
         presence.torsoy = int(self.torso[1])
         presence.torsoz = int(self.torso[2])
@@ -197,6 +193,8 @@ class Skeleton(object):
         presence.lhandx = int(self.Lhand[0])
         presence.lhandy = int(self.Lhand[1])
         presence.lhandz = int(self.Lhand[2])
+
+        # print self.head[0], self.head[1], self.head[2]
 
         self.presencePub.publish(presence)
 
