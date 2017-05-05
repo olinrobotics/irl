@@ -171,8 +171,10 @@ def get_paper_region(img):
 
 def get_edwin_vision(img):
     """ DOCSTRING:
-        Given img, returns (img - section obscured by Edwin's eyelid)
+        Given img, returns img - section obscured by Edwin's eyelid
         """
     height, width, channels = img.shape
     crop_img = img[0:400, 0:width] # [y:height, x:width]
+    cv2.imshow
+    cv2.imshow('Cropped_Img', crop_img)
     return crop_img
