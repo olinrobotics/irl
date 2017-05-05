@@ -14,9 +14,8 @@ class IdleBehaviors:
         rospack = rospkg.RosPack()
         PACKAGE_PATH = rospack.get_path("edwin")
         rospy.init_node('idle', anonymous=True)
-        rospy.Subscriber('/behaviors_cmd', String, self.callback, queue_size=10)
-        rospy.Subscriber('/arm_cmd', String, self.callback, queue_size=10)
-        rospy.Subscriber('/all_control', String, self.control_callback, queue_size=10)
+
+        rospy.Subscriber('/idle_cmd', String, self.control_callback, queue_size=10)
         rospy.Subscriber('/arm_status', String, self.status_callback, queue_size=10)
 
         self.arm_pub = rospy.Publisher('/arm_cmd', String, queue_size=10)
@@ -60,6 +59,7 @@ class IdleBehaviors:
             msg = random.choice(self.idle_behaviors.keys())
             print "PUBLISHING: ", msg
             self.behav_pub.publish(msg)
+            self.check_completion()
             time.sleep(3)
         elif "idle:init" in data.data:
             rospack = rospkg.RosPack()
@@ -69,11 +69,11 @@ class IdleBehaviors:
             self.idle_behaviors = pickle.load(open(PACKAGE_PATH + '/params/behaviors.txt', 'rb'))
             self.idle_behaviors = {key: value for key, value in self.idle_behaviors.items()
                  if "idle" in key}
-            print self.idle_behaviors
+            print "idle is ready"
             self.idling = True
 
 
-    def callback(self, data):
+    def reset_interval(self):
         self.last_interaction = time.time()
 
 
@@ -86,6 +86,7 @@ class IdleBehaviors:
             if self.idling:
                 if int(time.time() - self.last_interaction) > self.idle_time:
                     self.idle_time = random.randint(3, 7)
+                    self.reset_interval()
                     print "IDLE"
                     joint = random.choice(joints)
                     if joint == "H":
