@@ -17,6 +17,7 @@ class IdleBehaviors:
         rospy.Subscriber('/behaviors_cmd', String, self.callback, queue_size=10)
         rospy.Subscriber('/arm_cmd', String, self.callback, queue_size=10)
         rospy.Subscriber('/all_control', String, self.control_callback, queue_size=10)
+        rospy.Subscriber('/arm_status', String, self.status_callback, queue_size=10)
 
         self.arm_pub = rospy.Publisher('/arm_cmd', String, queue_size=10)
         self.behav_pub = rospy.Publisher('/behaviors_cmd', String, queue_size=10)
@@ -24,9 +25,30 @@ class IdleBehaviors:
         self.last_interaction = time.time()
         self.stop_idle_time = time.time()
 
+        self.status = None
+
         self.idling = False
         self.idle_time = random.randint(5, 7)
         print "Starting idle node"
+
+
+    def status_callback(self, data):
+		print "arm status callback", data.data
+		if data.data == "busy" or data.data == "error":
+			self.status = 0
+		elif data.data == "free":
+			self.status = 1
+
+
+    def check_completion(self):
+		"""
+		makes sure that actions run in order by waiting for response from service
+		"""
+
+		time.sleep(3)
+		while self.status == 0:
+			pass
+
 
     def control_callback(self, data):
         print "IDLE CMD: ", data.data
@@ -50,8 +72,10 @@ class IdleBehaviors:
             print self.idle_behaviors
             self.idling = True
 
+
     def callback(self, data):
         self.last_interaction = time.time()
+
 
     def run(self):
         r = rospy.Rate(10)
@@ -76,10 +100,8 @@ class IdleBehaviors:
                         msg = random.choice(self.idle_behaviors.keys())
                         print "PUBLISHING: ", msg
                         self.behav_pub.publish(msg)
-                        time.sleep(3)
-                    if joint != "BEHAV":
-                        print "PUBLISHING: ", msg
-                        self.arm_pub.publish(msg)
+                        self.check_completion()
+
             # r.sleep()
 
 if __name__ == '__main__':

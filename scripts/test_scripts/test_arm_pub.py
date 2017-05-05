@@ -5,6 +5,7 @@ import numpy as np
 from std_msgs.msg import String
 import Tkinter as tk
 import time
+from edwin.srv import arm_cmd
 
 class ArmGui:
     def __init__(self, root):
@@ -16,6 +17,21 @@ class ArmGui:
 
         self.init_control_fields()
         self.init_pub()
+
+    def request_cmd(self, cmd):
+        rospy.wait_for_service('arm_cmd', timeout=15)
+        cmd_fnc = rospy.ServiceProxy('arm_cmd', arm_cmd)
+        print "I have requested the command"
+
+        try:
+            resp1 = cmd_fnc(cmd)
+            print "command done"
+
+
+        except rospy.ServiceException, e:
+            print "Service call failed: %s"%e
+            self.arm_status.publish('error')
+            self.serv_prob = True
 
     def route_move(self, num):
         msg = "data: run_route:: " + str(self.route_s.get())
@@ -36,7 +52,7 @@ class ArmGui:
     def xyz_move(self):
         msg = "data: move_to:: " + self.x.get() + ", " + self.y.get() + ", " + self.z.get() + ", " + "0"
         print "sending; ", msg
-        self.pub.publish(msg)
+        self.request_cmd(msg)
 
     def cmd_set(self, val):
         msg = str(self.cmd_s.get())

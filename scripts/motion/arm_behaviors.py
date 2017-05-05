@@ -17,7 +17,6 @@ class ArmBehaviors:
         rospy.init_node('behavior_arm', anonymous=True)
         rospy.Subscriber('/behaviors_cmd', String, self.behavior_callback, queue_size=10)
         self.arm_status = rospy.Publisher('/arm_status', String, queue_size=10)
-        # self.pub = rospy.Publisher('/arm_cmd', String, queue_size=10)
         self.behaviors = {}
         self.moving = False
         self.serv_prob = False
@@ -40,11 +39,6 @@ class ArmBehaviors:
             self.arm_status.publish('error')
             self.serv_prob = True
 
-    # def status_callback(self, armstatus):
-    # 	if armstatus == 1:
-    # 		self.moving = True
-    # 	else:
-    # 		self.moving = False
 
     def behavior_callback(self, cmdin):
         self.arm_status.publish('busy')
@@ -93,10 +87,6 @@ class ArmBehaviors:
             self.arm_status.publish('free')
 
 
-                # if "R_" in elem:
-                #     time.sleep(2.5)
-                # else:
-                #     time.sleep(1)
 
 
     def create_behaviors(self):
