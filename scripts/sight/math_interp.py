@@ -4,6 +4,17 @@ math_interp.py
 Purpose: input a string that is a math equation, output solution
 Author: Hannah Kolano
 hannah.kolano@students.olin.edu
+
+RUN:
+roscore
+arm_node.py
+create_routes.py
+arm_behaviors.py
+arm_write.py
+(test_arm_pub.py with R_look or look)
+roslaunch usb_cam usb_camera.launch
+handwriting_recognition.py
+THEN this one
 '''
 from __future__ import division
 import rospy
