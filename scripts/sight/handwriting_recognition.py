@@ -217,7 +217,7 @@ class HandwritingRecognition:
 
         if len(fuzzy_conts) > 0:
             chars.extend(fuzzy_conts)
-            return chars
+        return chars
 
     def process_digits(self,test_data,detect_words = False):
         '''DOCSTRING
@@ -357,25 +357,25 @@ class HandwritingRecognition:
             Classification: 0 - null, 1 - alphabetic, 2 - numeric
             """
 
-        classify = 0
-
-        chars = [chr(int(roi.result)) for roi in chars]
-        alpha_chars = [char for char in chars if char in self.alpha_symb] # list of chars classified as alphabetic
-        numer_chars = [char for char in chars if char in self.numer_symb] # list of chars classified as numeric
-
-        if len(chars) == 0:
+        if len(chars) > 0:
             classify = 0
-        elif len(alpha_chars) == 0:
-            classify = 2
-        elif len(numer_chars) == 0:
-            classify = 1
-        else:
-            ratio = len(alpha_chars)/len(numer_chars)
-            if ratio < 0.5:
+            chars = [chr(int(roi.result)) for roi in chars]
+            alpha_chars = [char for char in chars if char in self.alpha_symb] # list of chars classified as alphabetic
+            numer_chars = [char for char in chars if char in self.numer_symb] # list of chars classified as numeric
+
+            if len(chars) == 0:
+                classify = 0
+            elif len(alpha_chars) == 0:
                 classify = 2
-            else:
+            elif len(numer_chars) == 0:
                 classify = 1
-        return classify
+            else:
+                ratio = len(alpha_chars)/len(numer_chars)
+                if ratio < 0.5:
+                    classify = 2
+                else:
+                    classify = 1
+            return classify
 
     def detect_new_word(self,char_list):
         '''DOCSTRING
