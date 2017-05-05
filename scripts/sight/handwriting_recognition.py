@@ -8,6 +8,7 @@ from std_msgs.msg import String
 from cv_bridge import CvBridge, CvBridgeError
 
 import numpy as np
+import copy
 from scipy import stats
 from Character import Character
 from os import listdir
@@ -74,7 +75,7 @@ class HandwritingRecognition:
         # Lists of alpha symbols & numeric symbols for classify_writing method
         alpha_symb = "AaBbCcDdEeFfGgHhIiJjKkLMmNnPpQqRrTtUuVvWwYyZz"
         self.alpha_symb = list(alpha_symb)
-        numer_symb = "2346789+-/*="
+        numer_symb = "2346789+-/*=)("
         self.numer_symb = list(numer_symb)
 
     def img_callback(self, data):
@@ -165,13 +166,12 @@ class HandwritingRecognition:
 
         return train_data, responses
 
-    def decode_file(self, code):
+    def decode_file(self, code, classification=0):
         ''' DOCSTRING:
             Given file name to decode, returns char to which file name
             corresponds
             '''
-        if (code == 'mlt'): return ord('*')
-        elif (code == 'dvd'): return ord('/')
+        if (code == 'dvd'): return ord('/')
         elif (code == 'div'): return ord('\\')
         elif (code == 'pls'): return ord('+')
         elif (code == 'mns'): return ord('-')
@@ -180,9 +180,13 @@ class HandwritingRecognition:
         elif (code == 'lpr'): return ord('(')
         elif (code == 'rpr'): return ord(')')
         elif (len(code) == 1): return ord(code)
+        if classification == 1 or classification == 0:
+            if (code == 'mlt'): return ord('x')
+        elif classification == 2:
+            if (code == 'mlt'): return ord('*')
 
 
-    def SVM_predict(self,svm,data):
+    def SVM_predict(self,svm,data,chars):
         """ DOCSTRING:
             Given SVM & data set, returns resulting predicted data from SVM
             """
@@ -191,27 +195,29 @@ class HandwritingRecognition:
         res_data = []
         for x in results:
             res_data.append(int(x.item(0)))
-        for idx,roi in enumerate(self.chars):
+        for idx,roi in enumerate(chars):
             roi.result = res_data[idx]
 
         return res_data
 
-    def SVM_build_chars(self,svm,data):
+    def SVM_build_chars(self, svm, data, chars):
         """ DOCSTRING:
-            Given SVM and data from which to build prediction, edits self.chars
+            Given SVM and data from which to build prediction, edits chars
             to reflect the current SVM & data set
             """
-        res_data = self.SVM_predict(svm,data)
+        res_data = self.SVM_predict(svm, data, chars)
 
         # Resolves fuzzy contours (i,j,=) (multi-contour characters)
-        lines = [val for val in self.chars if chr(val.result) == '1']
-        dots = [res for res in self.chars if chr(res.result) == '0' or chr(res.result) == '.']
-        dashes = [obj for obj in self.chars if chr(obj.result) == '-']
-        self.chars[:] = [val for val in self.chars if chr(val.result) != '1' \
+        lines = [val for val in chars if chr(val.result) == '1']
+        dots = [res for res in chars if chr(res.result) == '0' or chr(res.result) == '.']
+        dashes = [obj for obj in chars if chr(obj.result) == '-']
+        chars[:] = [val for val in chars if chr(val.result) != '1' \
             and chr(val.result) != '0' and chr(val.result) != '.' and chr(val.result) != '-']
         fuzzy_conts = self.resolve_symbols(dots,lines,dashes)
+
         if len(fuzzy_conts) > 0:
-            self.chars.extend(fuzzy_conts)
+            chars.extend(fuzzy_conts)
+        return chars
 
     def process_digits(self,test_data,detect_words = False):
         '''DOCSTRING
@@ -222,20 +228,23 @@ class HandwritingRecognition:
         if len(test_data) != 0:
             # Prepares input data for processing
             reshape_data = np.float32([char.HOG for char in test_data]).reshape(-1,64)
+            pass1_chars = copy.deepcopy(test_data)
 
             # Predicts symbols from reshaped data
-            self.SVM_build_chars(self.SVM, reshape_data)
-
+            pass1_chars = self.SVM_build_chars(self.SVM, reshape_data, pass1_chars)
             # Check if sentence or equation, apply corresponding SVM
-            classification = self.classify_writing(self.chars)
+            classification = self.classify_writing(pass1_chars)
+            print('classification: ' + str(classification))
             if classification == 1:
-                self.SVM_build_chars(self.SVM_alpha,reshape_data)
+                self.SVM_build_chars(self.SVM_alpha,reshape_data, self.chars)
             elif classification == 2:
-                self.SVM_build_chars(self.SVM_num,reshape_data)
+                self.SVM_build_chars(self.SVM_num,reshape_data, self.chars)
 
             # Prints characters on screen in location corresponding to the image
             if self.frame is not None:
+                print(self.chars)
                 for roi in self.chars:
+                    cv2.circle(self.frame,(roi.x,roi.y), 5, (0,0,255), -1)
                     cv2.putText(self.frame,chr(int(roi.result)),(roi.x,roi.y+roi.h) \
                                 ,cv2.FONT_HERSHEY_SIMPLEX, 4,(0,255,0))
 
@@ -298,13 +307,11 @@ class HandwritingRecognition:
 
                 # If dash is in line along y and reasonably close in x-dir:
                 if (abs(dash.x - dash_2.x) < 50) and (0 < dash_2.y-dash.y<150):
-                    dash.result = ord('=')
-                    dash_2.h += dash.h
-                    dash_2.y = dash.y
+                    dash_2.result = ord('=')
 
                     # Remove dash-dash pair from lists left to sort
                     dash_contours[:] = [val for val in dash_contours if (val is not dash and val is not dash_2)]
-                    final_contours.append(dash)
+                    final_contours.append(dash_2)
                     break
 
             # Check for '/' by checking each dot pos rel to dash
@@ -350,25 +357,25 @@ class HandwritingRecognition:
             Classification: 0 - null, 1 - alphabetic, 2 - numeric
             """
 
-        classify = 0
-
-        chars = [chr(int(roi.result)) for roi in chars]
-        alpha_chars = [char for char in chars if char in self.alpha_symb] # list of chars classified as alphabetic
-        numer_chars = [char for char in chars if char in self.numer_symb] # list of chars classified as numeric
-
-        if len(chars) == 0:
+        if len(chars) > 0:
             classify = 0
-        elif len(alpha_chars) == 0:
-            classify = 2
-        elif len(numer_chars) == 0:
-            classify = 1
-        else:
-            ratio = len(alpha_chars)/len(numer_chars)
-            if ratio < 0.5:
+            chars = [chr(int(roi.result)) for roi in chars]
+            alpha_chars = [char for char in chars if char in self.alpha_symb] # list of chars classified as alphabetic
+            numer_chars = [char for char in chars if char in self.numer_symb] # list of chars classified as numeric
+
+            if len(chars) == 0:
+                classify = 0
+            elif len(alpha_chars) == 0:
                 classify = 2
-            else:
+            elif len(numer_chars) == 0:
                 classify = 1
-        return classify
+            else:
+                ratio = len(alpha_chars)/len(numer_chars)
+                if ratio < 0.5:
+                    classify = 2
+                else:
+                    classify = 1
+            return classify
 
     def detect_new_word(self,char_list):
         '''DOCSTRING

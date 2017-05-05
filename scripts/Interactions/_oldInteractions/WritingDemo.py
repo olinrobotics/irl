@@ -9,11 +9,15 @@ import math
 import operator
 import itertools
 
+
 from std_msgs.msg import String
 from sensor_msgs.msg import Image
 from edwin.msg import Edwin_Shape
 from cv_bridge import CvBridge, CvBridgeError
 
+import sys
+#sys.path.insert(0,'~/catkin_ws/src/edwin/scripts/sight')
+#import handwriting_recognition
 from sight import handwriting_recognition
 from motion import arm_write
 
