@@ -52,7 +52,7 @@ def get_text_roi(frame, show_window=True):
     contours,hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,
                                             cv2.CHAIN_APPROX_NONE)
     cv2.drawContours(frame,contours,-1,(255,0,0),2)
-    
+
     # Build the list of symbol contours and locations
     if len(contours) < 35: # If reasonable # of contours
 
@@ -168,3 +168,13 @@ def get_paper_region(img):
         cv2.imshow('warped',warp)
         return warp
     return img
+
+def get_edwin_vision(img):
+    """ DOCSTRING:
+        Given img, returns img - section obscured by Edwin's eyelid
+        """
+    height, width, channels = img.shape
+    crop_img = img[0:400, 0:width] # [y:height, x:width]
+    cv2.imshow
+    cv2.imshow('Cropped_Img', crop_img)
+    return crop_img

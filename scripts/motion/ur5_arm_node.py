@@ -6,6 +6,7 @@ import actionlib
 from control_msgs.msg import *
 from trajectory_msgs.msg import *
 from sensor_msgs.msg import JointState
+from std_msgs.msg import String
 from math import pi
 from namedlist import namedlist
 
@@ -47,9 +48,14 @@ class Arm():
         #HOME position of the arm
         self.HOME = [0,-90,0,-90,90,30]
 
-        #Gesture dictionary, and buliding it
+        #Gesture dictionary, and building it
         self.gestures = {}
         self.build_gesture_dict()
+
+        #Setting up subscriber
+        self.behav_sub = rospy.Subscriber("behaviors_cmd", String, self.behaviors_callback)
+        self.status_pub = rospy.Publisher("arm_status", String, queue_size=0)
+        print "Ready to listen"
 
     def move_to_point(self, point):
         """
@@ -60,6 +66,11 @@ class Arm():
         #implementing this will require looking into UR TCP documentation
         #cannot be done until new head is installed
         pass
+
+    def behaviors_callback(self, data):
+        gesture = data.data
+        print "GOT GESTURES: ", gesture
+        self.run_gesture(gesture)
 
     def home_robot(self):
         g = FollowJointTrajectoryGoal()
@@ -98,7 +109,7 @@ class Arm():
                                     Route([-85, -105, -117, -115, 90, 41], 0.5), Route([-85, -106, -117, -130, 90, 41], 0.5),
                                     Route([-85, -105, -117, -115, 90, 41], 0.5), Route([-85, -106, -117, -130, 90, 41], 0.5),
                                     Route([-85, -82, -40, -90, 90, 41], 2)]
-        self.gestures["clap_left"] = [Route([-90, -84, -20.22, -89.94, 90, 52.43],2), Route([-90, -78.18, -118, -128.68, 89.97, 52.4], 4),
+        self.gestures["high5_self"] = [Route([-90, -84, -20.22, -89.94, 90, 52.43],2), Route([-90, -78.18, -118, -128.68, 89.97, 52.4], 4),
                                     Route([-90, -78, -125.85, -153, 89.98, 52.44], 0.5), Route([-90, -78.18, -118, -128.68, 89.97, 52.4], 0.5),
                                     Route([-90, -84, -20.22, -89.94, 90, 52.43],2)]
         self.gestures["dab"] = [Route([0,-65, -82, -43, 90, 41], 2), Route([-64, -96, -96, -42, 125, -38], 1.2),
@@ -182,7 +193,13 @@ class Arm():
         """
         Runs a gesture based on what it finds in the dictionary
         """
-        gest2run = self.gestures[gesture]
+        gest2run = self.gestures.get(gesture, None)
+
+        if gest2run is None:
+            return
+
+        self.status_pub.publish("busy")
+
         if type(gest2run[-1]) == int:
             repeat_num = gest2run[-1]
             gest2run.pop(-1)
@@ -223,6 +240,8 @@ class Arm():
             raise
         except:
             raise
+
+        self.status_pub.publish("free")
 
     def test_run(self, gesture):
         try:

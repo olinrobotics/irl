@@ -9,34 +9,46 @@ import time
 import pickle
 import os, sys
 import rospkg
+from edwin.srv import arm_cmd
+
 
 class ArmBehaviors:
     def __init__(self):
         rospy.init_node('behavior_arm', anonymous=True)
         rospy.Subscriber('/behaviors_cmd', String, self.behavior_callback, queue_size=10)
-        rospy.Subscriber('arm_status', Int16, self.status_callback, queue_size=10)
-        self.pub = rospy.Publisher('/arm_cmd', String, queue_size=10)
-        self.sound_pub = rospy.Publisher('/edwin_sound', String, queue_size=10)
+        self.arm_status = rospy.Publisher('/arm_status', String, queue_size=10)
         self.behaviors = {}
         self.moving = False
+        self.serv_prob = False
 
         self.create_behaviors()
         print "Starting behavior node"
 
+    def request_cmd(self, cmd):
+        rospy.wait_for_service('arm_cmd', timeout=15)
+        cmd_fnc = rospy.ServiceProxy('arm_cmd', arm_cmd)
+        print "I have requested the command"
 
-    def status_callback(self, armstatus):
-    	if armstatus == 1:
-    		self.moving = True
-    	else:
-    		self.moving = False
+        try:
+            resp1 = cmd_fnc(cmd)
+            print "command done"
+
+
+        except rospy.ServiceException, e:
+            print "Service call failed: %s"%e
+            self.arm_status.publish('error')
+            self.serv_prob = True
+
 
     def behavior_callback(self, cmdin):
+        self.arm_status.publish('busy')
+        self.serv_prob = False
         print "RECEIVED CMD: ", cmdin
         cmd = str(cmdin).replace("data: ", "")
         if cmd == "random":
             cmd = "impatient"
         elif "R_" in cmd:
-            self.pub.publish("run_route:: "+cmd)
+            self.request_cmd("run_route:: "+cmd)
         elif cmd in self.behaviors.keys():
             cmd_list = self.behaviors[cmd].split(", ")
             for elem in cmd_list:
@@ -70,11 +82,11 @@ class ArmBehaviors:
                         time.sleep(float(pos))
 
                 print "Publishing: ", msg
-                self.pub.publish(msg)
-                if "R_" in elem:
-                    time.sleep(2.5)
-                else:
-                    time.sleep(1)
+                self.request_cmd(msg)
+        if not self.serv_prob:
+            self.arm_status.publish('free')
+
+
 
 
     def create_behaviors(self):
@@ -105,10 +117,26 @@ class ArmBehaviors:
         self.behaviors["bored"] = "SPD: 400, R_bored, R_stare_away"
 
         ###################               Simon Says actions           #####################
-        self.behaviors["gloat"] = "H: 1000	, WR: 1700, SPD: 350, R_laugh, SPD: 500, R_pretentious_look, WR: 500, SL: 1, WR: 700, SL: 1, WR: 900, SL: 1, WR: 1100"
-        self.behaviors["done_game"] = "SPD: 7000, R_done_game_1, SPD: 5000, R_done_game_2"
-        # self.behaviors["turn_around"] = " "
-        # self.behaviors["bow"] = " "
+        self.behaviors['touch_head'] = "SPD: 600, R_touch_head "
+        self.behaviors['high5_self'] = "SPD: 700, R_high5_self "
+        self.behaviors['hug_self'] = "SPD: 500, R_hug_self"
+        self.behaviors['dab'] = "SPD: 900, R_dab"
+        self.behaviors['starfish'] = "SPD: 700, R_starfish"
+        self.behaviors['bow'] = "SPD: 500, R_bow "
+        self.behaviors['heart'] = "SPD: 700, R_heart"
+        self.behaviors['high5_self'] = "SPD: 800, R_high5_self"
+        self.behaviors['wave'] = "SPD: 650, R_wave"
+        self.behaviors['disco'] = "SPD: 800, R_disco"
+        self.behaviors['rub_tummy'] = "SPD: 700, R_rub_tummy"
+
+
+        self.behaviors["gloat"] = "H: 1000	, WR: 1700, SPD: 400, R_laugh "
+        self.behaviors["done_game"] = "SPD: 600, R_done_game"
+        self.behaviors["get_set"] = "SPD: 600, R_get_set"
+        self.behaviors["leader"] = "R_leader"
+        self.behaviors["look"] = "R_look"
+        self.behaviors["sad"] = "SPD: 400, R_sad"
+        self.behaviors["praise"] = "SPD: 1000, R_praise"
 
         rospack = rospkg.RosPack()
         PACKAGE_PATH = rospack.get_path("edwin")
