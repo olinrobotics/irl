@@ -54,22 +54,24 @@ class Features:
 
     def crop_to_face(self, gray):
         # CROP TO FACE
-        # Find faces using opencv
+        # Find faces using dlib frontal face detector
         faces = self.detector(gray, 1)
+        if len(faces) > 0:
+            biggest_area = 0
+            biggest_face = faces[0]
 
-        biggest_area = 0
-
-        for face in faces:
-            x = face.left()
-            y = face.top()
-            w = face.right() - x
-            h = face.bottom() - y
-            area = w*h
-            if area > biggest_area:
-                face = gray[y:y+h, x:x+w]
-                biggest_area = area
-
-        return face
+            for face in faces:
+                x = face.left()
+                y = face.top()
+                w = face.right() - x
+                h = face.bottom() - y
+                area = w*h
+                if area > biggest_area:
+                    biggest_face = gray[y:y+h, x:x+w]
+                    biggest_area = area
+            return biggest_face
+        else:
+            print("no face")
 
     def get_clahe_image(self, face):
         clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))

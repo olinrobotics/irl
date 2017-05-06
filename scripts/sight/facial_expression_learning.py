@@ -9,7 +9,8 @@ import get_features_face as gf
 
 
 class FACSTrainer:
-    def __init__(self, face_region, samples=486):
+    def __init__(self, face_region, make_new=False, samples=486,
+                 gamma=0.25, max_iter=30):
         # File paths
         rospack = rospkg.RosPack()
         PACKAGE_PATH = rospack.get_path("edwin")
@@ -32,15 +33,21 @@ class FACSTrainer:
 
         classif_file_path = self.params_path + '/' + face_region + '.pkl'
         print(classif_file_path)
-
-        if os._exists(classif_file_path):
-            self.classifier = joblib.load(classif_file_path)
+        if not make_new:
+            if os._exists(classif_file_path):
+                self.classifier = joblib.load(classif_file_path)
+            else:
+                # get training data from database using get_features_face script
+                self.train_data_set = self.features.get_features(face_region=face_region)
+                # targets labeled at FAC Unit, 0 for neutral, or -1 for unlabeled
+                self.targets = self.features.get_targets(face_region=face_region)
+                self.classifier = LabelPropagation(gamma=gamma, max_iter=max_iter)
         else:
             # get training data from database using get_features_face script
             self.train_data_set = self.features.get_features(face_region=face_region)
             # targets labeled at FAC Unit, 0 for neutral, or -1 for unlabeled
             self.targets = self.features.get_targets(face_region=face_region)
-            self.classifier = LabelPropagation(gamma=0.25, max_iter=5)
+            self.classifier = LabelPropagation(gamma=gamma, max_iter=max_iter)
 
     def fit_data(self):
         self.classifier.fit(X=self.train_data_set, y=self.targets)
@@ -60,11 +67,15 @@ if __name__ == "__main__":
 
     # nose_trainer.find_labels()
 
-    nose_trainer = FACSTrainer(face_region='nose')
-    nose_trainer.fit_data()
-    nose_trainer.save_classifier()
+    # nose_trainer = FACSTrainer(face_region='nose')
+    # nose_trainer.fit_data()
+    # nose_trainer.save_classifier()
+    #
+    # X = nose_trainer.features.get_test_data(face_region='nose')
+    #
+    # predict = nose_trainer.classifier.predict(X)
+    # print(predict)
 
-    X = nose_trainer.features.get_test_data(face_region='nose')
-
-    predict = nose_trainer.classifier.predict(X)
-    print(predict)
+    trainer = FACSTrainer(face_region='eyes', make_new=True, gamma=.01)
+    trainer.fit_data()
+    trainer.save_classifier()
