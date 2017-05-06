@@ -74,36 +74,31 @@ class EdwinBrain:
         #idle starts now
         self.idle_pub.publish("idle:init")
 
-
-    def demo(self):
-
-        self.menu_choice = self.menu.run()
-        self.idle_pub.publish("idle:stop")
-        if self.menu_choice == "SimonSays: Simon":
-            game = EdwinSimon()
-            game.run()
-        elif self.menu_choice == "SimonSays: Player":
-            difficulty = raw_input("How good should Edwin be?\n")
-    		game = EdwinPlayer(difficulty)
-            game.run()
-        elif self.menu_choice == "Homework":
-            game = Calculator()
-            game.run()
-
-        time.sleep(3)
-        self.idle_pub.publish("idle:go")
-
-
     def chicken(self):
         """
         Main loop that takes in demo???
         """
-        
+
 
 
     def run(self):
         r = rospy.Rate(10)
         while not rospy.is_shutdown():
+            self.menu_choice = self.menu.run()
+            self.idle_pub.publish("idle:stop")
+            if self.menu_choice == "SimonSays: Simon":
+                game = EdwinSimon()
+                game.run()
+            elif self.menu_choice == "SimonSays: Player":
+                difficulty = raw_input("How good should Edwin be?\n")
+        		game = EdwinPlayer(difficulty)
+                game.run()
+            elif self.menu_choice == "Homework":
+                game = Calculator()
+                game.run()
+
+            time.sleep(3)
+            self.idle_pub.publish("idle:go")
             r.sleep()
 
 
