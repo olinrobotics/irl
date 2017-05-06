@@ -104,7 +104,7 @@ class HandwritingRecognition:
         alpha_files = [alphafile + '.png' for alphafile in alpha_files]
 
         # Builds numeric character data list
-        num_files = ['0','1','two','3','4','5','6','7','8','9','mns','pls','div','dot','a','b','lpr','crt','rpr','mlt']
+        num_files = ['0','1','2','3','4','5','6','7','8','9','mns','pls','div','dot','a','b','lpr','crt','rpr','mlt']
         num_files = [numfile + '.png' for numfile in num_files]
         # Builds training data & labels for alphabetic, numeric, and both; saves
         # data as .npz files
@@ -163,7 +163,12 @@ class HandwritingRecognition:
             # Builds training data
             train_data = np.concatenate((train_data, np.float32(hogdata).reshape(-1,64)), axis=0)
             # Builds labels for training data
-            responses = np.concatenate((responses,np.float32(np.repeat([self.decode_file(code)],100)[:,np.newaxis])),axis=0)
+            # http://stackoverflow.com/questions/29241056/the-use-of-python-numpy-newaxis
+            print(code)
+            responses = np.concatenate((responses,np.uint32(np.repeat([self.decode_file(code)],width/20 * height/20)[:,np.newaxis])),axis=0)
+
+        print(responses)
+        print(type(responses[0][0]))
 
         return train_data, responses
 
@@ -180,11 +185,16 @@ class HandwritingRecognition:
         elif (code == 'crt'): return ord('^')
         elif (code == 'lpr'): return ord('(')
         elif (code == 'rpr'): return ord(')')
-        elif (len(code) == 1): return ord(code)
+        elif (code == 'two'): return ord('2')
+        elif (code == 'chk'): return ord('_')
+        elif (len(code) == 1):
+            return ord(code)
         if classification == 1 or classification == 0:
             if (code == 'mlt'): return ord('x')
         elif classification == 2:
             if (code == 'mlt'): return ord('*')
+        else:
+            print('ERR: no symbol exists for this code!')
 
 
     def SVM_predict(self,svm,data,chars):

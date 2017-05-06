@@ -105,7 +105,11 @@ def deskew(img):
     # Retursn the HOG for a given imagej
 
 def hog(img):
-    bin_n = 16
+    """ DOCSTRING:
+        given img, return Histogram-Oriented Gradient (HOG) of img
+        source: http://www.learnopencv.com/histogram-of-oriented-gradients/
+        """
+    bin_n = 16 # Number of bins in histogram
     gx = cv2.Sobel(img, cv2.CV_32F,1,0) # x gradient
     gy = cv2.Sobel(img, cv2.CV_32F,0,1) # y gradient
     mag,ang = cv2.cartToPolar(gx,gy) # Polar gradients
