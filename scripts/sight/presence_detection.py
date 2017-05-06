@@ -6,6 +6,10 @@ roscore
 roslaunch openni_launch openni.launch
 rosrun edwin edwin_bodies
 
+roslaunch skeleton_markers markers_from_tf.launch
+roscd skeleton_markers
+rosrun rviz rviz markers_from_tf.rviz
+rosrun edwin skeleton.py
 """
 import sys
 import rospkg
@@ -21,6 +25,7 @@ from std_msgs.msg import String, Int16
 from edwin.msg import *
 import time
 import tf
+from edwin.srv import arm_cmd
 
 """
 Presence Detection can find and track the nearest user to Edwin. It can also detect
@@ -65,8 +70,8 @@ class Presence:
         if not init:
             rospy.init_node('edwin_presence', anonymous = True)
 
-        #keeps of the people's coordinates and some statuses about them
-        self.peoples = [None]*20
+        # person of interest
+        self.person = None
 
         #coordinates of the person edwin's interacting with
         self.coordx = 0
@@ -78,9 +83,6 @@ class Presence:
         self.edwiny = 0
         self.edwinz = 0
 
-        #keeps track of whether someone waved a Edwin or not
-        self.waved = False
-
         #looping
         self.running = True
 
@@ -90,17 +92,24 @@ class Presence:
         self.Rhand = None
         self.Lhand = None
 
-        #subscribing to edwin_bodies, from Kinect
-        rospy.Subscriber('body', SceneAnalysis, self.presence_callback, queue_size=10)
+        # status
+        self.status = None
 
-        #subscribing to edwin_wave, from Kinect
-        rospy.Subscriber('wave_at_me', Int16, self.wave_callback, queue_size=10)
+        # #subscribing to edwin_bodies, from Kinect
+        # rospy.Subscriber('body', SceneAnalysis, self.presence_callback, queue_size=10)
+        #
+        # #subscribing to edwin_wave, from Kinect
+        # rospy.Subscriber('wave_at_me', Int16, self.wave_callback, queue_size=10)
 
         #subsrcibing to st.py's arm_debug, from Edwin
         rospy.Subscriber('arm_debug', String, self.edwin_location, queue_size=10)
 
         #subscribing to the skeleton topic, from Skeleton Markers, to get the head
         rospy.Subscriber('presence', HHH, self.get_HHH, queue_size=10)
+
+        #subscribing to the arm status for service calls
+        rospy.Subscriber('/arm_status', String, self.status_callback, queue_size=10)
+
 
         #setting up ROS publishers to Edwin commands
         self.behavior_pub = rospy.Publisher('behaviors_cmd', String, queue_size=10)
@@ -114,14 +123,60 @@ class Presence:
         print "Starting presence_detection.py"
 
 
+    def request_cmd(self, cmd):
+        rospy.wait_for_service('arm_cmd', timeout=15)
+        cmd_fnc = rospy.ServiceProxy('arm_cmd', arm_cmd)
+        print "I have requested the command"
+
+        try:
+            resp1 = cmd_fnc(cmd)
+            print "command done"
+
+
+        except rospy.ServiceException, e:
+            print "Service call failed: %s"%e
+            self.arm_status.publish('error')
+            self.serv_prob = True
+
+
+    def status_callback(self, data):
+        print "arm status callback", data.data
+        if data.data == "busy" or data.data == "error":
+            self.status = 0
+        elif data.data == "free":
+            self.status = 1
+
+    def check_completion(self):
+        """
+        makes sure that actions run in order by waiting for response from service
+        """
+
+        time.sleep(3)
+        while self.status == 0:
+            pass
+
+
     def get_HHH(self, msg):
         """
         subscribes to skeleton to get and parse the current user's head
         """
         self.head = msg.headx, msg.heady, msg.headz
-        self.torso = msg.torsox, msg.torsoy, msg.torsoz
-        self.Rhand = msg.Rhandx, msg.Rhandy, msg.Rhandz
-        self.Lhand = msg.Lhandx, msg.Lhandy, msg.Lhandz
+        # self.torso = msg.torsox, msg.torsoy, msg.torsoz
+        # self.Rhand = msg.Rhandx, msg.Rhandy, msg.Rhandz
+        # self.Lhand = msg.Lhandx, msg.Lhandy, msg.Lhandz
+
+        # if the distance to Kinect is 0, then that means it's not seeing anything
+        if self.head[2] == 0:
+            self.person = None
+        else:
+            xpos, ypos, zpos = self.kinect_transform(self.head[0], self.head[1], self.head[2])
+
+            #either sets up a new presence or updates a person's presence
+            if self.person is None:
+                self.person = Coordinates(1, xpos, ypos, zpos)
+            else:
+                self.person.set_Coordinates(xpos, ypos, zpos)
+
 
 
 
@@ -149,35 +204,6 @@ class Presence:
             self.edwinz = where[2]
 
 
-    def wave_callback(self, waves):
-        """
-        subscribes to edwin_wave and checks if someone is waving
-        """
-        if int(waves.data) == 1:
-            self.waved = True
-
-
-    def presence_callback(self, scene):
-        """
-        subscribes to edwin_bodies and keeps track of people's presence
-        """
-        #iterates through all 20 possible people that can be tracked
-        for index in range(20):
-            person = scene.crowd[index]
-
-            #deletes the previous person's presence if they are no longer detected
-            if person.ID == 0:
-                self.peoples[index] = None
-            else:
-                xpos, ypos, zpos = self.kinect_transform(person.xpos, person.ypos, person.zpos)
-
-                #either sets up a new presence or updates a person's presence
-                if self.peoples[index] is None:
-                    self.peoples[index] = Coordinates(person.ID, xpos, ypos, zpos)
-                else:
-                    self.peoples[index].set_Coordinates(xpos, ypos, zpos)
-
-
     def find_new_people(self):
         """
         greets people if they are newly tracked presence,
@@ -185,32 +211,16 @@ class Presence:
         """
         #greets people, only greets once while they're in the camera's view and are center of attention
 
-        for person in self.peoples:
-            if (person is not None) and (self.attention() == person.ID) and (person.acknowledged == False):
-                print "I see you!", self.attention()
+        if (self.person is not None) and (self.person.acknowledged == False):
+            print "I see you!"
 
-                greeting = ["R_nudge",
-                            "R_look",
-                            "rotate_hand:: " + str(-700),
-                            "rotate_wrist:: " + str(0)]
-                for msg in greeting:
-                    if msg[0] == "R":
-                        self.behavior_pub.publish(msg)
-                    else:
-                        self.arm_pub.publish(msg)
-                    time.sleep(3)
+            greeting = ["R_nudge","R_look"]
+            for msg in greeting:
+                    self.behavior_pub.publish(msg)
+                    self.check_completion()
 
-                person.acknowledged = True
 
-        #responds to wave, a completely separate process
-        if self.waved == True:
-            print "I saw you wave! Hello!"
-            msg = "data: R_nudge"
-            self.behavior_pub.publish(msg)
-            time.sleep(2)
-            self.waved = False
-            self.running = False
-            # time.sleep(6)
+            self.person.acknowledged = True
 
 
     def follow_people(self):
@@ -218,29 +228,27 @@ class Presence:
         follows the nearest person's body around
         """
         #finds the person of interest's coordinates and then converts them to Edwin coordinates
-        attn = self.attention()
-        for person in self.peoples:
-            if (person is not None) and (attn == person.ID):
+        if (self.person is not None) and (self.person.acknowledged == True):
+            trans = self.kinect_to_edwin_transform([self.person.X, self.person.Y, self.person.Z])
+            if trans is not None:
+                xcoord, ycoord, zcoord = self.edwin_transform(trans)
 
-                #adjustment to use self.head rather than the person's actual XYZ
-                trans = self.kinect_to_edwin_transform(self.head)
-                if trans is not None:
-                    xcoord, ycoord, zcoord = self.edwin_transform(trans)
+                print trans
 
-                    #the person's coordinates are updated here, edwin's coordinates are updated in the callback
-                    self.coordx = xcoord
-                    self.coordy = ycoord
-                    self.coordz = zcoord
+                #the person's coordinates are updated here, edwin's coordinates are updated in the callback
+                self.coordx = xcoord
+                self.coordy = ycoord
+                self.coordz = zcoord
 
-                    #after coordinates are calculated, checks if the person has moved enough to respond, and then responds
-                    if abs(self.coordx - self.edwinx) > 400 or abs(self.coordy - self.edwiny) > 400 or abs(self.coordz - self.edwinz) > 400:
-                        msg = "move_to:: " + str(self.coordx) + ", " + str(self.coordy) + ", " + str(self.coordz) + ", " + str(11)
-                        self.arm_pub.publish(msg)
-                        time.sleep(.5)
+                #after coordinates are calculated, checks if the person has moved enough to respond, and then responds
+                if abs(self.coordx - self.edwinx) > 400 or abs(self.coordy - self.edwiny) > 400 or abs(self.coordz - self.edwinz) > 400:
+                    msg = "move_to:: " + str(self.coordx) + ", " + str(self.coordy) + ", " + str(self.coordz) + ", " + str(11)
+                    self.request_cmd(msg)
 
 
     def attention(self):
         """
+        DEPRECATED NOT NEEDED FOR SKELETON
         finds the nearest person and specifically targets them
         """
         center_of_attention = 0
@@ -280,8 +288,8 @@ class Presence:
         transforms coordinates such that the kinect coordinates are centered
         on the camera rather than to an arbitrary corner
         """
-        xposition = x - 320
-        yposition = 240 - y
+        xposition = x
+        yposition = y
         zposition = z
 
         return zposition, xposition, yposition
@@ -292,9 +300,9 @@ class Presence:
         additional transform of coordinates that have been changed from kinect to
         edwin to make sure that edwin can appropriately move to said coordinates
         """
-        edwinx = int(4.652 * coordinates[0] - 941.6)
-        edwiny = int(7.518 * coordinates[1] - 2632)
-        edwinz = int(29.45 * coordinates[2] + 4425)
+        edwinx = int(3.459 * coordinates[0] - 1805)
+        edwiny = int(6.167 * coordinates[1] - 2400)
+        edwinz = int(37.50 * coordinates[2] + 2667)
 
         if edwinx > 4000:
             edwinx = 4000

@@ -19,10 +19,9 @@ class visualmenu:
     #Dimensions of a camera screen are 640 x 480.
 
     def __init__(self):
-
-        rospy.init_node('visualmenu')
-        self.choice_pub = rospy.Publisher("vm_choice", String, queue_size=10)
-        self.game_state = rospy.Subscriber("all_control", String, self.cmd_callback)
+        #rospy.init_node('visualmenu')
+        #self.choice_pub = rospy.Publisher("vm_choice", String, queue_size=10)
+        #self.game_state = rospy.Subscriber("all_control", String, self.cmd_callback)
 
 
         self.bridge = CvBridge()
@@ -41,8 +40,10 @@ class visualmenu:
         self.decision_length = 40 #amount of time in the recorded queue to m
                                     #Decision.
 
-        self.button_point_list = [(150, 240), (490, 240), (320,240)]
-        self.activities_list = ["WritingDemo", "PresenceDemo", "TicTacToe"]
+        self.choice = ""
+
+        self.button_point_list = [(100, 240), (320,240), (540, 240)]
+        self.activities_list = ["SimonSays: Player", "SimonSays: Simon", "Homework"]
 
         #Initialize buttons:
         for i in self.button_point_list:
@@ -191,7 +192,7 @@ class visualmenu:
 
 
 
-        while True:
+        while self.detect:
             k = cv2.waitKey(1) & 0xFF
             if k == ord('q'):
                 break
@@ -341,8 +342,11 @@ class visualmenu:
                 point1 = (i[0][0], i[1][0])
                 point2 = (i[0][1], i[1][1])
                 cv2.rectangle(frame, point1, point2, (0,0,255), -1)
+                text_spot = list(self.button_point_list[j])
+                text_spot[0] = text_spot[0] - 70
+                text_spot = tuple(text_spot)
                 cv2.putText(frame, self.activities_list[j],
-                self.button_point_list[j], cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), 2)
+                text_spot, cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), 2)
 
         else:
             i = self.region_list[med]
@@ -405,18 +409,20 @@ class visualmenu:
 
         self.area_list.append(self.get_area_coords(region))
 
-################
+################s
 #Game Logic
 ################
 
     def run_choice(self, option):
         if option == 0:
-            self.choice_pub.publish("w") #writingDemo
+            #self.choice_pub.publish("SimonSays:Player")
+            self.choice = "SimonSays:Player"
         elif option == 1:
-            self.choice_pub.publish("pd") #presenceDemo
+            #self.choice_pub.publish("SimonSays: Simon")
+            self.choice = "SimonSays:Simon"
         elif option == 2:
-            self.choice_pub.publish("ttt") #tengen toppa gurann lagann
-                                           # jk.  Actually tictactoe.
+            #self.choice_pub.publish("Homework")
+            self.choice = "Homework"
 
         self.detect = False
 
@@ -447,6 +453,9 @@ class visualmenu:
             # elif option == 1:
             #     pass #run the other node.
             # #r.sleep()
+
+        print self.choice
+        return self.choice
 
 if __name__ == '__main__':
     vm = visualmenu()
