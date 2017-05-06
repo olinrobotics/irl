@@ -2,37 +2,23 @@ import rospkg
 import os
 import cv2
 import dlib
+import imageio
 
 import dlib_features as dl
 import numpy as np
+import xml.etree.ElementTree as ET
 
 
 class Features:
-    def __init__(self, testing=False, samples=486, database='cohn-kanade'):
+    def __init__(self, testing=False, samples_1=486, samples_2=20):
+        imageio.plugins.ffmpeg.download()
+
         # dlib face detector
         self.detector = dlib.get_frontal_face_detector()
 
         # defines file paths
         rospack = rospkg.RosPack()
         PACKAGE_PATH = rospack.get_path("edwin")
-        if database == 'cohn-kanade':
-            # path to face images
-            self.faces_folder_path = PACKAGE_PATH + \
-                '/params/database/cohn-kanade-images'
-            # path to FACS labels
-            self.FACS_labels_folder_path = PACKAGE_PATH + \
-                '/params/database/FACS'
-            # path to emotion labesl
-            self.emotion_labels_folder_path = PACKAGE_PATH + \
-                '/params/database/Emotion'
-
-            self.face_detect = dl.FaceDetect()
-            # list of file paths for face images
-            self.file_paths = [os.path.join(root, file) for root, dir, files in
-                               os.walk(self.faces_folder_path) for file in files]
-            # list of file paths for FACS labels
-            self.FACS_file_paths = [os.path.join(root, file) for root, dir, files in
-                                    os.walk(self.FACS_labels_folder_path) for file in files]
 
         self.FACS = {'cheeks': [6, 11],
                      'mouth': [10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 22, 23,
@@ -41,9 +27,45 @@ class Features:
                      'nose': [9, 11],
                      'eyes': [5, 6, 7, 41, 42, 43, 44, 45, 46]}
         self.testing = testing
-        self.samples = samples
+        self.samples_1 = samples_1
+        self.samples_2 = samples_2
         self.labels = dict()
         self.targets = []
+
+        # path to face images
+        self.faces_folder_path = PACKAGE_PATH + \
+            '/params/database/cohn-kanade-images'
+        # path to FACS labels
+        self.FACS_labels_folder_path = PACKAGE_PATH + \
+            '/params/database/FACS'
+        # path to emotion labesl
+        self.emotion_labels_folder_path = PACKAGE_PATH + \
+            '/params/database/Emotion'
+
+        self.face_detect = dl.FaceDetect()
+        # list of file paths for face images
+        self.file_paths = [os.path.join(root, file) for root, dir, files in
+                           os.walk(self.faces_folder_path) for file in files]
+        # list of file paths for FACS labels
+        self.FACS_file_paths = [os.path.join(root, file) for root, dir, files in
+                                os.walk(self.FACS_labels_folder_path) for file in files]
+
+        # path to videos
+        self.sessions_folder_path = PACKAGE_PATH + '/params/database/Sessions'
+        self.all_file_paths = [os.path.join(root, file) for root, dir, files
+                               in os.walk(self.sessions_folder_path) for file
+                               in files]
+        self.video_file_paths = []
+        self.labels_file_paths = []
+
+        for fp in self.all_file_paths[:self.samples_2]:
+            print(fp[-6:])
+            if fp[-4:] == '.avi':
+                self.video_file_paths.append(fp)
+            elif fp[-8:] == 'aucs.xml':
+                self.labels_file_paths.append(fp)
+        print(self.video_file_paths)
+        print(self.labels_file_paths)
 
     def read_file(self, f):
         # read file at file path f
@@ -99,7 +121,11 @@ class Features:
         face = self.crop_to_face(gray)
         clahe_image = self.get_clahe_image(face)
 
-        return clahe_image
+        face_copy = face.copy()
+        reflected_face = cv2.flip(face_copy, 1)
+        reflected_clahe_image = self.get_clahe_image(reflected_face)
+
+        return clahe_image, reflected_clahe_image
 
     def split_landmarks(self, landmarks):
         '''
@@ -142,7 +168,39 @@ class Features:
     def get_features(self, face_region=None):
         # Generator statement: generates lists of file paths
         features = []
-        for i, f in enumerate(self.file_paths[:self.samples]):
+        # MMI database
+        for i, f in enumerate(self.video_file_paths[:self.samples_2]):
+            reader = imageio.get_reader(f)
+            for n, im in enumerate(reader):
+                facs = None
+                clahe_images = self.process_image(im)
+                region_landmarks = self.process_landmarks(clahe_images[0],
+                                                          face_region)
+                if region_landmarks != '':
+                    features.append(region_landmarks)
+
+                region_landmarks_reflected = self.process_landmarks(clahe_images[1],
+                                                                    face_region)
+                # append landmarks to Features
+                if region_landmarks_reflected != '':
+                    features.append(region_landmarks_reflected)
+                if i <= len(self.labels_file_paths):
+                    metadata_tree = ET.parse(self.labels_file_paths[i])
+                    metadata_root = metadata_tree.getroot()
+                    for au in metadata_root:
+                        if au.tag == 'ActionUnit':
+                            for marker in au:
+                                # get facs label for frame
+                                frame = marker.attrib['Frame']
+                                if n == int(frame):
+                                    print(str(au.attrib['Number']) + ' at frame ' + str(n))
+                                    facs = au.attrib['Number']
+                                    if facs in self.FACS[face_region]:
+                                        self.targets.append(facs)
+                if facs is None:
+                    self.targets.append(0)
+
+        for i, f in enumerate(self.file_paths[:self.samples_1]):
             # tuple of clahe image and reflected clahe image
             clahe_images = self.process_file(f)
             # finds landmarks for the region (dim: 1 x features)
@@ -228,7 +286,7 @@ class Features:
         labels_region = self.get_labels_region(face_region='nose')
 
         # get targets for face region_
-        print('length files in sample', len(self.file_paths[:self.samples]))
+        print('length files in sample', len(self.file_paths[:self.samples_1]))
         for f in self.file_paths[:self.samples]:
             f_name = f[-31:-4]
             if f_name in self.labels.keys():
@@ -246,10 +304,9 @@ class Features:
 
 
 if __name__ == "__main__":
-    f = Features(samples=5)
-    # f.get_labels()
+    f = Features(samples_1=2, samples_2=20)
+
     features = f.get_features(face_region='nose')
     targets = f.get_targets(face_region='nose')
     print(features)
-    print('length targets', len(targets))
-    print('size features', np.shape(features))
+    print(targets)

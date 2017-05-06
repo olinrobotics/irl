@@ -32,8 +32,13 @@ class FACSDetect:
         # get classifiers
         nose_classifier = joblib.load(self.params_path + 'nose' + '.pkl')
         mouth_classifier = joblib.load(self.params_path + 'mouth' + '.pkl')
+        eyes_classifier = joblib.load(self.params_path + 'eyes' + '.pkl')
+        forehead_classifier = joblib.load(self.params_path + 'forehead' + '.pkl')
+        cheeks_classifier = joblib.load(self.params_path + 'cheeks' + '.pkl')
 
-        self.classifiers = {'nose': nose_classifier, 'mouth': mouth_classifier}
+        self.classifiers = {'nose': nose_classifier, 'mouth': mouth_classifier,
+                            'eyes': eyes_classifier,
+                            'forehead': forehead_classifier}
 
         # CvBridge to usb_cam, subscribes to usb_cam ros node
         self.bridge = CvBridge()
@@ -108,8 +113,9 @@ class FACSDetect:
                     # Nose FACS
                     print(self.classifiers[region])
                     probs = self.classifiers[region].predict_proba(X=data)
-                    print(region + ': ')
-                    print(probs)
+                    if not math.isnan(probs[0][0]):
+                        print(region + ': ')
+                        print(probs)
             else:
                 print('no landmarks')
         else:

@@ -9,15 +9,15 @@ import get_features_face as gf
 
 
 class FACSTrainer:
-    def __init__(self, face_region, make_new=False, samples=486,
-                 gamma=0.25, max_iter=30):
+    def __init__(self, face_region, make_new=False, samples_1=486, samples_2=20,
+                 gamma=0.25, max_iter=30, n_neighbors=30):
         # File paths
         rospack = rospkg.RosPack()
         PACKAGE_PATH = rospack.get_path("edwin")
         self.params_path = PACKAGE_PATH + '/params'
         # face region and features object
         self.face_region = face_region
-        self.features = gf.Features(samples=samples)
+        self.features = gf.Features(samples_1=samples_1, samples_2=samples_2)
 
         # n_clusters - depends on face_region, number of FACS in the region
         # plus one for neutral
@@ -41,13 +41,17 @@ class FACSTrainer:
                 self.train_data_set = self.features.get_features(face_region=face_region)
                 # targets labeled at FAC Unit, 0 for neutral, or -1 for unlabeled
                 self.targets = self.features.get_targets(face_region=face_region)
-                self.classifier = LabelPropagation(gamma=gamma, max_iter=max_iter)
+                self.classifier = LabelPropagation(kernel='knn', gamma=gamma,
+                                                   max_iter=max_iter,
+                                                   n_neighbors=n_neighbors)
         else:
             # get training data from database using get_features_face script
             self.train_data_set = self.features.get_features(face_region=face_region)
             # targets labeled at FAC Unit, 0 for neutral, or -1 for unlabeled
             self.targets = self.features.get_targets(face_region=face_region)
-            self.classifier = LabelPropagation(gamma=gamma, max_iter=max_iter)
+            self.classifier = LabelPropagation(kernel='knn', gamma=gamma,
+                                               max_iter=max_iter,
+                                               n_neighbors=n_neighbors)
 
     def fit_data(self):
         self.classifier.fit(X=self.train_data_set, y=self.targets)
@@ -76,6 +80,7 @@ if __name__ == "__main__":
     # predict = nose_trainer.classifier.predict(X)
     # print(predict)
 
-    trainer = FACSTrainer(face_region='eyes', make_new=True, gamma=.01)
+    trainer = FACSTrainer(face_region='nose', make_new=True, gamma=.001,
+                          n_neighbors=100)
     trainer.fit_data()
     trainer.save_classifier()
