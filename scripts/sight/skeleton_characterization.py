@@ -128,7 +128,6 @@ class SkeletonDetect:
 		print("Finish Training")
 
 		#Testing accuracy
-
 		"""
 		X_train, X_test, Y_train, Y_test = train_test_split(self.X_data, self.Y_data, test_size=0.2, random_state=42)
 		self.knn.fit(X_train,Y_train)
@@ -170,13 +169,17 @@ class SkeletonDetect:
 				self.detect_pub.publish(find_max(self.gesture))
 				self.gesture = dict()
 				self.moving = {"disco1":False,"disco2":False,"bow1":False,"bow2":False}
+
+				# stop detecting for 1 second to make sure there is only one response published
+				time.sleep(1)
 			except:
-				self.detect_pub.publish('Gesture not detected')
+				pass
 
 	def run(self):
 		r = rospy.Rate(5)
 		self.train_data_processing()
 		self.skeleton_detect_train()
+
 		while not rospy.is_shutdown():
 			if self.is_detecting:
 				self.skeleton_detect_test()

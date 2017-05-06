@@ -1,3 +1,15 @@
+"""
+This script creates the GUI for simon says game
+
+Need to have roscore running
+Initial Setup button setup all the dependencies automatically
+Ready to Play button starts detection & simon says script
+
+Future work includes:
+(1) Allow the player to add/delete gesture through the GUI page,
+(2) Allow player to change detection time
+(3) Integrate the part when edwin is the player
+"""
 import sys
 from PySide.QtCore import *
 from PySide.QtGui import *
@@ -10,16 +22,12 @@ import time
 import math
 import os
 
-
 from std_msgs.msg import String
 from sensor_msgs.msg import Image
 from edwin.msg import Edwin_Shape, Bones
 from cv_bridge import CvBridge, CvBridgeError
 
 
-# Every Qt application must have one and only one QApplication object;
-# it receives the command line arguments passed to the script, as they
-# can be used to customize the application's appearance and behavior
 qt_app = QApplication(sys.argv)
 
 class LayoutExample(QWidget):
@@ -31,14 +39,18 @@ class LayoutExample(QWidget):
 		self.cmd = ""
 		self.res = ""
 		self.is_playing = False
+
 		# Initialize the object as a QWidget and
 		# set its title and minimum width
 		QWidget.__init__(self)
 		self.setWindowTitle('SimonSays')
 		self.setMinimumWidth(600)
 		self.setMinimumHeight(400)
-		self.timer = QTimer()
+		font = QFont()
+		font.setPointSize(15)
 
+		#Set up timer to listen to command and player gesture
+		self.timer = QTimer()
 
 		# Create the QVBoxLayout that lays out the whole form
 		self.layout = QVBoxLayout()
@@ -56,7 +68,9 @@ class LayoutExample(QWidget):
 		self.form_layout.addRow('&Who is Simon?:', self.simon_user)
 
 		self.command = QLabel('',self)
+		self.command.setFont(font)
 		self.result = QLabel('',self)
+		self.result.setFont(font)
 		self.form_layout.addRow('Command:', self.command)
 		self.form_layout.addRow('Result:', self.result)
 
