@@ -38,7 +38,7 @@ class BuildData:
         self.detect = True
         cv2.namedWindow('image')
         cv2.setMouseCallback('image',self.fill_test_data) # calls fill_test_data() when image clicked
-        self.test_data = np.zeros((200,200),np.uint8)
+        self.test_data = np.zeros((400,400),np.uint8)
         self.test_filled = 0
 
 
@@ -61,9 +61,9 @@ class BuildData:
         # If mouse button pressed = left button: Build new test data image
         if event == cv2.EVENT_LBUTTONDOWN:
             for contour in self.numbers: # For letter in ROI (see run() function)
-                if self.test_filled < 100:
-                    x_index = (self.test_filled%10)*20
-                    y_index = (self.test_filled // 10)*20
+                if self.test_filled < 400:
+                    x_index = (self.test_filled%20)*20
+                    y_index = (self.test_filled // 20)*20
                     self.test_data[y_index:y_index+20,x_index:x_index+20] = contour.img
                     self.test_filled += 1
 
