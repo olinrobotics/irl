@@ -66,9 +66,8 @@ class Presence:
     """
     main class for detecting presence, following people, and waving
     """
-    def __init__(self, init=False):
-        if not init:
-            rospy.init_node('edwin_presence', anonymous = True)
+    def __init__(self):
+        rospy.init_node('edwin_presence', anonymous = True)
 
         # person of interest
         self.person = None
@@ -111,11 +110,16 @@ class Presence:
         #subscribing to the arm status for service calls
         rospy.Subscriber('/arm_status', String, self.status_callback, queue_size=10)
 
+        #subscribing to the brain for commands
+        rospy.Subscriber('/presence_cmd', String, self.presence_callback, queue_size=10)
+
 
         #setting up ROS publishers to Edwin commands
         self.behavior_pub = rospy.Publisher('behaviors_cmd', String, queue_size=10)
         self.arm_pub = rospy.Publisher('arm_cmd', String, queue_size=1)
         self.idle_pub = rospy.Publisher('idle_cmd', String, queue_size=10)
+        self.detection_pub = rospy.Publisher('detected', String, queue_size=10)
+
 
         # tf transformations between Kinect and Edwin
         self.br = tf.TransformBroadcaster()
@@ -137,11 +141,28 @@ class Presence:
 
         except rospy.ServiceException, e:
             print "Service call failed: %s"%e
-            self.arm_status.publish('error')
-            self.serv_prob = True
+
+
+
+    def presence_callback(self, data):
+        """
+        receives commands from brain
+        """
+
+        command = data.data
+        if command == "reset":
+            self.reset()
+        elif command == "start":
+            self.running = True
+        elif command == "stop":
+            self.running = False
 
 
     def status_callback(self, data):
+        """
+        receives current movement status of arm
+        """
+
         print "arm status callback", data.data
         if data.data == "busy" or data.data == "error":
             self.status = 0
@@ -252,7 +273,6 @@ class Presence:
         if (self.person is not None) and (self.person.acknowledged == False):
             print "I see you!"
             self.idle_pub.publish("idle:stop")
-            self.detected = True
             time.sleep(2)
 
             greeting = ["R_nudge","R_look"]
@@ -262,8 +282,10 @@ class Presence:
 
 
             self.person.acknowledged = True
+            self.detection_pub.publish('found')
+
         elif self.person is None:
-            self.detected = False
+            self.detection_pub.publish('nothing')
 
 
     def follow_people(self):
@@ -371,9 +393,10 @@ class Presence:
         r = rospy.Rate(10)
         time.sleep(2)
 
-        while self.running:
-            self.find_new_people()
-            self.follow_people()
+        while not rospy.is_shutdown():
+            if self.running:
+                self.find_new_people()
+                self.follow_people()
 
             r.sleep()
 

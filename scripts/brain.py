@@ -40,11 +40,9 @@ import pickle, os, sys
 from std_msgs.msg import String, Int16
 
 
-from Interactions.SimonSays import AutonomousSimon, EdwinSimon, EdwinPlayer
-from sight.presence_detection import Presence
+from Interactions.SimonSays import EdwinSimon, EdwinPlayer
 from sight.math_interp import Calculator
 from sight.handwriting_recognition import HandwritingRecognition
-from Interactions.visualmenu import VisualMenu
 
 
 class EdwinBrain:
@@ -53,29 +51,40 @@ class EdwinBrain:
 
         self.arm_pub = rospy.Publisher('/arm_cmd', String, queue_size=2)
         self.behav_pub = rospy.Publisher('/behaviors_cmd', String, queue_size=2)
-        self.idle_pub = rospy.Publisher('/idle_cmd', Stringm queue_size=10)
+        self.idle_pub = rospy.Publisher('/idle_cmd', String, queue_size=10)
+        self.presence_pub = rospy.Publisher('/presence_cmd', String, queue_size=10)
+
+        rospy.Subscriber('/detected', String, self.detection_callback, queue_size=10)
 
 
         self.manual = manual
 
-        time.sleep(1)
-        print "edwin brain is running"
-
         #visualmenu stuff
-        self.menu = VisualMenu()
         self.menu_choice = None
 
         #presence stuff
-        self.presence = Presence()
-
+        self.detected = False
 
         #homework stuff
-        self.hand_recog = HandwritingRecognition()
-        self.hand_recog.run()
+        self.hand_recog = HandwritingRecognition(rospy)
+        # self.hand_recog.run()
 
 
         #idle starts now
         self.idle_pub.publish("idle:init")
+
+        time.sleep(1)
+        print "edwin brain is running"
+
+    def detection_callback(self, data):
+        """
+        Receives detection data, whether something was detected or not
+        """
+
+        if data.data == "found":
+            self.detected = True
+        elif data.data == "nothing":
+            self.detected = False
 
     def demo(self):
         """
@@ -85,36 +94,39 @@ class EdwinBrain:
             self.menu_choice = raw_input("What game would you like to play?\n")
         else:
             self.menu_choice = self.menu.run()
-        self.idle_pub.publish("idle:stop")
-        self.presence.running = False
-        time.sleep(1)
-        if self.menu_choice == "SimonSays: Simon":
-            game = EdwinSimon()
-            game.run()
-        elif self.menu_choice == "SimonSays: Player":
-            difficulty = raw_input("How good should Edwin be?\n")
-            game = EdwinPlayer(difficulty)
-            game.run()
-        elif self.menu_choice == "Homework":
-            self.hand_recog.is_running = True
-            game = Calculator()
-            game.run()
-            self.hand_recog.is_running = False
-
-        time.sleep(3)
-        self.idle_pub.publish("idle:go")
-
+        # self.idle_pub.publish("idle:stop")
+        self.presence_pub.publish('stop')
+        # time.sleep(1)
+        # if self.menu_choice == "simon":
+        #     game = EdwinSimon()
+        #     game.run()
+        # elif self.menu_choice == "player":
+        #     difficulty = raw_input("How good should Edwin be?\n")
+        #     game = EdwinPlayer(difficulty)
+        #     game.run()
+        # elif self.menu_choice == "homework":
+        #     self.hand_recog.is_running = True
+        #     game = Calculator()
+        #     game.run()
+        #     self.hand_recog.is_running = False
+        #
+        # time.sleep(3)
+        # self.idle_pub.publish("idle:go")
+        print self.menu_choice
+        print "Let's assume it will do the demo"
+        print "Waiting..."
+        time.sleep(5)
 
     def run(self):
         r = rospy.Rate(10)
-        self.presence.run()
 
         while not rospy.is_shutdown():
-            if self.presence.detected:
+            if self.detected:
                 self.demo()
                 time.sleep(1)
-                self.presence.reset()
-                self.presence.running = True
+                self.presence_pub.publish('reset')
+                self.presence_pub.publish('start')
+                self.detected = False
 
             r.sleep()
 
@@ -125,4 +137,4 @@ class EdwinBrain:
 if __name__ == '__main__':
     manual = True
     TheBrain = EdwinBrain(manual)
-    TheBrain.demo()
+    TheBrain.run()

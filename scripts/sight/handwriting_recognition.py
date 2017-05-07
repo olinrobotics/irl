@@ -32,19 +32,17 @@ class HandwritingRecognition:
             """
         pass
 
-    def __init__(self, init_param=False):
+    def __init__(self, rospy=None):
         ''' DOCSTRING:
             Initializes ros nodes, state vars, windows, etc. for current HR obj;
             Contains lists differentiating alpha & numeric symbols
             '''
-        if init_param:
-            # init_param allows us to instantiate the HR object in different contexts, i.e in WritingDemo.py
-            pass
-        else:
+        if rospy is None:
             rospy.init_node('handwriting_recognition', anonymous=True) # makes self into node
-            rospy.Subscriber('usb_cam/image_raw', Image, self.img_callback) # subscribes to cam feed
 
-            self.bridge = CvBridge() # converts image types to use with OpenCV
+        rospy.Subscriber('usb_cam/image_raw', Image, self.img_callback) # subscribes to cam feed
+
+        self.bridge = CvBridge() # converts image types to use with OpenCV
 
         # Builds path to find picture of numbers
         rospack = rospkg.RosPack()
@@ -55,6 +53,9 @@ class HandwritingRecognition:
 
         self.detect = True
         self.frame = None
+
+        #for looping
+        self.is_running = False
 
         # Builds window to view and control output
         cv2.namedWindow('image')
@@ -162,16 +163,8 @@ class HandwritingRecognition:
             # Builds training data
             train_data = np.concatenate((train_data, np.float32(hogdata).reshape(-1,64)), axis=0)
             # Builds labels for training data
-<<<<<<< HEAD
-            responses = np.concatenate((responses, np.intc(np.repeat([self.decode_file(code)], (width/20)*(height/20))[:, np.newaxis])), axis=0)
-=======
-            # http://stackoverflow.com/questions/29241056/the-use-of-python-numpy-newaxis
-            print(code)
-            responses = np.concatenate((responses,np.uint32(np.repeat([self.decode_file(code)],width/20 * height/20)[:,np.newaxis])),axis=0)
+            responses = np.concatenate((responses, np.float32(np.repeat([self.decode_file(code)], (width/20)*(height/20))[:, np.newaxis])), axis=0)
 
-        print(responses)
-        print(type(responses[0][0]))
->>>>>>> b936c9733d3c07c3c06ba82388a6f6a839c32e1b
 
         return train_data, responses
 
@@ -522,16 +515,17 @@ class HandwritingRecognition:
         self.SVM_num = self.train_svm('svm_numdata')
 
         while not rospy.is_shutdown(): # MAIN LOOP
-            e1 = cv2.getTickCount()
-            self.update_frame()
-            # out_image = Process.get_paper_region(self.frame)
-            self.chars = Process.get_text_roi(self.frame)
-            self.process_digits(self.chars,detect_words=True)
-            #self.find_words(self.chars)
-            self.output_image()
-            e2 = cv2.getTickCount()
-            # print (e2-e1)/cv2.getTickFrequency()
-            r.sleep()
+            if self.is_running:
+                e1 = cv2.getTickCount()
+                self.update_frame()
+                # out_image = Process.get_paper_region(self.frame)
+                self.chars = Process.get_text_roi(self.frame)
+                self.process_digits(self.chars,detect_words=True)
+                #self.find_words(self.chars)
+                self.output_image()
+                e2 = cv2.getTickCount()
+                # print (e2-e1)/cv2.getTickFrequency()
+                r.sleep()
 
         cv2.destroyAllWindows()
 

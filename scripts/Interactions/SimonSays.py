@@ -201,8 +201,8 @@ class SimonSays(object):
 		self.command_2_speech["heart"] = "make a heart above your head"
 		self.command_2_speech["touch_head"] = "touch your head with your left hand"
 		self.command_2_speech["rub_tummy"] = "rub your tummy with both hands"
-		self.command_2_speech["high5_self"] = "clap to your left"
-		self.command_2_speech["starfish"] = "make a starfish"
+		self.command_2_speech["high_five"] = "clap to your left"
+		self.command_2_speech["star"] = "make a starfish"
 
 		##NON WORKING GESTURES
 		# self.command_2_speech["hug_self"] = "hug yourself"
@@ -219,10 +219,10 @@ class SimonSays(object):
 		self.command_2_motion["heart"] = ["heart"]
 		self.command_2_motion["touch head"] = ["touch_head"]
 		self.command_2_motion["rub tummy"] = ['rub_tummy']
-		self.command_2_motion["high five"] = ['high5_self']
+		self.command_2_motion["high five"] = ['high_five']
 		self.command_2_motion["hug yourself"] = ["hug_self"]
 		self.command_2_motion["dab"] = ["dab"]
-		self.command_2_motion["starfish"] = ["starfish"]
+		self.command_2_motion["star"] = ["star"]
 		self.command_2_motion["wave"] = ["wave"]
 		self.command_2_motion["disco"] = ["disco"]
 		self.command_2_motion["bow"] = ["bow"]
@@ -231,12 +231,13 @@ class SimonSays(object):
 	def populate_command_dictionaries(self):
 		self.command_dictionary["touch_head"] = "touch_head"
 		self.command_dictionary["rub_tummy"] = "rub_tummy"
-		self.command_dictionary["high_five"] = "high5_self"
+		self.command_dictionary["high_five"] = "high_five"
+		self.command_dictionary["hug_self"] = "hug_self"
 		self.command_dictionary["wave"] = "wave"
 		self.command_dictionary["dab"] = "dab"
 		self.command_dictionary["disco"] = "disco"
 		self.command_dictionary["bow"] = "bow"
-		self.command_dictionary["star"] = "starfish"
+		self.command_dictionary["star"] = "star"
 		self.command_dictionary["heart"] = "heart"
 
 
@@ -323,11 +324,13 @@ class SimonSays(object):
 		if action:
 			self.current_act = action[0]
 			print "GOT CMD: ", self.current_act
-		else:
+		elif self.no_mistakes:
 			statement = "I did not catch that, could you repeat your command?"
 			self.say_pub.publish(statement)
 			time.sleep(2)
 			self.missed_statement = True
+		else:
+			self.current_act = None
 
 		self.ready_to_listen = False
 		self.heard_cmd = None
@@ -342,11 +345,11 @@ class SimonSays(object):
 		The resulting command is sent to arm_node for physical motion
 		"""
 		if self.simon_or_naw and self.current_act:
-			self.arm_act = self.command_2_motion.get(self.current_act, None)
+			self.arm_act = self.command_dictionary.get(self.current_act, None)
 			if self.arm_act is None:
 				return
 			else:
-				self.arm_act = self.arm_act[0]
+				self.arm_act = self.arm_act
 			print "GOT MOTION: ", self.arm_act
 			self.behavior_pub.publish(self.arm_act)
 			self.check_completion()
@@ -356,11 +359,11 @@ class SimonSays(object):
 		elif self.current_act:
 			chance = np.random.rand()
 			if chance >= difficulty:
-				self.arm_act = self.command_2_motion.get(self.current_act, None)
+				self.arm_act = self.command_dictionary.get(self.current_act, None)
 				if self.arm_act is None:
 					return
 				else:
-					self.arm_act = self.arm_act[0]
+					self.arm_act = self.arm_act
 				print "GOT MOTION: ", self.arm_act
 				self.behavior_pub.publish(self.arm_act)
 				self.check_completion()
