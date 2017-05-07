@@ -72,6 +72,8 @@ class HandwritingRecognition:
         self.curr_data = ''
         self.found_word = False
 
+        self.is_running = False # boolean representing whether or not class is reading
+
         # Lists of alpha symbols & numeric symbols for classify_writing method
         alpha_symb = "AaBbCcDdEeFfGgHhIiJjKkLMmNnPpQqRrTtUuVvWwYyZz"
         self.alpha_symb = list(alpha_symb)
@@ -156,6 +158,7 @@ class HandwritingRecognition:
             # Converts training data into usable format
             gray = cv2.cvtColor(train_img,cv2.COLOR_BGR2GRAY)
             width, height = gray.shape[:2]
+            print('MSG: width is :' + str(width/20) + ' height is :' + str(height/20))
             cells = [np.hsplit(row,width/20) for row in np.vsplit(gray,height/20)]
             # deskewed = [map(self.deskew,row) for row in cells]
             hogdata = [map(Process.hog,row) for row in cells]
@@ -164,11 +167,8 @@ class HandwritingRecognition:
             train_data = np.concatenate((train_data, np.float32(hogdata).reshape(-1,64)), axis=0)
             # Builds labels for training data
             # http://stackoverflow.com/questions/29241056/the-use-of-python-numpy-newaxis
-            print(code)
-            responses = np.concatenate((responses,np.uint32(np.repeat([self.decode_file(code)],width/20 * height/20)[:,np.newaxis])),axis=0)
+            responses = np.concatenate((responses,np.float32(np.repeat([self.decode_file(code)],width/20 * height/20)[:,np.newaxis])),axis=0)
 
-        print(responses)
-        print(type(responses[0][0]))
 
         return train_data, responses
 
@@ -187,6 +187,8 @@ class HandwritingRecognition:
         elif (code == 'rpr'): return ord(')')
         elif (code == 'two'): return ord('2')
         elif (code == 'chk'): return ord('_')
+        elif( len(code) == 3):
+            if (code[1] == '_'): return ord(code[0])
         elif (len(code) == 1):
             return ord(code)
         if classification == 1 or classification == 0:
@@ -517,18 +519,20 @@ class HandwritingRecognition:
         self.SVM = self.train_svm('svm_data')
         self.SVM_alpha = self.train_svm('svm_alphadata')
         self.SVM_num = self.train_svm('svm_numdata')
-
+        self.is_running = True
+        
         while not rospy.is_shutdown(): # MAIN LOOP
-            e1 = cv2.getTickCount()
-            self.update_frame()
-            # out_image = Process.get_paper_region(self.frame)
-            self.chars = Process.get_text_roi(self.frame)
-            self.process_digits(self.chars,detect_words=True)
-            #self.find_words(self.chars)
-            self.output_image()
-            e2 = cv2.getTickCount()
-            # print (e2-e1)/cv2.getTickFrequency()
-            r.sleep()
+            if self.is_running == True:
+                e1 = cv2.getTickCount()
+                self.update_frame()
+                # out_image = Process.get_paper_region(self.frame)
+                self.chars = Process.get_text_roi(self.frame)
+                self.process_digits(self.chars,detect_words=True)
+                #self.find_words(self.chars)
+                self.output_image()
+                e2 = cv2.getTickCount()
+                # print (e2-e1)/cv2.getTickFrequency()
+                r.sleep()
 
         cv2.destroyAllWindows()
 
