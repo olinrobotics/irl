@@ -62,8 +62,6 @@ class HandwritingRecognition:
         # cv2.setTrackbarPos('X','image',255)
         # cv2.createTrackbar('Y','image',0,255,self.nothing)
         # cv2.setTrackbarPos('Y','image',7)
-        self.test_data = np.zeros((200,200),np.uint8)
-        self.test_filled = 0
         # print os.getcwd()
 
         # Define vars for keeping track of new words
@@ -100,11 +98,11 @@ class HandwritingRecognition:
 
         # Builds alphabetic character data list
         alpha_files = ['1','a','b','c','d','e','f','g','h','j','k','m','n','o','p','q','r','s','t','u','v','w',
-                        'x','y','z','dot',]
+                        'y','z','dot','mlt']
         alpha_files = [alphafile + '.png' for alphafile in alpha_files]
 
         # Builds numeric character data list
-        num_files = ['0','1','2','3','4','5','6','7','8','9','mns','pls','div','dot','x','a','b','lpr','crt','rpr']
+        num_files = ['0','1','2','3','4','5','6','7','8','9','mns','pls','div','dot','a','b','lpr','crt','rpr','mlt']
         num_files = [numfile + '.png' for numfile in num_files]
         # Builds training data & labels for alphabetic, numeric, and both; saves
         # data as .npz files
@@ -129,6 +127,8 @@ class HandwritingRecognition:
 
         # reads data in .svm file and formats for svm
         with np.load(self.PARAMS_PATH + '/params/' + file_name + '.npz') as input_data:
+            print(len(input_data['train']))
+            print(len(input_data['train_labels']))
             train_data = input_data['train']
             data_labels = input_data['train_labels']
 
@@ -142,27 +142,36 @@ class HandwritingRecognition:
             labels for training SVM
             """
 
+        # Inits data and responses to empty numpy arrays (so as to concatenate w/ other numpy arrays)
         train_data = np.float32(np.zeros((0,64)))
         responses = np.float32(np.zeros((0,1)))
 
         for f in files: # Loads the .pngs for the training data for each symbol
             file_path = path + f
-            #print(file_path)
             code = f.split('.',1)[0]
             train_img = cv2.imread(file_path)
-            print(file_path)
+            print('MSG: loaded: ' + file_path)
 
-            cells_data = []
-            # Processes the training data into a usable format
+            # Converts training data into usable format
             gray = cv2.cvtColor(train_img,cv2.COLOR_BGR2GRAY)
-            cells = [np.hsplit(row,10) for row in np.vsplit(gray,10)]
+            width, height = gray.shape[:2]
+            cells = [np.hsplit(row,width/20) for row in np.vsplit(gray,height/20)]
             # deskewed = [map(self.deskew,row) for row in cells]
             hogdata = [map(Process.hog,row) for row in cells]
 
             # Builds training data
-            train_data = np.concatenate((train_data,np.float32(hogdata).reshape(-1,64)),axis=0)
+            train_data = np.concatenate((train_data, np.float32(hogdata).reshape(-1,64)), axis=0)
             # Builds labels for training data
-            responses = np.concatenate((responses,np.float32(np.repeat([self.decode_file(code)],100)[:,np.newaxis])),axis=0)
+<<<<<<< HEAD
+            responses = np.concatenate((responses, np.intc(np.repeat([self.decode_file(code)], (width/20)*(height/20))[:, np.newaxis])), axis=0)
+=======
+            # http://stackoverflow.com/questions/29241056/the-use-of-python-numpy-newaxis
+            print(code)
+            responses = np.concatenate((responses,np.uint32(np.repeat([self.decode_file(code)],width/20 * height/20)[:,np.newaxis])),axis=0)
+
+        print(responses)
+        print(type(responses[0][0]))
+>>>>>>> b936c9733d3c07c3c06ba82388a6f6a839c32e1b
 
         return train_data, responses
 
@@ -179,11 +188,16 @@ class HandwritingRecognition:
         elif (code == 'crt'): return ord('^')
         elif (code == 'lpr'): return ord('(')
         elif (code == 'rpr'): return ord(')')
-        elif (len(code) == 1): return ord(code)
+        elif (code == 'two'): return ord('2')
+        elif (code == 'chk'): return ord('_')
+        elif (len(code) == 1):
+            return ord(code)
         if classification == 1 or classification == 0:
             if (code == 'mlt'): return ord('x')
         elif classification == 2:
             if (code == 'mlt'): return ord('*')
+        else:
+            print('ERR: no symbol exists for this code!')
 
 
     def SVM_predict(self,svm,data,chars):
@@ -234,7 +248,6 @@ class HandwritingRecognition:
             pass1_chars = self.SVM_build_chars(self.SVM, reshape_data, pass1_chars)
             # Check if sentence or equation, apply corresponding SVM
             classification = self.classify_writing(pass1_chars)
-            print('classification: ' + str(classification))
             if classification == 1:
                 self.SVM_build_chars(self.SVM_alpha,reshape_data, self.chars)
             elif classification == 2:
@@ -242,7 +255,6 @@ class HandwritingRecognition:
 
             # Prints characters on screen in location corresponding to the image
             if self.frame is not None:
-                print(self.chars)
                 for roi in self.chars:
                     cv2.circle(self.frame,(roi.x,roi.y), 5, (0,0,255), -1)
                     cv2.putText(self.frame,chr(int(roi.result)),(roi.x,roi.y+roi.h) \
@@ -525,4 +537,15 @@ class HandwritingRecognition:
 
 if __name__ == '__main__':
     hr = HandwritingRecognition()
-    hr.run(False)
+    reset_SVM = None
+    # Check whether or not to update SVMs
+    while (reset_SVM == None):
+        query = raw_input('RQS: Update SVMs? (y/n)')
+        if query == 'y':
+            reset_SVM = True
+        elif query == 'n':
+            reset_SVM = False
+        else:
+            print('ERR: Did not understand input, please type "y" or "n"')
+
+    hr.run(reset_SVM)
