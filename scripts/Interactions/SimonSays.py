@@ -10,6 +10,9 @@ rosrun edwin stt_engine.py
 roslaunch skeleton_markers markers_from_tf.launch
 roscd skeleton_markers
 rosrun rviz rviz markers_from_tf.rviz
+
+rosrun edwin skeleton.py
+rosrun edwin skeleton_characterization.py
 """
 
 import rospy
@@ -50,7 +53,7 @@ class SimonSays(object):
 	2. SimonEdwin - Edwin is the Simon and issues commands to the user
 	3. SimonUser - The user if the Simon and tell Edwin what to do
 	"""
-	def __init__(self, max_turns = 10):
+	def __init__(self, max_turns = 5):
 		#init ROS nodes
 		rospy.init_node('ss_gamemaster', anonymous = True)
 
@@ -83,6 +86,10 @@ class SimonSays(object):
 		self.command_2_speech = {}     	    #specific command whose key points to verbal command
 		self.command_2_motion = {}			#specific command whose key points to edwin action
 		self.command_dictionary = {}		#finding gestures
+
+		# for gestures
+		self.gesture = None
+		self.looking = False
 
 		#populate the two dictionaries for when Edwin is Simon and when he is the player
 		self.populate_simon_dictionaries()
@@ -133,7 +140,8 @@ class SimonSays(object):
 			self.no_mistakes = False
 
 	def gest_callback(self,data):
-		self.gesture = data
+		if self.looking:
+			self.gesture = data
 
 	def skeleton_callback(self, skeleton):
 		"""
@@ -193,11 +201,11 @@ class SimonSays(object):
 		self.command_2_speech["heart"] = "make a heart above your head"
 		self.command_2_speech["touch_head"] = "touch your head with your left hand"
 		self.command_2_speech["rub_tummy"] = "rub your tummy with both hands"
-		self.command_2_speech["high5_self"] = "give yourself a high five to your left"
+		self.command_2_speech["high5_self"] = "clap to your left"
 		self.command_2_speech["starfish"] = "make a starfish"
 
 		##NON WORKING GESTURES
-		self.command_2_speech["hug_self"] = "hug yourself"
+		# self.command_2_speech["hug_self"] = "hug yourself"
 		self.command_2_speech["wave"] = "wave at the camera with your right hand"
 		self.command_2_speech["dab"] = "do the dab to the right"
 		self.command_2_speech["disco"] = "do the disco with your right hand"
@@ -250,7 +258,7 @@ class SimonSays(object):
 		"""
 
 		command = random.choice(self.command_2_speech.keys())
-		while command == self.previous_cmd:
+		while command == self.previous_cmd or command == "hug_self":
 			command = random.choice(self.command_2_speech.keys())
 		print "PREV:", self.previous_cmd, "CURRENT", command
 		self.previous_cmd = command
@@ -476,7 +484,7 @@ class EdwinSimon(SimonSays):
 			#publishes to all_control that tells it to go and wait 4 seconds for complicated gestures
 			self.msg = "gesture_detect:go 4"
 		else:
-			self.msg = "gesture_detect:go 2"
+			self.msg = "gesture_detect:go 4"
 
 		self.ctr_pub.publish(self.msg)
 
@@ -488,6 +496,7 @@ class EdwinSimon(SimonSays):
 		This function checks to see if the players have followed Edwin's cmd
 		This relies on skeleton tracker to be functional
 		"""
+		self.looking = True
 		if "simon says" in self.current_cmd:
 			command_gest = self.current_cmd.replace("simon says, ","")
 			for key,value in self.command_2_speech.items():
@@ -516,6 +525,8 @@ class EdwinSimon(SimonSays):
 				print('Try again! Simonless')
 				self.no_mistakes = False
 
+		self.looking = False
+
 
 	def run(self):
 		"""
@@ -540,9 +551,9 @@ class EdwinSimon(SimonSays):
 
 			self.simon_say_command()
 			if any(word in self.current_cmd for word in ["wave", "disco", "bow", "hug"]):
-				time.sleep(5)
+				time.sleep(4)
 			else:
-				time.sleep(3)
+				time.sleep(4)
 
 
 			self.simon_check_response()

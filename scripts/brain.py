@@ -48,16 +48,15 @@ from Interactions.visualmenu import VisualMenu
 
 
 class EdwinBrain:
-    def __init__(self):
+    def __init__(self, manual):
         rospy.init_node('edwin_brain', anonymous=True)
 
         self.arm_pub = rospy.Publisher('/arm_cmd', String, queue_size=2)
         self.behav_pub = rospy.Publisher('/behaviors_cmd', String, queue_size=2)
         self.idle_pub = rospy.Publisher('/idle_cmd', Stringm queue_size=10)
 
-        self.idling = False
-        self.exit = False #should be catch all to exit all long running commands
-        self.activity = None
+
+        self.manual = manual
 
         time.sleep(1)
         print "edwin brain is running"
@@ -65,6 +64,10 @@ class EdwinBrain:
         #visualmenu stuff
         self.menu = VisualMenu()
         self.menu_choice = None
+
+        #presence stuff
+        self.presence = Presence()
+
 
         #homework stuff
         self.hand_recog = HandwritingRecognition()
@@ -74,34 +77,52 @@ class EdwinBrain:
         #idle starts now
         self.idle_pub.publish("idle:init")
 
-    def chicken(self):
+    def demo(self):
         """
-        Main loop that takes in demo???
+        Main loop that does the demo
         """
+        if self.manual:
+            self.menu_choice = raw_input("What game would you like to play?\n")
+        else:
+            self.menu_choice = self.menu.run()
+        self.idle_pub.publish("idle:stop")
+        self.presence.running = False
+        time.sleep(1)
+        if self.menu_choice == "SimonSays: Simon":
+            game = EdwinSimon()
+            game.run()
+        elif self.menu_choice == "SimonSays: Player":
+            difficulty = raw_input("How good should Edwin be?\n")
+            game = EdwinPlayer(difficulty)
+            game.run()
+        elif self.menu_choice == "Homework":
+            self.hand_recog.is_running = True
+            game = Calculator()
+            game.run()
+            self.hand_recog.is_running = False
 
+        time.sleep(3)
+        self.idle_pub.publish("idle:go")
 
 
     def run(self):
         r = rospy.Rate(10)
-        while not rospy.is_shutdown():
-            self.menu_choice = self.menu.run()
-            self.idle_pub.publish("idle:stop")
-            if self.menu_choice == "SimonSays: Simon":
-                game = EdwinSimon()
-                game.run()
-            elif self.menu_choice == "SimonSays: Player":
-                difficulty = raw_input("How good should Edwin be?\n")
-        		game = EdwinPlayer(difficulty)
-                game.run()
-            elif self.menu_choice == "Homework":
-                game = Calculator()
-                game.run()
+        self.presence.run()
 
-            time.sleep(3)
-            self.idle_pub.publish("idle:go")
+        while not rospy.is_shutdown():
+            if self.presence.detected:
+                self.demo()
+                time.sleep(1)
+                self.presence.reset()
+                self.presence.running = True
+
             r.sleep()
 
 
+
+
+
 if __name__ == '__main__':
-    TheBrain = EdwinBrain()
+    manual = True
+    TheBrain = EdwinBrain(manual)
     TheBrain.demo()
