@@ -62,8 +62,6 @@ class HandwritingRecognition:
         # cv2.setTrackbarPos('X','image',255)
         # cv2.createTrackbar('Y','image',0,255,self.nothing)
         # cv2.setTrackbarPos('Y','image',7)
-        self.test_data = np.zeros((200,200),np.uint8)
-        self.test_filled = 0
         # print os.getcwd()
 
         # Define vars for keeping track of new words
@@ -131,6 +129,8 @@ class HandwritingRecognition:
 
         # reads data in .svm file and formats for svm
         with np.load(self.PARAMS_PATH + '/params/' + file_name + '.npz') as input_data:
+            print(len(input_data['train']))
+            print(len(input_data['train_labels']))
             train_data = input_data['train']
             data_labels = input_data['train_labels']
 
@@ -154,7 +154,6 @@ class HandwritingRecognition:
             train_img = cv2.imread(file_path)
             print('MSG: loaded: ' + file_path)
 
-            cells_data = []
             # Converts training data into usable format
             gray = cv2.cvtColor(train_img,cv2.COLOR_BGR2GRAY)
             width, height = gray.shape[:2]
@@ -168,7 +167,6 @@ class HandwritingRecognition:
             # Builds labels for training data
             # http://stackoverflow.com/questions/29241056/the-use-of-python-numpy-newaxis
             responses = np.concatenate((responses,np.float32(np.repeat([self.decode_file(code)],width/20 * height/20)[:,np.newaxis])),axis=0)
-
 
         return train_data, responses
 
@@ -520,7 +518,7 @@ class HandwritingRecognition:
         self.SVM_alpha = self.train_svm('svm_alphadata')
         self.SVM_num = self.train_svm('svm_numdata')
         self.is_running = True
-        
+
         while not rospy.is_shutdown(): # MAIN LOOP
             if self.is_running == True:
                 e1 = cv2.getTickCount()
