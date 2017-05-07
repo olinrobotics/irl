@@ -96,6 +96,7 @@ class HandwritingRecognition:
             '''
 
         path =  self.PARAMS_PATH + '/params/char_data/'
+        path2 = self.PARAMS_PATH + '/params/more_chars/'
         files = listdir(path) # Lists files in path folder (training data)
 
         # Builds alphabetic character data list
@@ -105,7 +106,7 @@ class HandwritingRecognition:
 
         # Builds numeric character data list
         num_files = ['0','1','2','3','4','5','6','7','8','9','mns','pls','div','dot','a','b','lpr','crt','rpr','mlt']
-        num_files.extend(self.collect_mult_datafiles(num_files, path))
+        #num_files.extend(self.collect_mult_datafiles(num_files, path2))
         print(num_files)
         num_files = [numfile + '.png' for numfile in num_files]
         # Builds training data & labels for alphabetic, numeric, and both; saves
