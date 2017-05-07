@@ -517,7 +517,6 @@ class HandwritingRecognition:
         self.SVM = self.train_svm('svm_data')
         self.SVM_alpha = self.train_svm('svm_alphadata')
         self.SVM_num = self.train_svm('svm_numdata')
-        self.is_running = True
 
         while not rospy.is_shutdown(): # MAIN LOOP
             if self.is_running == True:
@@ -536,7 +535,7 @@ class HandwritingRecognition:
 
 if __name__ == '__main__':
     hr = HandwritingRecognition()
-    reset_SVM = None
+    reset_SVM = False
     # Check whether or not to update SVMs
     while (reset_SVM == None):
         query = raw_input('RQS: Update SVMs? (y/n)')
