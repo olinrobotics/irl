@@ -71,7 +71,7 @@ class HandwritingRecognition:
         self.curr_data = ''
         self.found_word = False
 
-        self.is_running = False # boolean representing whether or not class is reading
+        self.is_running = True # boolean representing whether or not class is reading
 
         # Lists of alpha symbols & numeric symbols for classify_writing method
         alpha_symb = "AaBbCcDdEeFfGgHhIiJjKkLMmNnPpQqRrTtUuVvWwYyZz"
@@ -105,7 +105,8 @@ class HandwritingRecognition:
         alpha_files = [alphafile + '.png' for alphafile in alpha_files]
 
         # Builds numeric character data list
-        num_files = ['0','1','2','3','4','5','6','7','8','9','mns','pls','div','dot','a','b','lpr','crt','rpr','mlt']
+        num_files = ['0','1','2','3','4','5','6','7','8','9','mns','pls','div','dot','a','lpr','crt','rpr','mlt']
+        num_files.extend(self.collect_mult_datafiles(num_files, path))
         num_files = [numfile + '.png' for numfile in num_files]
         # Builds training data & labels for alphabetic, numeric, and both; saves
         # data as .npz files
@@ -115,6 +116,24 @@ class HandwritingRecognition:
         np.savez(self.PARAMS_PATH + '/params/svm_data.npz',train=train_data,train_labels=responses) # Saves training data and labels into .npz file
         np.savez(self.PARAMS_PATH + '/params/svm_alphadata.npz',train=train_alphadata,train_labels=alpha_responses) # Saves alphabetic training data & labels into .npz file
         np.savez(self.PARAMS_PATH + '/params/svm_numdata.npz',train=train_numdata,train_labels=num_responses) # Saves numeric training data & labels into .npz file
+
+    def collect_mult_datafiles(self, chars, file_path):
+        """ DOCSTRING:
+            Given list of chars & file path, looks for files in filepath w/
+            format '[char]_[number]' (used for multiple data files of same char)
+            """
+        files = []
+        for char in chars:
+            incr = 1 # loop counter
+            while True:
+                datafile = file_path + char + '_' + str(incr) + '.png'
+                if isfile(datafile):
+                    files.append(char + '_' + str(incr))
+                    incr += 1
+                else: break
+
+        return files
+
 
     def train_svm(self,file_name):
         '''DOCSTRING:
@@ -130,8 +149,8 @@ class HandwritingRecognition:
 
         # reads data in .svm file and formats for svm
         with np.load(self.PARAMS_PATH + '/params/' + file_name + '.npz') as input_data:
-            print(len(input_data['train']))
-            print(len(input_data['train_labels']))
+            print('MSG: training data length: ' + str(len(  input_data['train'])))
+            print('MSG: training data length: ' + str(len(input_data['train_labels'])))
             train_data = input_data['train']
             data_labels = input_data['train_labels']
 
@@ -152,6 +171,7 @@ class HandwritingRecognition:
         for f in files: # Loads the .pngs for the training data for each symbol
             file_path = path + f
             code = f.split('.',1)[0]
+            #try:
             train_img = cv2.imread(file_path)
             print('MSG: loaded: ' + file_path)
 
@@ -166,10 +186,10 @@ class HandwritingRecognition:
             # Builds training data
             train_data = np.concatenate((train_data, np.float32(hogdata).reshape(-1,64)), axis=0)
             # Builds labels for training data
-
             # http://stackoverflow.com/questions/29241056/the-use-of-python-numpy-newaxis
-            responses = np.concatenate((responses, np.float32(np.repeat([self.decode_file(code)], (width/20)*(height/20))[:, np.newaxis])), axis=0)
-
+            responses = np.concatenate((responses,np.float32(np.repeat([self.decode_file(code)],width/20 * height/20)[:,np.newaxis])),axis=0)
+            #except:
+            #    print('ERR: file ' + f + ' does not exist at ' + file_path)
 
         return train_data, responses
 
@@ -188,8 +208,14 @@ class HandwritingRecognition:
         elif (code == 'rpr'): return ord(')')
         elif (code == 'two'): return ord('2')
         elif (code == 'chk'): return ord('_')
+        elif (len(code) == 5):
+            if (code[3] == '_'):
+                print('MSG: ' + code + ' = ' + code[0:3])
+                return self.decode_file(code[0:3])
         elif( len(code) == 3):
-            if (code[1] == '_'): return ord(code[0])
+            if (code[1] == '_'):
+                print('MSG: ' + code + ' = ' + code[0])
+                return ord(code[0])
         elif (len(code) == 1):
             return ord(code)
         if classification == 1 or classification == 0:
@@ -198,7 +224,6 @@ class HandwritingRecognition:
             if (code == 'mlt'): return ord('*')
         else:
             print('ERR: no symbol exists for this code!')
-
 
     def SVM_predict(self,svm,data,chars):
         """ DOCSTRING:
@@ -223,10 +248,10 @@ class HandwritingRecognition:
 
         # Resolves fuzzy contours (i,j,=) (multi-contour characters)
         lines = [val for val in chars if chr(val.result) == '1']
-        dots = [res for res in chars if chr(res.result) == '0' or chr(res.result) == '.']
+        dots = [res for res in chars if chr(res.result) == '.']
         dashes = [obj for obj in chars if chr(obj.result) == '-']
         chars[:] = [val for val in chars if chr(val.result) != '1' \
-            and chr(val.result) != '0' and chr(val.result) != '.' and chr(val.result) != '-']
+            and chr(val.result) != '.' and chr(val.result) != '-']
         fuzzy_conts = self.resolve_symbols(dots,lines,dashes)
 
         if len(fuzzy_conts) > 0:
@@ -245,24 +270,28 @@ class HandwritingRecognition:
             pass1_chars = copy.deepcopy(test_data)
 
             # Predicts symbols from reshaped data
-            pass1_chars = self.SVM_build_chars(self.SVM, reshape_data, pass1_chars)
+            #pass1_chars = self.SVM_build_chars(self.SVM, reshape_data, pass1_chars)
+            self.chars = self.SVM_build_chars(self.SVM, reshape_data, pass1_chars)
             # Check if sentence or equation, apply corresponding SVM
-            classification = self.classify_writing(pass1_chars)
-            if classification == 1:
-                self.SVM_build_chars(self.SVM_alpha,reshape_data, self.chars)
-            elif classification == 2:
-                self.SVM_build_chars(self.SVM_num,reshape_data, self.chars)
+            # classification = self.classify_writing(pass1_chars)
+            # if classification == 1:
+            #     self.SVM_build_chars(self.SVM_alpha,reshape_data, self.chars)
+            # elif classification == 2:
+            #     self.SVM_build_chars(self.SVM_num,reshape_data, self.chars)
 
-            # Prints characters on screen in location corresponding to the image
+            # Disp characters on screen in location corresponding to the image
             if self.frame is not None:
                 for roi in self.chars:
                     cv2.circle(self.frame,(roi.x,roi.y), 5, (0,0,255), -1)
-                    cv2.putText(self.frame,chr(int(roi.result)),(roi.x,roi.y+roi.h) \
+                    try:
+                        cv2.putText(self.frame,chr(int(roi.result)),(roi.x,roi.y+roi.h) \
                                 ,cv2.FONT_HERSHEY_SIMPLEX, 4,(0,255,0))
+                    except:
+                        print('ERR: tried to draw char (address ' + str(int(roi.result)) + ') that does not exist')
 
             # TODO: word detection
             if detect_words:
-                self.detect_new_word(test_data)
+                self.detect_new_word(self.chars)
             else:
                 return test_data
 
@@ -397,20 +426,24 @@ class HandwritingRecognition:
             '''
 
         char_list.sort(key = lambda roi: roi.x) # Sort characters by x pos
-        word = ''.join([chr(item.result) for item in char_list]) # Form a word
-        if word == self.curr_data: # If the current and prev words match
-            # The word must remain consistent for 2 seconds
-            if time.time() - self.last_time > 2 and self.found_word == False:
-                self.last_word = word
-                self.found_word = True
-                self.pub.publish(word)
-                return word
+        try:
+            word = ''.join([chr(int(item.result)) for item in char_list]) # Form a word
+            if word == self.curr_data: # If the current and prev words match
+                # The word must remain consistent for 2 seconds
+                if time.time() - self.last_time > 2 and self.found_word == False:
+                    self.last_word = word
+                    self.found_word = True
+                    self.pub.publish(word)
+                    return word
 
-        else: # A new word is found, reset the timer
-            self.last_time = time.time()
-            self.curr_data = word
-            self.found_word = False
-            return None
+            else: # A new word is found, reset the timer
+                self.last_time = time.time()
+                self.curr_data = word
+                self.found_word = False
+                return None
+
+        except ValueError:
+            print('ERR: char address in char_list passed to detect_new_word is invalid; char_list values: ' + str([item.result for item in char_list]))
 
     # [TODO] REFACTOR
     def find_words(self,char_list):
@@ -435,8 +468,6 @@ class HandwritingRecognition:
             if val > 1:
                 line_index.append(idx+1)
         line_index.append(len(char_list))
-        # print all_chars
-        # print word_index
         lines = []
         for idx in range(0,len(line_index)-1):
             lines.append(char_list[line_index[idx]:line_index[idx+1]])
@@ -539,7 +570,7 @@ class HandwritingRecognition:
 
 if __name__ == '__main__':
     hr = HandwritingRecognition()
-    reset_SVM = False
+    reset_SVM = None
     # Check whether or not to update SVMs
     while (reset_SVM == None):
         query = raw_input('RQS: Update SVMs? (y/n)')
