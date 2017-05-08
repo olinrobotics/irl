@@ -316,7 +316,7 @@ class Calculator:
                     msg.shape = str(answer)
                     msg.x = -500
                     msg.y = 5700
-                    msg.z = -835
+                    msg.z = -800
                     self.pub.publish(msg)
                     time.sleep(5)
                     break
