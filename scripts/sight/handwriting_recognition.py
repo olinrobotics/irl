@@ -97,7 +97,6 @@ class HandwritingRecognition:
             '''
 
         path =  self.PARAMS_PATH + '/params/char_data/'
-        path2 = self.PARAMS_PATH + '/params/more_chars/'
         files = listdir(path) # Lists files in path folder (training data)
 
         # Builds alphabetic character data list
@@ -106,9 +105,8 @@ class HandwritingRecognition:
         alpha_files = [alphafile + '.png' for alphafile in alpha_files]
 
         # Builds numeric character data list
-        num_files = ['0','1','2','3','4','5','6','7','8','9','mns','pls','div','dot','a','b','lpr','crt','rpr','mlt']
-        #num_files.extend(self.collect_mult_datafiles(num_files, path2))
-        print(num_files)
+        num_files = ['0','1','2','3','4','5','6','7','8','9','mns','pls','div','dot','a','lpr','crt','rpr','mlt']
+        num_files.extend(self.collect_mult_datafiles(num_files, path))
         num_files = [numfile + '.png' for numfile in num_files]
         # Builds training data & labels for alphabetic, numeric, and both; saves
         # data as .npz files
@@ -131,7 +129,6 @@ class HandwritingRecognition:
                 datafile = file_path + char + '_' + str(incr) + '.png'
                 if isfile(datafile):
                     files.append(char + '_' + str(incr))
-                    print(char + '_' + str(incr))
                     incr += 1
                 else: break
 
@@ -152,8 +149,8 @@ class HandwritingRecognition:
 
         # reads data in .svm file and formats for svm
         with np.load(self.PARAMS_PATH + '/params/' + file_name + '.npz') as input_data:
-            print(len(input_data['train']))
-            print(len(input_data['train_labels']))
+            print('MSG: training data length: ' + str(len(  input_data['train'])))
+            print('MSG: training data length: ' + str(len(input_data['train_labels'])))
             train_data = input_data['train']
             data_labels = input_data['train_labels']
 
@@ -174,25 +171,25 @@ class HandwritingRecognition:
         for f in files: # Loads the .pngs for the training data for each symbol
             file_path = path + f
             code = f.split('.',1)[0]
-            try:
-                train_img = cv2.imread(file_path)
-                print('MSG: loaded: ' + file_path)
+            #try:
+            train_img = cv2.imread(file_path)
+            print('MSG: loaded: ' + file_path)
 
-                # Converts training data into usable format
-                gray = cv2.cvtColor(train_img,cv2.COLOR_BGR2GRAY)
-                width, height = gray.shape[:2]
-                print('MSG: width is :' + str(width/20) + ' height is :' + str(height/20))
-                cells = [np.hsplit(row,width/20) for row in np.vsplit(gray,height/20)]
-                # deskewed = [map(self.deskew,row) for row in cells]
-                hogdata = [map(Process.hog,row) for row in cells]
+            # Converts training data into usable format
+            gray = cv2.cvtColor(train_img,cv2.COLOR_BGR2GRAY)
+            width, height = gray.shape[:2]
+            print('MSG: width is :' + str(width/20) + ' height is :' + str(height/20))
+            cells = [np.hsplit(row,width/20) for row in np.vsplit(gray,height/20)]
+            # deskewed = [map(self.deskew,row) for row in cells]
+            hogdata = [map(Process.hog,row) for row in cells]
 
-                # Builds training data
-                train_data = np.concatenate((train_data, np.float32(hogdata).reshape(-1,64)), axis=0)
-                # Builds labels for training data
-                # http://stackoverflow.com/questions/29241056/the-use-of-python-numpy-newaxis
-                responses = np.concatenate((responses,np.float32(np.repeat([self.decode_file(code)],width/20 * height/20)[:,np.newaxis])),axis=0)
-            except:
-                print('ERR: file ' + f + ' does not exist at ' + file_path)
+            # Builds training data
+            train_data = np.concatenate((train_data, np.float32(hogdata).reshape(-1,64)), axis=0)
+            # Builds labels for training data
+            # http://stackoverflow.com/questions/29241056/the-use-of-python-numpy-newaxis
+            responses = np.concatenate((responses,np.float32(np.repeat([self.decode_file(code)],width/20 * height/20)[:,np.newaxis])),axis=0)
+            #except:
+            #    print('ERR: file ' + f + ' does not exist at ' + file_path)
 
         return train_data, responses
 
@@ -211,8 +208,13 @@ class HandwritingRecognition:
         elif (code == 'rpr'): return ord(')')
         elif (code == 'two'): return ord('2')
         elif (code == 'chk'): return ord('_')
+        elif (len(code) == 5):
+            if (code[3] == '_'):
+                print('MSG: ' + code + ' = ' + code[0:3])
+                return self.decode_file(code[0:3])
         elif( len(code) == 3):
             if (code[1] == '_'):
+                print('MSG: ' + code + ' = ' + code[0])
                 return ord(code[0])
         elif (len(code) == 1):
             return ord(code)
@@ -246,10 +248,10 @@ class HandwritingRecognition:
 
         # Resolves fuzzy contours (i,j,=) (multi-contour characters)
         lines = [val for val in chars if chr(val.result) == '1']
-        dots = [res for res in chars if chr(res.result) == '0' or chr(res.result) == '.']
+        dots = [res for res in chars if chr(res.result) == '.']
         dashes = [obj for obj in chars if chr(obj.result) == '-']
         chars[:] = [val for val in chars if chr(val.result) != '1' \
-            and chr(val.result) != '0' and chr(val.result) != '.' and chr(val.result) != '-']
+            and chr(val.result) != '.' and chr(val.result) != '-']
         fuzzy_conts = self.resolve_symbols(dots,lines,dashes)
 
         if len(fuzzy_conts) > 0:
@@ -277,7 +279,7 @@ class HandwritingRecognition:
             # elif classification == 2:
             #     self.SVM_build_chars(self.SVM_num,reshape_data, self.chars)
 
-            # Prints characters on screen in location corresponding to the image
+            # Disp characters on screen in location corresponding to the image
             if self.frame is not None:
                 for roi in self.chars:
                     cv2.circle(self.frame,(roi.x,roi.y), 5, (0,0,255), -1)
@@ -466,8 +468,6 @@ class HandwritingRecognition:
             if val > 1:
                 line_index.append(idx+1)
         line_index.append(len(char_list))
-        # print all_chars
-        # print word_index
         lines = []
         for idx in range(0,len(line_index)-1):
             lines.append(char_list[line_index[idx]:line_index[idx+1]])
