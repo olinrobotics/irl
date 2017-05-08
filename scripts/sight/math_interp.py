@@ -373,13 +373,8 @@ class Calculator:
                     msg.x = -500
                     msg.y = 5700
                     msg.z = -800
-<<<<<<< HEAD
-                    print(answer)
-                    # self.pub.publish(msg)
-=======
                     self.pub.publish(msg)
                     self.num_demos += 1
->>>>>>> 360064ac3c276a854e26490cecbb0f97dc1fe44a
                     time.sleep(5)
         self.pub_speak.publish("There. Your homework is done.")
 
