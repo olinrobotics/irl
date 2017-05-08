@@ -27,7 +27,7 @@ import time
 # global variables
 integer_list = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.']
 operator_list = ['+', '-', '/', '*', '^', '(', ')', '=']
-variable_list = ['a', 'b']
+variable_list = ['a']
 placeholder_list = ['p', 'q', 'r', 's', 't', 'u']
 
 
@@ -35,7 +35,14 @@ class Calculator:
     def __init__(self):
         '''initializes the object'''
         rospy.init_node('doing_math')
+<<<<<<< HEAD
         # self.pub = rospy.Publisher('/write_cmd', Edwin_Shape, queue_size=10)
+=======
+        self.pub = rospy.Publisher('/write_cmd', Edwin_Shape, queue_size=10)
+        self.pub_behave = rospy.Publisher('/behaviors_cmd', String, queue_size=10)
+        self.pub_speak = rospy.Publisher('/edwin_speech_cmd', String, queue_size=10)
+        self.status_sub = rospy.Subscriber('/arm_status', String, self.status_callback, queue_size=10)
+>>>>>>> 360064ac3c276a854e26490cecbb0f97dc1fe44a
         self.tree = tuple()
         self.eqn = '3++5'
         # rospy.Subscriber('word_publish', String, self.cmd_callback)
@@ -45,6 +52,22 @@ class Calculator:
         # first several characters are not part of the equation, so removes them
         self.eqn = str(data)[6:]
         # self.pub.publish(data)
+
+    def status_callback(self, data):
+		print ("arm status callback", data.data)
+		if data.data == "busy" or data.data == "error":
+			self.status = 0
+		elif data.data == "free":
+			self.status = 1
+
+    def check_completion(self):
+		"""
+		makes sure that actions run in order by waiting for response from service
+		"""
+
+		time.sleep(3)
+		while self.status == 0:
+			pass
 
     def solve_simple(self, eqn):
         '''takes in a simple equation; solves it; returns a string of the answer'''
@@ -73,6 +96,10 @@ class Calculator:
         eqn = self.fixes_letters(eqn)
         if not all(digit in variable_list or digit in integer_list or digit in operator_list for digit in eqn):
             raise ValueError("I do not know that character")
+            self.pub_behave.publish('sad')
+            self.check_completion()
+            self.pub_speak.publish("I do not know that character. Give me another problem.")
+            self.num_demos += 1
         found_variables = []
         for variable in variable_list:
             if variable in eqn:
@@ -80,13 +107,25 @@ class Calculator:
                 found_variables.append(variable)
                 if eqn[index+1:].find(variable) != -1:
                     raise ValueError('I found two instances of the same variable')
+                    self.pub_behave('sad')
+                    self.check_completion()
+                    self.pub_speak.publish("I can't solve that. Give me another problem.")
+                    self.num_demos += 1
         if len(found_variables) > 1:
             raise ValueError('I found too many variables')
+            self.pub_behave('sad')
+            self.check_completion()
+            self.pub_speak.publish("I can't solve that. Give me another problem.")
+            self.num_demos += 1
         actual_ops = operator_list[:4]
         for n in range(len(eqn)-1):
             print(eqn[n])
             if eqn[n] in actual_ops and eqn[n+1] in actual_ops and eqn[n+1] != '-':
                 raise ValueError('Two operations in a row?')
+                self.pub_behave('sad')
+                self.check_completion()
+                self.pub_speak.publish("That's not how you write equations. Give me another problem.")
+                self.num_demos += 1
         else:
             # if it's clean, initialize the tree
             eqn = self.parse_var_mul(eqn)
@@ -300,22 +339,32 @@ class Calculator:
                     return self.rsstring
             except ValueError as err:
                 print(err)
+                self.pub_behave('sad')
+                self.check_completion()
+                self.pub_speak.publish("I can't solve that. Give me another problem.")
+                self.num_demos += 1
         elif all(digit in variable_list or digit in integer_list or digit in operator_list for digit in self.eqn):
             actual_ops = operator_list[:4]
             for n in range(len(self.eqn)-1):
                 print(self.eqn[n])
                 if self.eqn[n] in actual_ops and self.eqn[n+1] in actual_ops and self.eqn[n+1] != '-':
-                    raise ValueError('Two operations in a row?')
-                    # TODO Do the rest of publishing errors here
+                    self.pub_behave('sad')
+                    self.check_completion()
+                    self.pub_speak.publish("That's not how to write equations. Give me another problem.")
+                    self.num_demos += 1
             return self.solve_simple(self.eqn)
         else:
-            return 'what?'
+            self.pub_behave('sad')
+            self.check_completion()
+            self.pub_speak.publish("I can't solve that. Give me another problem.")
+            self.num_demos += 1
 
     def run(self):
         '''only prints the answer if it's getting a nontrivial input
         will only print the output once '''
         answer = ''
-        while not rospy.is_shutdown():
+        self.num_demos = 0
+        while not rospy.is_shutdown() and self.num_demos < 3:
             if self.eqn != '':
                 answer = self.determine_problem()
                 if answer != '':
@@ -324,10 +373,15 @@ class Calculator:
                     msg.x = -500
                     msg.y = 5700
                     msg.z = -800
+<<<<<<< HEAD
                     print(answer)
                     # self.pub.publish(msg)
+=======
+                    self.pub.publish(msg)
+                    self.num_demos += 1
+>>>>>>> 360064ac3c276a854e26490cecbb0f97dc1fe44a
                     time.sleep(5)
-                    break
+        self.pub_speak.publish("There. Your homework is done.")
 
 
 if __name__ == '__main__':
