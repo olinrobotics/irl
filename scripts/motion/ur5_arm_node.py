@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import time
-import roslib; roslib.load_manifest('robotic_arm_control')
+import roslib; roslib.load_manifest('edwin')
 import rospy
 import actionlib
 from control_msgs.msg import *
