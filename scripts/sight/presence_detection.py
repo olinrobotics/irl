@@ -150,9 +150,7 @@ class Presence:
         """
 
         command = data.data
-        if command == "reset":
-            self.reset()
-        elif command == "start":
+        if command == "start":
             self.running = True
         elif command == "stop":
             self.running = False
@@ -271,6 +269,7 @@ class Presence:
 
 
         if (self.person is not None) and (self.person.acknowledged == False):
+            self.person.acknowledged = True
             print "I see you!"
             self.idle_pub.publish("idle:stop")
             time.sleep(2)
@@ -281,10 +280,10 @@ class Presence:
                     self.check_completion()
 
 
-            self.person.acknowledged = True
             self.detection_pub.publish('found')
 
         elif self.person is None:
+            print "I don't see you"
             self.detection_pub.publish('nothing')
 
 

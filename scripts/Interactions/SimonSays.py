@@ -53,9 +53,10 @@ class SimonSays(object):
 	2. SimonEdwin - Edwin is the Simon and issues commands to the user
 	3. SimonUser - The user if the Simon and tell Edwin what to do
 	"""
-	def __init__(self, max_turns = 5):
+	def __init__(self, max_turns = 5, rospy=None):
 		#init ROS nodes
-		rospy.init_node('ss_gamemaster', anonymous = True)
+		if rospy is None:
+			rospy.init_node('ss_gamemaster', anonymous = True)
 
 		#ROS subscriber variables
 		self.ready_to_listen = False       #stt
@@ -201,7 +202,7 @@ class SimonSays(object):
 		self.command_2_speech["heart"] = "make a heart above your head"
 		self.command_2_speech["touch_head"] = "touch your head with your left hand"
 		self.command_2_speech["rub_tummy"] = "rub your tummy with both hands"
-		self.command_2_speech["high_five"] = "clap to your left"
+		self.command_2_speech["high_five"] = "give yourself a high five to your left"
 		self.command_2_speech["star"] = "make a starfish"
 
 		##NON WORKING GESTURES
@@ -435,8 +436,8 @@ class EdwinSimon(SimonSays):
 	2. Edwin will check if the user has performed the command
 	3. Game continues for 5 turns or until user fails to perform command
 	"""
-	def __init__(self):
-		super(EdwinSimon, self).__init__()
+	def __init__(self, rospy=None):
+		super(EdwinSimon, self).__init__(rospy=rospy)
 
 		# additional variables specific to when Edwin is Simon
 

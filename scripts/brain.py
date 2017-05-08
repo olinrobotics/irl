@@ -54,6 +54,7 @@ class EdwinBrain:
         self.idle_pub = rospy.Publisher('/idle_cmd', String, queue_size=10)
         self.presence_pub = rospy.Publisher('/presence_cmd', String, queue_size=10)
 
+        rospy.Subscriber('/tracking', Int16, self.tracking_callback, queue_size=10)
         rospy.Subscriber('/detected', String, self.detection_callback, queue_size=10)
 
 
@@ -64,6 +65,7 @@ class EdwinBrain:
 
         #presence stuff
         self.detected = False
+        self.tracking = 0
 
         #homework stuff
         self.hand_recog = HandwritingRecognition(rospy)
@@ -75,6 +77,15 @@ class EdwinBrain:
 
         time.sleep(1)
         print "edwin brain is running"
+
+
+    def tracking_callback(self, data):
+        """
+        Receives tracking data on whether a person is detected
+        """
+
+        self.tracking = data.data
+
 
     def detection_callback(self, data):
         """
@@ -96,10 +107,10 @@ class EdwinBrain:
             self.menu_choice = self.menu.run()
         # self.idle_pub.publish("idle:stop")
         self.presence_pub.publish('stop')
-        # time.sleep(1)
-        # if self.menu_choice == "simon":
-        #     game = EdwinSimon()
-        #     game.run()
+        time.sleep(1)
+        if self.menu_choice == "simon":
+            game = EdwinSimon(rospy)
+            game.run()
         # elif self.menu_choice == "player":
         #     difficulty = raw_input("How good should Edwin be?\n")
         #     game = EdwinPlayer(difficulty)
@@ -110,7 +121,7 @@ class EdwinBrain:
         #     game.run()
         #     self.hand_recog.is_running = False
         #
-        # time.sleep(3)
+        time.sleep(3)
         # self.idle_pub.publish("idle:go")
         print self.menu_choice
         print "Let's assume it will do the demo"
@@ -123,10 +134,12 @@ class EdwinBrain:
         while not rospy.is_shutdown():
             if self.detected:
                 self.demo()
-                time.sleep(1)
-                self.presence_pub.publish('reset')
-                self.presence_pub.publish('start')
+                print "Demo done"
+                while self.tracking == 1:
+                    pass
+                print "User has left"
                 self.detected = False
+                self.presence_pub.publish('start')
 
             r.sleep()
 
