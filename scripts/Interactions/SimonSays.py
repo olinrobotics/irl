@@ -55,8 +55,7 @@ class SimonSays(object):
 	"""
 	def __init__(self, max_turns = 5, rospy=None):
 		#init ROS nodes
-		if rospy is None:
-			rospy.init_node('ss_gamemaster', anonymous = True)
+			# rospy.init_node('ss_gamemaster', anonymous = True)
 
 		#ROS subscriber variables
 		self.ready_to_listen = False       #stt
@@ -436,7 +435,7 @@ class EdwinSimon(SimonSays):
 	2. Edwin will check if the user has performed the command
 	3. Game continues for 5 turns or until user fails to perform command
 	"""
-	def __init__(self, rospy=None):
+	def __init__(self, rospy):
 		super(EdwinSimon, self).__init__(rospy=rospy)
 
 		# additional variables specific to when Edwin is Simon
@@ -480,7 +479,11 @@ class EdwinSimon(SimonSays):
 			self.current_cmd = "simon says, " + self.command_2_speech.get(command)
 			self.first = False
 		else:
-			self.current_cmd = random.choice(["simon says, ", ""]) + self.command_2_speech.get(command)
+			chance = np.random.random()
+			if chance < .75:
+				self.current_cmd = random.choice("simon says " + self.command_2_speech.get(command)
+			else:
+				self.current_cmd = random.choice(self.command_2_speech.get(command)
 
 		self.say_pub.publish(self.current_cmd)
 		time.sleep(4)
@@ -591,8 +594,8 @@ class EdwinPlayer(SimonSays):
 	2. Edwin will perform the command based on what he heard
 	3. Game continues until the user says Edwin is wrong, or until 5 turns
 	"""
-	def __init__(self, difficulty):
-		super(EdwinPlayer, self).__init__()
+	def __init__(self, difficulty, rospy):
+		super(EdwinPlayer, self).__init__(rospy=rospy)
 		self.difficulty = float(difficulty) * 0.1
 
 

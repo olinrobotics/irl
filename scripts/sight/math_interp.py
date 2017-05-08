@@ -32,10 +32,10 @@ placeholder_list = ['p', 'q', 'r', 's', 't', 'u']
 
 
 class Calculator:
-    def __init__(self):
+    def __init__(self, rospy):
         '''initializes the object'''
 
-        rospy.init_node('math_solving')
+        # rospy.init_node('math_solving')
 
         self.pub = rospy.Publisher('/write_cmd', Edwin_Shape, queue_size=10)
         self.pub_behave = rospy.Publisher('/behaviors_cmd', String, queue_size=10)
@@ -367,7 +367,7 @@ class Calculator:
             for n in range(len(self.eqn)-1):
                 print(self.eqn[n])
                 if self.eqn[n] in actual_ops and self.eqn[n+1] in actual_ops and self.eqn[n+1] != '-':
-                    self.pub_behave('sad')
+                    self.pub_behave.publish('sad')
                     self.check_completion()
                     self.pub_speak.publish("That's not how to write equations. Give me another problem.")
                     self.num_demos += 1
@@ -395,7 +395,7 @@ class Calculator:
                 pass
             print "The eqn I found is ", self.eqn
             answer = self.determine_problem()
-            if answer != '' or answer is not None:
+            if answer != '' or answer != 'None':
                 print "ANSWER: ", answer
                 msg = Edwin_Shape()
                 msg.shape = str(answer)

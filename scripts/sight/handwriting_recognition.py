@@ -32,15 +32,13 @@ class HandwritingRecognition:
             """
         pass
 
-    def __init__(self, node=None):
+    def __init__(self):
         ''' DOCSTRING:
             Initializes ros nodes, state vars, windows, etc. for current HR obj;
             Contains lists differentiating alpha & numeric symbols
             '''
-        # if node is None:
         rospy.init_node('handwriting_recognition', anonymous=True) # makes self into node
-        # else:
-            # rospy = node
+
 
         rospy.Subscriber('usb_cam/image_raw', Image, self.img_callback) # subscribes to cam feed
 

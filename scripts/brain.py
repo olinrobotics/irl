@@ -67,10 +67,6 @@ class EdwinBrain:
         self.detected = False
         self.tracking = 0
 
-        #homework stuff
-        self.hand_recog = HandwritingRecognition(rospy)
-        # self.hand_recog.run()
-
 
         #idle starts now
         self.idle_pub.publish("idle:init")
@@ -111,22 +107,17 @@ class EdwinBrain:
         if self.menu_choice == "simon":
             game = EdwinSimon(rospy)
             game.run()
-        # elif self.menu_choice == "player":
-        #     difficulty = raw_input("How good should Edwin be?\n")
-        #     game = EdwinPlayer(difficulty)
-        #     game.run()
-        # elif self.menu_choice == "homework":
-        #     self.hand_recog.is_running = True
-        #     game = Calculator()
-        #     game.run()
-        #     self.hand_recog.is_running = False
-        #
+        elif self.menu_choice == "player":
+            difficulty = raw_input("How good should Edwin be?\n")
+            game = EdwinPlayer(difficulty, rospy)
+            game.run()
+        elif self.menu_choice == "homework":
+            game = Calculator(rospy)
+            game.run()
+
         time.sleep(3)
         # self.idle_pub.publish("idle:go")
-        print self.menu_choice
-        print "Let's assume it will do the demo"
-        print "Waiting..."
-        time.sleep(5)
+
 
     def run(self):
         r = rospy.Rate(10)
