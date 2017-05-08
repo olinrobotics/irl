@@ -27,7 +27,7 @@ import time
 # global variables
 integer_list = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.']
 operator_list = ['+', '-', '/', '*', '^', '(', ')', '=']
-variable_list = ['a']
+variable_list = ['d']
 placeholder_list = ['p', 'q', 'r', 's', 't', 'u']
 
 
@@ -395,6 +395,8 @@ class Calculator:
                 while self.writing_status == 0:
                     pass
                 print "problem done"
+                self.eqn = ''
+                self.writing_status = 0
         self.pub_speak.publish("There. Your homework is done.")
         time.sleep(3)
 
