@@ -63,10 +63,11 @@ class SkeletonDetect:
 		PACKAGE_PATH = rospack.get_path("edwin")
 		filepath = PACKAGE_PATH + "/scripts/sight/skeleton.csv"
 		#Read training data
+
 		with open(filepath, 'r') as f:
 			reader = csv.reader(f)
 			self.X_data = [col[1:] for col in reader][1:]
-		with open(filepath, 'r') as f:
+		with open(filepath,'r') as f:
 			reader = csv.reader(f)
 			self.Y_data = [col[0] for col in reader][1:]
 
@@ -133,11 +134,12 @@ class SkeletonDetect:
 		print("Finish Training")
 
 		#Testing accuracy
-		'''
+
+		"""
 		X_train, X_test, Y_train, Y_test = train_test_split(self.X_data, self.Y_data, test_size=0.2, random_state=42)
 		self.knn.fit(X_train,Y_train)
 		print(self.knn.score(X_test,Y_test))
-		'''
+		"""
 
 	def skeleton_detect_test(self):
 		"""
@@ -174,13 +176,17 @@ class SkeletonDetect:
 				self.detect_pub.publish(find_max(self.gesture))
 				self.gesture = dict()
 				self.moving = {"disco1":False,"disco2":False,"bow1":False,"bow2":False}
+
+				# stop detecting for 1 second to make sure there is only one response published
+				time.sleep(1)
 			except:
-				self.detect_pub.publish('Gesture not detected')
+				pass
 
 	def run(self):
 		r = rospy.Rate(10)
 		self.train_data_processing()
 		self.skeleton_detect_train()
+
 		while not rospy.is_shutdown():
 			if self.is_detecting:
 				self.skeleton_detect_test()

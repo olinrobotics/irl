@@ -36,7 +36,8 @@ class ArmGui:
     def route_move(self, num):
         msg = "data: run_route:: " + str(self.route_s.get())
         print "sending: ", msg
-        self.pub.publish(msg)
+        self.request_cmd(msg)
+
 
     def say_clbk(self, val):
         msg = str(self.say_s.get())
@@ -57,37 +58,44 @@ class ArmGui:
     def cmd_set(self, val):
         msg = str(self.cmd_s.get())
         print "sending; ", msg
-        self.pub.publish(msg)
+        self.request_cmd(msg)
+
 
     def wrist_move(self, num):
         msg = "data: rotate_wrist:: " + str(self.wrist_s.get())
         print "sending: ", msg
-        self.pub.publish(msg)
+        self.request_cmd(msg)
+
 
     def hand_move(self, num):
         msg = "data: rotate_hand:: " + str(self.hand_s.get())
         print "sending: ", msg
-        self.pub.publish(msg)
+        self.request_cmd(msg)
+
 
     def elbow_move(self, num):
         msg = "data: rotate_elbow:: " + str(self.elbow_s.get())
         print "sending: ", msg
-        self.pub.publish(msg)
+        self.request_cmd(msg)
+
 
     def shoulder_move(self, num):
         msg = "data: rotate_shoulder:: " + str(self.shoulder_s.get())
         print "sending: ", msg
-        self.pub.publish(msg)
+        self.request_cmd(msg)
+
 
     def waist_move(self, num):
         msg = "data: rotate_waist:: " + str(self.waist_s.get())
         print "sending: ", msg
-        self.pub.publish(msg)
+        self.request_cmd(msg)
+
 
     def speed_set(self, num):
         msg = "data: set_speed:: " + str(self.speed_s.get())
         print "sending: ", msg
-        self.pub.publish(msg)
+        self.request_cmd(msg)
+
 
     def init_control_fields(self):
         self.f1 = tk.Frame(self.master)
