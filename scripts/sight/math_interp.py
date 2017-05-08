@@ -35,17 +35,12 @@ class Calculator:
     def __init__(self):
         '''initializes the object'''
         rospy.init_node('doing_math')
-<<<<<<< HEAD
-        # self.pub = rospy.Publisher('/write_cmd', Edwin_Shape, queue_size=10)
-=======
         self.pub = rospy.Publisher('/write_cmd', Edwin_Shape, queue_size=10)
         self.pub_behave = rospy.Publisher('/behaviors_cmd', String, queue_size=10)
         self.pub_speak = rospy.Publisher('/edwin_speech_cmd', String, queue_size=10)
         self.status_sub = rospy.Subscriber('/arm_status', String, self.status_callback, queue_size=10)
->>>>>>> 360064ac3c276a854e26490cecbb0f97dc1fe44a
         self.tree = tuple()
-        self.eqn = '3++5'
-        # rospy.Subscriber('word_publish', String, self.cmd_callback)
+        rospy.Subscriber('word_publish', String, self.cmd_callback)
 
     def cmd_callback(self, data):
         '''callback'''
