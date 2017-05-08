@@ -35,13 +35,17 @@ class Calculator:
     def __init__(self):
         '''initializes the object'''
         rospy.init_node('doing_math')
+<<<<<<< HEAD
+        # self.pub = rospy.Publisher('/write_cmd', Edwin_Shape, queue_size=10)
+=======
         self.pub = rospy.Publisher('/write_cmd', Edwin_Shape, queue_size=10)
         self.pub_behave = rospy.Publisher('/behaviors_cmd', String, queue_size=10)
         self.pub_speak = rospy.Publisher('/edwin_speech_cmd', String, queue_size=10)
         self.status_sub = rospy.Subscriber('/arm_status', String, self.status_callback, queue_size=10)
+>>>>>>> 360064ac3c276a854e26490cecbb0f97dc1fe44a
         self.tree = tuple()
-        self.eqn = ''
-        rospy.Subscriber('word_publish', String, self.cmd_callback)
+        self.eqn = '3++5'
+        # rospy.Subscriber('word_publish', String, self.cmd_callback)
 
     def cmd_callback(self, data):
         '''callback'''
@@ -115,6 +119,7 @@ class Calculator:
             self.num_demos += 1
         actual_ops = operator_list[:4]
         for n in range(len(eqn)-1):
+            print(eqn[n])
             if eqn[n] in actual_ops and eqn[n+1] in actual_ops and eqn[n+1] != '-':
                 raise ValueError('Two operations in a row?')
                 self.pub_behave('sad')
@@ -339,6 +344,14 @@ class Calculator:
                 self.pub_speak.publish("I can't solve that. Give me another problem.")
                 self.num_demos += 1
         elif all(digit in variable_list or digit in integer_list or digit in operator_list for digit in self.eqn):
+            actual_ops = operator_list[:4]
+            for n in range(len(self.eqn)-1):
+                print(self.eqn[n])
+                if self.eqn[n] in actual_ops and self.eqn[n+1] in actual_ops and self.eqn[n+1] != '-':
+                    self.pub_behave('sad')
+                    self.check_completion()
+                    self.pub_speak.publish("That's not how to write equations. Give me another problem.")
+                    self.num_demos += 1
             return self.solve_simple(self.eqn)
         else:
             self.pub_behave('sad')
@@ -360,8 +373,13 @@ class Calculator:
                     msg.x = -500
                     msg.y = 5700
                     msg.z = -800
+<<<<<<< HEAD
+                    print(answer)
+                    # self.pub.publish(msg)
+=======
                     self.pub.publish(msg)
                     self.num_demos += 1
+>>>>>>> 360064ac3c276a854e26490cecbb0f97dc1fe44a
                     time.sleep(5)
         self.pub_speak.publish("There. Your homework is done.")
 
