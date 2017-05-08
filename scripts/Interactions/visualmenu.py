@@ -11,7 +11,10 @@ from sensor_msgs.msg import Image
 from edwin.msg import Edwin_Shape
 from cv_bridge import CvBridge, CvBridgeError
 
-class visualmenu:
+#Todo: Increase tracking accuracy
+
+
+class visualMenu:
     #The goal is to have someone put their hand under the camera, and then
     #the camera will read which portion of the screen the hand is in.
     #If the person keeps their hand relatively still for 3 seconds,
@@ -27,7 +30,8 @@ class visualmenu:
         self.bridge = CvBridge()
         rospy.Subscriber("usb_cam/camera_raw", Image, self.img_callback)
 
-
+        self.choice = ""
+        self.bg_sub = None
         self.detect = True
         self.frame = None
         self.mode = 1 #mode1 = local camera, mode 2 = ROS camera feed.
@@ -40,9 +44,10 @@ class visualmenu:
         self.decision_length = 40 #amount of time in the recorded queue to m
                                     #Decision.
 
-        self.choice = ""
 
-        self.button_point_list = [(150, 240), (320,240), (490, 240)]
+
+
+        self.button_point_list = [(100, 240), (320,240), (540, 240)]
         self.activities_list = ["SimonSays: Player", "SimonSays: Simon", "Homework"]
 
         #Initialize buttons:
@@ -79,6 +84,8 @@ class visualmenu:
         #Find the hand
         max_area = 0
 
+        #composite = self.bg_sub.apply(blur.copy())
+
         contours, hierarchy = cv2.findContours(composite.copy(),cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
         for i in range(len(contours)):
             cont=contours[i]
@@ -86,7 +93,8 @@ class visualmenu:
             if(area>max_area):
                 max_area=area
                 ci=i
-        cont=contours[ci]
+
+        cont = contours[ci]
 
         #find center coordinate of the hand, or rather, the centroids
         m = cv2.moments(cont)
@@ -108,12 +116,24 @@ class visualmenu:
         blur = cv2.GaussianBlur(frame,(5,5),0)
         #ret,thresh1 = cv2.threshold(blur,10,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
 
+        #Kalman filter?
+
         frame_list = [];
 
         for i in cList:
-            blur_copy = blur.copy()
-            colorHigh = i + 10
-            colorLow = i - 15
+            blur_copy = cv2.cvtColor(blur.copy(), cv2.COLOR_BGR2HSV)
+            colorHigh = i.copy()
+            colorHigh[0] = colorHigh[0] + 3
+            colorHigh[1] = colorHigh[1] + 20
+            colorHigh[2] = colorHigh[2] + 40
+            colorLow = i.copy()
+            colorLow[0] = colorLow[0] -3
+            colorLow[1] = colorLow[1] -20
+            colorLow[2] = colorLow[2] -40
+            #colorHigh = i + 20
+            #colorLow = i - 30
+
+            #http://stackoverflow.com/questions/8593091/robust-hand-detection-via-computer-vision
 
             mask = cv2.inRange(blur_copy, colorLow, colorHigh)
             mask = cv2.erode(mask, None, iterations=2)
@@ -128,6 +148,9 @@ class visualmenu:
         composite = cv2.medianBlur(composite, 5)
 
         frames = [composite, blur]
+
+        #cv2.imshow("composite", composite)
+        #cv2.waitKey(1)
         return frames
 
 ###############
@@ -168,6 +191,7 @@ class visualmenu:
         #         bg_noise = total_pixels - (total_black - roi_black)
         #         cv2.imshow("composite", composite)
         #         print bg_noise
+        print cList
         return cList
 
                 #http://www.pyimagesearch.com/2015/09/14/ball-tracking-with-opencv/
@@ -190,6 +214,20 @@ class visualmenu:
 
         cList = [[],[],[],[],[],[]]
 
+        # #Background Subtractor initialization
+        #
+        # while self.detect:
+        #     k = cv2.waitKey(1) & 0xFF
+        #     if k == ord('q'):
+        #         break
+        #     else:
+        #         frame = self.get_frame()
+        #         cv2.putText(frame,
+        #         "Vacate the frame and press 'q' when you are ready to calibrate",
+        #         (40, 460), cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), 2)
+        #         cv2.imshow("test", frame)
+        #
+        # self.bg_sub = cv2.BackgroundSubtractorMOG2()
 
 
         while self.detect:
@@ -197,7 +235,11 @@ class visualmenu:
             if k == ord('q'):
                 break
             else:
+
                 frame = self.get_frame()
+                #Turn into HSV
+                read_frame = cv2.cvtColor(frame.copy(), cv2.COLOR_BGR2HSV)
+
 
                 cv2.putText(frame,
                 "Put your hand in the box and press 'q' when you are ready to calibrate",
@@ -241,16 +283,18 @@ class visualmenu:
             #Read all the points' colors, add to list.
             for k in range(0,len(cList)):
                 point = pList[k]
-                cList[k].append((int(frame[point][0]), int(frame[point][1]), int(frame[point][2])))
+                cList[k].append((int(read_frame[point][0]), int(read_frame[point][1]), int(read_frame[point][2])))
 
 
             cv2.imshow("test", frame)
             cv2.waitKey(1)
 
+
+
         for l in range(0,len(cList)): #pare down to finding the mode?
             # med = cList[l]
-            # med = stats.mode(med)
-            # med = int(med[0])
+            # med = np.median(med)
+            # med = int(med)
             # cList[l] = med
             cList[l] = np.mean(cList[l], axis=0)
 
@@ -271,13 +315,16 @@ class visualmenu:
                 return self.area_list.index(i) #Is there a simpler way?
 
     def get_frame(self):
+        #Mode for switching between
         if self.mode == 1:
             grab, frame = self.cap.read()
             frame = cv2.flip(frame, 1)
+
             return frame
 
         elif self.mode == 2 and self.frame != None:
             frame = cv2.flip(self.frame, 1)
+
             return frame
 
     def get_median(self, option): #Technically the mode, but that would be confusing.
@@ -342,8 +389,11 @@ class visualmenu:
                 point1 = (i[0][0], i[1][0])
                 point2 = (i[0][1], i[1][1])
                 cv2.rectangle(frame, point1, point2, (0,0,255), -1)
+                text_spot = list(self.button_point_list[j])
+                text_spot[0] = text_spot[0] - 70
+                text_spot = tuple(text_spot)
                 cv2.putText(frame, self.activities_list[j],
-                self.button_point_list[j], cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), 2)
+                text_spot, cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), 2)
 
         else:
             i = self.region_list[med]
@@ -351,8 +401,12 @@ class visualmenu:
             point2 = (i[0][1], i[1][1])
             cv2.rectangle(frame, point1, point2, (0,255,0), -1)
 
+            text_spot = list(self.button_point_list[med])
+            text_spot[0] = text_spot[0] - 70
+            text_spot = tuple(text_spot)
+
             cv2.putText(frame, self.activities_list[med],
-            self.button_point_list[med], cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), 2)
+            text_spot, cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), 2)
 
 
             cv2.waitKey(200)
@@ -435,6 +489,8 @@ class visualmenu:
 
         #Initial Calibration
 
+
+
         while self.detect:
             frame = self.get_frame()
             processed_frame = self.process_frame(frame, self.colorList)
@@ -455,5 +511,5 @@ class visualmenu:
         return self.choice
 
 if __name__ == '__main__':
-    vm = visualmenu()
+    vm = visualMenu()
     vm.run()

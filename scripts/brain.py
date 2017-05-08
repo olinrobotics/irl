@@ -40,73 +40,105 @@ import pickle, os, sys
 from std_msgs.msg import String, Int16
 
 
-from Interactions.SimonSays import AutonomousSimon, EdwinSimon, EdwinPlayer
-from sight.presence_detection import Presence
+from Interactions.SimonSays import EdwinSimon, EdwinPlayer
 from sight.math_interp import Calculator
 from sight.handwriting_recognition import HandwritingRecognition
-from Interactions.visualmenu import VisualMenu
 
 
 class EdwinBrain:
-    def __init__(self):
+    def __init__(self, manual):
         rospy.init_node('edwin_brain', anonymous=True)
 
         self.arm_pub = rospy.Publisher('/arm_cmd', String, queue_size=2)
         self.behav_pub = rospy.Publisher('/behaviors_cmd', String, queue_size=2)
-        self.idle_pub = rospy.Publisher('/idle_cmd', Stringm queue_size=10)
+        self.idle_pub = rospy.Publisher('/idle_cmd', String, queue_size=10)
+        self.presence_pub = rospy.Publisher('/presence_cmd', String, queue_size=10)
 
-        self.idling = False
-        self.exit = False #should be catch all to exit all long running commands
-        self.activity = None
+        rospy.Subscriber('/tracking', Int16, self.tracking_callback, queue_size=10)
+        rospy.Subscriber('/detected', String, self.detection_callback, queue_size=10)
 
-        time.sleep(1)
-        print "edwin brain is running"
+
+        self.manual = manual
 
         #visualmenu stuff
-        self.menu = VisualMenu()
         self.menu_choice = None
 
-        #homework stuff
-        self.hand_recog = HandwritingRecognition()
-        self.hand_recog.run()
+        #presence stuff
+        self.detected = False
+        self.tracking = 0
 
 
         #idle starts now
         self.idle_pub.publish("idle:init")
 
+        time.sleep(1)
+        print "edwin brain is running"
+
+
+    def tracking_callback(self, data):
+        """
+        Receives tracking data on whether a person is detected
+        """
+
+        self.tracking = data.data
+
+
+    def detection_callback(self, data):
+        """
+        Receives detection data, whether something was detected or not
+        """
+
+        if data.data == "found":
+            self.detected = True
+        elif data.data == "nothing":
+            self.detected = False
 
     def demo(self):
-
-        self.menu_choice = self.menu.run()
-        self.idle_pub.publish("idle:stop")
-        if self.menu_choice == "SimonSays: Simon":
-            game = EdwinSimon()
+        """
+        Main loop that does the demo
+        """
+        if self.manual:
+            self.menu_choice = raw_input("What game would you like to play?\n")
+        else:
+            self.menu_choice = self.menu.run()
+        # self.idle_pub.publish("idle:stop")
+        self.presence_pub.publish('stop')
+        time.sleep(1)
+        if self.menu_choice == "simon":
+            game = EdwinSimon(rospy)
             game.run()
-        elif self.menu_choice == "SimonSays: Player":
+        elif self.menu_choice == "player":
             difficulty = raw_input("How good should Edwin be?\n")
-    		game = EdwinPlayer(difficulty)
+            game = EdwinPlayer(difficulty, rospy)
             game.run()
-        elif self.menu_choice == "Homework":
-            game = Calculator()
+        elif self.menu_choice == "homework":
+            game = Calculator(rospy)
             game.run()
 
         time.sleep(3)
-        self.idle_pub.publish("idle:go")
-
-
-    def chicken(self):
-        """
-        Main loop that takes in demo???
-        """
-        
+        # self.idle_pub.publish("idle:go")
 
 
     def run(self):
         r = rospy.Rate(10)
+
         while not rospy.is_shutdown():
+            if self.detected:
+                self.demo()
+                print "Demo done"
+                while self.tracking == 1:
+                    pass
+                print "User has left"
+                self.detected = False
+                self.presence_pub.publish('start')
+
             r.sleep()
 
 
+
+
+
 if __name__ == '__main__':
-    TheBrain = EdwinBrain()
-    TheBrain.demo()
+    manual = True
+    TheBrain = EdwinBrain(manual)
+    TheBrain.run()

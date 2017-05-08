@@ -6,6 +6,7 @@ import numpy as np
 from std_msgs.msg import String
 from edwin.msg import *
 import time
+from edwin.srv import arm_cmd
 
 
 class Writer:
@@ -18,12 +19,29 @@ class Writer:
 
         self.behavior_pub = rospy.Publisher('behaviors_cmd', String, queue_size=10)
         self.arm_pub = rospy.Publisher('arm_cmd', String, queue_size=10)
+        self.writing_pub = rospy.Publisher("writing_status", String, queue_size=10)
 
         print "starting edwin writer...."
 
         self.w = 200
         self.letter_dictionary = {}
         self.make_letter_dictionary()
+
+
+    def request_cmd(self, cmd):
+        rospy.wait_for_service('arm_cmd', timeout=15)
+        cmd_fnc = rospy.ServiceProxy('arm_cmd', arm_cmd)
+        print "I have requested the command"
+
+        try:
+            resp1 = cmd_fnc(cmd)
+            print "command done"
+
+
+        except rospy.ServiceException, e:
+            print "Service call failed: %s"%e
+
+
 
     def make_letter_dictionary(self):
         w = self.w
@@ -179,17 +197,18 @@ class Writer:
 
             msg = "move_to:: " + str(data.x-stroke[0]) + ", " + str(data.y-stroke[1]) + ", " + str(z) + ", " + str(0)
             print "sending: ", msg
-            self.arm_pub.publish(msg)
+            self.request_cmd(msg)
             time.sleep(2)
 
     def write_callback(self, data):
+        self.writing_pub.publish("writing")
         time.sleep(1)
 
         #getting into position
         ready_motions = ["run_route:: R_ttt", "move_to:: " + str(data.x) + ", " + str(data.y) + ", " + str(data.z+250)+ ", " + str(0)]
         for motion in ready_motions:
             print "sending: ", motion
-            self.arm_pub.publish(motion)
+            self.request_cmd(motion)
             time.sleep(1.5)
 
         time.sleep(4)
@@ -202,8 +221,10 @@ class Writer:
         finish_motions = ["move_to:: " + str(data.x) + ", " + str(data.y) + ", " + str(data.z+250) + ", " + str(0), "run_route:: R_ttt"]
         for motion in finish_motions:
             print "sending: ", motion
-            self.arm_pub.publish(motion)
+            self.request_cmd(motion)
             time.sleep(1.5)
+
+        self.writing_pub.publish("done")
 
 
     def run(self):

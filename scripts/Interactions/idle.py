@@ -8,6 +8,7 @@ import numpy as np
 from std_msgs.msg import String
 import time
 import pickle, os, sys
+from edwin.srv import *
 
 class IdleBehaviors:
     def __init__(self):
@@ -26,7 +27,18 @@ class IdleBehaviors:
 
         self.status = None
 
-        self.idling = False
+
+        rospack = rospkg.RosPack()
+        PACKAGE_PATH = rospack.get_path("edwin")
+
+        self.routes = pickle.load(open(PACKAGE_PATH + '/params/routes.txt', 'rb'))
+        self.idle_behaviors = pickle.load(open(PACKAGE_PATH + '/params/behaviors.txt', 'rb'))
+        self.idle_behaviors = {key: value for key, value in self.idle_behaviors.items()
+             if "idle" in key}
+        print "idle is ready"
+
+
+        self.idling = True
         self.idle_time = random.randint(5, 7)
         print "Starting idle node"
 
@@ -49,6 +61,22 @@ class IdleBehaviors:
 			pass
 
 
+    def request_cmd(self, cmd):
+        rospy.wait_for_service('arm_cmd', timeout=15)
+        cmd_fnc = rospy.ServiceProxy('arm_cmd', arm_cmd)
+        print "I have requested the command"
+
+        try:
+            resp1 = cmd_fnc(cmd)
+            print "command done"
+
+
+        except rospy.ServiceException, e:
+            print "Service call failed: %s"%e
+            self.arm_status.publish('error')
+            self.serv_prob = True
+
+
     def control_callback(self, data):
         print "IDLE CMD: ", data.data
         if "idle:stop" in data.data:
@@ -67,8 +95,7 @@ class IdleBehaviors:
 
             self.routes = pickle.load(open(PACKAGE_PATH + '/params/routes.txt', 'rb'))
             self.idle_behaviors = pickle.load(open(PACKAGE_PATH + '/params/behaviors.txt', 'rb'))
-            self.idle_behaviors = {key: value for key, value in self.idle_behaviors.items()
-                 if "idle" in key}
+            self.idle_behaviors = {key: value for key, value in self.idle_behaviors.items() if "idle" in key}
             print "idle is ready"
             self.idling = True
 
@@ -81,8 +108,6 @@ class IdleBehaviors:
         r = rospy.Rate(10)
         joints = ["H", "WR", "E", "WA", "BEHAV"]
         while not rospy.is_shutdown():
-            if int(time.time() - self.stop_idle_time) > 1000: #if we've stopped interacting for 15 mins, start again
-                self.idling = True
             if self.idling:
                 if int(time.time() - self.last_interaction) > self.idle_time:
                     self.idle_time = random.randint(3, 7)
@@ -99,9 +124,14 @@ class IdleBehaviors:
                         msg = "data: rotate_waist:: " + str(random.randint(4000, 6000))
                     elif joint == "BEHAV":
                         msg = random.choice(self.idle_behaviors.keys())
+
+                    if joint == "BEHAV":
                         print "PUBLISHING: ", msg
                         self.behav_pub.publish(msg)
                         self.check_completion()
+                    else:
+                        print "PUBLISHING: ", msg
+                        self.request_cmd(msg)
 
             # r.sleep()
 

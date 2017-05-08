@@ -66,9 +66,8 @@ class Presence:
     """
     main class for detecting presence, following people, and waving
     """
-    def __init__(self, init=False):
-        if not init:
-            rospy.init_node('edwin_presence', anonymous = True)
+    def __init__(self):
+        rospy.init_node('edwin_presence', anonymous = True)
 
         # person of interest
         self.person = None
@@ -86,11 +85,12 @@ class Presence:
         #looping
         self.running = True
 
+        #found or naw
+        self.detected = False
+
         #tracking the user's information
         self.head = None
-        self.torso = None
-        self.Rhand = None
-        self.Lhand = None
+        self.prev_head = None
 
         # status
         self.status = None
@@ -110,10 +110,16 @@ class Presence:
         #subscribing to the arm status for service calls
         rospy.Subscriber('/arm_status', String, self.status_callback, queue_size=10)
 
+        #subscribing to the brain for commands
+        rospy.Subscriber('/presence_cmd', String, self.presence_callback, queue_size=10)
+
 
         #setting up ROS publishers to Edwin commands
         self.behavior_pub = rospy.Publisher('behaviors_cmd', String, queue_size=10)
         self.arm_pub = rospy.Publisher('arm_cmd', String, queue_size=1)
+        self.idle_pub = rospy.Publisher('idle_cmd', String, queue_size=10)
+        self.detection_pub = rospy.Publisher('detected', String, queue_size=10)
+
 
         # tf transformations between Kinect and Edwin
         self.br = tf.TransformBroadcaster()
@@ -135,11 +141,26 @@ class Presence:
 
         except rospy.ServiceException, e:
             print "Service call failed: %s"%e
-            self.arm_status.publish('error')
-            self.serv_prob = True
+
+
+
+    def presence_callback(self, data):
+        """
+        receives commands from brain
+        """
+
+        command = data.data
+        if command == "start":
+            self.running = True
+        elif command == "stop":
+            self.running = False
 
 
     def status_callback(self, data):
+        """
+        receives current movement status of arm
+        """
+
         print "arm status callback", data.data
         if data.data == "busy" or data.data == "error":
             self.status = 0
@@ -160,6 +181,7 @@ class Presence:
         """
         subscribes to skeleton to get and parse the current user's head
         """
+        self.prev_head = self.head
         self.head = msg.headx, msg.heady, msg.headz
         # self.torso = msg.torsox, msg.torsoy, msg.torsoz
         # self.Rhand = msg.Rhandx, msg.Rhandy, msg.Rhandz
@@ -176,6 +198,7 @@ class Presence:
                 self.person = Coordinates(1, xpos, ypos, zpos)
             else:
                 self.person.set_Coordinates(xpos, ypos, zpos)
+
 
 
 
@@ -204,6 +227,39 @@ class Presence:
             self.edwinz = where[2]
 
 
+    def reset(self):
+        """
+        resets some parameters of presence such that it can continuously be rerun
+        """
+
+        # person of interest
+        self.person = None
+
+        #coordinates of the person edwin's interacting with
+        self.coordx = 0
+        self.coordy = 0
+        self.coordz = 0
+
+        #edwin's own coordinates
+        self.edwinx = 0
+        self.edwiny = 0
+        self.edwinz = 0
+
+        #looping
+        self.running = True
+
+        #found or naw
+        self.detected = False
+
+        #tracking the user's information
+        self.head = None
+        self.torso = None
+        self.Rhand = None
+        self.Lhand = None
+
+        # status
+        self.status = None
+
     def find_new_people(self):
         """
         greets people if they are newly tracked presence,
@@ -211,8 +267,12 @@ class Presence:
         """
         #greets people, only greets once while they're in the camera's view and are center of attention
 
+
         if (self.person is not None) and (self.person.acknowledged == False):
+            self.person.acknowledged = True
             print "I see you!"
+            self.idle_pub.publish("idle:stop")
+            time.sleep(2)
 
             greeting = ["R_nudge","R_look"]
             for msg in greeting:
@@ -220,7 +280,11 @@ class Presence:
                     self.check_completion()
 
 
-            self.person.acknowledged = True
+            self.detection_pub.publish('found')
+
+        elif self.person is None:
+            print "I don't see you"
+            self.detection_pub.publish('nothing')
 
 
     def follow_people(self):
@@ -232,8 +296,6 @@ class Presence:
             trans = self.kinect_to_edwin_transform([self.person.X, self.person.Y, self.person.Z])
             if trans is not None:
                 xcoord, ycoord, zcoord = self.edwin_transform(trans)
-
-                print trans
 
                 #the person's coordinates are updated here, edwin's coordinates are updated in the callback
                 self.coordx = xcoord
@@ -330,9 +392,10 @@ class Presence:
         r = rospy.Rate(10)
         time.sleep(2)
 
-        while self.running:
-            self.find_new_people()
-            self.follow_people()
+        while not rospy.is_shutdown():
+            if self.running:
+                self.find_new_people()
+                self.follow_people()
 
             r.sleep()
 

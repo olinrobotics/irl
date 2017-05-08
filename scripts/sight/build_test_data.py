@@ -56,7 +56,7 @@ class BuildData:
             SHOW: builds and saves test data images in test_imgs file
             '''
 
-        path = self.PACKAGE_PATH + '/params/char_data/'
+        path = self.PACKAGE_PATH + '/params/more_chars/'
 
         # If mouse button pressed = left button: Build new test data image
         if event == cv2.EVENT_LBUTTONDOWN:
