@@ -104,6 +104,7 @@ class Arm():
         """
         Gesture dictionary for UR arm
         """
+        ###SIMON SAYS GESTURES
         self.gestures["dance"] = [Route([83, -128, 40.75, 45,0,0], 2), Route([83, -38, -50, 176.4, 0,0],2)]
         self.gestures["touch_head"] = [Route([-85, -82, -40, -90, 90, 41], 2), Route([-85, -106, -117, -130, 90, 41], 3),
                                     Route([-85, -105, -117, -115, 90, 41], 0.5), Route([-85, -106, -117, -130, 90, 41], 0.5),
@@ -120,7 +121,7 @@ class Arm():
                                     Route([-39.5,-96.7,-90,-28,127,42],1), Route([-12, -90, -124, -3, 92, 38.8],1),
                                     Route([38,-75.5,-124,12.36,58,37],1), Route([33.5, -75, -95.5, -15, 54, 26],1),
                                     Route([-7.65,-73.45,-100,-18,91.69,37],1)]
-        self.gestures["wave"] = [Route([0,-65, -100, 18, 88, 42], 1),
+        self.gestures["wave"] = [Route([0,-65, -100, 18, 88, 42], 2),
                                 Route([0, -74, -115, -37, 86, 42], 1), Route([0,-65, -100, 18, 88, 42], 1),
                                 Route([0, -65, -111, -10, 88, 42], 1)]
         self.gestures["disco"] = [Route([-7.65,-73.45,-100,-18,91.69,37],2), Route([54.63, -104.26, -137.37, 17, 98, 51], 1.5),
@@ -132,6 +133,21 @@ class Arm():
                                 Route([-84, -75.6, -124, -160, 89.96, 47.99], 0.5), Route([-84.5, -75.6, -124, -134.8, 89.96, 47.99], 0.5),
                                 Route([-84, -75.6, -124, -160, 89.96, 47.99], 0.5),
                                 Route([-84, -84.9, -30, -81, 89.96, 47.99], 2)]
+
+        ###GENERAL GAME GESTURES
+        self.gestures["gloat"] = [Route([1.15, -83, -79.5, -33.88, 91.58, 40.72], 2), Route([1.15, -67, -104, -4.5, 91.5, 40.7], 0.7),
+                                Route([1.15, -83, -79.5, -33.88, 91.58, 40.72], 0.7), Route([1.15, -67, -104, -4.5, 91.5, 40.7], 0.7)]
+        # self.gestures["done_game"] =
+        # self.gestures["get_set"] =
+        self.gestures["leader"] = [Route([0, -79.9, -87.5, -23.9, 90, 38.9], 2), Route([0, -74.3, -89.7, -128.7, 90, 43], 1),
+                                Route([0, -74.3, -89.7, -165.2, 90, 43.1], 0.5), Route([0, -74.3, -89.7, -128.7, 90, 43], 0.5),
+                                Route([0, -79.9, -87.5, -23.9, 90, 38.9], 1)]
+        # self.gestures["look"] =
+        self.gestures["sad"] = [Route([-91, -86.8, -40, -52, 90, 62], 2),
+                                Route([-89.2, -78.4, -122.65, -83.4, 90, 62], 3), Route([-89.2, -78.4, -122.65, -113.5, 90, 62], 1),
+                                Route([-89.3, -72, -105, -91.2, 90, 62], 3)]
+        # self.gestures["praise"] =
+
 
     def run_gesture_incremental(self, gesture):
         """
@@ -258,16 +274,19 @@ class Arm():
         try:
             inp = raw_input("Ready to run? y/n: ")[0]
             if (inp == 'y'):
-                self.run_gesture("bow")
-                self.run_gesture("starfish")
-                self.run_gesture("disco")
-                self.run_gesture("heart")
-                self.run_gesture("wave")
-                self.run_gesture("dab")
-                self.run_gesture("touch_head")
-                self.run_gesture("rub_tummy")
-                self.run_gesture("clap_left")
-                self.home_robot()
+                # self.run_gesture("bow")
+                # self.run_gesture("starfish")
+                # self.run_gesture("disco")
+                # self.run_gesture("heart")
+                # self.run_gesture("wave")
+                # self.run_gesture("dab")
+                # self.run_gesture("touch_head")
+                # self.run_gesture("rub_tummy")
+                # self.run_gesture("clap_left")
+                # self.run_gesture("gloat")
+                # self.run_gesture("leader")
+                self.run_gesture("sad")
+                # self.home_robot()
             else:
                 print "Halting program"
         except KeyboardInterrupt:
@@ -283,5 +302,7 @@ class Arm():
 
 if __name__ == '__main__':
     a = Arm()
-    a.run()
-    # a.test_run("clap_left")
+    # a.run()
+    a.run_all()
+    # a.test_run("sad")
+    # a.home_robot()
