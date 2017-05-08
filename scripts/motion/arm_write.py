@@ -19,6 +19,7 @@ class Writer:
 
         self.behavior_pub = rospy.Publisher('behaviors_cmd', String, queue_size=10)
         self.arm_pub = rospy.Publisher('arm_cmd', String, queue_size=10)
+        self.writing_pub = rospy.Publisher("writing_status", String, queue_size=10)
 
         print "starting edwin writer...."
 
@@ -39,8 +40,7 @@ class Writer:
 
         except rospy.ServiceException, e:
             print "Service call failed: %s"%e
-            self.arm_status.publish('error')
-            self.serv_prob = True
+
 
 
     def make_letter_dictionary(self):
@@ -201,6 +201,7 @@ class Writer:
             time.sleep(2)
 
     def write_callback(self, data):
+        self.writing_pub.publish("writing")
         time.sleep(1)
 
         #getting into position
@@ -222,6 +223,8 @@ class Writer:
             print "sending: ", motion
             self.request_cmd(motion)
             time.sleep(1.5)
+
+        self.writing_pub.publish("done")
 
 
     def run(self):
