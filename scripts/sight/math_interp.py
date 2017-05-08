@@ -35,10 +35,10 @@ class Calculator:
     def __init__(self):
         '''initializes the object'''
         rospy.init_node('doing_math')
-        self.pub = rospy.Publisher('/write_cmd', Edwin_Shape, queue_size=10)
+        # self.pub = rospy.Publisher('/write_cmd', Edwin_Shape, queue_size=10)
         self.tree = tuple()
-        self.eqn = ''
-        rospy.Subscriber('word_publish', String, self.cmd_callback)
+        self.eqn = '3++5'
+        # rospy.Subscriber('word_publish', String, self.cmd_callback)
 
     def cmd_callback(self, data):
         '''callback'''
@@ -84,6 +84,7 @@ class Calculator:
             raise ValueError('I found too many variables')
         actual_ops = operator_list[:4]
         for n in range(len(eqn)-1):
+            print(eqn[n])
             if eqn[n] in actual_ops and eqn[n+1] in actual_ops and eqn[n+1] != '-':
                 raise ValueError('Two operations in a row?')
         else:
@@ -300,6 +301,12 @@ class Calculator:
             except ValueError as err:
                 print(err)
         elif all(digit in variable_list or digit in integer_list or digit in operator_list for digit in self.eqn):
+            actual_ops = operator_list[:4]
+            for n in range(len(self.eqn)-1):
+                print(self.eqn[n])
+                if self.eqn[n] in actual_ops and self.eqn[n+1] in actual_ops and self.eqn[n+1] != '-':
+                    raise ValueError('Two operations in a row?')
+                    # TODO Do the rest of publishing errors here
             return self.solve_simple(self.eqn)
         else:
             return 'what?'
@@ -317,7 +324,8 @@ class Calculator:
                     msg.x = -500
                     msg.y = 5700
                     msg.z = -800
-                    self.pub.publish(msg)
+                    print(answer)
+                    # self.pub.publish(msg)
                     time.sleep(5)
                     break
 
