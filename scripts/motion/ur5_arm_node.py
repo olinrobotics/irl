@@ -133,22 +133,29 @@ class Arm():
                                 Route([-84, -75.6, -124, -160, 89.96, 47.99], 0.5), Route([-84.5, -75.6, -124, -134.8, 89.96, 47.99], 0.5),
                                 Route([-84, -75.6, -124, -160, 89.96, 47.99], 0.5),
                                 Route([-84, -84.9, -30, -81, 89.96, 47.99], 2)]
+        self.gestures["hug_self"] = [Route([0, -48, -123, -129, 82, 30], 4), Route([-19.3, -47, -122, -129, 82.3, 30], 1), Route([21.2, -47, -122, -111, 82.3, 30], 1),
+                                    Route([-19.3, -47, -122, -129, 82.3, 30], 1), Route([21.2, -57, -100, -54, 68.9, 47], 2)]
 
         ###GENERAL GAME GESTURES
         self.gestures["gloat"] = [Route([1.15, -83, -79.5, -33.88, 91.58, 40.72], 2), Route([1.15, -67, -104, -4.5, 91.5, 40.7], 0.7),
                                 Route([1.15, -83, -79.5, -33.88, 91.58, 40.72], 0.7), Route([1.15, -67, -104, -4.5, 91.5, 40.7], 0.7)]
-        # self.gestures["done_game"] =
-        # self.gestures["get_set"] =
+        self.gestures["done_game"] = self.gestures["wave"]
+        self.gestures["get_set"] = [Route([0, -31.2, -119, -47, 93.6, 30], 3), Route([-32, -31, -131, -58, 122, 30], 1),
+                                    Route([10, -36, -124, -34, 79, 30], 1), Route([-32, -31, -131, -58, 122, 30], 1),
+                                    Route([0, -31.2, -119, -47, 93.6, 30], 2)]
         self.gestures["leader"] = [Route([0, -79.9, -87.5, -23.9, 90, 38.9], 2), Route([0, -74.3, -89.7, -128.7, 90, 43], 1),
                                 Route([0, -74.3, -89.7, -165.2, 90, 43.1], 0.5), Route([0, -74.3, -89.7, -128.7, 90, 43], 0.5),
                                 Route([0, -79.9, -87.5, -23.9, 90, 38.9], 1)]
-        # self.gestures["look"] =
+        self.gestures["look"] = [Route([0, -62, -109, -28, 95, 32], 2)]
         self.gestures["sad"] = [Route([-91, -86.8, -40, -52, 90, 62], 2),
                                 Route([-89.2, -78.4, -122.65, -83.4, 90, 62], 3), Route([-89.2, -78.4, -122.65, -113.5, 90, 62], 1),
                                 Route([-89.3, -72, -105, -91.2, 90, 62], 3)]
         # self.gestures["praise"] =
 
+        self.gestures["nod"] = [Route([-10.4, -77.81, -99.38, -17.65, 107.77, 37.25], 2), Route([-10.49, -77.81, -99.38, -61, 107.77, 37.25], 1),
+                                Route([-10.4, -77.81, -99.38, -17.65, 107.77, 37.25], 1)]
 
+        self.gestures["nod1"] = [Route([4.55, -99.1, -54.45, 23.07, 89.99, 52.43], 2), Route([4.55, -99.1, -54.45, -65, 90, 52.43], 1), Route([4.55, -99.1, -54.45, 23.07, 89.99, 52.43], 1)]
     def run_gesture_incremental(self, gesture):
         """
         Runs a gesture based on what it finds in the dictionary
@@ -212,6 +219,7 @@ class Arm():
         gest2run = self.gestures.get(gesture, None)
 
         if gest2run is None:
+            print "Gesture: ", gesture, " is not recognized"
             return
 
         self.status_pub.publish("busy")
@@ -274,19 +282,23 @@ class Arm():
         try:
             inp = raw_input("Ready to run? y/n: ")[0]
             if (inp == 'y'):
-                # self.run_gesture("bow")
-                # self.run_gesture("starfish")
-                # self.run_gesture("disco")
-                # self.run_gesture("heart")
-                # self.run_gesture("wave")
-                # self.run_gesture("dab")
-                # self.run_gesture("touch_head")
-                # self.run_gesture("rub_tummy")
-                # self.run_gesture("clap_left")
-                # self.run_gesture("gloat")
-                # self.run_gesture("leader")
+                self.run_gesture("bow")
+                self.run_gesture("starfish")
+                self.run_gesture("disco")
+                self.run_gesture("heart")
+                self.run_gesture("wave")
+                self.run_gesture("dab")
+                self.run_gesture("nod")
+                self.run_gesture("touch_head")
+                self.run_gesture("rub_tummy")
+                self.run_gesture("clap_left")
+                self.run_gesture("gloat")
+                self.run_gesture("leader")
                 self.run_gesture("sad")
-                # self.home_robot()
+                self.run_gesture("get_set")
+                self.run_gesture("hug_self")
+                self.home_robot()
+                # self.run_gesture("nod1")
             else:
                 print "Halting program"
         except KeyboardInterrupt:
@@ -304,5 +316,5 @@ if __name__ == '__main__':
     a = Arm()
     # a.run()
     a.run_all()
-    # a.test_run("sad")
+    # a.test_run("hug_self")
     # a.home_robot()
