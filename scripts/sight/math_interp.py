@@ -32,10 +32,10 @@ placeholder_list = ['p', 'q', 'r', 's', 't', 'u']
 
 
 class Calculator:
-    def __init__(self, rospy):
+    def __init__(self):
         '''initializes the object'''
 
-        # rospy.init_node('math_solving')
+        rospy.init_node('math_solving')
 
         self.pub = rospy.Publisher('/write_cmd', Edwin_Shape, queue_size=10)
         self.pub_behave = rospy.Publisher('/behaviors_cmd', String, queue_size=10)
