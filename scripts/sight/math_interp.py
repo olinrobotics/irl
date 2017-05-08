@@ -58,6 +58,7 @@ class Calculator:
             self.writing_status = 1
 
         self.tree = tuple()
+        self.eqn = ''
         rospy.Subscriber('word_publish', String, self.cmd_callback)
 
     def cmd_callback(self, data):
