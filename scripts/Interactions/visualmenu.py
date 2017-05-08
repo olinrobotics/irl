@@ -42,7 +42,7 @@ class visualmenu:
 
         self.choice = ""
 
-        self.button_point_list = [(150, 240), (320,240), (490, 240)]
+        self.button_point_list = [(100, 240), (320,240), (540, 240)]
         self.activities_list = ["SimonSays: Player", "SimonSays: Simon", "Homework"]
 
         #Initialize buttons:
@@ -342,8 +342,11 @@ class visualmenu:
                 point1 = (i[0][0], i[1][0])
                 point2 = (i[0][1], i[1][1])
                 cv2.rectangle(frame, point1, point2, (0,0,255), -1)
+                text_spot = list(self.button_point_list[j])
+                text_spot[0] = text_spot[0] - 70
+                text_spot = tuple(text_spot)
                 cv2.putText(frame, self.activities_list[j],
-                self.button_point_list[j], cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), 2)
+                text_spot, cv2.FONT_HERSHEY_PLAIN, 1, (255,255,255), 2)
 
         else:
             i = self.region_list[med]

@@ -63,6 +63,7 @@ class Skeleton(object):
 
         #running
         self.running = True
+        self.detected = False
 
 
         #subscribing to skeleton markers
@@ -105,7 +106,6 @@ class Skeleton(object):
         14 - left foot
         """
         #gets the skeleton and extracts the head and hands
-
         if len(skeleton.points) == 15:
             self.body_points = skeleton.points
             raw_head = self.body_points[0]
@@ -113,11 +113,18 @@ class Skeleton(object):
             raw_Rhand = self.body_points[5]
             raw_Lhand = self.body_points[11]
 
+
+
             #converts the head and hands to Kinect coordinate frame
             self.head = self.transform_skel2kinect(raw_head)
             self.torso = self.transform_skel2kinect(raw_torso)
             self.Rhand = self.transform_skel2kinect(raw_Rhand)
             self.Lhand = self.transform_skel2kinect(raw_Lhand)
+
+            self.detected = True
+
+
+
 
 
     def renderImage(self, image):
@@ -157,6 +164,7 @@ class Skeleton(object):
         """
         publishes out data to both presence detection topic and simon says topic
         """
+
         #make the messages
         bones = Bones()
         presence = HHH()
@@ -181,6 +189,9 @@ class Skeleton(object):
 
             self.skelePub.publish(bones)
 
+        if not self.detected:
+            self.head = (0,0,0)
+
         presence.headx = int(self.head[0])
         presence.heady = int(self.head[1])
         presence.headz = int(self.head[2]*1000)
@@ -197,7 +208,7 @@ class Skeleton(object):
         # print self.head[0], self.head[1], self.head[2]
 
         self.presencePub.publish(presence)
-
+        self.detected = False
 
 
     def run(self):
@@ -210,7 +221,7 @@ class Skeleton(object):
 
         cv2.namedWindow("chicken")
 
-        while self.running:
+        while not rospy.is_shutdown():
             if self.cv_image is not None:
                 cv2.imshow("chicken", self.cv_image)
                 cv2.waitKey(3)

@@ -32,19 +32,17 @@ class HandwritingRecognition:
             """
         pass
 
-    def __init__(self, init_param=False):
+    def __init__(self, rospy=None):
         ''' DOCSTRING:
             Initializes ros nodes, state vars, windows, etc. for current HR obj;
             Contains lists differentiating alpha & numeric symbols
             '''
-        if init_param:
-            # init_param allows us to instantiate the HR object in different contexts, i.e in WritingDemo.py
-            pass
-        else:
+        if rospy is None:
             rospy.init_node('handwriting_recognition', anonymous=True) # makes self into node
-            rospy.Subscriber('usb_cam/image_raw', Image, self.img_callback) # subscribes to cam feed
 
-            self.bridge = CvBridge() # converts image types to use with OpenCV
+        rospy.Subscriber('usb_cam/image_raw', Image, self.img_callback) # subscribes to cam feed
+
+        self.bridge = CvBridge() # converts image types to use with OpenCV
 
         # Builds path to find picture of numbers
         rospack = rospkg.RosPack()
@@ -55,6 +53,9 @@ class HandwritingRecognition:
 
         self.detect = True
         self.frame = None
+
+        #for looping
+        self.is_running = False
 
         # Builds window to view and control output
         cv2.namedWindow('image')
@@ -552,7 +553,8 @@ class HandwritingRecognition:
         self.SVM_num = self.train_svm('svm_numdata')
 
         while not rospy.is_shutdown(): # MAIN LOOP
-            if self.is_running == True:
+            if self.is_running:
+
                 e1 = cv2.getTickCount()
                 self.update_frame()
                 # out_image = Process.get_paper_region(self.frame)
