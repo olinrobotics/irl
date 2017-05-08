@@ -40,6 +40,7 @@ class Calculator:
         self.pub_speak = rospy.Publisher('/edwin_speech_cmd', String, queue_size=10)
         self.status_sub = rospy.Subscriber('/arm_status', String, self.status_callback, queue_size=10)
         self.tree = tuple()
+        self.eqn = ''
         rospy.Subscriber('word_publish', String, self.cmd_callback)
 
     def cmd_callback(self, data):
