@@ -10,7 +10,7 @@ import xml.etree.ElementTree as ET
 
 
 class Features:
-    def __init__(self, testing=False, samples_1=486, samples_2=20):
+    def __init__(self, testing=False, samples_1=486, samples_2=30):
         imageio.plugins.ffmpeg.download()
 
         # dlib face detector
@@ -21,8 +21,9 @@ class Features:
         PACKAGE_PATH = rospack.get_path("edwin")
 
         self.FACS = {'cheeks': [6, 11],
-                     'mouth': [10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 22, 23,
-                               24, 25, 26, 27, 28],
+                     'lip_part': [25],
+                     'mouth': [11, 12, 13, 14, 15, 16, 17, 18, 20, 22, 23,
+                               24, 26, 27, 28],
                      'forehead': [1, 2, 4],
                      'nose': [9, 11],
                      'eyes': [5, 6, 7, 41, 42, 43, 44, 45, 46]}
@@ -59,13 +60,10 @@ class Features:
         self.labels_file_paths = []
 
         for fp in self.all_file_paths[:self.samples_2]:
-            print(fp[-6:])
             if fp[-4:] == '.avi':
                 self.video_file_paths.append(fp)
             elif fp[-8:] == 'aucs.xml':
                 self.labels_file_paths.append(fp)
-        print(self.video_file_paths)
-        print(self.labels_file_paths)
 
     def read_file(self, f):
         # read file at file path f
@@ -133,18 +131,22 @@ class Features:
         keys: 'cheeks', 'mouth', 'forhead', 'nose', 'eyes'
 
         CHEEKS: 1-3, 14-16 (FACS 6, 11)
-        MOUTH: 4-13, 48-68 (FACS 10-28 sans 19, 21)
+        MOUTH: 4-13, 48-68 (FACS 11-28 sans 19, 21), purposefully ommitting 10
         FOREHEAD: 17-30 (FACS 1, 2, 4)
         NOSE: 31-35 (FACS 9, 11)
         EYES: 36-47 (FACS 5-7, 41-46)
         '''
-        split = dict()
-        split['cheeks'] = landmarks[0:2] + landmarks[13:15]
-        split['mouth'] = landmarks[3:12] + landmarks[47:67]
-        split['forehead'] = landmarks[16:29]
-        split['nose'] = landmarks[30:34]
-        split['eyes'] = landmarks[4:6] + landmarks[40:45]
-        self.split = split
+        if not landmarks == 'error':
+            split = dict()
+            split['cheeks'] = landmarks[0:2] + landmarks[13:15]
+            split['lip_part'] = landmarks[3:12] + landmarks[47:67]
+            split['mouth'] = landmarks[3:12] + landmarks[47:67]
+            split['forehead'] = landmarks[16:29]
+            split['nose'] = landmarks[30:34]
+            split['eyes'] = landmarks[4:6] + landmarks[40:45]
+            self.split = split
+        else:
+            split = 'error'
         return split
 
     def unpack_landmarks(self, landmarks):
@@ -161,8 +163,11 @@ class Features:
         landmarks = self.face_detect.get_landmarks(clahe_image,
                                                    return_type='nparray')
         split = self.split_landmarks(landmarks)
-        region_landmarks = split[face_region]
-        region_landmarks = self.unpack_landmarks(region_landmarks)
+        if not split == 'error':
+            region_landmarks = split[face_region]
+            region_landmarks = self.unpack_landmarks(region_landmarks)
+        else:
+            region_landmarks = 'error'
         return region_landmarks
 
     def get_features(self, face_region=None):
@@ -172,33 +177,35 @@ class Features:
         for i, f in enumerate(self.video_file_paths[:self.samples_2]):
             reader = imageio.get_reader(f)
             for n, im in enumerate(reader):
-                facs = None
+                target = -1
                 clahe_images = self.process_image(im)
                 region_landmarks = self.process_landmarks(clahe_images[0],
                                                           face_region)
-                if region_landmarks != '':
+                if region_landmarks != '' and region_landmarks != 'error':
                     features.append(region_landmarks)
 
                 region_landmarks_reflected = self.process_landmarks(clahe_images[1],
                                                                     face_region)
                 # append landmarks to Features
-                if region_landmarks_reflected != '':
+                if region_landmarks_reflected != '' and region_landmarks != 'error':
                     features.append(region_landmarks_reflected)
-                if i <= len(self.labels_file_paths):
-                    metadata_tree = ET.parse(self.labels_file_paths[i])
-                    metadata_root = metadata_tree.getroot()
-                    for au in metadata_root:
-                        if au.tag == 'ActionUnit':
-                            for marker in au:
-                                # get facs label for frame
-                                frame = marker.attrib['Frame']
-                                if n == int(frame):
-                                    print(str(au.attrib['Number']) + ' at frame ' + str(n))
-                                    facs = au.attrib['Number']
-                                    if facs in self.FACS[face_region]:
-                                        self.targets.append(facs)
-                if facs is None:
-                    self.targets.append(0)
+
+                metadata_tree = ET.parse(self.labels_file_paths[i])
+                metadata_root = metadata_tree.getroot()
+                for au in metadata_root:
+                    if au.tag == 'ActionUnit':
+                        for marker in au:
+                            # get facs label for frame
+                            frame = marker.attrib['Frame']
+                            if n == int(frame):
+                                facs = int(au.attrib['Number'])
+                                if facs in self.FACS[face_region]:
+                                    print(n, facs)
+                                    self.targets.append(facs)
+                                    self.targets.append(facs)
+                                else:
+                                    self.targets.append(-1)
+                                    self.targets.append(-1)
 
         for i, f in enumerate(self.file_paths[:self.samples_1]):
             # tuple of clahe image and reflected clahe image
@@ -265,7 +272,8 @@ class Features:
     def get_labels_region(self, face_region):
         '''
         CHEEKS: 1-3, 14-16 (FACS 6, 11)
-        MOUTH: 4-13, 48-68 (FACS 10-28 sans 19, 21)
+        LIP PART: 4-13, 48-68 (FACS 25)
+        MOUTH: 4-13, 48-68 (FACS 10-28 sans 19, 21, 25)
         FOREHEAD: 17-30 (FACS 1, 2, 4)
         NOSE: 31-35 (FACS 9, 11)
         EYES: 36-47 (FACS 5-7, 41-46)
@@ -283,14 +291,14 @@ class Features:
 
     def get_targets(self, face_region):
         # dictionary that maps file name to label for region
-        labels_region = self.get_labels_region(face_region='nose')
+        labels_region = self.get_labels_region(face_region=face_region)
 
         # get targets for face region_
-        print('length files in sample', len(self.file_paths[:self.samples_1]))
-        for f in self.file_paths[:self.samples]:
+        for f in self.file_paths[:self.samples_2]:
             f_name = f[-31:-4]
             if f_name in self.labels.keys():
                 # appends FAC Unit to target twice to account for reflection
+
                 self.targets.append(labels_region[f_name])
                 self.targets.append(labels_region[f_name])
         # if no label, make target = -1
@@ -306,7 +314,12 @@ class Features:
 if __name__ == "__main__":
     f = Features(samples_1=2, samples_2=20)
 
-    features = f.get_features(face_region='nose')
-    targets = f.get_targets(face_region='nose')
+    features = f.get_features(face_region='eyes')
+    targets = f.get_targets(face_region='eyes')
     print(features)
     print(targets)
+    for t in targets:
+        if t != -1:
+            print(t)
+    print(len(targets))
+    print(np.shape(features))

@@ -169,6 +169,7 @@ class FaceDetect:
             if self.detect:
                 self.face_detect()
 
+
 if __name__ == '__main__':
     fd = FaceDetect()
     #fd.face_detect()

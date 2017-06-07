@@ -95,6 +95,8 @@ class FaceDetect:
 
             if len(smile) > 0:
                 smile_msg = 'True'
+            else:
+                print('No smile')
 
             if area > biggestArea:
                 area = biggestArea
@@ -102,7 +104,7 @@ class FaceDetect:
 
             for (x, y, w, h) in smile:
                 print "Found", len(smile), "smiles!"
-                cv2.rectangle(self.frame, (x, y), (x+w, y+h), (255, 0, 0), 1)
+                cv2.rectangle(face, (x, y), (x+w, y+h), (255, 0, 0), 1)
 
         if msg != '':
             self.pub.publish(msg)
