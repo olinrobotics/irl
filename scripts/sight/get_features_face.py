@@ -10,7 +10,7 @@ import xml.etree.ElementTree as ET
 
 
 class Features:
-    def __init__(self, testing=False, samples_1=486, samples_2=30):
+    def __init__(self, testing=False, samples_1=486, samples_2=50):
         imageio.plugins.ffmpeg.download()
 
         # dlib face detector
