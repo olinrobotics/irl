@@ -1,9 +1,9 @@
 # Interactive Robotics Laboratory
-ST-R17 and UR5 interactive co-working dinosaur robotic arms
-Website: https://olinrobotics.github.io/edwin/
+ST-R17 and UR5 interactive co-working dinosaur (and dragon) robotic arms
+Website: https://olinrobotics.github.io/irl/
 Arm Manual: http://strobotics.com/manuals/R17%20manual.pdf
 
-##Troubleshooting
+## Troubleshooting
 
 Grouped by error message
 
