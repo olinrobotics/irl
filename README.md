@@ -1,5 +1,5 @@
-# edwin
-ST-R17 co-worker dinosaur robotic arm
+# Interactive Robotics Laboratory
+ST-R17 and UR5 interactive co-working dinosaur robotic arms
 Website: https://olinrobotics.github.io/edwin/
 Arm Manual: http://strobotics.com/manuals/R17%20manual.pdf
 
@@ -13,7 +13,7 @@ Grouped by error message
 
 ---
 
-*rosrun edwin arm_node.py is stuck at "in block_on_result"*
+*rosrun irl arm_node.py is stuck at "in block_on_result"*
 * Is the turn-key at the front of the controller set to warm?
 * Is the light on the Tripp-Lite serial-usb converter blinking?
 * Open a new terminal window and run the command again
