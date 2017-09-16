@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import rospy
 import math
 import st
@@ -116,10 +116,10 @@ class StArm():
         for port in possiblePorts:
             try:
                 self.cxn = s.Serial(port, baudrate=baud, timeout=to)
-                print "Connected to port: ", port
+                print("Connected to port: ", port)
                 return
             except:
-                print "Couldn't connect to port: ", port
+                print("Couldn't connect to port: ", port)
                 pass
 
 
@@ -143,7 +143,7 @@ class StArm():
         self.cxn.flushInput()
         print('flush')
         self.cxn.write(cmd + CR)
-        print "wrote: ", cmd+CR
+        print("wrote: ", cmd+CR)
         print('write')
         self.block_on_result(cmd)
 
@@ -216,13 +216,13 @@ class StArm():
         # Initiaze in Cartesian mode and declare new route
         cmd = '  ' + CARTESIAN + ' ' + NEW + ' ' + ROUTE + ' ' + route_name
         # Reserve correct ammount of memory since default is 20
-        print "LEN COMMANDS IS: ", len(commands)
+        print("LEN COMMANDS IS: ", len(commands))
         cmd += ' ' + str(len(commands)) + ' ' + RESERVE + ' ' + route_name
 
         # Put arm in Learning mode
         cmd += ' ' +route_name + ' ' + LEARN + ' ' + DECIMAL + ' CF'
 
-        print "Creating route " + route_name
+        print("Creating route " + route_name)
 
         self.cxn.flushInput()
         self.cxn.write(cmd + CR)
@@ -241,19 +241,19 @@ class StArm():
             index += 1
             point = str(cmd[2]) + ' ' + str(cmd[1]) + ' ' + str(cmd[0])
 
-            print "CMD IS: ", cmd
-            print "LEN: ", len(cmd)
+            print("CMD IS: ", cmd)
+            print("LEN: ", len(cmd))
 
             if len(cmd) == 6:
-                print "MAKING EULER ANGLES"
+                print("MAKING EULER ANGLES")
                 euler_angles = str(cmd[5]) + ' ' + str(cmd[4]) + ' ' + str(cmd[3])
             else:
-                print "DEFAULT EULER ANGLES"
+                print("DEFAULT EULER ANGLES")
                 euler_angles = '0 0 0'
 
             cmd_tosend = DECIMAL + ' ' + euler_angles + ' ' + point +  ' ' + route_name + ' ' + str(index) + ' LINE DLD'
-            print cmd_tosend
-            print "Adding [" + point + ' ' + euler_angles + "] to route"
+            print(cmd_tosend)
+            print("Adding [" + point + ' ' + euler_angles + "] to route")
             self.cxn.flushInput()
             self.cxn.write(cmd_tosend + CR)
             self.block_on_result(cmd_tosend, debug)
@@ -281,9 +281,9 @@ class StArm():
 
     def block_on_result(self, cmd, debug=False):
         t = time.time()
-        print "in block_on_result"
+        print("in block_on_result")
         s = self.cxn.read(self.cxn.inWaiting())
-        print s
+        print(s)
         while s[-5:-3] != OK:
             # print "got: ", s
             # time.sleep(1)
@@ -291,14 +291,14 @@ class StArm():
             if s[-1:] == '>':
                 rospy.loginfo(" s is : %s" , s)
                 if self.debug:
-                    print " "
-                    print "------------------"
-                    print " "
-                    print('Command ' + cmd + ' completed without ' +
-                          'verification of success.')
-                    print "FAILED:  " + s
-                    print "------------------"
-                    print " "
+                    print(" ")
+                    print("------------------")
+                    print(" ")
+                    print(('Command ' + cmd + ' completed without ' +
+                          'verification of success.'))
+                    print("FAILED:  " + s)
+                    print("------------------")
+                    print(" ")
 
                 self.pub.publish(cmd + " FAILED: " + s)
                 # if "Too tight" in s:
@@ -309,7 +309,7 @@ class StArm():
             s += self.cxn.read(self.cxn.inWaiting())
 
         if self.debug:
-            print('Command ' + cmd + ' completed successfully.')
+            print(('Command ' + cmd + ' completed successfully.'))
         return s
 
     def get_status(self):
@@ -326,7 +326,7 @@ class StArm():
         return int(result.split(' ')[-2])
 
     def set_speed(self, speed):
-        print('Setting speed to %d' % speed)
+        print(('Setting speed to %d' % speed))
         cmd = str(speed) + ' ' + SPEED + IMPERATIVE
         self.cxn.flushInput()
         self.cxn.write(cmd + CR)
@@ -349,7 +349,7 @@ class StArm():
 
     def set_accel(self, accel):
         cmd = str(accel) + ' ' + ACCEL + IMPERATIVE
-        print('Setting acceleration to %d' % accel)
+        print(('Setting acceleration to %d' % accel))
         self.cxn.flushInput()
         self.cxn.write(cmd + CR)
         self.block_on_result(cmd)
@@ -358,7 +358,7 @@ class StArm():
         cmd = SMOOTH + ' ' + route + ' ' + RUN
         # self.set_accel(6000)
         # cmd = route + ' ' + RUN
-        print('Running route %s' % route)
+        print(('Running route %s' % route))
         self.cxn.flushInput()
         self.cxn.write(cmd + CR)
         res = self.block_on_result(cmd)
@@ -415,8 +415,8 @@ class StArm():
     def move_to(self, x, y, z, debug=False, block=True):
         if debug:
             cmd = str(x) + ' ' + str(y) + ' ' + str(z) + ' MOVETO'
-            print('Moving to cartesian coords: (' + str(x) + ', ' +
-                  str(y) + ', ' + str(z) + ')')
+            print(('Moving to cartesian coords: (' + str(x) + ', ' +
+                  str(y) + ', ' + str(z) + ')'))
         self.cartesian()
         self.cxn.flushInput()
         self.cxn.write(str(x) + ' ' + str(y) + ' ' + str(z) + ' MOVETO' + CR)
@@ -426,14 +426,14 @@ class StArm():
 
     def rotate_wrist(self, roll):
         cmd = TELL + ' ' + WRIST + ' ' + str(roll) + ' ' + MOVETO
-        print('Rotating wrist to %s' % roll)
+        print(('Rotating wrist to %s' % roll))
         self.cxn.flushInput()
         self.cxn.write(cmd + CR)
         self.block_on_result(cmd)
 
     def rotate_wrist_rel(self, roll_inc):
         cmd = TELL + ' ' + WRIST + ' ' + str(roll_inc) + ' ' + MOVE
-        print('Rotating wrist by %s.' % roll_inc)
+        print(('Rotating wrist by %s.' % roll_inc))
         self.cxn.flushInput()
         self.cxn.write(cmd + CR)
         self.block_on_result(cmd)
@@ -442,7 +442,7 @@ class StArm():
 
     def rotate_hand(self, pitch):
         cmd = TELL + ' ' + HAND + ' ' + str(pitch) + ' ' + MOVETO
-        print('Rotating hand to %s.' % pitch)
+        print(('Rotating hand to %s.' % pitch))
         self.cxn.flushInput()
         self.cxn.write(cmd + CR)
         self.block_on_result(cmd)
@@ -450,7 +450,7 @@ class StArm():
 
     def rotate_elbow(self, pitch):
         cmd = TELL + ' ' + ELBOW + ' ' + str(pitch) + ' ' + MOVETO
-        print('Rotating hand to %s.' % pitch)
+        print(('Rotating hand to %s.' % pitch))
         self.cxn.flushInput()
         self.cxn.write(cmd + CR)
         self.block_on_result(cmd)
@@ -458,7 +458,7 @@ class StArm():
 
     def rotate_shoulder(self, pitch):
         cmd = TELL + ' ' + SHOULDER + ' ' + str(pitch) + ' ' + MOVETO
-        print('Rotating hand to %s.' % pitch)
+        print(('Rotating hand to %s.' % pitch))
         self.cxn.flushInput()
         self.cxn.write(cmd + CR)
         self.block_on_result(cmd)
@@ -466,7 +466,7 @@ class StArm():
 
     def rotate_waist(self, pitch):
         cmd = TELL + ' ' + WAIST + ' ' + str(pitch) + ' ' + MOVETO
-        print('Rotating hand to %s.' % pitch)
+        print(('Rotating hand to %s.' % pitch))
         self.cxn.flushInput()
         self.cxn.write(cmd + CR)
         self.block_on_result(cmd)
@@ -474,7 +474,7 @@ class StArm():
 
     def rotate_waist_rel(self, pitch):
         cmd = TELL + ' ' + WAIST + ' ' + str(pitch) + ' ' + MOVE
-        print('Rotating hand to %s.' % pitch)
+        print(('Rotating hand to %s.' % pitch))
         self.cxn.flushInput()
         self.cxn.write(cmd + CR)
         self.block_on_result(cmd)
@@ -484,7 +484,7 @@ class StArm():
 
     def rotate_hand_rel(self, pitch_inc):
         cmd = TELL + ' ' + HAND + ' ' + str(pitch_inc) + ' ' + MOVE
-        print('Rotating hand by %s' % pitch_inc)
+        print(('Rotating hand by %s' % pitch_inc))
         self.cxn.flushInput()
         self.cxn.write(cmd + CR)
         self.block_on_result(cmd)
@@ -513,8 +513,8 @@ class StArm():
         self.cxn.flushInput()
         self.cxn.write(cmd + CR)
         res = self.block_on_result(cmd)
-        print "I'M LOCATED"
-        print res
+        print("I'M LOCATED")
+        print(res)
         self.pub.publish(str(res))
         try:
             lines = res.split('\r\n')
@@ -527,7 +527,7 @@ class StArm():
 
             self.curr_pos.set(cp)
             self.prev_pos.set(pp)
-        except RuntimeError, e:
+        except RuntimeError as e:
             self.pub.publish("EXCEPT IN WHERE: " + str(e))
             print('Exception in where.')
             print(e)
@@ -572,14 +572,14 @@ class StArm():
             self.cxn.flushInput()
             self.cxn.write(cmd + CR)
             res.append(self.block_on_result(cmd))
-        print res
+        print(res)
 
     def lock_wrist_angle(self,TF = True):
         if TF:
             cmd = ALIGN
         else:
             cmd = NONALIGN
-        print 'Locking gripper orientation...'
+        print('Locking gripper orientation...')
         self.cxn.flushInput()
         self.cxn.write(cmd + CR)
         self.block_on_result(cmd)

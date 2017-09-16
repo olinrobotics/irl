@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import rospy
 import rospkg
 import math
@@ -22,20 +22,20 @@ class ArmBehaviors:
         self.serv_prob = False
 
         self.create_behaviors()
-        print "Starting behavior node"
+        print("Starting behavior node")
 
     def request_cmd(self, cmd):
         rospy.wait_for_service('arm_cmd', timeout=15)
         cmd_fnc = rospy.ServiceProxy('arm_cmd', arm_cmd)
-        print "I have requested the command"
+        print("I have requested the command")
 
         try:
             resp1 = cmd_fnc(cmd)
-            print "command done"
+            print("command done")
 
 
-        except rospy.ServiceException, e:
-            print "Service call failed: %s"%e
+        except rospy.ServiceException as e:
+            print("Service call failed: %s"%e)
             self.arm_status.publish('error')
             self.serv_prob = True
 
@@ -43,17 +43,17 @@ class ArmBehaviors:
     def behavior_callback(self, cmdin):
         self.arm_status.publish('busy')
         self.serv_prob = False
-        print "RECEIVED CMD: ", cmdin
+        print("RECEIVED CMD: ", cmdin)
         cmd = str(cmdin).replace("data: ", "")
         if cmd == "random":
             cmd = "impatient"
         elif "R_" in cmd:
             self.request_cmd("run_route:: "+cmd)
-        elif cmd in self.behaviors.keys():
+        elif cmd in list(self.behaviors.keys()):
             cmd_list = self.behaviors[cmd].split(", ")
             for elem in cmd_list:
-            	while self.moving == True:
-            		continue
+                while self.moving == True:
+                    continue
                 if "R_" in elem:
                     msg = "data: run_route:: " + str(elem)
                 elif "SPD" in elem:
@@ -61,7 +61,7 @@ class ArmBehaviors:
                 elif "ACCEL" in elem:
                     msg = "data: set_accel:: " + str(elem.split("ACCEL: ")[1])
                 else:
-                    print "ELEM IS: ", elem
+                    print("ELEM IS: ", elem)
                     joint = elem.split(":")[0]
                     pos = elem.split(":")[1]
                     if joint == "H":
@@ -81,7 +81,7 @@ class ArmBehaviors:
                         # msg = "data: sleeping:: " + pos
                         time.sleep(float(pos))
 
-                print "Publishing: ", msg
+                print("Publishing: ", msg)
                 self.request_cmd(msg)
         if not self.serv_prob:
             self.arm_status.publish('free')
@@ -134,27 +134,27 @@ class ArmBehaviors:
         self.behaviors["praise"] = "SPD: 1000, R_praise"
 
         rospack = rospkg.RosPack()
-        PACKAGE_PATH = rospack.get_path("edwin")
+        PACKAGE_PATH = rospack.get_path("irl")
 
         pickle.dump(self.behaviors, open(PACKAGE_PATH + '/params/behaviors.txt', 'w'))
 
     def loop_all(self):
-        for key in self.behaviors.keys():
-            print " "
-            print "--------"
-            print "RUNNING: ", key
-            print "--------"
-            print " "
+        for key in list(self.behaviors.keys()):
+            print(" ")
+            print("--------")
+            print("RUNNING: ", key)
+            print("--------")
+            print(" ")
             self.behavior_callback(key)
             time.sleep(5)
 
     def run_once(self, key):
         time.sleep(2)
-        print " "
-        print "--------"
-        print "RUNNING: ", key
-        print "--------"
-        print " "
+        print(" ")
+        print("--------")
+        print("RUNNING: ", key)
+        print("--------")
+        print(" ")
         self.behavior_callback(key)
         time.sleep(2)
 
