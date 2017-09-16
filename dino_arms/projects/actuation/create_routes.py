@@ -8,7 +8,7 @@ import numpy as np
 from std_msgs.msg import String, Int16
 import rospkg
 import pickle
-from edwin.srv import *
+from irl.srv import *
 import os, sys
 
 class RouteCreator:

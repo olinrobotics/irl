@@ -6,7 +6,7 @@ import numpy as np
 from std_msgs.msg import String, Int16, Header
 from sensor_msgs.msg import JointState
 import time
-from edwin.srv import arm_cmd
+from irl.srv import arm_cmd
 
 class ArmCommands:
     def __init__(self):
@@ -53,7 +53,7 @@ class ArmCommands:
             location = self.arm.where()
 
             #print 'location', location
-            
+
         elif cmd == "create_route":
             print "CREATING NEW ROUTE"
             param = param.split("; ")

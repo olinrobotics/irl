@@ -9,7 +9,7 @@ import time
 import pickle
 import os, sys
 import rospkg
-from edwin.srv import arm_cmd
+from irl.srv import arm_cmd
 
 
 class ArmBehaviors:
