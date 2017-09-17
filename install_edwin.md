@@ -4,9 +4,20 @@ layout: template
 filename: install_edwin
 ---
 
+### Install Ubuntu 16.04
+1. Create an empty partition with Windows Disk Management
+2. Find a bootable USB drive with Ubuntu 16.04
+3. Plug in the USB drive and restart your computer. When the Dell icon shows up, press F12 key until the "one-time bootup" screen shows up. 
+4. Click on the "Install Ubuntu" option
+5. Follow the on-screen prompts until the installation is complete. Restart your computer and your Ubuntu should be ready to use.
+(Note: If your computer already has Ubuntu 14.04 or other previous versions of Ubuntu, you can select "Upgrade to 16.04" in Step 5. In this way, you can keep your personal document and installed packages.)
+
+### Install ROS kinetic
+To install ROS kinetic on your Ubuntu system, follow the instruction on the site below:
+http://wiki.ros.org/kinetic/Installation/Ubuntu
+
 ### Getting Code to Run
-1. Clone [github repository](https://github.com/olinrobotics/edwin) into your `catkin_ws/src` folder
-  - if you don't have ROS indigo, install it with [these instructions](http://wiki.ros.org/indigo/Installation/Ubuntu) (use `ros-indigo-desktop-full`)
+1. Clone [github repository](https://github.com/olinrobotics/irl) into your `catkin_ws/src` folder
 2. Install dependencies:
 
   Basic processes:
