@@ -316,7 +316,7 @@ int main(int argc, char* argv[])
 	}
 
 	FilteredSGBM bm;
-	Rectifier r(path + "/params/left_camera.yaml", path + "/params/right_camera.yaml");
+	Rectifier r(path + "/data/camera_info/left_camera.yaml", path + "/data/camera_info/right_camera.yaml");
 	Mat disp, raw_disp;
 	Mat dist;
 	Mat rect_left, rect_right;
