@@ -1,0 +1,8 @@
+<launch>
+	<!-- sound cmd -->
+	<node name="edwin_stt" pkg="edwin" type="stt_move.py" output="screen"/>
+	<!-- stereo vision -->
+	<include file="$(find edwin_stereo)/launch/stereo.launch"/>
+	<!-- launch motion separately! -->
+
+</launch>
