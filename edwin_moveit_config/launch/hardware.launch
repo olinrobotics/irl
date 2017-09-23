@@ -1,0 +1,7 @@
+<launch>
+	<arg name="dev" default="/dev/ttyUSB0"/>
+	<param name="dev" value="$(arg dev)"/>
+	<node name="edwin_hardware_node" pkg="edwin_moveit_config" type="edwin_hardware_node"
+		ns="edwin" output="screen">
+	</node>
+</launch>
