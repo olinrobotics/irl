@@ -13,7 +13,7 @@
 #include <string>
 
 #include "st_arm.h"
-
+#include "irl/arm_cmd.h"
 
 class EdwinInterface: public hardware_interface::RobotHW{
 	private:
@@ -30,7 +30,8 @@ class EdwinInterface: public hardware_interface::RobotHW{
 		ros::NodeHandle nh;
 
 		ros::Publisher pub;
-		ros::Subscriber sub;
+		//ros::Subscriber sub;
+        ros::ServiceServer arm_cmd_srv;
 
 		std_msgs::String cmd_msg;
 
@@ -38,7 +39,7 @@ class EdwinInterface: public hardware_interface::RobotHW{
 	public:
 		EdwinInterface(ros::NodeHandle nh, const std::string&);
 		ros::Time get_time();
-		void arm_cmd_cb(const std_msgs::StringConstPtr& msg);
+		bool arm_cmd_cb(irl::arm_cmd::Request &req,irl::arm_cmd::Response &res);
 		virtual void read(const ros::Time& time);
 		virtual void write(const ros::Time& time);
 };

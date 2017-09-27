@@ -7,8 +7,33 @@
 #include "edwin_interface.h"
 #include "Mutex.h"
 
+#include <algorithm>
+#include <string>
+
 const std::string joints[] = {"waist","shoulder","elbow","hand","wrist"};
 Mutex mtx;
+
+void split(std::string& s, const std::string& delim, std::vector<std::string>& res){
+    res.clear();
+    size_t pos=0;
+    std::string token;
+    while ((pos = s.find(delim)) != std::string::npos) {
+        token = s.substr(0, pos);
+        res.push_back(token);
+        s.erase(0, pos + delim.length());
+    }
+    res.push_back(s);
+}
+// string manip.
+std::vector<std::string> split(
+        std::string s,
+        const std::string& delim){
+    std::vector<std::string> res;
+    split(s,delim,res);
+    return res;
+}
+
+
 
 EdwinInterface::EdwinInterface(ros::NodeHandle nh, const std::string& dev):st(dev), nh(nh){
 
@@ -31,8 +56,8 @@ EdwinInterface::EdwinInterface(ros::NodeHandle nh, const std::string& dev):st(de
 	registerInterface(&jnt_pos_interface);
 
 	pub = nh.advertise<sensor_msgs::JointState>("joint_states", 10, false);
-
-	sub = nh.subscribe("arm_cmd", 10, &EdwinInterface::arm_cmd_cb, this);
+	//sub = nh.subscribe("arm_cmd", 10, &EdwinInterface::arm_cmd_cb, this);
+    arm_cmd_srv = nh.advertiseService("arm_cmd", &EdwinInterface::arm_cmd_cb, this);
 
 	//publish joint states
 	joint_state_msg.header.frame_id = "base_link";
@@ -50,14 +75,46 @@ ros::Time EdwinInterface::get_time(){
 	return ros::Time::now();
 }
 
-void EdwinInterface::arm_cmd_cb(const std_msgs::StringConstPtr& msg){
-	std::cout << "MSG DATA ::" << msg->data << std::endl;
+bool EdwinInterface::arm_cmd_cb(
+        irl::arm_cmd::Request& req,
+        irl::arm_cmd::Response& res
+        ){
 
-	// ##### MUTEX #####
-	mtx.lock();
-	st.write(msg->data);
-	mtx.unlock();
-	// #################
+    auto raw_cmds = split(req.cmd.data(), "data: ");
+    if(raw_cmds.size() <= 0){
+        return false;
+    }
+
+    raw_cmds = split(raw_cmds.back(), ":: ");
+
+    std::string cmd, param;
+    cmd = raw_cmds[0];
+    if(raw_cmds.size() > 1){
+        param = raw_cmds[1];
+    }
+
+    std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::tolower);
+    std::transform(param.begin(), param.end(), param.begin(), ::tolower);
+
+    if(cmd == "de_energize"){
+        //
+    }else if(cmd == "energize"){
+        //
+    }else if(cmd == "where"){
+        auto loc = st.where();
+    }else if(cmd == "create_route"){
+
+    }else if(cmd == "calibrate"){
+        st.calibrate();
+    }else if(cmd == "home"){
+        st.home();
+    }
+
+    //// ##### MUTEX #####
+	//mtx.lock();
+	//st.write(msg->data);
+	//mtx.unlock();
+	//// #################
 
 	// TODO : implement backwards-compatible arm-cmd
 	//joint_state_msg = *msg;

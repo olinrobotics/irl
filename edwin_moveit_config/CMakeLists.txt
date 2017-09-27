@@ -22,6 +22,8 @@ find_package(catkin REQUIRED
 	pluginlib
 	roscpp
 	tf_conversions
+
+    irl
 	)
 
 include_directories(
