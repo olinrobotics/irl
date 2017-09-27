@@ -1,0 +1,37 @@
+<launch>
+	<!--<node pkg="tf" type="static_transform_publisher" name="camera_to_camera_link" args="0 0 0 0.5 -0.5 0.5 -0.5 camera camera_link 100"/>-->
+	<!--<include file="$(find freenect_launch)/launch/freenect.launch"/>
+	<node pkg="tf" type="static_transform_publisher" name="kinect2world" args="0.635 0.30 0 -1.5708 -0.3 0 base_link camera_link 100" />-->
+	<group ns="camera">
+		<node pkg="uvc_camera" type="uvc_camera_node" name="camera" args="_device:=/dev/video0" />
+		<node pkg="image_proc" type="image_proc" name="image_proc" args="" />
+		<node pkg="image_view" type="image_view" name="image_view" args="image:=/camera/image_rect"/>
+	</group>
+
+	<node pkg="tf" type="static_transform_publisher" name="camera_to_head" args="0.127 0 0.0762 0 0 0 1 link_5 camera_link 100" /> <!-- TODO : Fix Transform -->
+
+    <node pkg="apriltags_ros" type="apriltag_detector_node" name="apriltag_detector" output="screen">
+        <!-- Remap topic required by the node to custom topics -->
+		<remap from="image_rect" to="/camera/image_rect_color" />
+		<remap from="camera_info" to="/camera/camera_info" />
+
+        <!-- Optional: Subscribe to the compressed stream-->
+        <param name="image_transport" type="str" value="compressed" />
+
+        <!-- Select the tag family: 16h5, 25h7, 25h9, 36h9, or 36h11(default) -->
+        <param name="tag_family" type="str" value="36h11" />
+
+        <!-- Enable projected optical measurements for more accurate tag transformations -->
+        <!-- This exists for backwards compatability and should be left true for new setups -->
+        <param name="projected_optics" type="bool" value="true" />
+
+        <!-- Describe the tags -->
+        <rosparam param="tag_descriptions">[
+            {id: 0, size: 0.10},
+            {id: 1, size: 0.10}]
+        </rosparam>
+    </node>
+
+	<node pkg="edwin_moveit_config" type="april_tag_target.py" name="april_tag_target"/>
+
+</launch>
