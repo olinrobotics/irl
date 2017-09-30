@@ -1,0 +1,5 @@
+<launch>
+	<node name="edwin_move_group_interface" pkg="edwin_moveit_config" type="edwin_move_group_interface" output="screen">
+		<remap from="joint_states" to="/edwin/joint_states"/>
+	</node>
+</launch>

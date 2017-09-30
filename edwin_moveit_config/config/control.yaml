@@ -1,0 +1,22 @@
+edwin:
+    edwin_controller:
+        type: position_controllers/JointTrajectoryController
+        action_ns: "follow_joint_trajectory"
+        joints:
+            - waist
+            - shoulder
+            - elbow
+            - hand
+            - wrist
+
+controller_list:
+  - name: "edwin/edwin_controller"
+    action_ns: "follow_joint_trajectory"
+    type: FollowJointTrajectory 
+    default: true
+    joints:
+        - waist
+        - shoulder
+        - elbow
+        - hand
+        - wrist
