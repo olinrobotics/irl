@@ -1,4 +1,5 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
+from __future__ import absolute_import
 import rospy
 import math
 import st
@@ -8,62 +9,62 @@ from sensor_msgs.msg import JointState
 import time
 from irl.srv import arm_cmd
 
-class ArmCommands:
+class ArmCommands(object):
     def __init__(self):
-        rospy.init_node('robot_arm', anonymous=True)
-        s = rospy.Service('arm_cmd', arm_cmd, self.arm_callback)
-        print("Service ONLINE")
+        rospy.init_node(u'robot_arm', anonymous=True)
+        s = rospy.Service(u'arm_cmd', arm_cmd, self.arm_callback)
+        print u"Service ONLINE"
 
         # rospy.Subscriber('/arm_cmd', String, self.arm_callback, queue_size=1)
-        self.debug_pub = rospy.Publisher('arm_debug', String, queue_size=10)
+        self.debug_pub = rospy.Publisher(u'arm_debug', String, queue_size=10)
         # self.status_pub = rospy.Publisher('arm_status', String, queue_size=10)
 
-        self.joint_state_pub = rospy.Publisher('joint_states', JointState, queue_size=10)
+        self.joint_state_pub = rospy.Publisher(u'joint_states', JointState, queue_size=10)
         self.joint_state_msg = JointState()
 
         self.debug = False
         self.plan = []
         self.arm = st.StArm()
-        print("CALIBRATING")
+        print u"CALIBRATING"
         self.arm.initial_calibration()
         self.arm.start()
 
-        print("ARM SPD IS: ", self.arm.get_speed())
-        print("ARM ACCEL IS: ", self.arm.get_accel())
+        print u"ARM SPD IS: ", self.arm.get_speed()
+        print u"ARM ACCEL IS: ", self.arm.get_accel()
 
         self.arm.set_speed(10000)
         self.arm.home()
-        print("HOMING")
+        print u"HOMING"
 
-        self.debug_pub.publish("HOMING DONE")
+        self.debug_pub.publish(u"HOMING DONE")
 
     def arm_callback(self, cmdin):
         self.arm.joint()
         cmd = cmdin.cmd
-        cmd = str(cmd).replace("data: ", "")
-        if len(cmd.split(':: ')) > 1:
-            param = cmd.split(':: ')[1]
-            cmd = cmd.split(':: ')[0]
-        print(cmd)
-        if cmd == "de_energize":
+        cmd = unicode(cmd).replace(u"data: ", u"")
+        if len(cmd.split(u':: ')) > 1:
+            param = cmd.split(u':: ')[1]
+            cmd = cmd.split(u':: ')[0]
+        print cmd
+        if cmd == u"de_energize":
             self.arm.de_energize()
-        elif cmd == "energize":
+        elif cmd == u"energize":
             self.arm.energize()
-        elif cmd == "where":
+        elif cmd == u"where":
             location = self.arm.where()
 
             #print 'location', location
 
-        elif cmd == "create_route":
-            print("CREATING NEW ROUTE")
-            param = param.split("; ")
+        elif cmd == u"create_route":
+            print u"CREATING NEW ROUTE"
+            param = param.split(u"; ")
             route_name = param[0]
 
             commands = []
-            numbers = param[1].split(", ")
+            numbers = param[1].split(u", ")
 
             if len(numbers)%6 != 0:
-                print("INVALID ROUTE")
+                print u"INVALID ROUTE"
                 return
 
             i = 0
@@ -76,39 +77,39 @@ class ArmCommands:
                 commands.append(route)
                 i += j
 
-            print("CREATING ROUTE: ", route_name)
-            print("CMDS: ", commands)
+            print u"CREATING ROUTE: ", route_name
+            print u"CMDS: ", commands
             self.arm.create_route(route_name, commands)
 
-        elif cmd == "calibrate":
+        elif cmd == u"calibrate":
             self.arm.calibrate()
-        elif cmd == "home":
+        elif cmd == u"home":
             self.arm.home()
-        elif cmd == "get_speed":
+        elif cmd == u"get_speed":
             speed = self.arm.get_speed()
-        elif cmd == "set_speed":
+        elif cmd == u"set_speed":
             #SPD is also in units of 1000
-            print("setting speed to ", param)
+            print u"setting speed to ", param
             self.arm.set_speed(float(param))
-            print("ARM SPD IS: ", self.arm.get_speed())
-        elif cmd == "set_point":
+            print u"ARM SPD IS: ", self.arm.get_speed()
+        elif cmd == u"set_point":
             self.arm.set_point(param)
-        elif cmd == "get_accel":
+        elif cmd == u"get_accel":
             accel = self.arm.get_accel()
-        elif cmd == "set_accel":
+        elif cmd == u"set_accel":
             #ACCEL is also in units of 1000
-            print("setting accel to ", param)
+            print u"setting accel to ", param
             self.arm.set_accel(float(param))
-        elif cmd == "run_route":
+        elif cmd == u"run_route":
             # self.status_pub.publish(1)
             res = self.arm.run_route(param)
 
             if not res:
-                self.debug_pub.publish("ROUTE NOT FOUND: " + param)
+                self.debug_pub.publish(u"ROUTE NOT FOUND: " + param)
             # self.status_pub.publish(0)
-        elif cmd == "move_to":
+        elif cmd == u"move_to":
             #NOTE: move_to is in units of mm
-            temp = param.split(", ")
+            temp = param.split(u", ")
             x = temp[0]
             y = temp[1]
             z = temp[2]
@@ -116,76 +117,76 @@ class ArmCommands:
             # self.status_pub.publish(1)
             self.arm.move_to(x,y,z,self.arm.debug)
             # self.status_pub.publish(0)
-        elif cmd == "rotate_wrist":
+        elif cmd == u"rotate_wrist":
             # self.status_pub.publish(1)
             self.arm.rotate_wrist(param)
             # self.status_pub.publish(0)
-        elif cmd == "rotate_wrist_rel":
+        elif cmd == u"rotate_wrist_rel":
             # self.status_pub.publish(1)
             self.arm.rotate_wrist_rel(param)
             # self.status_pub.publish(0)
-        elif cmd == "rotate_hand":
+        elif cmd == u"rotate_hand":
             # self.status_pub.publish(1)
             self.arm.rotate_hand(param)
             # self.status_pub.publish(0)
-        elif cmd == "rotate_elbow":
+        elif cmd == u"rotate_elbow":
             # self.status_pub.publish(1)
             self.arm.rotate_elbow(param)
             # self.status_pub.publish(0)
-        elif cmd == "rotate_shoulder":
+        elif cmd == u"rotate_shoulder":
             # self.status_pub.publish(1)
             self.arm.rotate_shoulder(param)
             # self.status_pub.publish(0)
-        elif cmd == "rotate_waist":
+        elif cmd == u"rotate_waist":
             # self.status_pub.publish(1)
             self.arm.rotate_waist(param)
             # self.status_pub.publish(0)
-        elif cmd == "rotate_waist_rel":
+        elif cmd == u"rotate_waist_rel":
             # self.status_pub.publish(1)
-            print("RELATIVE WA ROTATION")
+            print u"RELATIVE WA ROTATION"
             self.arm.rotate_waist(param)
             # self.status_pub.publish(0)
-        elif cmd == "rotate_hand_rel":
+        elif cmd == u"rotate_hand_rel":
             # self.status_pub.publish(1)
             self.arm.rotate_hand_rel(param)
             # self.status_pub.publish(0)
-        elif cmd == "sleeping":
+        elif cmd == u"sleeping":
             time.sleep(float(param))
-        elif cmd == "get_joint_states":
+        elif cmd == u"get_joint_states":
             self.status_pub.publish(1)
             joint_states = self.arm.get_joint_states()
 
             h = Header()
-            h.frame_id = "base_link"
+            h.frame_id = u"base_link"
             h.stamp = rospy.Time.now()
 
             self.joint_state_msg.header = h
-            self.joint_state_msg.name = ['joint_1','joint_2','joint_3','joint_4','joint_5']
+            self.joint_state_msg.name = [u'joint_1',u'joint_2',u'joint_3',u'joint_4',u'joint_5']
             # TODO : fix these names ... here for compatibility with URDF model
             self.joint_state_msg.position = joint_states
-            self.joint_state_msg.velocity = [0 for _ in range(5)]
-            self.joint_state_msg.effort = [0 for _ in range(5)]
+            self.joint_state_msg.velocity = [0 for _ in xrange(5)]
+            self.joint_state_msg.effort = [0 for _ in xrange(5)]
 
             self.joint_state_pub.publish(self.joint_state_msg)
 
             self.status_pub.publish(0)
-        elif cmd == "test":
+        elif cmd == u"test":
             self.status_pub.publish(1)
             self.arm.test()
             self.status_pub.publish(0)
 
 
 
-        return ["I have completed the command"]
+        return [u"I have completed the command"]
 
 
     def run(self):
-        print("Service is ready to go")
+        print u"Service is ready to go"
         rospy.spin()
         # r = rospy.Rate(10)
         # while not rospy.is_shutdown():
         #     r.sleep()
 
-if __name__ == "__main__":
+if __name__ == u"__main__":
     arm_eng = ArmCommands()
     arm_eng.run()
