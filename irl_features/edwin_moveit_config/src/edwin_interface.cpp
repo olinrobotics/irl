@@ -33,20 +33,7 @@ EdwinInterface::EdwinInterface(ros::NodeHandle nh, const std::string& dev):st(de
     registerInterface(&jnt_state_interface);
 	registerInterface(&jnt_pos_interface);
 
-	//pub = nh.advertise<sensor_msgs::JointState>("joint_states", 10, false);
     arm_cmd_srv = nh.advertiseService("/arm_cmd", &EdwinInterface::arm_cmd_cb, this);
-
-	//publish joint states
-	joint_state_msg.header.frame_id = "base_link";
-
-	// urdf joint names
-	for(int i=0; i<N_JOINTS; ++i){
-		joint_state_msg.name.push_back(joints[i]);
-		joint_state_msg.position.push_back(0);
-	}
-    // unknown joints
-    joint_state_msg.velocity.clear();
-    joint_state_msg.effort.clear();
 }
 EdwinInterface::~EdwinInterface(){
 
@@ -125,11 +112,6 @@ bool EdwinInterface::arm_cmd_cb(
     }
     mtx.unlock();
 
-	// TODO : implement backwards-compatible arm-cmd
-	//joint_state_msg = *msg;
-	//for(int i=0; i<N_JOINTS; ++i){
-	//	pos[i] = joint_state_msg.position[i];
-	//}
     return true;
 }
 
@@ -165,7 +147,7 @@ void cvtJ_i(std::vector<double>& j){
 
 void EdwinInterface::read(const ros::Time& time){
 	//alias with reference
-	std::vector<double>& loc = joint_state_msg.position;
+	std::vector<double> loc;
 	
 	// ##### MUTEX #####
 	mtx.lock();	
@@ -187,9 +169,6 @@ void EdwinInterface::read(const ros::Time& time){
 		pos[i] = loc[i];
 	}
 
-	//publish joint states
-	joint_state_msg.header.stamp = ros::Time::now();
-	//pub.publish(joint_state_msg);
 }
 
 void EdwinInterface::write(const ros::Time& time){
