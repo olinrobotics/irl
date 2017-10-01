@@ -23,6 +23,7 @@ EdwinInterface::EdwinInterface(ros::NodeHandle nh, const std::string& dev):st(de
     ROS_INFO("Initialization Complete.");
 
 	for(int i=0; i<N_JOINTS; ++i){
+        vel[i] = eff[i] = -1;
 		// connect and register the joint state interface
 		hardware_interface::JointStateHandle state_handle(joints[i], &pos[i], &vel[i], &eff[i]);
 		jnt_state_interface.registerHandle(state_handle);
@@ -183,15 +184,19 @@ void EdwinInterface::write(const ros::Time& time){
 
 	// ##### MUTEX #####
 	mtx.lock();
-	st.move(cmd_pos);
+    auto move_flag=false;
+    for(int i=0; i<N_JOINTS; ++i){
+        float dp = fabs(cmd[i] - pos[i]);
+        if(dp > d2r(1.0)){
+            move_flag=true;
+            break;
+        }
+    }
+    if(move_flag)
+        st.move(cmd_pos);
 	//for(int i=0; i<N_JOINTS; ++i){
-	//	// DEBUGGING:
-	//	// std::cout << (i==0?"":", ") << cmd[i];
-	//	
-	//	float dp = cmd[i] - pos[i]; // target-position
-	//	dp = dp>0?dp:-dp; // abs
-
-	//	if(dp > d2r(1)){ // more than 1 degrees different
+	//	float dp = fabs(cmd[i] - pos[i]); // target-position
+	//	if(dp > d2r(1.0)){ // more than 1 degrees different
 	//		// TODO : apply scaling factors?
 	//		st.move(joints[i], cmd_pos[i]);
 	//	}

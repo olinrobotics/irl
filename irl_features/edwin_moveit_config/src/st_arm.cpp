@@ -3,6 +3,8 @@
 #include <sstream>
 #include <string>
 
+#include <ros/ros.h>
+
 STArm::STArm(const std::string port):energized(true){
 	// open serial port
 	ser.Open(port);
@@ -197,5 +199,3 @@ std::string STArm::block_on_result(){
 
 	return s.str();
 }
-
-
