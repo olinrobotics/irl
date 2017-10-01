@@ -38,6 +38,7 @@ class EdwinInterface: public hardware_interface::RobotHW{
 		sensor_msgs::JointState joint_state_msg;
 	public:
 		EdwinInterface(ros::NodeHandle nh, const std::string&);
+        ~EdwinInterface();
 		ros::Time get_time();
 		bool arm_cmd_cb(irl::arm_cmd::Request &req,irl::arm_cmd::Response &res);
 		virtual void read(const ros::Time& time);

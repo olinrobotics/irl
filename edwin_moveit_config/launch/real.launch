@@ -42,7 +42,7 @@
   <!-- controller -->
   <rosparam command="load" file="$(find edwin_moveit_config)/config/control.yaml"/>
   <!-- load the controllers -->
-  <node name="controller_spawner" pkg="controller_manager" type="spawner" output="screen" ns="/edwin" args="edwin_controller"/>
+  <node name="controller_spawner" pkg="controller_manager" type="spawner" output="screen" ns="/edwin" args="edwin_controller joint_state_controller"/>
 
   <!-- Run the main MoveIt executable without trajectory execution (we do not have controllers configured by default) -->
   <include file="$(find edwin_moveit_config)/launch/move_group.launch">

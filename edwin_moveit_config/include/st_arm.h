@@ -27,8 +27,9 @@ enum Mode {MODE_CARTESIAN, MODE_JOINT};
 class STArm{
 	private:
 		SerialStream ser;
+        bool energized;
 	public:
-		STArm(const std::string port="/dev/ttyUSB0"); //default port
+		STArm(const std::string port); //default port
 		~STArm();
 
 		std::string write(const std::string str);
@@ -40,6 +41,9 @@ class STArm{
 		void purge();
 		void calibrate();
 		void joint();
+
+        void de_energize();
+        void energize();
 
 		void move(const std::string& j, int val, bool rel=false);
 		void move(const std::vector<double>& v);
@@ -53,8 +57,12 @@ class STArm{
 		// custom command
 		void execute_command();
 
-		void set(std::string cmd);
+		void set(const std::string& field, const std::string& value);
+        std::string get(const std::string& field);
 		void set_speed(int speed);
+        int get_speed();
+        void set_accel(int accel);
+        int get_accel();
 		void set_mode(Mode); //joint or cartesian
 		void set_decimal();
 		void set_continuous();

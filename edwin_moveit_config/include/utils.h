@@ -4,6 +4,7 @@
 #include <cmath>
 #include <vector>
 #include <string>
+#include <iostream>
 
 #ifndef M_PI
 #define M_PI 3.141592653589793238
@@ -14,6 +15,16 @@ extern float d2r(float d);
 extern float r2d(float r);
 extern float posr(float r);
 
-extern std::vector<std::string> split(const std::string& s, char delim);
+extern void split(std::string& s, const std::string& delim, std::vector<std::string>& res);
+extern std::vector<std::string> split(std::string s, const std::string& delim);
+extern std::vector<std::string> split(std::string s, const char delim_c);
 
+template<typename T>
+std::ostream& operator<<(std::ostream& os, const std::vector<T>& v){
+    os << '[';
+    for(auto& e : v){
+        os << e << ';';
+    }
+    os << ']';
+}
 #endif

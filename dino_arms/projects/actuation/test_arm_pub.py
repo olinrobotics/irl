@@ -1,9 +1,9 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 import rospy
 import math
 import numpy as np
 from std_msgs.msg import String
-import tkinter as tk
+import Tkinter as tk
 import time
 from irl.srv import arm_cmd
 

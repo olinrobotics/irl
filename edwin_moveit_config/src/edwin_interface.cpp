@@ -13,34 +13,11 @@
 const std::string joints[] = {"waist","shoulder","elbow","hand","wrist"};
 Mutex mtx;
 
-void split(std::string& s, const std::string& delim, std::vector<std::string>& res){
-    res.clear();
-    size_t pos=0;
-    std::string token;
-    while ((pos = s.find(delim)) != std::string::npos) {
-        token = s.substr(0, pos);
-        res.push_back(token);
-        s.erase(0, pos + delim.length());
-    }
-    res.push_back(s);
-}
-// string manip.
-std::vector<std::string> split(
-        std::string s,
-        const std::string& delim){
-    std::vector<std::string> res;
-    split(s,delim,res);
-    return res;
-}
-
-
-
 EdwinInterface::EdwinInterface(ros::NodeHandle nh, const std::string& dev):st(dev), nh(nh){
 
 	// initialize arm
     ROS_INFO("Initializing ST Arm!");
 	st.initialize();
-	st.start();
 	st.set_speed(10000);
 	st.home();
     ROS_INFO("Initialization Complete.");
@@ -53,11 +30,11 @@ EdwinInterface::EdwinInterface(ros::NodeHandle nh, const std::string& dev):st(de
 		hardware_interface::JointHandle pos_handle(jnt_state_interface.getHandle(joints[i]), &cmd[i]);
 		jnt_pos_interface.registerHandle(pos_handle);
 	}
+    registerInterface(&jnt_state_interface);
 	registerInterface(&jnt_pos_interface);
 
-	pub = nh.advertise<sensor_msgs::JointState>("joint_states", 10, false);
-	//sub = nh.subscribe("arm_cmd", 10, &EdwinInterface::arm_cmd_cb, this);
-    arm_cmd_srv = nh.advertiseService("arm_cmd", &EdwinInterface::arm_cmd_cb, this);
+	//pub = nh.advertise<sensor_msgs::JointState>("joint_states", 10, false);
+    arm_cmd_srv = nh.advertiseService("/arm_cmd", &EdwinInterface::arm_cmd_cb, this);
 
 	//publish joint states
 	joint_state_msg.header.frame_id = "base_link";
@@ -66,11 +43,14 @@ EdwinInterface::EdwinInterface(ros::NodeHandle nh, const std::string& dev):st(de
 	for(int i=0; i<N_JOINTS; ++i){
 		joint_state_msg.name.push_back(joints[i]);
 		joint_state_msg.position.push_back(0);
-		joint_state_msg.velocity.push_back(0);
-		joint_state_msg.effort.push_back(0);
 	}
+    // unknown joints
+    joint_state_msg.velocity.clear();
+    joint_state_msg.effort.clear();
 }
+EdwinInterface::~EdwinInterface(){
 
+}
 ros::Time EdwinInterface::get_time(){
 	return ros::Time::now();
 }
@@ -80,7 +60,12 @@ bool EdwinInterface::arm_cmd_cb(
         irl::arm_cmd::Response& res
         ){
 
-    auto raw_cmds = split(req.cmd.data(), "data: ");
+    ROS_INFO("Received Service Request : %s", req.cmd.c_str()); 
+    // Format : 
+    // data: cmd:: param
+    
+    // parse cmd ...
+    auto raw_cmds = split(req.cmd, "data: ");
     if(raw_cmds.size() <= 0){
         return false;
     }
@@ -95,32 +80,57 @@ bool EdwinInterface::arm_cmd_cb(
 
     std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::tolower);
     std::transform(param.begin(), param.end(), param.begin(), ::tolower);
-
+    ROS_INFO("Received CMD : [%s]; PARAM : [%s]", cmd.c_str(), param.c_str());
+    // parse complete
+     
+    // obtain ST Arm Control
+	mtx.lock();
+    // act on cmd ...
     if(cmd == "de_energize"){
-        //
+        st.de_energize();
     }else if(cmd == "energize"){
-        //
+        st.energize();
     }else if(cmd == "where"){
-        auto loc = st.where();
+        ROS_INFO("Command [WHERE] Deprecated; subscribe to /joint_states topic instead.");
     }else if(cmd == "create_route"){
-
+        ROS_INFO("Command [CREATE_ROUTE] Not Supported.");
     }else if(cmd == "calibrate"){
         st.calibrate();
     }else if(cmd == "home"){
         st.home();
-    }
+    }else if(cmd == "get_speed"){
+        auto speed = st.get_speed();
+        std::string msg = ("SPEED : " + std::to_string(speed));
+        res.response = msg;
+    }else if(cmd == "set_speed"){
+        auto speed = std::stoi(param);
+        st.set_speed(speed);
+        res.response = "SUCCESS";
+    }else if(cmd == "get_accel"){
+        auto accel = st.get_accel();
+        std::string msg = ("ACCEL : " + std::to_string(accel));
+        res.response = msg;
+    }else if(cmd == "set_accel"){
+        auto accel = std::stoi(param);
+        st.set_accel(accel);
+        res.response = "SUCCESS";
+    }else if(cmd == "run_route"){
 
-    //// ##### MUTEX #####
-	//mtx.lock();
-	//st.write(msg->data);
-	//mtx.unlock();
-	//// #################
+    }else if(cmd == "move_to"){
+
+    }else if(cmd == "rotate_wrist"){
+
+    }else if(cmd == "rotate_wrist_rel"){
+
+    }
+    mtx.unlock();
 
 	// TODO : implement backwards-compatible arm-cmd
 	//joint_state_msg = *msg;
 	//for(int i=0; i<N_JOINTS; ++i){
 	//	pos[i] = joint_state_msg.position[i];
 	//}
+    return true;
 }
 
 void cvtJ(std::vector<double>& j){
@@ -172,16 +182,14 @@ void EdwinInterface::read(const ros::Time& time){
 	//reformat based on scale and direction
 	cvtJ(loc);
 
-	// fill data
+	// fill data -- let controller manager know
 	for(int i=0; i<N_JOINTS;++i){
 		pos[i] = loc[i];
-		//std::cout << pos[i] << ',';
 	}
-	//std::cout << std::endl;
 
 	//publish joint states
 	joint_state_msg.header.stamp = ros::Time::now();
-	pub.publish(joint_state_msg);
+	//pub.publish(joint_state_msg);
 }
 
 void EdwinInterface::write(const ros::Time& time){
@@ -193,7 +201,6 @@ void EdwinInterface::write(const ros::Time& time){
 	}
 
 	cvtJ_i(cmd_pos); // invert conversion
-
 
 	// ##### MUTEX #####
 	mtx.lock();
@@ -213,15 +220,6 @@ void EdwinInterface::write(const ros::Time& time){
 	mtx.unlock();
 	// #################
 };
-
-template <typename T>
-std::ostream& operator<<(std::ostream& os, const std::vector<T>& v){
-	os << '[';
-	for(typename std::vector<T>::const_iterator it=v.begin();it!=v.end();++it){
-		os << (*it) << ',';
-	}
-	os << ']';
-}
 
 int main(int argc, char* argv[]){
 	ros::init(argc,argv,"edwin_hardware");
@@ -243,14 +241,16 @@ int main(int argc, char* argv[]){
 
 	ros::Time then = edwin.get_time();
 	ros::Rate r = ros::Rate(10.0); // 10 Hz
-	int cnt = 0;
+
 	while(ros::ok()){
 		ros::Time now = edwin.get_time();
 		ros::Duration period = ros::Duration(now-then);
+        then = now;
+
 		edwin.read(now);
 		cm.update(now, period);
 		edwin.write(now);
-		++cnt;
+
 		r.sleep();
 	}
 	return 0;
