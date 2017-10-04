@@ -22,10 +22,8 @@ find_package(catkin REQUIRED
 	pluginlib
 	roscpp
 	tf_conversions
-
-    irl
+        irl
 	)
-
 include_directories(
 	include/
 	${catkin_INCLUDE_DIRS}
@@ -39,10 +37,13 @@ catkin_package(
 	pluginlib
 	roscpp
 	tf_conversions
+        irl
 	)
 
 add_executable(edwin_hardware_node src/edwin_interface.cpp src/st_arm.cpp src/utils.cpp src/Mutex.cpp)
 add_executable(edwin_move_group_interface src/move_group_interface.cpp)
+
+add_dependencies(edwin_hardware_node irl_generate_messages_cpp)
 
 target_link_libraries(edwin_hardware_node
 	${catkin_LIBRARIES}
