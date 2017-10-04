@@ -18,17 +18,7 @@ rosdep install edwin_description
 rosdep install edwin_moveit_config
 ```
 
-3. Get LibSerial:
-
-This project depends on [LibSerial](https://github.com/crayzeewulf/libserial). Navigate to the link, and follow the very simple instructions for getting libserial installed on your computer.
-
-```bash
-cd ${HOME}
-git clone http://github.com/crayzeewulf/libserial.git
-sudo apt-get install dh-autoreconf
-```
-
-4. Build the project:
+3. Build the project:
 
 ```bash
 catkin_make --pkg edwin_description
@@ -51,7 +41,6 @@ roslaunch edwin_moveit_config demo.launch
 roslaunch edwin_moveit_config hardware.launch
 roslaunch edwin_moveit_config real.launch
 ```
-
 
 ### TO-DOS For Documentation:
 
