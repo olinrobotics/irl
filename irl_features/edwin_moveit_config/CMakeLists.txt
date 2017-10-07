@@ -17,12 +17,10 @@ find_package(catkin REQUIRED
 	moveit_ros_move_group
 	moveit_ros_planning
 	moveit_ros_planning_interface
-
 	moveit_core
 	pluginlib
 	roscpp
 	tf_conversions
-
     irl
 	)
 
@@ -39,9 +37,11 @@ catkin_package(
 	pluginlib
 	roscpp
 	tf_conversions
+    irl
 	)
 
 add_executable(edwin_hardware_node src/edwin_interface.cpp src/st_arm.cpp src/utils.cpp src/Mutex.cpp)
+add_dependencies(edwin_hardware_node ${catkin_EXPORTED_TARGETS})
 add_executable(edwin_move_group_interface src/move_group_interface.cpp)
 
 target_link_libraries(edwin_hardware_node
