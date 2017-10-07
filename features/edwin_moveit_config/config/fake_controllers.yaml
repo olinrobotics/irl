@@ -1,0 +1,8 @@
+controller_list:
+  - name: fake_arm_group_controller
+    joints:
+      - waist
+      - shoulder
+      - elbow
+      - hand
+      - wrist
