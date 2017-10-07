@@ -15,7 +15,7 @@ git clone http://github.com/olinrobotics/edwin_moveit_config.git
 ```bash
 rosdep update
 rosdep install edwin_description
-rosdep install edwin_moveit_config
+rosdep install edwin_moveit_config --ignore-src
 ```
 
 3. Build the project:
