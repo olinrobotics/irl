@@ -1,4 +1,8 @@
 #!/bin/bash
-./install-ros
-./install-nite
-./install-libs
+./install-ros.sh
+./install-nite.sh
+./install-libs.sh
+./install-deps.sh
+
+# Note: run install-deps last
+
