@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import absolute_import
 import rospy
 import math
 import st
@@ -8,11 +9,11 @@ from sensor_msgs.msg import JointState
 import time
 from irl.srv import arm_cmd
 
-class ArmCommands:
+class ArmCommands(object):
     def __init__(self):
         rospy.init_node('robot_arm', anonymous=True)
         s = rospy.Service('arm_cmd', arm_cmd, self.arm_callback)
-        print("Service ONLINE")
+        print "Service ONLINE"
 
         # rospy.Subscriber('/arm_cmd', String, self.arm_callback, queue_size=1)
         self.debug_pub = rospy.Publisher('arm_debug', String, queue_size=10)
@@ -24,16 +25,16 @@ class ArmCommands:
         self.debug = False
         self.plan = []
         self.arm = st.StArm()
-        print("CALIBRATING")
+        print "CALIBRATING"
         self.arm.initial_calibration()
         self.arm.start()
 
-        print("ARM SPD IS: ", self.arm.get_speed())
-        print("ARM ACCEL IS: ", self.arm.get_accel())
+        print "ARM SPD IS: ", self.arm.get_speed()
+        print "ARM ACCEL IS: ", self.arm.get_accel()
 
         self.arm.set_speed(10000)
         self.arm.home()
-        print("HOMING")
+        print "HOMING"
 
         self.debug_pub.publish("HOMING DONE")
 
@@ -44,7 +45,7 @@ class ArmCommands:
         if len(cmd.split(':: ')) > 1:
             param = cmd.split(':: ')[1]
             cmd = cmd.split(':: ')[0]
-        print(cmd)
+        print cmd
         if cmd == "de_energize":
             self.arm.de_energize()
         elif cmd == "energize":
@@ -55,7 +56,7 @@ class ArmCommands:
             #print 'location', location
 
         elif cmd == "create_route":
-            print("CREATING NEW ROUTE")
+            print "CREATING NEW ROUTE"
             param = param.split("; ")
             route_name = param[0]
 
@@ -63,7 +64,7 @@ class ArmCommands:
             numbers = param[1].split(", ")
 
             if len(numbers)%6 != 0:
-                print("INVALID ROUTE")
+                print "INVALID ROUTE"
                 return
 
             i = 0
@@ -76,8 +77,8 @@ class ArmCommands:
                 commands.append(route)
                 i += j
 
-            print("CREATING ROUTE: ", route_name)
-            print("CMDS: ", commands)
+            print "CREATING ROUTE: ", route_name
+            print "CMDS: ", commands
             self.arm.create_route(route_name, commands)
 
         elif cmd == "calibrate":
@@ -88,16 +89,16 @@ class ArmCommands:
             speed = self.arm.get_speed()
         elif cmd == "set_speed":
             #SPD is also in units of 1000
-            print("setting speed to ", param)
+            print "setting speed to ", param
             self.arm.set_speed(float(param))
-            print("ARM SPD IS: ", self.arm.get_speed())
+            print "ARM SPD IS: ", self.arm.get_speed()
         elif cmd == "set_point":
             self.arm.set_point(param)
         elif cmd == "get_accel":
             accel = self.arm.get_accel()
         elif cmd == "set_accel":
             #ACCEL is also in units of 1000
-            print("setting accel to ", param)
+            print "setting accel to ", param
             self.arm.set_accel(float(param))
         elif cmd == "run_route":
             # self.status_pub.publish(1)
@@ -142,7 +143,7 @@ class ArmCommands:
             # self.status_pub.publish(0)
         elif cmd == "rotate_waist_rel":
             # self.status_pub.publish(1)
-            print("RELATIVE WA ROTATION")
+            print "RELATIVE WA ROTATION"
             self.arm.rotate_waist(param)
             # self.status_pub.publish(0)
         elif cmd == "rotate_hand_rel":
@@ -163,8 +164,8 @@ class ArmCommands:
             self.joint_state_msg.name = ['joint_1','joint_2','joint_3','joint_4','joint_5']
             # TODO : fix these names ... here for compatibility with URDF model
             self.joint_state_msg.position = joint_states
-            self.joint_state_msg.velocity = [0 for _ in range(5)]
-            self.joint_state_msg.effort = [0 for _ in range(5)]
+            self.joint_state_msg.velocity = [0 for _ in xrange(5)]
+            self.joint_state_msg.effort = [0 for _ in xrange(5)]
 
             self.joint_state_pub.publish(self.joint_state_msg)
 
@@ -180,7 +181,7 @@ class ArmCommands:
 
 
     def run(self):
-        print("Service is ready to go")
+        print "Service is ready to go"
         rospy.spin()
         # r = rospy.Rate(10)
         # while not rospy.is_shutdown():
