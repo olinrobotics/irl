@@ -12,9 +12,10 @@
   <url type="bugtracker">https://github.com/ros-planning/moveit/issues</url>
   <url type="repository">https://github.com/ros-planning/moveit</url>
   <buildtool_depend>catkin</buildtool_depend>
-  <run_depend>moveit_ros_move_group</run_depend>
-  <run_depend>moveit_kinematics</run_depend>
+
+  <!-- Runtime Only -->
   <run_depend>moveit_planners_ompl</run_depend>
+  <run_depend>moveit_kinematics</run_depend>
   <run_depend>moveit_ros_visualization</run_depend>
   <run_depend>joint_state_publisher</run_depend>
   <run_depend>robot_state_publisher</run_depend>
@@ -22,22 +23,51 @@
   <run_depend>ros_control</run_depend>
   <run_depend>moveit_fake_controller_manager</run_depend>
 
-  <run_depend>moveit_core</run_depend>
-  <run_depend>liblapack-dev</run_depend>
+  <!-- Runtime + Build -->
   <run_depend>roscpp</run_depend>
-  <run_depend>tf_conversions</run_depend>
+  <run_depend>control_msgs</run_depend>
+  <run_depend>trajectory_msgs</run_depend>
+  <run_depend>actionlib</run_depend>
+  <run_depend>urdf</run_depend>
+  <run_depend>joint_limits_interface</run_depend>
+  <run_depend>transmission_interface</run_depend>
+  <run_depend>hardware_interface</run_depend>
+  <run_depend>controller_manager</run_depend>
+  <run_depend>moveit_ros_move_group</run_depend>
+  <run_depend>moveit_ros_planning</run_depend>
+  <run_depend>moveit_ros_planning_interface</run_depend>
+  <run_depend>moveit_visual_tools</run_depend>
+  <run_depend>moveit_core</run_depend>
   <run_depend>pluginlib</run_depend>
+  <run_depend>tf_conversions</run_depend>
+
   <run_depend>libserial-dev</run_depend>
+  <run_depend>liblapack-dev</run_depend>
   <run_depend>irl</run_depend>
 
-  <build_depend>ros_control</build_depend>
-  <build_depend>moveit_core</build_depend>
-  <build_depend>liblapack-dev</build_depend>
+  <!-- ROS packages -->
   <build_depend>roscpp</build_depend>
-  <build_depend>tf_conversions</build_depend>
-  <build_depend>pluginlib</build_depend>
+  <build_depend>control_msgs</build_depend>
+  <build_depend>trajectory_msgs</build_depend>
+  <build_depend>actionlib</build_depend>
+  <build_depend>urdf</build_depend>
+  <build_depend>joint_limits_interface</build_depend>
+  <build_depend>transmission_interface</build_depend>
+  <build_depend>hardware_interface</build_depend>
+  <build_depend>controller_manager</build_depend>
+  <build_depend>moveit_ros_move_group</build_depend>
+  <build_depend>moveit_ros_planning</build_depend>
+  <build_depend>moveit_ros_planning_interface</build_depend>
   <build_depend>moveit_visual_tools</build_depend>
+  <build_depend>moveit_core</build_depend>
+  <build_depend>pluginlib</build_depend>
+  <build_depend>tf_conversions</build_depend>
+
+  <!-- System Deps -->
+  <build_depend>liblapack-dev</build_depend>
   <build_depend>libserial-dev</build_depend>
+
+  <!-- IRL Main Package -->
   <build_depend>irl</build_depend>
 
   <export>

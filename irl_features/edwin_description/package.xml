@@ -41,6 +41,12 @@
   <!--   <test_depend>gtest</test_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
 
+  <run_depend>joint_state_publisher</run_depend>
+  <run_depend>robot_state_publisher</run_depend>
+  <run_depend>rviz</run_depend>
+  <run_depend>gazebo_ros</run_depend>
+  <run_depend>rostopic</run_depend>
+
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
