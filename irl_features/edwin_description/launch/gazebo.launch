@@ -1,8 +1,6 @@
 <launch>
 	<include file="$(find gazebo_ros)/launch/empty_world.launch" />
 
-	<include file="$(find alpha_control)/launch/alpha_control.launch" />
-
 	<param name="robot_description"
 		textfile="$(find edwin_description)/urdf/robot_3.urdf" />
 

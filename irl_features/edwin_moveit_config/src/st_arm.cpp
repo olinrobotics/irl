@@ -3,7 +3,9 @@
 #include <sstream>
 #include <string>
 
-STArm::STArm(const std::string port){
+#include <ros/ros.h>
+
+STArm::STArm(const std::string port):energized(true){
 	// open serial port
 	ser.Open(port);
 	ser.SetBaudRate(SerialStreamBuf::BAUD_19200); //only supports baud rate = 19200 for now
@@ -46,7 +48,19 @@ void STArm::joint(){
 	write("JOINT");
 }
 
+void STArm::de_energize(){
+    write("DE-ENERGIZE");
+    energized=false;
+}
+
+void STArm::energize(){
+    write("ENERGIZE");
+    energized=true;
+}
+
 void STArm::move(const std::string& j, int val, bool rel){
+    if(!energized)
+        return;
 	//TELL <JOINT> <VAL> MOVETO
 	std::stringstream ss;
 	// make uppercase
@@ -62,6 +76,8 @@ void STArm::move(const std::string& j, int val, bool rel){
 }
 
 void STArm::move(const std::vector<double>& v){
+    if(!energized)
+        return;
 	// JMA command lists the joint in the opposite order of what's given by commands like WHERE.
 	// therefore it must be enumerated in reverse, for consistency.
 	std::stringstream ss;
@@ -88,15 +104,11 @@ void STArm::where(std::vector<double>& v){
 	//l[4] holds what motor count should be
 
 	if(l.size() > 2){
-		std::vector<std::string> l_2 = split(l[2], ' ');
-
-		if(v.size() >= 5){
-			v.resize(5);
-		}
-
-		for(int i=0; i<N_JOINTS; ++i){
-			v[i] = std::atof(l_2[i].c_str());
-		}
+        v.resize(5);
+        std::istringstream ss(l[2]);
+        for(int i=0; i<N_JOINTS; ++i){
+            ss >> v[i];
+        }
 	}	
 	
 }
@@ -116,18 +128,37 @@ void execute_command(){
 	// TODO : implement
 }
 
-void STArm::set_speed(int speed){
-	std::stringstream ss;
-	ss << speed << ' ' << "SPEED !";
-	write(ss.str());
+void STArm::set(const std::string& field, const std::string& value){
+    std::stringstream ss;
+    ss << value << ' ' << field << " !";
+    write(ss.str());
+}
+std::string STArm::get(const std::string& field){
+    return write(field + " ?");
 }
 
+void STArm::set_speed(int speed){
+    set("SPEED", std::to_string(speed));
+}
+int STArm::get_speed(){
+    auto s = get("SPEED");
+    std::cout << "Get speed returned :" << s << std::endl;
+    //ROS_INFO("Get Speed Returned : %s", s.c_str());
+    return 0;
+    //return std::atoi(write("SPEED ?"));
+}
+void STArm::set_accel(int accel){
+    set("ACCEL", std::to_string(accel));
+}
+int STArm::get_accel(){
+    // Format : ">ACCEL ? 1000 OK"
+    auto s = get("ACCEL");
+    std::cout << "Get accel returned :" << s << std::endl;
+    //ROS_INFO("Get Accel Returned : %s", s.c_str());
+    return 0;
+}
 void STArm::set_decimal(){
-	// TODO : test write("DECIMAL");
-	ser.sync();
-	ser << "DECIMAL\r";
-	ser.flush();
-	// no block_on_result?
+    write("DECIMAL");
 }
 
 void STArm::set_segmented(){
@@ -168,5 +199,3 @@ std::string STArm::block_on_result(){
 
 	return s.str();
 }
-
-
