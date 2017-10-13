@@ -24,29 +24,101 @@ class C4Board(object):
 
 
     def reset(self):
-        self.render()
-        self.init_board
+        self.init_board()
+        return self.board
 
 
     def make_move(self, column, player):
         move = (column, self.column_stack[column])
+        if self.column_stack[column] == -1:
+            return self.board, move
         self.board[column][self.column_stack[column]] = player
         self.column_stack[column] -= 1
+
+        if np.sum(self.column_stack) == -7:
+            return self.board, False
         return self.board, move
 
 
     def connect_4(self, move):
-        # TODO: Write this function
+        column = move[0]
+        row = move[1]
+
+        # checks for row victory
+        count = 0
+        for i in range(6):
+            if  self.board[i][row] != 0 and self.board[i][row] == self.board[i+1][row]:
+                count += 1
+                if count == 3:
+                    print "ROW"
+                    return True
+            else:
+                count = 0
+
+        # checks for column victory
+        count = 0
+        for i in range(5):
+            if self.board[column][i] != 0 and self.board[column][i] == self.board[column][i+1]:
+                count += 1
+                if count == 3:
+                    print "COL"
+                    return True
+            else:
+                count = 0
+
+        # checks for major diagonal victory
+        count = 0
+        column1 = move[0]
+        row1 = move[1]
+        while column1 > 0 and row1 > 0:
+            column1 -= 1
+            row1 -= 1
+        while column1 < 4 and row1 < 5:
+            if self.board[column1][row1] != 0 and self.board[column1][row1] == self.board[column1+1][row1+1]:
+                count += 1
+                if count == 3:
+                    print "MAJ DIAG"
+                    return True
+            else:
+                count = 0
+            column1 += 1
+            row1 += 1
+
+        # checks for minor diagonal victory
+        count = 0
+        column2 = move[0]
+        row2 = move[1]
+        while column2 > 0 and row2 < 5:
+            column2 -= 1
+            row2 += 1
+        while column2 < 4 and row2 > 0:
+            if self.board[column2][row2] != 0 and self.board[column2][row2] == self.board[column2+1][row2-1]:
+                count += 1
+                if count == 3:
+                    print "MIN DIAG"
+                    return True
+            else:
+                count = 0
+            column2 += 1
+            row2 -= 1
+
+        return False
 
 
     def step(self, action, player):
+        print "ACTION", action
         s_, move = self.make_move(action, player)
 
-        if self.connect_4(move) and player == 1:
+        if move == False:
+            reward1 = -1
+            reward2 = -1
+            done = True
+            return s_, reward1, reward2, done
+        if player == 1 and self.connect_4(move):
             reward1 = 1
             reward2 = -1
             done = True
-        elif self.connect_4(move) and player == 2:
+        elif player == 2 and self.connect_4(move):
             reward1 = -1
             reward2 = 1
             done = True
@@ -58,14 +130,29 @@ class C4Board(object):
 
 
     def render(self):
-        time.sleep(0.1)
+        time.sleep(0.05)
         for i in range(6):
+            line = []
             for j in range(7):
                 piece = self.board[j][i]
                 if piece == 0:
-                    print "0"
+                    line.append("0")
                 else:
-                    print "R" if piece == 1 else "B"
-                print " "
+                    line.append("K" if piece == 1 else "Z")
 
-            print "\n"
+            print ' '.join(line)
+
+        print "\n"
+
+if __name__=="__main__":
+    test = C4Board()
+    print test.step(0, 1)
+    print test.step(1, 2)
+    print test.step(1, 1)
+    print test.step(2, 2)
+    print test.step(2, 1)
+    print test.step(2, 1)
+    print test.step(3, 1)
+    print test.step(3, 2)
+    print test.step(3, 2)
+    print test.step(3, 1)
