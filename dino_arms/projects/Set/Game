@@ -1,0 +1,38 @@
+from Set import *
+from Attribute import *
+from random import *
+
+
+class Game:
+    def __init__(self, card_array):
+        self.card_array = card_array
+
+    def find_set(self):
+        for i1, card1 in enumerate(self.card_array[:-2]):
+            for i2, card2 in enumerate(self.card_array[i1 + 1:-1]):
+                for card3 in self.card_array[i2 + 1:]:
+                    if Set.is_set(card1, card2, card3):
+                        return [card1, card2, card3]
+        return []
+
+    @staticmethod
+    def print_card_array(cards):
+        for i, c in enumerate(cards):
+            print i, ")", c.shape.name, c.color.name, c.num, c.fill.name
+
+    @staticmethod
+    def create_test():
+        card_array = []
+        for i in range(3):
+            for j in range(3):
+                for k in range(3):
+                    for l in range(3):
+                        card = Set(Color(i), Shape(j), k, Fill(l))
+                        card_array.append(card)
+
+        return sample(card_array, 12)
+
+
+game1 = Game(Game.create_test())
+result = game1.find_set()
+Game.print_card_array(result)
