@@ -17,7 +17,6 @@ rosrun edwin skeleton_characterization.py
 
 import rospy
 import cv2
-import cv2.cv as cv
 import numpy as np
 import random
 import time
@@ -25,7 +24,7 @@ import math
 from collections import namedtuple
 from std_msgs.msg import String
 from sensor_msgs.msg import Image
-from edwin.msg import Edwin_Shape, Bones
+from irl.msg import Edwin_Shape, Bones
 from cv_bridge import CvBridge, CvBridgeError
 
 """
