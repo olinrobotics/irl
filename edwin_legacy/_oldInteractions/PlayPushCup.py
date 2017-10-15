@@ -57,7 +57,7 @@ class PushCupGame:
         self.lowlimit_z = -1000
         self.highlimit_z = 4000
 
-        # Game Elements
+        # Game.py Elements
         self.timecounter = 0
         self.human_in_frame = False   # False if Edwin does not detect human, True if he does
         self.cup_in_frame = False     # False if Edwin does not detect cup, True if he does
@@ -393,7 +393,7 @@ class PushCupGame:
     """
     def play_game(self):
 
-        if self.debug == True: print("DBG| Game Loop")
+        if self.debug == True: print("DBG| Game.py Loop")
         self.apply_filter(self.cv_image)
         time.sleep(2)
 
