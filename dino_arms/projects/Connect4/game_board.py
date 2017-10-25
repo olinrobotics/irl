@@ -9,9 +9,11 @@ from std_msgs.msg import String, Int16
 
 class C4Board(object):
 
-    def __init__(self):
+    def __init__(self, render):
         self.action_space = [0,1,2,3,4,5,6]
         self.n_actions = len(self.action_space)
+        self.turn = 0
+        self.render = render
         self.init_board()
 
 
@@ -25,6 +27,7 @@ class C4Board(object):
 
     def reset(self):
         self.init_board()
+        self.turn = 0
         return self.board
 
 
@@ -50,7 +53,7 @@ class C4Board(object):
             if  self.board[i][row] != 0 and self.board[i][row] == self.board[i+1][row]:
                 count += 1
                 if count == 3:
-                    print "ROW"
+                    # print "ROW"
                     return True
             else:
                 count = 0
@@ -61,7 +64,7 @@ class C4Board(object):
             if self.board[column][i] != 0 and self.board[column][i] == self.board[column][i+1]:
                 count += 1
                 if count == 3:
-                    print "COL"
+                    # print "COL"
                     return True
             else:
                 count = 0
@@ -77,7 +80,7 @@ class C4Board(object):
             if self.board[column1][row1] != 0 and self.board[column1][row1] == self.board[column1+1][row1+1]:
                 count += 1
                 if count == 3:
-                    print "MAJ DIAG"
+                    # print "MAJ DIAG"
                     return True
             else:
                 count = 0
@@ -95,7 +98,7 @@ class C4Board(object):
             if self.board[column2][row2] != 0 and self.board[column2][row2] == self.board[column2+1][row2-1]:
                 count += 1
                 if count == 3:
-                    print "MIN DIAG"
+                    # print "MIN DIAG"
                     return True
             else:
                 count = 0
@@ -106,7 +109,6 @@ class C4Board(object):
 
 
     def step(self, action, player):
-        print "ACTION", action
         s_, move = self.make_move(action, player)
 
         if move == False:
@@ -114,11 +116,11 @@ class C4Board(object):
             reward2 = -1
             done = True
             return s_, reward1, reward2, done
-        if player == 1 and self.connect_4(move):
+        if  self.connect_4(move) and player == 1:
             reward1 = 1
             reward2 = -1
             done = True
-        elif player == 2 and self.connect_4(move):
+        elif self.connect_4(move) and player == 2:
             reward1 = -1
             reward2 = 1
             done = True
@@ -129,20 +131,37 @@ class C4Board(object):
         return s_, reward1, reward2, done
 
 
+    # def next_turn(self):
+    #     for col in range(7):
+    #         for row in range(6):
+    #             if self.board[col][row] == 1:
+    #                 self.board[col][row] = 2
+    #             elif self.board[col][row] == 2:
+    #                 self.board[col][row] = 1
+    #
+    #     return self.board
+
+
     def render(self):
-        time.sleep(0.05)
-        for i in range(6):
-            line = []
-            for j in range(7):
-                piece = self.board[j][i]
-                if piece == 0:
-                    line.append("0")
-                else:
-                    line.append("K" if piece == 1 else "Z")
+        time.sleep(0.01)
+        if self.render:
+            print "TURN", self.turn
+            self.turn += 1
+            for i in range(6):
+                line = []
+                for j in range(7):
+                    piece = self.board[j][i]
+                    if piece == 0:
+                        line.append("0")
+                    else:
+                        line.append("K" if piece == 1 else "Z")
 
-            print ' '.join(line)
+                print ' '.join(line)
 
-        print "\n"
+            print "\n"
+
+
+
 
 if __name__=="__main__":
     test = C4Board()
