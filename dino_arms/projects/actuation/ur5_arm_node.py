@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import time
-import roslib; roslib.load_manifest('edwin')
+import roslib; roslib.load_manifest('irl')
 import rospy
 import actionlib
 from control_msgs.msg import *
