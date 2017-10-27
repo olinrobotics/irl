@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-
 import rospy
 import numpy as np
 import pandas as pd
@@ -14,47 +13,64 @@ from rl_brain import QLearningTable
 from Queue import *
 
 
+class AI_Player(object):
+
+    def __init__(self, n_actions, memory, reset, player_type):
+        self.player_type = player_type
+        self.observation = None
+        self.observation_ = None
+        self.action = None
+        self.reward = None
+        self.memory = memory
+        self.lut = QLearningTable(actions=list(range(n_actions)),
+                                q_table= None if reset else self.load_q_table())
+
+
+    def load_q_table1(self):
+        return pd.read_pickle(self.memory)
+
+    def store_memory(self):
+        self.lut.q_table.to_pickle(self.memory)
+
+    def set_observation(self, observation):
+        self.observation = observation
+
+    def set_observation_(self, observation_):
+        self.observation_ = observation_
+
+    def set_reward(self, reward):
+        self.reward = reward
+
+    def choose_action(self):
+        self.action = self.lut.choose_action(str(self.observation))
+
+    def learn(self):
+        self.lut.learn(str(self.observation), self.action, self.reward, str(self.observation_))
+
+
 class Reinforce(object):
 
     def __init__(self, train, reset):
         self.env = C4Board(self.render)
-        self.RL1 = QLearningTable(actions=list(range(self.env.n_actions)),
-                                q_table= None if reset else self.load_q_table1())
-        self.RL2 = QLearningTable(actions=list(range(self.env.n_actions)),
-                                q_table= None if reset else self.load_q_table2())
+        self.train = train
+        self.RL1 = AI_Player(self.env.n_actions, '/memory/player1.txt', reset, 1)
+        self.RL2 = AI_Player(self.env.n_actions, '/memory/player2.txt', reset, 2)
 
-        self.observation1 = None
-        self.observation1_ = None
-        self.observation2 = None
-        self.observation2_ = None
 
-        if train:
+    def run(self):
+        if self.train:
             self.train()
         else:
             self.play()
 
-
-    def load_q_table1(self):
-        return pd.read_pickle('/memory/player1.txt')
-    def load_q_table2(self):
-        return pd.read_pickle('/memory/player2.txt')
-
-    def store_memory(self):
-        self.RL1.q_table.to_pickle('/memory/player1.txt')
-        self.RL2.q_table.to_pickle('/memory/player2.txt')
-
-
-    def ai_move(self, observation):
-
-
-
-
+#TODO FIX PLAY
     # def play(self):
-    #     #TODO: FIX THIS THING
-    #     observation = self.env.reset()
+    #
     #     if np.random.choice([1,2]) == 1:
     #         print " I WILL GO FIRST"
     #         self.ai_move(observation)
+    #     observation = self.env.reset()
+    #
     #
     #     while True:
     #
@@ -87,44 +103,56 @@ class Reinforce(object):
     def train(self):
         for episode in range(100000):
             # initial observation
-            observation = self.env.reset()
+            self.RL1.set_observation(self.env.reset())
             print "EPISODE", episode
             while True:
 
                 # RL choose action based on observation
-                action = self.RL1.choose_action(str(observation))
+                self.RL1.choose_action()
 
                 # RL take action and get next observation and reward
-                observation_, reward, done = self.env.step(action, 1)
+                observation1_, reward1, reward2, done = self.env.step(self.RL1.action, 1)
 
-                # RL learn from this transition
-                self.RL1.learn(str(observation), action, reward, str(observation_))
+                self.RL1.set_observation_(observation1_)
+                self.RL1.set_reward(reward1)
+                self.RL2.set_reward(reward2)
 
-                observation = observation_
-
-                # break while loop when end of this episode
                 if done:
+                    self.RL1.learn()
+                    self.RL2.learn()
                     print "GAME ENDED"
-                    time.sleep(3)
                     break
+
+                else:
+                    if self.RL2.action2:
+                        self.RL2.learn()
+
+                self.RL2.set_observation(self.RL1.observation1_)
 
                 # RL choose action based on observation
-                action = self.RL2.choose_action(str(observation))
+                self.RL2.choose_action()
 
                 # RL take action and get next observation and reward
-                observation_, reward, done = self.env.step(action, 2)
+                observation2_, reward1, reward2, done = self.env.step(self.RL2.action, 2)
 
-                # RL learn from this transition
-                self.RL2.learn(str(observation), action, reward, str(observation_))
+                self.RL2.set_observation_(observation2_)
+                self.RL2.set_reward(reward2)
+                self.RL1.set_reward(reward1)
 
-                # break while loop when end of this episode
                 if done:
+                    self.RL1.learn()
+                    self.RL2.learn()
                     print "GAME ENDED"
-                    time.sleep(3)
                     break
+                else:
+                    self.RL1.learn()
+
+                self.RL1.set_observation(self.RL2.observation2_)
+
 
         print "TRAINING OVER"
-        self.store_memory()
+        self.RL1.store_memory()
+        self.RL2.store_memory()
         print "MEMORY STORED, SESSION FINISHED"
 
 
@@ -136,3 +164,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     connect = Reinforce(args.train, args.reset, args.render)
+    connect.run()
