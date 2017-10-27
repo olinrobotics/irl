@@ -12,5 +12,6 @@ problem_set_2 = [[0, 1, 5], [0, 4, 2], [0, 7, 3],
                  [8, 1, 9], [8, 4, 7]]
 sudoku = Sudoku(n=2, problem_set=problem_set_1)
 # sudoku = Sudoku(n=3, problem_set=problem_set_2)
+sudoku.print_sudoku()
 sudoku.solve()
 sudoku.print_sudoku()
