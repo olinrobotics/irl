@@ -26,7 +26,7 @@ class AI_Player(object):
                                 q_table= None if reset else self.load_q_table())
 
 
-    def load_q_table1(self):
+    def load_q_table(self):
         return pd.read_pickle(self.memory)
 
     def store_memory(self):
@@ -50,58 +50,56 @@ class AI_Player(object):
 
 class Reinforce(object):
 
-    def __init__(self, train, reset):
-        self.env = C4Board(self.render)
-        self.train = train
+    def __init__(self, train, reset, render):
+        self.env = C4Board(render)
+        self.test = train
         self.RL1 = AI_Player(self.env.n_actions, '/memory/player1.txt', reset, 1)
         self.RL2 = AI_Player(self.env.n_actions, '/memory/player2.txt', reset, 2)
+        self.scoreboard = 0
 
 
     def run(self):
-        if self.train:
+        if self.test:
             self.train()
         else:
             self.play()
 
-#TODO FIX PLAY
-    # def play(self):
-    #
-    #     if np.random.choice([1,2]) == 1:
-    #         print " I WILL GO FIRST"
-    #         self.ai_move(observation)
-    #     observation = self.env.reset()
-    #
-    #
-    #     while True:
-    #
-    #         # visualize
-    #         self.env.render()
-    #
-    #         action = int(raw_input("YOU CAN MOVE, WHAT'S YOUR MOVE?"))
-    #
-    #         observation, _, done = self.env.step(action, 2)
-    #
-    #         # break if I win
-    #         if done:
-    #             self.env.render()
-    #             print "HUMAN WINS"
-    #             break
-    #
-    #         done = self.ai_move(observation)
-    #
-    #         # break if ai wins
-    #         if done:
-    #             self.env.render()
-    #             print "AI WINS"
-    #             break
-    #
-    #     print "PLAYING OVER"
-    #     self.store_memory()
-    #     print "MEMORY STORED, TESTING FINISHED"
+    def play(self):
+
+        player_type = 1
+        ai = self.RL1 if player_type == 1 else self.RL2
+        ai.set_observation(self.env.reset())
+
+        if ai.player_type == 1:
+            print " I WILL GO FIRST"
+            ai.choose_action()
+            observation_, _, _, done = self.env.step(ai.action, 1)
+
+        while True:
+
+            action = int(raw_input("YOUR TURN, WHAT'S YOUR MOVE?"))
+
+            observation_, _, _, done = self.env.step(action, 2)
+            ai.set_observation(observation_)
+
+            # break if I win
+            if done:
+                print "HUMAN WINS"
+                break
+
+            ai.choose_action()
+            observation_, _, _, done = self.env.step(ai.action, 1)
+
+            # break if ai wins
+            if done:
+                print "AI WINS"
+                break
+
+        print "PLAYING OVER"
 
 
     def train(self):
-        for episode in range(100000):
+        for episode in range(10000):
             # initial observation
             self.RL1.set_observation(self.env.reset())
             print "EPISODE", episode
@@ -120,14 +118,15 @@ class Reinforce(object):
                 if done:
                     self.RL1.learn()
                     self.RL2.learn()
-                    print "GAME ENDED"
+                    self.scoreboard += 1 if self.RL1.reward == 1:
+                    print self.scoreboard/float(episode)
                     break
 
                 else:
-                    if self.RL2.action2:
+                    if self.RL2.action:
                         self.RL2.learn()
 
-                self.RL2.set_observation(self.RL1.observation1_)
+                self.RL2.set_observation(self.RL1.observation_)
 
                 # RL choose action based on observation
                 self.RL2.choose_action()
@@ -142,12 +141,11 @@ class Reinforce(object):
                 if done:
                     self.RL1.learn()
                     self.RL2.learn()
-                    print "GAME ENDED"
                     break
                 else:
                     self.RL1.learn()
 
-                self.RL1.set_observation(self.RL2.observation2_)
+                self.RL1.set_observation(self.RL2.observation_)
 
 
         print "TRAINING OVER"

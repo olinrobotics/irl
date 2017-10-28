@@ -28,7 +28,7 @@ class C4Board(object):
     def reset(self):
         self.init_board()
         self.turn = 0
-        self.render()
+        self.visualize()
         return self.board
 
 
@@ -129,7 +129,7 @@ class C4Board(object):
             reward1 = reward2 = 0
             done = False
 
-        self.render()
+        self.visualize()
 
 
         return s_, reward1, reward2, done
@@ -146,8 +146,7 @@ class C4Board(object):
     #     return self.board
 
 
-    def render(self):
-        time.sleep(0.01)
+    def visualize(self):
         if self.render:
             print "TURN", self.turn
             self.turn += 1
