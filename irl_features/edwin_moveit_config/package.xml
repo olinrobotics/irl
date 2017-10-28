@@ -68,7 +68,7 @@
   <build_depend>libserial-dev</build_depend>
 
   <!-- IRL Main Package -->
-  <build_depend>irl</build_depend>
+<build_depend>irl</build_depend>
 
   <export>
     <moveit_core plugin="${prefix}/edwin_arm_group_moveit_ikfast_plugin_description.xml"/>
