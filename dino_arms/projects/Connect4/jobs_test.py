@@ -11,4 +11,18 @@ import argparse
 from game_board import C4Board
 from rl_brain import QLearningTable
 from Queue import *
-import joblib.Parallel
+from joblib import Parallel, delayed
+
+
+def massive_function():
+    thing = []
+    for i in range(100000000):
+        thing.append(i)
+
+
+    return thing
+
+
+if __name__== "__main__":
+    thing2 = Parallel(n_jobs=4)(delayed(massive_function)() for i in range(1000))
+    print [item for item in thing2]
