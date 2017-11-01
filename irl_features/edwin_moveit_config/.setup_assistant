@@ -1,0 +1,10 @@
+moveit_setup_assistant_config:
+  URDF:
+    package: edwin_description
+    relative_path: urdf/robot_3.urdf
+  SRDF:
+    relative_path: config/edwin.srdf
+  CONFIG:
+    author_name: Yoonyoung Cho
+    author_email: yoonyoung.cho@students.olin.edu
+    generated_timestamp: 1485700173

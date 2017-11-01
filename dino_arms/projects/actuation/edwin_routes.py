@@ -1,4 +1,5 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
+from __future__ import absolute_import
 import rospy
 import rospkg
 import random
@@ -10,8 +11,9 @@ import rospkg
 import pickle
 from irl.srv import *
 import os, sys
+from io import open
 
-class RouteCreator:
+class RouteCreator(object):
     def __init__(self, default_init):
         rospy.init_node('route_creator', anonymous=True)
         # self.arm_pub = rospy.Publisher('/arm_cmd', String, queue_size=2)
@@ -27,7 +29,7 @@ class RouteCreator:
         self.create_route_dictionary()
 
         self.initialized = default_init
-        print("Initializing")
+        print "Initializing"
 
     def create_route_dictionary(self):
         ##Single set routes
@@ -83,28 +85,28 @@ class RouteCreator:
         self.route_dictionary["R_1_lookaround"] = ["R_1_lookaround; 4000, 1500, 3000, 185, 240, 21", "R_2_lookaround; 500, 4000, 2000, 185, 240, 21", "R_3_lookaround; 3000, 2000, 4000, -39, 240, 21"]
         self.route_dictionary["R_1_weep"] = ["R_1_weep; 1000, -2700, 400, 739, 150, 21", "R_2_weep; 1000, -2700, 300, 819, 150, 21", "R_3_weep; 1000, -2700, 200, 870, 150, 21", "R_4_weep; 1000, -2700, 100, 950, 120, 21", "R_5_weep; 1000, -2700, 0, 1030, 120, 21"]
 
-        pickle.dump(list(self.route_dictionary.keys()), open(self.PACKAGE_PATH + '/params/routes.txt', 'w'))
+        pickle.dump(list(self.route_dictionary.keys()), open(self.PACKAGE_PATH + '/params/routes.txt', 'wb'))
 
 
     def request_cmd(self, cmd):
         rospy.wait_for_service('arm_cmd', timeout=15)
         cmd_fnc = rospy.ServiceProxy('arm_cmd', arm_cmd)
-        print("I have requested the command")
+        print "I have requested the command"
 
         try:
             resp1 = cmd_fnc(cmd)
-            print("command done")
+            print "command done"
 
 
-        except rospy.ServiceException as e:
-            print("Service call failed: %s"%e)
+        except rospy.ServiceException, e:
+            print "Service call failed: %s"%e
 
 
     def setup_initial_routes(self):
         inital_routes = ["R_ttt", "R_laugh", "R_nudge", "R_look", "R_sad_turn", "R_get_set"]
         for r in inital_routes:
             msg = "create_route:: " + self.route_dictionary[r]
-            print("Sending message: ", msg)
+            print "Sending message: ", msg
             self.request_cmd(msg)
             time.sleep(.5)
 
@@ -128,21 +130,21 @@ class RouteCreator:
         else:
             return
 
-        print("MISSED ROUTE: ", missed_route)
+        print "MISSED ROUTE: ", missed_route
         route = self.route_dictionary.get(missed_route, None)
         self.arm_status.publish('busy')
 
         if route == None:
-            print("Route: " + missed_route + " not found")
+            print "Route: " + missed_route + " not found"
             return
         elif type(route) == list:
             for r in route:
                 msg = "create_route:: " + r
-                print("Sending message: ", msg)
+                print "Sending message: ", msg
                 self.request_cmd(msg)
         elif type(route) == str:
             msg = "create_route:: " + route
-            print("Sending message: ", msg)
+            print "Sending message: ", msg
             self.request_cmd(msg)
 
         time.sleep(1.5)
