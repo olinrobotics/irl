@@ -52,13 +52,13 @@ class Reinforce(object):
     def __init__(self, train, reset, render):
         self.env = C4Board(render)
         self.test = train
-        self.RL1 = AI_Player(self.env.n_actions, '/home/rooster/catkin_ws/src/irl/dino_arms/projects/Connect4/memory/player1.txt', reset, 1)
-        self.RL2 = AI_Player(self.env.n_actions, '/home/rooster/catkin_ws/src/irl/dino_arms/projects/Connect4/memory/player2.txt', reset, 2)
+        self.RL1 = AI_Player(self.env.n_actions, '/home/kzhang/irl/dino_arms/projects/Connect4/memory/player1.txt', reset, 1)
+        self.RL2 = AI_Player(self.env.n_actions, '/home/kzhang/irl/dino_arms/projects/Connect4/memory/player2.txt', reset, 2)
 
 
     def run(self):
         # if self.test:
-        for episode in range(200000):
+        for episode in range(2):
             print episode
             game_aftermath = Parallel(n_jobs=48)(delayed(play_game)(self.RL1, self.RL2, self.env) for i in range(2))
             self.batch_learn(game_aftermath)
