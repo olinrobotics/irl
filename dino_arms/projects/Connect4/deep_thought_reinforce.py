@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import rospy
 import numpy as np
 import pandas as pd
 import random
@@ -60,8 +59,9 @@ class Reinforce(object):
 
     def run(self):
         # if self.test:
-        for episode in range(100):
-            game_aftermath = Parallel(n_jobs=4)(delayed(play_game)(self.RL1, self.RL2, self.env) for i in range(2))
+        for episode in range(200000):
+            print episode
+            game_aftermath = Parallel(n_jobs=48)(delayed(play_game)(self.RL1, self.RL2, self.env) for i in range(2))
             self.batch_learn(game_aftermath)
         # else:
         #     self.play()
