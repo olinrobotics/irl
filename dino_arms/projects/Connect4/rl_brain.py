@@ -5,7 +5,6 @@ import numpy as np
 import random
 import time
 import pandas as pd
-from std_msgs.msg import String, Int16
 
 class QLearningTable:
     def __init__(self, actions, learning_rate=0.004, reward_decay=0.9, e_greedy=0.95, q_table=None):

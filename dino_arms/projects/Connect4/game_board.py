@@ -4,7 +4,6 @@
 import numpy as np
 import random
 import time
-from std_msgs.msg import String, Int16
 
 class C4Board(object):
 
