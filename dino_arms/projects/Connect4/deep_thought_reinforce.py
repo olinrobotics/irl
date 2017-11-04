@@ -25,6 +25,12 @@ class AI_Player(object):
                                 q_table= None if reset else self.load_q_table())
 
 
+    def reset(self):
+        self.observation = None
+        self.observation_ = None
+        self.action = None
+        self.reward = None
+
     def load_q_table(self):
         return pd.read_pickle(self.memory)
 
@@ -70,12 +76,16 @@ class Reinforce(object):
     def batch_learn(self, record):
         for game in record:
             for r_combo in game:
-                if r_combo[0] == 1: self.RL1.lut.learn(str(r_combo[1]), r_combo[2], r_combo[3], str(r_combo[4]))
-                else: self.RL2.lut.learn(str(r_combo[1]), r_combo[2], r_combo[3], str(r_combo[4]))
+                if r_combo[0] == 1:
+                    self.RL1.lut.learn(str(r_combo[1]), r_combo[2], r_combo[3], str(r_combo[4]))
+                else:
+                    self.RL2.lut.learn(str(r_combo[1]), r_combo[2], r_combo[3], str(r_combo[4]))
 
 
 def play_game(RL1, RL2, env):
     game_record = []
+    RL1.reset()
+    RL2.reset()
     # initial observation
     RL1.set_observation(env.reset())
     while True:
