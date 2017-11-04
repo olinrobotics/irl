@@ -153,13 +153,13 @@ class C4Board(object):
                 for j in range(7):
                     piece = self.board[j][i]
                     if piece == 0:
-                        line.append("0")
+                        line.append(" ")
                     else:
                         line.append("K" if piece == 1 else "Z")
 
-                print ' '.join(line)
+                print '|'+'|'.join(line)+'|'
 
-            print "\n"
+            print "\n"*10
 
 
 

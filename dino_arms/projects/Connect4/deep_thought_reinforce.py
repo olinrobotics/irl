@@ -51,62 +51,27 @@ class Reinforce(object):
 
     def __init__(self, train, reset, render):
         self.env = C4Board(render)
-        self.test = train
         self.RL1 = AI_Player(self.env.n_actions, '/home/kzhang/irl/dino_arms/projects/Connect4/memory/player1.txt', reset, 1)
         self.RL2 = AI_Player(self.env.n_actions, '/home/kzhang/irl/dino_arms/projects/Connect4/memory/player2.txt', reset, 2)
 
 
     def run(self):
-        # if self.test:
-        for episode in range(200000):
+        for episode in range(2):
             print episode
-            game_aftermath = Parallel(n_jobs=48)(delayed(play_game)(self.RL1, self.RL2, self.env) for i in range(2))
+            game_aftermath = Parallel(n_jobs=-1)(delayed(play_game)(self.RL1, self.RL2, self.env) for i in range(100))
             self.batch_learn(game_aftermath)
-        # else:
-        #     self.play()
+
         print "TRAINING OVER"
         self.RL1.store_memory()
         self.RL2.store_memory()
         print "MEMORY STORED, SESSION FINISHED"
 
+
     def batch_learn(self, record):
         for game in record:
             for r_combo in game:
-                self.RL1.lut.learn(str(r_combo[1]), r_combo[2], r_combo[3], str(r_combo[4])) if r_combo[0] == 1 \
-                else self.RL1.lut.learn(str(r_combo[1]), r_combo[2], r_combo[3], str(r_combo[4]))
-
-    # def play(self):
-    #
-    #     player_type = 1
-    #     ai = self.RL1 if player_type == 1 else self.RL2
-    #     ai.set_observation(self.env.reset())
-    #
-    #     if ai.player_type == 1:
-    #         print " I WILL GO FIRST"
-    #         ai.choose_action()
-    #         observation_, _, _, done = self.env.step(ai.action, 1)
-    #
-    #     while True:
-    #
-    #         action = int(raw_input("YOUR TURN, WHAT'S YOUR MOVE?"))
-    #
-    #         observation_, _, _, done = self.env.step(action, 2)
-    #         ai.set_observation(observation_)
-    #
-    #         # break if I win
-    #         if done:
-    #             print "HUMAN WINS"
-    #             break
-    #
-    #         ai.choose_action()
-    #         observation_, _, _, done = self.env.step(ai.action, 1)
-    #
-    #         # break if ai wins
-    #         if done:
-    #             print "AI WINS"
-    #             break
-    #
-    #     print "PLAYING OVER"
+                if r_combo[0] == 1: self.RL1.lut.learn(str(r_combo[1]), r_combo[2], r_combo[3], str(r_combo[4]))
+                else: self.RL2.lut.learn(str(r_combo[1]), r_combo[2], r_combo[3], str(r_combo[4]))
 
 
 def play_game(RL1, RL2, env):
@@ -128,7 +93,6 @@ def play_game(RL1, RL2, env):
         if done:
             game_record.append((1, RL1.observation, RL1.action, RL1.reward, RL1.observation_))
             game_record.append((2, RL2.observation, RL2.action, RL2.reward, RL2.observation_))
-
             break
 
         else:

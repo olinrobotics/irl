@@ -16,7 +16,7 @@ from joblib import Parallel, delayed
 
 def massive_function():
     thing = []
-    for i in range(100000000):
+    for i in range(10):
         thing.append(i)
 
 
@@ -24,5 +24,6 @@ def massive_function():
 
 
 if __name__== "__main__":
-    thing2 = Parallel(n_jobs=4)(delayed(massive_function)() for i in range(1000))
-    print [item for item in thing2]
+    for i in range(10):
+        thing2 = Parallel(n_jobs=-1)(delayed(massive_function)() for i in range(1))
+        print [item for item in thing2]
