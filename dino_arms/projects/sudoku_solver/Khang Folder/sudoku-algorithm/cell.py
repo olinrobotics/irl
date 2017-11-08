@@ -14,7 +14,7 @@ class Cell:
     def get_number(self):
         """
         Get the value of the cell
-        :return: value at cell [row, col] or -1 if there are more than 1 potentials
+        :return: int: value at cell [row, col] or -1 if there are more than 1 potentials
         """
         if len(self.potentials) == 1:
             return self.potentials[0]
@@ -24,8 +24,8 @@ class Cell:
     def set_number(self, number=-1):
         """
         Set num from 1 to n^2. If number is out of range, reset potentials
-        :param number: integer
-        :return: None
+        :param number: int
+        :return: int: None
         """
 
         if number < 1 or number > self.n ** 2:
@@ -37,7 +37,7 @@ class Cell:
         """
         Set potentials for this cell or init potentials
         :param potentials: an array
-        :return: None
+        :return: Void
         """
         if potentials is None:
             potentials = range(1, self.n ** 2 + 1)
@@ -45,8 +45,8 @@ class Cell:
 
     def get_box(self):
         """
-        Get the position of box in Sudoku grid based on row and col
-        :return: box position
+        Get box position in Sudoku grid based on row and col
+        :return: int: box position
         """
         r = self.row / self.n
         c = self.col / self.n
@@ -54,12 +54,16 @@ class Cell:
 
     def get_pos_in_box(self):
         """
-        Get the position of cell in a box based on row and col
-        :return: box position
+        Get cell position in a box based on row and col
+        :return: int: cell position
         """
         r = self.row % self.n
         c = self.col % self.n
         return r * self.n + c
 
     def get_pos_in_sudoku(self):
+        """
+        Get cell position in sudoku grid based on row and col
+        :return: int: cell position
+        """
         return self.row * self.n ** 2 + self.col

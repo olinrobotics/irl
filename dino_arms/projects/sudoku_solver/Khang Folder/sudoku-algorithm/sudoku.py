@@ -18,7 +18,7 @@ class Sudoku:
         """
         Set up sudoku from problem_set
         :param problem_set: array of (row, col, number)
-        :return: None
+        :return: Void
         """
         self.basic_init()
 
@@ -34,7 +34,7 @@ class Sudoku:
     def basic_init(self):
         """
         Init cells, rows, cols, boxes, uncompleted arrays
-        :return: None
+        :return: Void
         """
         self.rows = self.init_2d_array(self.n ** 2)
         self.cols = self.init_2d_array(self.n ** 2)
@@ -53,7 +53,7 @@ class Sudoku:
     def update_uncompleted(self, cell):
         """
         Remove cell from uncompleted and add it to solution
-        :return: None
+        :return: Void
         """
         self.uncompleted.remove(cell)
         self.solution.append(cell)
@@ -62,7 +62,7 @@ class Sudoku:
         """
         Solve the sudoku and store the solution in solution[]
         Only find the first possible solution
-        :return: None
+        :return: Void
         """
         # Flag to exit the loop if we can't find a solution
         flag = len(self.uncompleted)
@@ -108,7 +108,7 @@ class Sudoku:
         Run through uncompleted array and update cells' potentials.
         If potentials has only one number, remove cell from uncompleted.
         Run until we can't reduce num of potentials in each uncompleted cell.
-        :return: None
+        :return: Void
         """
         # if run_again > 0, then run this func again
         run_again = 0
@@ -129,7 +129,7 @@ class Sudoku:
         """
         Update potentials of a specific cell in sudoku
         :param cell: a cell in sudoku
-        :return: None
+        :return: Void
         """
         if cell.get_number() != -1:
             return
@@ -161,14 +161,14 @@ class Sudoku:
     def sort_uncompleted(self):
         """
         Sort uncompleted array based on the number of potentials
-        :return: None
+        :return: Void
         """
         self.uncompleted.sort(key=lambda cell: len(cell.potentials), reverse=False)
 
     def check_unique_in_potentials(self):
         """
         Check potentials of uncompleted array to find a unique potential
-        :return: None
+        :return: Void
         """
         remove_cell = []
         for cell in self.uncompleted:
@@ -191,7 +191,7 @@ class Sudoku:
         Checks if a potential is unique in its row, column or box
         :param cells: an array of cells in row, col or box
         :param potential: int
-        :return: True if a potential is unique
+        :return: True if a potential is unique, False: otherwise
         """
         count = 0
         for cell in cells:
@@ -204,7 +204,7 @@ class Sudoku:
     def check_solution(self):
         """
         Check if a sudoku's solution is correct or a sudoku is solvable with such a solution
-        :return:
+        :return: True/False
         """
         return len(self.uncompleted) == 0
 
@@ -224,7 +224,7 @@ class Sudoku:
     def print_sudoku(self):
         """
         Helper method prints the Sudoku for visualization
-        :return: None
+        :return: Void
         """
         for i, row in enumerate(self.rows):
             if i % self.n == 0:
