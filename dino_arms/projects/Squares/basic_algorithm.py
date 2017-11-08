@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from Board import Board
+from Computer import Computer
 
 def main():
     rows = input("\nNumber of Rows: ")
@@ -8,13 +9,14 @@ def main():
     print("")
     board = Board(rows, cols)
     board.make()
+    edwin = Computer(2)
     player_num = 1
     fill_space = input("\nPlayer " + (str) (player_num) +"\nLine to fill: ")
     print("")
     while fill_space != -1:
         box_gets_filled = board.fill_line(fill_space, player_num)
         board.make()
-        if board.filled():
+        if board.board_filled():
             if len(board.player1_boxes) > len(board.player2_boxes):
                 print("\nPlayer 1 Wins!\n")
             else:
@@ -25,12 +27,16 @@ def main():
                 player_num = 2
             else:
                 player_num = 1
-        fill_space = input("\nPlayer " + (str) (player_num) +"\nLine to fill: ")
-        while fill_space != -1 and (fill_space > len(board.available_spaces) or not board.available_spaces.get(fill_space)):
-            if fill_space > len(board.available_spaces):
-                fill_space = input("\n**Invalid Line** Line to fill: ")
-            if not board.available_spaces.get(fill_space):
-                fill_space = input("\n**Space Already Filled** Line to fill: ")
+        if player_num == 1:
+            fill_space = input("\nPlayer " + (str) (player_num) +"\nLine to fill: ")
+            while fill_space != -1 and (fill_space > len(board.available_spaces) or not board.available_spaces.get(fill_space)):
+                if fill_space > len(board.available_spaces):
+                    fill_space = input("\n**Invalid Line** Line to fill: ")
+                    if not board.available_spaces.get(fill_space):
+                        fill_space = input("\n**Space Already Filled** Line to fill: ")
+        else:
+            fill_space = edwin.play_move(board)
+            print("\nEdwin's Turn")
         print("")
 
 

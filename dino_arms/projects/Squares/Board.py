@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 
 class Board:
+
     def __init__(self, r, c):
         self.rows = r
         self.cols = c
@@ -82,7 +83,7 @@ class Board:
         self.available_spaces[fill_space] = False
         box_gets_filled = False
         for box in range(self.rows*self.cols):
-            if self.box_filled(box) and self.available_boxes[box]:
+            if self.spaces_left(box) == 0 and self.available_boxes[box]:
                 self.available_boxes[box] = False
                 box_gets_filled = True
                 if player_num == 1:
@@ -91,12 +92,20 @@ class Board:
                     self.player2_boxes.append(box)
         return box_gets_filled
 
-    def box_filled(self, box_num):
+    def spaces_left(self, box_num):
         box = self.spaces_in_boxes[box_num]
+        spaces_left = 0
         for space in box:
             if self.available_spaces.get(space):
-                return False
-        return True
+                spaces_left += 1
+        return spaces_left
 
-    def filled(self):
+    # def box_filled(self, box_num):
+    #     box = self.spaces_in_boxes[box_num]
+    #     for space in box:
+    #         if self.available_spaces.get(space):
+    #             return False
+    #     return True
+
+    def board_filled(self):
         return True not in self.available_spaces.values()
