@@ -35,9 +35,7 @@ class QLearningTable:
         else:
             q_target = r  # next state is terminal
         self.q_table.ix[s, a] += self.lr * (q_target - q_predict)  # update
-        # self.lr *= (1-self.lr *.000025)
-        # self.epsilon *= (1-self.epsilon*.0000009)
-
+    
 
 
     def check_state_exist(self, state):

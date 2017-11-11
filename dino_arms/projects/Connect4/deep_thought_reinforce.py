@@ -65,8 +65,8 @@ class Reinforce(object):
         parallel = Parallel(n_jobs=-1)
         for episode in range(2):
             print episode
-            game_aftermath = parallel(delayed(play_game)(self.RL1, self.RL2, self.env) for i in range(50))
-            self.batch_learn(game_aftermath)
+            parallel(delayed(play_game)(self.RL1, self.RL2, self.env) for i in range(50))
+            # self.batch_learn(game_aftermath)
 
         print "TRAINING OVER"
         print self.RL1.lut.q_table.shape
@@ -75,20 +75,20 @@ class Reinforce(object):
         print "MEMORY STORED, SESSION FINISHED"
 
 
-    def batch_learn(self, session):
-        for record in session:
-            for game in record:
-                for r_combo in game:
-                    if r_combo[0] == 1:
-                        self.RL1.lut.learn(str(r_combo[1]), r_combo[2], r_combo[3], str(r_combo[4]))
-                    else:
-                        self.RL2.lut.learn(str(r_combo[1]), r_combo[2], r_combo[3], str(r_combo[4]))
+    # def batch_learn(self, session):
+    #     for record in session:
+    #         for game in record:
+    #             for r_combo in game:
+    #                 if r_combo[0] == 1:
+    #                     self.RL1.lut.learn(str(r_combo[1]), r_combo[2], r_combo[3], str(r_combo[4]))
+    #                 else:
+    #                     self.RL2.lut.learn(str(r_combo[1]), r_combo[2], r_combo[3], str(r_combo[4]))
 
 
 def play_game(RL1, RL2, env):
-    session = []
+    # session = []
     for i in range(100):
-        game_record = []
+        # game_record = []
         RL1.reset()
         RL2.reset()
         # initial observation
@@ -106,13 +106,16 @@ def play_game(RL1, RL2, env):
             RL2.set_reward(reward2)
 
             if done:
-                game_record.append((1, RL1.observation, RL1.action, RL1.reward, RL1.observation_))
-                game_record.append((2, RL2.observation, RL2.action, RL2.reward, RL2.observation_))
+                # game_record.append((1, RL1.observation, RL1.action, RL1.reward, RL1.observation_))
+                # game_record.append((2, RL2.observation, RL2.action, RL2.reward, RL2.observation_))
+                RL1.learn()
+                RL2.learn()
                 break
 
             else:
                 if RL2.action:
-                    game_record.append((2, RL2.observation, RL2.action, RL2.reward, RL2.observation_))
+                    # game_record.append((2, RL2.observation, RL2.action, RL2.reward, RL2.observation_))
+                    RL2.learn()
 
             RL2.set_observation(RL1.observation_)
 
@@ -127,17 +130,26 @@ def play_game(RL1, RL2, env):
             RL1.set_reward(reward1)
 
             if done:
-                game_record.append((1, RL1.observation, RL1.action, RL1.reward, RL1.observation_))
-                game_record.append((2, RL2.observation, RL2.action, RL2.reward, RL2.observation_))
+                # game_record.append((1, RL1.observation, RL1.action, RL1.reward, RL1.observation_))
+                # game_record.append((2, RL2.observation, RL2.action, RL2.reward, RL2.observation_))
+                RL1.learn()
+                RL2.learn()
                 break
             else:
-                game_record.append((1, RL1.observation, RL1.action, RL1.reward, RL1.observation_))
+                # game_record.append((1, RL1.observation, RL1.action, RL1.reward, RL1.observation_))
+                RL1.learn()
 
             RL1.set_observation(RL2.observation_)
 
-        session.append(game_record)
+        RL1.lut.lr *= (1-RL1.lut.lr *.000025)
+        RL1.lut.epsilon *= (1-RL1.lut.epsilon*.0000009)
+        RL2.lut.lr *= (1-RL2.lut.lr *.000025)
+        RL2.lut.epsilon *= (1-RL2.lut.epsilon*.0000009)
 
-    return session
+
+        # session.append(game_record)
+
+    # return session
 
 
 
