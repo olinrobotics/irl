@@ -65,7 +65,7 @@ class Reinforce(object):
         parallel = Parallel(n_jobs=-1)
         for episode in range(2):
             print episode
-            parallel(delayed(play_game)(self.RL1, self.RL2, self.env) for i in range(50))
+            self.RL1, self.RL2 = parallel(delayed(play_game)(self.RL1, self.RL2, self.env) for i in range(50))
             # self.batch_learn(game_aftermath)
 
         print "TRAINING OVER"
@@ -146,6 +146,7 @@ def play_game(RL1, RL2, env):
         RL2.lut.lr *= (1-RL2.lut.lr *.000025)
         RL2.lut.epsilon *= (1-RL2.lut.epsilon*.0000009)
 
+    return RL1, RL2
 
         # session.append(game_record)
 
