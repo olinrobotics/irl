@@ -63,9 +63,9 @@ class Reinforce(object):
 
     def run(self):
         parallel = Parallel(n_jobs=-1)
-        for episode in range(200000):
+        for episode in range(200):
             print episode
-            game_aftermath = parallel(delayed(play_game)(self.RL1, self.RL2, self.env) for i in range(100))
+            game_aftermath = parallel(delayed(play_game)(self.RL1, self.RL2, self.env) for i in range(50))
             self.batch_learn(game_aftermath)
 
         print "TRAINING OVER"
@@ -74,64 +74,69 @@ class Reinforce(object):
         print "MEMORY STORED, SESSION FINISHED"
 
 
-    def batch_learn(self, record):
-        for game in record:
-            for r_combo in game:
-                if r_combo[0] == 1:
-                    self.RL1.lut.learn(str(r_combo[1]), r_combo[2], r_combo[3], str(r_combo[4]))
-                else:
-                    self.RL2.lut.learn(str(r_combo[1]), r_combo[2], r_combo[3], str(r_combo[4]))
+    def batch_learn(self, session):
+        for record in session:
+            for game in record:
+                for r_combo in game:
+                    if r_combo[0] == 1:
+                        self.RL1.lut.learn(str(r_combo[1]), r_combo[2], r_combo[3], str(r_combo[4]))
+                    else:
+                        self.RL2.lut.learn(str(r_combo[1]), r_combo[2], r_combo[3], str(r_combo[4]))
 
 
 def play_game(RL1, RL2, env):
-    game_record = []
-    RL1.reset()
-    RL2.reset()
-    # initial observation
-    RL1.set_observation(env.reset())
-    while True:
+    session = []
+    for i in range(100):
+        game_record = []
+        RL1.reset()
+        RL2.reset()
+        # initial observation
+        RL1.set_observation(env.reset())
+        while True:
 
-        # RL choose action based on observation
-        RL1.choose_action()
+            # RL choose action based on observation
+            RL1.choose_action()
 
-        # RL take action and get next observation and reward
-        observation1_, reward1, reward2, done = env.step(RL1.action, 1)
+            # RL take action and get next observation and reward
+            observation1_, reward1, reward2, done = env.step(RL1.action, 1)
 
-        RL1.set_observation_(observation1_)
-        RL1.set_reward(reward1)
-        RL2.set_reward(reward2)
+            RL1.set_observation_(observation1_)
+            RL1.set_reward(reward1)
+            RL2.set_reward(reward2)
 
-        if done:
-            game_record.append((1, RL1.observation, RL1.action, RL1.reward, RL1.observation_))
-            game_record.append((2, RL2.observation, RL2.action, RL2.reward, RL2.observation_))
-            break
-
-        else:
-            if RL2.action:
+            if done:
+                game_record.append((1, RL1.observation, RL1.action, RL1.reward, RL1.observation_))
                 game_record.append((2, RL2.observation, RL2.action, RL2.reward, RL2.observation_))
+                break
 
-        RL2.set_observation(RL1.observation_)
+            else:
+                if RL2.action:
+                    game_record.append((2, RL2.observation, RL2.action, RL2.reward, RL2.observation_))
 
-        # RL choose action based on observation
-        RL2.choose_action()
+            RL2.set_observation(RL1.observation_)
 
-        # RL take action and get next observation and reward
-        observation2_, reward1, reward2, done = env.step(RL2.action, 2)
+            # RL choose action based on observation
+            RL2.choose_action()
 
-        RL2.set_observation_(observation2_)
-        RL2.set_reward(reward2)
-        RL1.set_reward(reward1)
+            # RL take action and get next observation and reward
+            observation2_, reward1, reward2, done = env.step(RL2.action, 2)
 
-        if done:
-            game_record.append((1, RL1.observation, RL1.action, RL1.reward, RL1.observation_))
-            game_record.append((2, RL2.observation, RL2.action, RL2.reward, RL2.observation_))
-            break
-        else:
-            game_record.append((1, RL1.observation, RL1.action, RL1.reward, RL1.observation_))
+            RL2.set_observation_(observation2_)
+            RL2.set_reward(reward2)
+            RL1.set_reward(reward1)
 
-        RL1.set_observation(RL2.observation_)
+            if done:
+                game_record.append((1, RL1.observation, RL1.action, RL1.reward, RL1.observation_))
+                game_record.append((2, RL2.observation, RL2.action, RL2.reward, RL2.observation_))
+                break
+            else:
+                game_record.append((1, RL1.observation, RL1.action, RL1.reward, RL1.observation_))
 
-    return game_record
+            RL1.set_observation(RL2.observation_)
+
+        session.append(game_record)
+
+    return session
 
 
 
