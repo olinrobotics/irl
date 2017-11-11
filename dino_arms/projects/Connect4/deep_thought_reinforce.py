@@ -63,12 +63,13 @@ class Reinforce(object):
 
     def run(self):
         parallel = Parallel(n_jobs=-1)
-        for episode in range(200):
+        for episode in range(2):
             print episode
             game_aftermath = parallel(delayed(play_game)(self.RL1, self.RL2, self.env) for i in range(50))
             self.batch_learn(game_aftermath)
 
         print "TRAINING OVER"
+        print self.RL1.lut.q_table.shape
         self.RL1.store_memory()
         self.RL2.store_memory()
         print "MEMORY STORED, SESSION FINISHED"

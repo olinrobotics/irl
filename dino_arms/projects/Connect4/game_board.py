@@ -111,8 +111,8 @@ class C4Board(object):
         s_, move = self.make_move(action, player)
 
         if move == False:
-            reward1 = -1
-            reward2 = -1
+            reward1 = 0
+            reward2 = 0
             done = True
             return s_, reward1, reward2, done
         if  self.connect_4(move) and player == 1:

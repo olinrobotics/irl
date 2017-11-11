@@ -115,60 +115,6 @@ class Reinforce(object):
         print "PLAYING OVER"
 
 
-    def train(self):
-        for episode in range(10000):
-            # initial observation
-            self.RL1.set_observation(self.board.reset())
-            print "EPISODE", episode
-            while True:
-
-                # RL choose action based on observation
-                self.RL1.choose_action()
-
-                # RL take action and get next observation and reward
-                observation1_, reward1, reward2, done = self.board.step(self.RL1.action, 1)
-
-                self.RL1.set_observation_(observation1_)
-                self.RL1.set_reward(reward1)
-                self.RL2.set_reward(reward2)
-
-                if done:
-                    self.RL1.learn()
-                    self.RL2.learn()
-                    self.scoreboard += 1 if self.RL1.reward == 1 else 0
-                    print self.scoreboard/float(episode)
-                    break
-
-                else:
-                    if self.RL2.action:
-                        self.RL2.learn()
-
-                self.RL2.set_observation(self.RL1.observation_)
-
-                # RL choose action based on observation
-                self.RL2.choose_action()
-
-                # RL take action and get next observation and reward
-                observation2_, reward1, reward2, done = self.board.step(self.RL2.action, 2)
-
-                self.RL2.set_observation_(observation2_)
-                self.RL2.set_reward(reward2)
-                self.RL1.set_reward(reward1)
-
-                if done:
-                    self.RL1.learn()
-                    self.RL2.learn()
-                    break
-                else:
-                    self.RL1.learn()
-
-                self.RL1.set_observation(self.RL2.observation_)
-
-
-        print "TRAINING OVER"
-        self.RL1.store_memory()
-        self.RL2.store_memory()
-        print "MEMORY STORED, SESSION FINISHED"
 
 
 if __name__ == "__main__":

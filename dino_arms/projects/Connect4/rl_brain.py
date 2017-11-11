@@ -7,17 +7,17 @@ import time
 import pandas as pd
 
 class QLearningTable:
-    def __init__(self, actions, learning_rate=0.004, reward_decay=0.9, e_greedy=0.95, q_table=None):
+    def __init__(self, actions, learning_rate=0.004, reward_decay=0.9, e_greedy=0.9, q_table=None):
         self.actions = actions  # a list
         self.lr = learning_rate
         self.gamma = reward_decay
         self.epsilon = e_greedy
-        self.q_table = pd.DataFrame(columns=self.actions) if q_table is None else q_table
+        self.q_table = pd.DataFrame(columns=self.actions, dtype=np.float64) if q_table is None else q_table
 
     def choose_action(self, observation):
         self.check_state_exist(observation)
         # action selection
-        if np.random.uniform() > self.epsilon:
+        if np.random.uniform() < self.epsilon:
             # choose best action
             state_action = self.q_table.ix[observation, :]
             state_action = state_action.reindex(np.random.permutation(state_action.index))     # some actions have same value
@@ -35,8 +35,10 @@ class QLearningTable:
         else:
             q_target = r  # next state is terminal
         self.q_table.ix[s, a] += self.lr * (q_target - q_predict)  # update
-        self.lr *= (1-self.lr *.000025)
-        self.epsilon *= (1-self.epsilon*.0000009)
+        # self.lr *= (1-self.lr *.000025)
+        # self.epsilon *= (1-self.epsilon*.0000009)
+
+
 
     def check_state_exist(self, state):
         if state not in self.q_table.index:
