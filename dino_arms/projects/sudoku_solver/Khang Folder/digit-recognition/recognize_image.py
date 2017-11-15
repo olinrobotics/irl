@@ -5,6 +5,7 @@ import image_helper as imhelper
 import cv2
 from skimage.feature import hog
 from sklearn.externals import joblib
+from image_helper import *
 
 
 def recognize(classifer_path=None, digit_image=None, is_shown=True):
@@ -20,7 +21,7 @@ def recognize(classifer_path=None, digit_image=None, is_shown=True):
 
     # Threshold the image
     ret, im_th = cv2.threshold(im_gray, 90, 255, cv2.THRESH_BINARY_INV)
-
+    show_image(im_th)
     # Find contours in the image
     im2, contours, hierarchy = cv2.findContours(im_th.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -65,4 +66,4 @@ def recognize(classifer_path=None, digit_image=None, is_shown=True):
 
 
 # recognize("digits_cls_8000.pkl", "test_images/photo_4.jpg")
-recognize("digits_cls.pkl", "test_images/photo_2.jpg")
+recognize("digits_cls.pkl", "test_images/photo_1.jpg")
