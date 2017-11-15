@@ -9,6 +9,7 @@ from sklearn.svm import LinearSVC
 from sklearn import preprocessing
 import numpy as np
 from collections import Counter
+from image_helper import *
 
 """
 This script trains our data and exports the classifier
@@ -35,7 +36,7 @@ def process_font_image(d):
 
     # Threshold the image
     ret, im_th = cv2.threshold(im_gray, 90, 255, cv2.THRESH_BINARY_INV)
-
+    show_image(im_th)
     # Find contours in the image
     im2, contours, hierarchy = cv2.findContours(im_th.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -78,10 +79,10 @@ for i in range(0, 10):
     digit = process_font_image(digit)
 
     # Add [number] times to our training data
-    number = 1000
-    for _ in range(number):
-        digits.append(digit)
-        temp_labels.append(i % 10)
+    # number = 1000
+    # for _ in range(number):
+    #     digits.append(digit)
+    #     temp_labels.append(i % 10)
 
 # Add our extra data to features and labels
 features = np.concatenate((features, digits), 0)
