@@ -34,7 +34,10 @@ class QLearningTable:
             q_target = r + self.gamma * self.q_table.ix[s_, :].max()  # next state is not terminal
         else:
             q_target = r  # next state is terminal
+	start = time.time()
         self.q_table.ix[s, a] += self.lr * (q_target - q_predict)  # update
+        stop = time.time()
+        print 'modify qtable entry', stop - start
 
     def update_params(self):
         self.lr *= (1-self.lr *.13)
