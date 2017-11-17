@@ -62,18 +62,20 @@ class Reinforce(object):
 
 
     def run(self):
-        parallel = Parallel(n_jobs=-1)
-        for episode in range(1):
+        parallel = Parallel(n_jobs=20)
+        for episode in range(2):
             print episode
-            game_aftermath = parallel(delayed(play_game)(self.RL1, self.RL2, self.env) for i in range(50))
+            start = time.time()
+            game_aftermath = parallel(delayed(play_game)(self.RL1, self.RL2, self.env, start) for i in range(200))
+            print time.time() - start
             self.batch_learn(game_aftermath)
             self.RL1.lut.update_params()
             self.RL2.lut.update_params()
 
         print "TRAINING OVER"
         print self.RL1.lut.q_table.shape
-        self.RL1.store_memory()
-        self.RL2.store_memory()
+        # self.RL1.store_memory()
+        # self.RL2.store_memory()
         print "MEMORY STORED, SESSION FINISHED"
 
 
@@ -87,7 +89,8 @@ class Reinforce(object):
                         self.RL2.lut.learn(str(r_combo[1]), r_combo[2], r_combo[3], str(r_combo[4]))
 
 
-def play_game(RL1, RL2, env):
+def play_game(RL1, RL2, env, start):
+    print "to start", time.time() - start
     session = []
     for i in range(10):
         game_record = []
@@ -139,7 +142,7 @@ def play_game(RL1, RL2, env):
 
 
         session.append(game_record)
-
+    print "to finish", time.time() - start
     return session
 
 
