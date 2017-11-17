@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
+import rospkg
 import numpy as np
 import pandas as pd
 import random
@@ -11,6 +12,7 @@ import argparse
 from game_board import C4Board
 from rl_brain import QLearningTable
 from Queue import *
+from minimax import Minimax
 
 
 class AI_Player(object):
@@ -51,11 +53,23 @@ class AI_Player(object):
 class Reinforce(object):
 
     def __init__(self, train, reset, render):
-        self.env = C4Board(render)
+        self.board = C4Board(render)
+        self.RL1, self.RL2 = self.initialize_AI(reset)
         self.test = train
-        self.RL1 = AI_Player(self.env.n_actions, '/memory/player1.txt', reset, 1)
-        self.RL2 = AI_Player(self.env.n_actions, '/memory/player2.txt', reset, 2)
-        self.scoreboard = 0
+        self.max = Minimax()
+
+
+    def initialize_AI(self, reset):
+        rospack = rospkg.RosPack()
+        PACKAGE_PATH = rospack.get_path("irl")
+
+        player_path1 = PACKAGE_PATH + "/projects/Connect4/memory/player1.txt"
+        player_path2 = PACKAGE_PATH + "/projects/Connect4/memory/player2.txt"
+
+        player_1 = AI_Player(self.board.n_actions, player_path1, reset, 1)
+        player_2 = AI_Player(self.board.n_actions, player_path2, reset, 2)
+
+        return player_1, player_2
 
 
     def run(self):
@@ -64,94 +78,103 @@ class Reinforce(object):
         else:
             self.play()
 
+
     def play(self):
 
-        player_type = 1
-        ai = self.RL1 if player_type == 1 else self.RL2
-        ai.set_observation(self.env.reset())
+        # player_type = 1
+        # ai = self.RL1 if player_type == 1 else self.RL2
+        # ai.set_observation(self.board.reset())
 
-        if ai.player_type == 1:
-            print " I WILL GO FIRST"
-            ai.choose_action()
-            observation_, _, _, done = self.env.step(ai.action, 1)
+        # if ai.player_type == 1:
+        print " I WILL GO FIRST"
+        # ai.choose_action()
+        move, value = self.max.bestMove(5, self.board.reset())
+        # observation_, _, _, done = self.board.step(ai.action, 1)
+        observation_, _, _, done = self.board.step(move, 1)
 
         while True:
+            player_action = None
+            while player_action not in range(1,8):
+                player_action = int(raw_input("YOUR TURN, WHAT'S YOUR MOVE? (1-7) "))
+                print "INVALID MOVE" if player_action not in range(1,8) else ""
 
-            action = int(raw_input("YOUR TURN, WHAT'S YOUR MOVE?"))
-
-            observation_, _, _, done = self.env.step(action, 2)
-            ai.set_observation(observation_)
+            observation_, _, _, done = self.board.step(player_action-1, 2)
+            # ai.set_observation(observation_)
 
             # break if I win
             if done:
+                print "\n"*2
                 print "HUMAN WINS"
                 break
 
-            ai.choose_action()
-            observation_, _, _, done = self.env.step(ai.action, 1)
+            # ai.choose_action()
+            move, value = self.max.bestMove(5, observation_)
+            # observation_, _, _, done = self.board.step(ai.action, 1)
+            observation_, _, _, done = self.board.step(move, 1)
 
             # break if ai wins
             if done:
+                print "\n"*2
                 print "AI WINS"
                 break
 
         print "PLAYING OVER"
 
 
-    def train(self):
-        for episode in range(10000):
-            # initial observation
-            self.RL1.set_observation(self.env.reset())
-            print "EPISODE", episode
-            while True:
-
-                # RL choose action based on observation
-                self.RL1.choose_action()
-
-                # RL take action and get next observation and reward
-                observation1_, reward1, reward2, done = self.env.step(self.RL1.action, 1)
-
-                self.RL1.set_observation_(observation1_)
-                self.RL1.set_reward(reward1)
-                self.RL2.set_reward(reward2)
-
-                if done:
-                    self.RL1.learn()
-                    self.RL2.learn()
-                    self.scoreboard += 1 if self.RL1.reward == 1:
-                    print self.scoreboard/float(episode)
-                    break
-
-                else:
-                    if self.RL2.action:
-                        self.RL2.learn()
-
-                self.RL2.set_observation(self.RL1.observation_)
-
-                # RL choose action based on observation
-                self.RL2.choose_action()
-
-                # RL take action and get next observation and reward
-                observation2_, reward1, reward2, done = self.env.step(self.RL2.action, 2)
-
-                self.RL2.set_observation_(observation2_)
-                self.RL2.set_reward(reward2)
-                self.RL1.set_reward(reward1)
-
-                if done:
-                    self.RL1.learn()
-                    self.RL2.learn()
-                    break
-                else:
-                    self.RL1.learn()
-
-                self.RL1.set_observation(self.RL2.observation_)
-
-
-        print "TRAINING OVER"
-        self.RL1.store_memory()
-        self.RL2.store_memory()
-        print "MEMORY STORED, SESSION FINISHED"
+    # def train(self):
+    #     for episode in range(10000):
+    #         # initial observation
+    #         self.RL1.set_observation(self.board.reset())
+    #         print "EPISODE", episode
+    #         while True:
+    #
+    #             # RL choose action based on observation
+    #             self.RL1.choose_action()
+    #
+    #             # RL take action and get next observation and reward
+    #             observation1_, reward1, reward2, done = self.board.step(self.RL1.action, 1)
+    #
+    #             self.RL1.set_observation_(observation1_)
+    #             self.RL1.set_reward(reward1)
+    #             self.RL2.set_reward(reward2)
+    #
+    #             if done:
+    #                 self.RL1.learn()
+    #                 self.RL2.learn()
+    #                 self.scoreboard += 1 if self.RL1.reward == 1 else 0
+    #                 print self.scoreboard/float(episode)
+    #                 break
+    #
+    #             else:
+    #                 if self.RL2.action:
+    #                     self.RL2.learn()
+    #
+    #             self.RL2.set_observation(self.RL1.observation_)
+    #
+    #             # RL choose action based on observation
+    #             self.RL2.choose_action()
+    #
+    #             # RL take action and get next observation and reward
+    #             observation2_, reward1, reward2, done = self.board.step(self.RL2.action, 2)
+    #
+    #             self.RL2.set_observation_(observation2_)
+    #             self.RL2.set_reward(reward2)
+    #             self.RL1.set_reward(reward1)
+    #
+    #             if done:
+    #                 self.RL1.learn()
+    #                 self.RL2.learn()
+    #                 break
+    #             else:
+    #                 self.RL1.learn()
+    #
+    #             self.RL1.set_observation(self.RL2.observation_)
+    #
+    #
+    #     print "TRAINING OVER"
+    #     self.RL1.store_memory()
+    #     self.RL2.store_memory()
+    #     print "MEMORY STORED, SESSION FINISHED"
 
 
 if __name__ == "__main__":
