@@ -65,13 +65,7 @@ class Reinforce(object):
         parallel = Parallel(n_jobs=40)
         for episode in range(2):
             print episode
-            start = time.time()
             game_aftermath = parallel(delayed(play_game)(self.RL1, self.RL2, self.env, start) for i in range(200))
-            print "aftermath list", len(game_aftermath)
-            print "job list len", len(game_aftermath[0])
-            print "move list len", len(game_aftermath[0][0])
-            print "first move", game_aftermath[0][0][0]
-            print time.time() - start
             self.batch_learn(game_aftermath)
             self.RL1.lut.update_params()
             self.RL2.lut.update_params()
@@ -84,7 +78,6 @@ class Reinforce(object):
 
 
     def batch_learn(self, session):
-        r = 0
         for record in session:
             for game in record:
                 for r_combo in game:
