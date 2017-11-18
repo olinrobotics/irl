@@ -7,10 +7,10 @@ import pandas as pd
 import random
 import time
 from std_msgs.msg import String, Int16
-import pickle
+import cPickle as pickle
 import argparse
 from game_board import C4Board
-from rl_brain import QLearningTable
+from n_rl_brain import QLearningTable
 from Queue import *
 from minimax import Minimax
 
@@ -29,10 +29,12 @@ class AI_Player(object):
 
 
     def load_q_table(self):
-        return pd.read_pickle(self.memory)
+        with open(self.memory, 'rb') as f:
+            return pickle.load(f)
 
     def store_memory(self):
-        self.lut.q_table.to_pickle(self.memory)
+        with open(self.memory, 'wb') as f:
+            pickle.dump(self.lut.q_table, f)
 
     def set_observation(self, observation):
         self.observation = observation
@@ -81,16 +83,16 @@ class Reinforce(object):
 
     def play(self):
 
-        # player_type = 1
-        # ai = self.RL1 if player_type == 1 else self.RL2
-        # ai.set_observation(self.board.reset())
+        player_type = 1
+        ai = self.RL1 if player_type == 1 else self.RL2
+        ai.set_observation(self.board.reset())
 
         # if ai.player_type == 1:
         print " I WILL GO FIRST"
-        # ai.choose_action()
-        move, value = self.max.bestMove(5, self.board.reset())
-        # observation_, _, _, done = self.board.step(ai.action, 1)
-        observation_, _, _, done = self.board.step(move, 1)
+        ai.choose_action()
+        # move, value = self.max.bestMove(5, self.board.reset())
+        observation_, _, _, done = self.board.step(ai.action, 1)
+        # observation_, _, _, done = self.board.step(move, 1)
 
         while True:
             player_action = None
@@ -99,7 +101,7 @@ class Reinforce(object):
                 print "INVALID MOVE" if player_action not in range(1,8) else ""
 
             observation_, _, _, done = self.board.step(player_action-1, 2)
-            # ai.set_observation(observation_)
+            ai.set_observation(observation_)
 
             # break if I win
             if done:
@@ -107,10 +109,10 @@ class Reinforce(object):
                 print "HUMAN WINS"
                 break
 
-            # ai.choose_action()
-            move, value = self.max.bestMove(5, observation_)
-            # observation_, _, _, done = self.board.step(ai.action, 1)
-            observation_, _, _, done = self.board.step(move, 1)
+            ai.choose_action()
+            # move, value = self.max.bestMove(5, observation_)
+            observation_, _, _, done = self.board.step(ai.action, 1)
+            # observation_, _, _, done = self.board.step(move, 1)
 
             # break if ai wins
             if done:

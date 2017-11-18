@@ -27,19 +27,19 @@ class C4Board(object):
         self.init_board()
         self.turn = 0
         self.visualize()
-        return self.board
+        return str(self.board)
 
 
     def make_move(self, column, player):
         move = (column, self.column_stack[column])
         if self.column_stack[column] == -1:
-            return self.board, move
+            return str(self.board), move
         self.board[column][self.column_stack[column]] = player
         self.column_stack[column] -= 1
 
         if np.sum(self.column_stack) == -7:
-            return self.board, False
-        return self.board, move
+            return str(self.board), False
+        return str(self.board), move
 
 
     def connect_4(self, move):
