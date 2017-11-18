@@ -65,10 +65,10 @@ class Reinforce(object):
 
 
     def run(self):
-        parallel = Parallel(n_jobs=4)
+        parallel = Parallel(n_jobs=48)
         for episode in range(2):
             print episode
-            game_aftermath = parallel(delayed(play_game)(self.RL1, self.RL2, self.env) for i in range(5))
+            game_aftermath = parallel(delayed(play_game)(self.RL1, self.RL2, self.env) for i in range(50))
             self.batch_learn(game_aftermath)
             self.RL1.lut.update_params()
             self.RL2.lut.update_params()
