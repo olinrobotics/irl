@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="786e939b-2c1b-47c1-88d6-4a0cb985f318" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/dino_arms/projects/sudoku_solver/.gitignore" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dino_arms/projects/sudoku_solver/.gitignore" afterPath="$PROJECT_DIR$/dino_arms/projects/sudoku_solver/.gitignore" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -13,14 +14,24 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="test_arm_pub.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="test_arm_pub.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/dino_arms/projects/actuation/test_arm_pub.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="546">
-              <caret line="26" column="32" lean-forward="false" selection-start-line="26" selection-start-column="32" selection-end-line="26" selection-end-column="32" />
+            <state relative-caret-position="567">
+              <caret line="27" column="32" lean-forward="false" selection-start-line="27" selection-start-column="32" selection-end-line="27" selection-end-column="32" />
               <folding>
-                <element signature="e#23#35#0" expanded="true" />
+                <element signature="e#22#60#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name=".gitignore" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/dino_arms/projects/sudoku_solver/.gitignore">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="714">
+              <caret line="34" column="29" lean-forward="true" selection-start-line="34" selection-start-column="29" selection-end-line="34" selection-end-column="29" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -139,6 +150,22 @@
               <item name="dino_arms" type="462c0819:PsiDirectoryNode" />
               <item name="projects" type="462c0819:PsiDirectoryNode" />
               <item name="sudoku_solver" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="irl" type="b2602c69:ProjectViewProjectNode" />
+              <item name="irl" type="462c0819:PsiDirectoryNode" />
+              <item name="dino_arms" type="462c0819:PsiDirectoryNode" />
+              <item name="projects" type="462c0819:PsiDirectoryNode" />
+              <item name="sudoku_solver" type="462c0819:PsiDirectoryNode" />
+              <item name=".idea" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="irl" type="b2602c69:ProjectViewProjectNode" />
+              <item name="irl" type="462c0819:PsiDirectoryNode" />
+              <item name="dino_arms" type="462c0819:PsiDirectoryNode" />
+              <item name="projects" type="462c0819:PsiDirectoryNode" />
+              <item name="sudoku_solver" type="462c0819:PsiDirectoryNode" />
+              <item name="Khang Folder" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
@@ -530,7 +557,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="21">
           <caret line="1" column="0" lean-forward="true" selection-start-line="1" selection-start-column="0" selection-end-line="1" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#22#60#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -550,21 +579,21 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/dino_arms/projects/sudoku_solver/.gitignore">
+    <entry file="file://$PROJECT_DIR$/dino_arms/projects/actuation/test_arm_pub.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="84">
-          <caret line="7" column="6" lean-forward="false" selection-start-line="7" selection-start-column="6" selection-end-line="7" selection-end-column="6" />
-          <folding />
+        <state relative-caret-position="567">
+          <caret line="27" column="32" lean-forward="false" selection-start-line="27" selection-start-column="32" selection-end-line="27" selection-end-column="32" />
+          <folding>
+            <element signature="e#22#60#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/dino_arms/projects/actuation/test_arm_pub.py">
+    <entry file="file://$PROJECT_DIR$/dino_arms/projects/sudoku_solver/.gitignore">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="546">
-          <caret line="26" column="32" lean-forward="false" selection-start-line="26" selection-start-column="32" selection-end-line="26" selection-end-column="32" />
-          <folding>
-            <element signature="e#23#35#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="714">
+          <caret line="34" column="29" lean-forward="true" selection-start-line="34" selection-start-column="29" selection-end-line="34" selection-end-column="29" />
+          <folding />
         </state>
       </provider>
     </entry>
