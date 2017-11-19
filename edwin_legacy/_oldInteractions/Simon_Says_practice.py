@@ -105,7 +105,7 @@ class Game:
 				self.res_pub.publish('Try Again!')
 
 	def run(self):
-		"""Game mainloop. Runs for as long as max_turns is defined"""
+		"""Game.py mainloop. Runs for as long as max_turns is defined"""
 
 		time.sleep(2)
 		print "running"
