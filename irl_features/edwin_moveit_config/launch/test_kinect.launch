@@ -1,0 +1,5 @@
+<launch>
+	<include file="$(find freenect_launch)/launch/freenect.launch"/>
+	<node pkg="tf" type="static_transform_publisher" name="kinect2world" args="0.635 0.30 0 -1.5708 -0.3 0 base_link camera_link 100" />
+	<node pkg="edwin_moveit_config" type="orange_pose.py" name="orange_pose"/>
+</launch>
