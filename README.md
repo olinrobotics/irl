@@ -10,6 +10,7 @@ Grouped by error message
 *Encoder-stepper mismatch*
 * Is the area around the K11R control box and robot arm clear?
 * Turn the controller on/off. (Power-cycle the robot)
+* The arm generally makes a pseudo circle using its waist at the beginning of the calibration, done counterclockwise. Try starting it closer to its end point for that rotation, and then execute the startup code. The same thing could be tried for any of the joints (or axes, which is what Roboforth refers to them by).
 
 ---
 
