@@ -13,7 +13,7 @@ find_package(catkin REQUIRED
 	joint_limits_interface
 	transmission_interface
 	hardware_interface
-	controller_manager	
+	controller_manager
 	moveit_ros_move_group
 	moveit_ros_planning
 	moveit_ros_planning_interface
