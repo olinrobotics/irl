@@ -60,10 +60,10 @@ class Reinforce(object):
 
     def __init__(self, train, reset, render):
         self.env = C4Board(render)
-        # self.RL1 = AI_Player(self.env.n_actions, '/home/kzhang/irl/dino_arms/projects/Connect4/memory/player1.txt', reset, 1)
-        # self.RL2 = AI_Player(self.env.n_actions, '/home/kzhang/irl/dino_arms/projects/Connect4/memory/player2.txt', reset, 2)
-        self.RL1 = AI_Player(self.env.n_actions, '/Users/Zhangster/Documents/Kevin/Organizations/Edwin/irl/dino_arms/projects/Connect4/memory/player1.txt', reset, 1)
-        self.RL2 = AI_Player(self.env.n_actions, '/Users/Zhangster/Documents/Kevin/Organizations/Edwin/irl/dino_arms/projects/Connect4/memory/player2.txt', reset, 2)
+        self.RL1 = AI_Player(self.env.n_actions, '/home/kzhang/irl/dino_arms/projects/Connect4/memory/player1.txt', reset, 1)
+        self.RL2 = AI_Player(self.env.n_actions, '/home/kzhang/irl/dino_arms/projects/Connect4/memory/player2.txt', reset, 2)
+        # self.RL1 = AI_Player(self.env.n_actions, '/Users/Zhangster/Documents/Kevin/Organizations/Edwin/irl/dino_arms/projects/Connect4/memory/player1.txt', reset, 1)
+        # self.RL2 = AI_Player(self.env.n_actions, '/Users/Zhangster/Documents/Kevin/Organizations/Edwin/irl/dino_arms/projects/Connect4/memory/player2.txt', reset, 2)
 
 
     def run(self):
