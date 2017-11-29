@@ -58,7 +58,6 @@ class Reinforce(object):
         self.board = C4Board(render)
         self.RL1, self.RL2 = self.initialize_AI(reset)
         self.test = train
-        self.max = Minimax()
 
 
     def initialize_AI(self, reset):
@@ -90,9 +89,7 @@ class Reinforce(object):
         # if ai.player_type == 1:
         print " I WILL GO FIRST"
         ai.choose_action()
-        # move, value = self.max.bestMove(5, self.board.reset())
         observation_, _, _, done = self.board.step(ai.action, 1)
-        # observation_, _, _, done = self.board.step(move, 1)
 
         while True:
             player_action = None
@@ -110,9 +107,7 @@ class Reinforce(object):
                 break
 
             ai.choose_action()
-            # move, value = self.max.bestMove(5, observation_)
             observation_, _, _, done = self.board.step(ai.action, 1)
-            # observation_, _, _, done = self.board.step(move, 1)
 
             # break if ai wins
             if done:

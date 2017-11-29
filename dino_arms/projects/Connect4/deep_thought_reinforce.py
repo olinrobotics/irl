@@ -10,7 +10,7 @@ import argparse
 from game_board import C4Board
 from n_rl_brain import QLearningTable
 from Queue import *
-from joblib import Parallel, delayed
+# from joblib import Parallel, delayed
 
 
 class AI_Player(object):
@@ -60,16 +60,17 @@ class Reinforce(object):
 
     def __init__(self, train, reset, render):
         self.env = C4Board(render)
-        self.RL1 = AI_Player(self.env.n_actions, '/home/kzhang/irl/dino_arms/projects/Connect4/memory/player1.txt', reset, 1)
-        self.RL2 = AI_Player(self.env.n_actions, '/home/kzhang/irl/dino_arms/projects/Connect4/memory/player2.txt', reset, 2)
+        # self.RL1 = AI_Player(self.env.n_actions, '/home/kzhang/irl/dino_arms/projects/Connect4/memory/player1.txt', reset, 1)
+        # self.RL2 = AI_Player(self.env.n_actions, '/home/kzhang/irl/dino_arms/projects/Connect4/memory/player2.txt', reset, 2)
+        self.RL1 = AI_Player(self.env.n_actions, '/Users/Zhangster/Documents/Kevin/Organizations/Edwin/irl/dino_arms/projects/Connect4/memory/player1.txt', reset, 1)
+        self.RL2 = AI_Player(self.env.n_actions, '/Users/Zhangster/Documents/Kevin/Organizations/Edwin/irl/dino_arms/projects/Connect4/memory/player2.txt', reset, 2)
 
 
     def run(self):
-        parallel = Parallel(n_jobs=-1)
-        for episode in range(2000):
+        for episode in range(10000000):
             print episode
-            game_aftermath = parallel(delayed(play_game)(self.RL1, self.RL2, self.env) for i in range(100))
-            self.batch_learn(game_aftermath)
+            self.play_game()
+            # self.batch_learn(game_aftermath)
             self.RL1.lut.update_params()
             self.RL2.lut.update_params()
 
@@ -80,68 +81,74 @@ class Reinforce(object):
         print "MEMORY STORED, SESSION FINISHED"
 
 
-    def batch_learn(self, session):
-        for record in session:
-            for game in record:
-                for r_combo in game:
-                  if r_combo[0] == 1:
-                      self.RL1.lut.learn(r_combo[1], r_combo[2], r_combo[3], r_combo[4])
-                  else:
-                      self.RL2.lut.learn(r_combo[1], r_combo[2], r_combo[3], r_combo[4])
+    # def batch_learn(self, session):
+    #     for record in session:
+    #         for game in record:
+    #             for r_combo in game:
+    #               if r_combo[0] == 1:
+    #                   self.RL1.lut.learn(r_combo[1], r_combo[2], r_combo[3], r_combo[4])
+    #               else:
+    #                   self.RL2.lut.learn(r_combo[1], r_combo[2], r_combo[3], r_combo[4])
+    #
 
-
-def play_game(RL1, RL2, env):
-    session = []
-    for i in range(50):
-        game_record = []
-        RL1.reset()
-        RL2.reset()
+    def play_game(self):
+        # session = []
+        # for i in range(50):
+        #     game_record = []
+        self.RL1.reset()
+        self.RL2.reset()
         # initial observation
-        RL1.set_observation(env.reset())
+        self.RL1.set_observation(self.env.reset())
         while True:
 
             # RL choose action based on observation
-            RL1.choose_action()
+            self.RL1.choose_action()
 
             # RL take action and get next observation and reward
-            observation1_, reward1, reward2, done = env.step(RL1.action, 1)
-            RL1.set_observation_(observation1_)
-            RL1.set_reward(reward1)
-            RL2.set_reward(reward2)
+            observation1_, reward1, reward2, done = self.env.step(self.RL1.action, 1)
+            self.RL1.set_observation_(observation1_)
+            self.RL1.set_reward(reward1)
+            self.RL2.set_reward(reward2)
 
             if done:
-                game_record.append((1, RL1.observation, RL1.action, RL1.reward, RL1.observation_))
-                game_record.append((2, RL2.observation, RL2.action, RL2.reward, RL2.observation_))
+                # game_record.append((1, RL1.observation, RL1.action, RL1.reward, RL1.observation_))
+                # game_record.append((2, RL2.observation, RL2.action, RL2.reward, RL2.observation_))
+                self.RL1.learn()
+                self.RL2.learn()
                 break
 
             else:
-                if RL2.action:
-                    game_record.append((2, RL2.observation, RL2.action, RL2.reward, RL2.observation_))
+                if self.RL2.action:
+                    # game_record.append((2, RL2.observation, RL2.action, RL2.reward, RL2.observation_))
+                    self.RL2.learn()
 
-            RL2.set_observation(RL1.observation_)
+            self.RL2.set_observation(self.RL1.observation_)
 
             # RL choose action based on observation
-            RL2.choose_action()
+            self.RL2.choose_action()
 
             # RL take action and get next observation and reward
-            observation2_, reward1, reward2, done = env.step(RL2.action, 2)
+            observation2_, reward1, reward2, done = self.env.step(self.RL2.action, 2)
 
-            RL2.set_observation_(observation2_)
-            RL2.set_reward(reward2)
-            RL1.set_reward(reward1)
+            self.RL2.set_observation_(observation2_)
+            self.RL2.set_reward(reward2)
+            self.RL1.set_reward(reward1)
 
             if done:
-                game_record.append((1, RL1.observation, RL1.action, RL1.reward, RL1.observation_))
-                game_record.append((2, RL2.observation, RL2.action, RL2.reward, RL2.observation_))
+                # game_record.append((1, RL1.observation, RL1.action, RL1.reward, RL1.observation_))
+                # game_record.append((2, RL2.observation, RL2.action, RL2.reward, RL2.observation_))
+                self.RL1.learn()
+                self.RL2.learn()
                 break
             else:
-                game_record.append((1, RL1.observation, RL1.action, RL1.reward, RL1.observation_))
+                # game_record.append((1, RL1.observation, RL1.action, RL1.reward, RL1.observation_))
+                self.RL1.learn()
 
-            RL1.set_observation(RL2.observation_)
+            self.RL1.set_observation(self.RL2.observation_)
 
 
-        session.append(game_record)
-    return session
+            # session.append(game_record)
+        # return session
 
 
 

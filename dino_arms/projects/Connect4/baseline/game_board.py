@@ -20,26 +20,26 @@ class C4Board(object):
         for i in range(7):
             column = [0]*6
             self.board.append(column)
-        self.column_stack = np.array([5,5,5,5,5,5,5])
+        self.column_stack = [5,5,5,5,5,5,5]
 
 
     def reset(self):
         self.init_board()
         self.turn = 0
         self.visualize()
-        return str(self.board)
+        return self.board
 
 
     def make_move(self, column, player):
         move = (column, self.column_stack[column])
         if self.column_stack[column] == -1:
-            return str(self.board), move
+            return self.board, move
         self.board[column][self.column_stack[column]] = player
         self.column_stack[column] -= 1
 
         if np.sum(self.column_stack) == -7:
-            return str(self.board), False
-        return str(self.board), move
+            return self.board, False
+        return self.board, move
 
 
     def connect_4(self, move):
@@ -110,38 +110,14 @@ class C4Board(object):
     def step(self, action, player):
         s_, move = self.make_move(action, player)
 
-        if move == False:
-            reward1 = 0
-            reward2 = 0
-            done = True
-            return s_, reward1, reward2, done
-        if  self.connect_4(move) and player == 1:
-            reward1 = 1
-            reward2 = -1
-            done = True
-        elif self.connect_4(move) and player == 2:
-            reward1 = -1
-            reward2 = 1
+        if  move == False or self.connect_4(move):
             done = True
         else:
-            reward1 = reward2 = 0
             done = False
 
         self.visualize()
 
-
-        return s_, reward1, reward2, done
-
-
-    # def next_turn(self):
-    #     for col in range(7):
-    #         for row in range(6):
-    #             if self.board[col][row] == 1:
-    #                 self.board[col][row] = 2
-    #             elif self.board[col][row] == 2:
-    #                 self.board[col][row] = 1
-    #
-    #     return self.board
+        return s_, done
 
 
     def visualize(self):
