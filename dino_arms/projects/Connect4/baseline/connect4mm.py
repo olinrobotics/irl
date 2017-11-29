@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
-# import rospy
-# import rospkg
+import rospy
+import rospkg
 import numpy as np
 import pandas as pd
 import random
 import time
-# from std_msgs.msg import String, Int16
+from std_msgs.msg import String, Int16
 import cPickle as pickle
 import argparse
 from game_board import C4Board
