@@ -41,18 +41,18 @@ void setup() {                         // put your setup code here, to run once:
     delay(100);
   }
   noTone(speakerPin);
-  jawServo.write(60);              // command pan servo to new pan angle
-  delay(1000);
-  jawServo.write(70);              // command pan servo to new pan angle
-  delay(1000);
-  jawServo.write(60);              // command pan servo to new pan angle
-  delay(1000);
-  jawServo.write(70);              // command pan servo to new pan angle
-  delay(1000);
-  jawServo.write(60);              // command pan servo to new pan angle
-  delay(1000);
-  jawServo.write(70);              // command pan servo to new pan angle
-  delay(1000);
+//  jawServo.write(60);              // command pan servo to new pan angle
+//  delay(1000);
+//  jawServo.write(70);              // command pan servo to new pan angle
+//  delay(1000);
+//  jawServo.write(60);              // command pan servo to new pan angle
+//  delay(1000);
+//  jawServo.write(70);              // command pan servo to new pan angle
+//  delay(1000);
+//  jawServo.write(60);              // command pan servo to new pan angle
+//  delay(1000);
+//  jawServo.write(70);              // command pan servo to new pan angle
+//  delay(1000);
   }
   
 
