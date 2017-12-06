@@ -42,22 +42,10 @@ class DetectConnectFour:
         x, y, w, h = self.draw_basic_boxes(contours, frame)
         board = self.transform_to_grid(frame, np.float32([[x,y],[x,y+h],[x+w,y+h],[x+w,y]]))
 
-        boardsilhouette = self.extract_black(board)
-        self.detect_corners(board)
-        #self.homog_match(templatesilhouette, boardsilhouette)
-
-
-        #board = self.transform_to_grid(frame, np.float32(frame_points))
-        #self.show_image(board)
-
-        #frame_points = self.homog_match(templatesilhouette, viewsilhouette)
-        #print frame_points
-        #cv2.rectangle(frame,(frame_points[0][0][0],frame_points[0][0][1]),(frame_points[2][0][0],frame_points[2][0][1]),(0,255,0),4)
-        #self.show_image(frame)
-
-        #board = self.transform_to_grid(frame, np.float32(frame_points))
-        #self.show_image(board)
-        # self.segment_frame(board)
+        '''warp transform to actual grid'''
+        actual_corners = self.detect_corners(board)
+        board = self.transform_to_grid(board, actual_corners)
+        self.show_image(board, 'after grid')
 
     def draw_basic_boxes(self, contours, frame):
         imagewidth, imageheight, __ = frame.shape
@@ -165,7 +153,7 @@ class DetectConnectFour:
         #ret, gray = cv2.threshold(gray, 127, 255, cv2.THRESH_TRUNC)
         corners = cv2.goodFeaturesToTrack(gray, 25, 0.01, 100)
         corners = np.int0(corners)
-        directions = ['nw', 'ne', 'se', 'sw'] #= [0,0],[0,boardht],[boardwd,boardht],[boardwd,0]
+        directions = ['nw', 'sw', 'se', 'ne']
         closest_points = dict()
 
         for i in corners:
@@ -193,13 +181,13 @@ class DetectConnectFour:
                     closest_points[quadrant] = [(x, y), rx*ry]
                 print(closest_points)
 
+        actual_corners = []
         for point in directions:
-            cv2.circle(board, closest_points[point][0], 3, 255, -1)
+            coordinates = closest_points[point][0]
+            cv2.circle(board, coordinates, 3, 255, -1)
+            actual_corners.append(list(coordinates))
 
-        #TODO:
-        '''use the corners to transform into better grid'''
-
-        self.show_image(board)
+        return np.float32(actual_corners)
 
     #TODO:
     '''Format to send to the machine learning part'''
