@@ -12,43 +12,91 @@ from matplotlib import pyplot as plt
 
 class DetectConnectFour:
 
-    def __init__(self):
+    def __init__(self, numcols, numrows):
         '''initialize the object'''
+        self.numcols = numcols
+        self.numrows = numrows
+        self.width, self.height = numcols*200, numrows*200
         print("initialized")
 
     def run(self):
         '''initialize camera'''
         #cap = cv2.VideoCapture(0)
         #_, frame = cap.read()
-        frame = cv2.imread('modelpic.png')
+        frame = cv2.imread('View3.jpg')
+        frame = cv2.resize(frame,None,fx=.2, fy=.2, interpolation = cv2.INTER_AREA)
         framegray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY) # grayscale image
-        imagewidth, imageheight, __ = frame.shape
+        #ret, threshCAM = cv2.threshold(framegray, 25, 255, 0)
 
         '''define template'''
-        template = cv2.imread('imagetomatch.png')
+        template = cv2.imread('tryingagain.jpg')
+        template = cv2.resize(template, None, fx=.2, fy=.2, interpolation= cv2.INTER_AREA)
         templategray = cv2.cvtColor(template, cv2.COLOR_RGB2GRAY)
 
-        img = cv2.medianBlur(framegray,5)
-        th1 = cv2.adaptiveThreshold(img,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY,11,10)
+        '''find the frames'''
+        viewsilhouette = self.extract_black(frame)
+        templatesilhouette = self.extract_black(template)
 
-        frame_points = self.homog_match(templategray, framegray)
-        board = self.transform_to_grid(frame, np.float32(frame_points))
-        self.segment_frame(board)
+        '''find the major contour, reduce the field of view'''
+        contours = self.draw_contours(viewsilhouette, frame)
+        x, y, w, h = self.draw_basic_boxes(contours, frame)
+        board = self.transform_to_grid(frame, np.float32([[x,y],[x,y+h],[x+w,y+h],[x+w,y]]))
+
+        boardsilhouette = self.extract_black(board)
+        self.detect_corners(board)
+        #self.homog_match(templatesilhouette, boardsilhouette)
+
+
+        #board = self.transform_to_grid(frame, np.float32(frame_points))
+        #self.show_image(board)
+
+        #frame_points = self.homog_match(templatesilhouette, viewsilhouette)
+        #print frame_points
+        #cv2.rectangle(frame,(frame_points[0][0][0],frame_points[0][0][1]),(frame_points[2][0][0],frame_points[2][0][1]),(0,255,0),4)
+        #self.show_image(frame)
+
+        #board = self.transform_to_grid(frame, np.float32(frame_points))
+        #self.show_image(board)
+        # self.segment_frame(board)
 
     def draw_basic_boxes(self, contours, frame):
+        imagewidth, imageheight, __ = frame.shape
+        areas = []
+        i = 0
         for cnt in contours:
             x,y,w,h = cv2.boundingRect(cnt)
-            if(w*h) >= 2000 and w*h < imagewidth*imageheight:
-                cv2.rectangle(frame,(x,y),(x+w,y+h),(0,0,255),2)
+            if(w*h) >= 10000 and w*h < imagewidth*imageheight-100:
+                areas.append((i, w*h))
+            i += 1
+        areas = sorted(areas, key=lambda x: x[1])
+        biggest_box = areas[-1]
+        x,y,w,h = cv2.boundingRect(contours[biggest_box[0]])
+        #cv2.rectangle(frame,(x,y),(x+w,y+h),(0,0,255),2)
+        return x-10, y-10, w+20, h+20
 
     def draw_contours(self, thresholdedpic, origpic):
         #TODO:
         ''' check out https://docs.opencv.org/3.3.0/d9/d61/tutorial_py_morphological_ops.html'''
         __, contours, __ = cv2.findContours(thresholdedpic,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
-        cv2.drawContours(origpic, contours, -1, (0,255,0), 2)
+        #cv2.drawContours(origpic, contours, -1, (0,255,0), 2)
+        return contours
+
+    def extract_black(self, frame):
+        # convert BGR to HSV
+        ret, frame2 = cv2.threshold(frame, 50, 255, cv2.THRESH_BINARY_INV)
+        hsv = cv2.cvtColor(frame2, cv2.COLOR_BGR2HSV)
+
+        # define range of blue color in HSV
+        lower_ref = np.array([0, 0, 200])
+        upper_ref = np.array([179, 100, 255])
+
+        # Threshold the SSV image to get only blue colors
+        mask = cv2.inRange(hsv, lower_ref, upper_ref)
+        mask = 255 - mask
+        return mask
 
     def homog_match(self, trainimage, frame):
-        MIN_MATCH_COUNT = 5
+        MIN_MATCH_COUNT = 10
         sift = cv2.xfeatures2d.SIFT_create()
         kp1, des1 = sift.detectAndCompute(trainimage,None)
         kp2, des2 = sift.detectAndCompute(frame,None)
@@ -62,10 +110,11 @@ class DetectConnectFour:
 
         good = []
         for m, n in matches:
-            if m.distance < 0.7*n.distance:
+            if m.distance < 1.5*n.distance:
                 good.append(m)
 
         if len(good)>MIN_MATCH_COUNT:
+            print "Found enough matches"
             src_pts = np.float32([ kp1[m.queryIdx].pt for m in good ]).reshape(-1,1,2)
             dst_pts = np.float32([ kp2[m.trainIdx].pt for m in good ]).reshape(-1,1,2)
 
@@ -76,58 +125,28 @@ class DetectConnectFour:
             pts = np.float32([ [0,0],[0,h-1],[w-1,h-1],[w-1,0] ]).reshape(-1,1,2)
             dst = cv2.perspectiveTransform(pts,M)
 
-            frame = cv2.polylines(frame,[np.int32(dst)],True,255,3, cv2.LINE_AA)
+            #cv2.polylines(frame,[np.int32(dst)],True,150,3, cv2.LINE_AA)
+
+            ''''visualize matches'''
+            draw_params = dict(matchColor = (0, 255,0), singlePointColor = None, matchesMask = matchesMask, flags = 2)
+            img3 = cv2.drawMatches(trainimage, kp1, frame, kp2, good, None, **draw_params)
+            plt.imshow(img3, 'gray'), plt.show()
+            return dst
 
         else:
             print "Not enough matches are found - %d/%d" % (len(good),MIN_MATCH_COUNT)
             matchesMask = None
 
-        '''visualize matches'''
-        #draw_params = dict(matchColor = (0, 255,0), singlePointColor = None, matchesMask = matchesMask, flags = 2)
-        #img3 = cv2.drawMatches(trainimage, kp1, frame, kp2, good, None, **draw_params)
-        #plt.imshow(img3, 'gray'), plt.show()
-        return dst
 
     def transform_to_grid(self, frame, points):
-        zoomed_in = np.float32([[0,0],[0,300],[400,300],[400,0]])
+        zoomed_in = np.float32([[0,0],[0,self.height],[self.width,self.height],[self.width,0]])
         N = cv2.getPerspectiveTransform(points, zoomed_in)
-        dst2 = cv2.warpPerspective(frame,N,(400,300))
+        dst2 = cv2.warpPerspective(frame,N,(self.width,self.height))
         return dst2
 
-    def segment_frame(self, img):
-        gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-        ret, thresh = cv2.threshold(gray,0,255,cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
-        # noise removal
-        kernel = np.ones((3,3),np.uint8)
-        opening = cv2.morphologyEx(thresh,cv2.MORPH_OPEN,kernel, iterations = 2)
-
-        # sure background area
-        sure_bg = cv2.dilate(opening,kernel,iterations=3)
-
-        # Finding sure foreground area
-        dist_transform = cv2.distanceTransform(opening,cv2.DIST_L2,5)
-        ret, sure_fg = cv2.threshold(dist_transform,0.7*dist_transform.max(),255,0)
-
-        # Finding unknown region
-        sure_fg = np.uint8(sure_fg)
-        unknown = cv2.subtract(sure_bg,sure_fg)
-        self.show_image(sure_fg)
-        # Marker labelling
-        ret, markers = cv2.connectedComponents(sure_bg)
-
-        # Add one to all labels so that sure background is not 0, but 1
-        markers = markers+1
-
-        # Now, mark the region of unknown with zero
-        markers[unknown==255] = 0
-
-        markers = cv2.watershed(img,markers)
-        img[markers == -1] = [255,0,0]
-        self.show_image(img)
-
-    def show_image(self, frame):
+    def show_image(self, frame, name='frame'):
         while(True):
-            cv2.imshow('frame', frame)
+            cv2.imshow(name, frame)
             k = cv2.waitKey(5) & 0xFF
             if k == 27:
                 cv2.destroyAllWindows()
@@ -135,15 +154,56 @@ class DetectConnectFour:
             elif k == ord('s'):
                 cv2.imwrite('thisthing.png', frame)
 
-    #TODO:
-    '''Figure out what the current layout is like'''
-    '''image segmentation
-    https://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_watershed/py_watershed.html#watershed
-    '''
+    def segment_frame(self, board):
+        gray = cv2.cvtColor(board, cv2.COLOR_BGR2GRAY)
+        ret, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
+        self.show_image(thresh)
+
+    def detect_corners(self, board):
+        gray = cv2.cvtColor(board, cv2.COLOR_BGR2GRAY)
+        boardht, boardwd, __ = board.shape
+        #ret, gray = cv2.threshold(gray, 127, 255, cv2.THRESH_TRUNC)
+        corners = cv2.goodFeaturesToTrack(gray, 25, 0.01, 100)
+        corners = np.int0(corners)
+        directions = ['nw', 'ne', 'se', 'sw'] #= [0,0],[0,boardht],[boardwd,boardht],[boardwd,0]
+        closest_points = dict()
+
+        for i in corners:
+            quadrant = ''
+            x, y = i.ravel()
+            if y<150:
+                ry = y
+                quadrant = quadrant + 'n'
+            elif y > boardht-150:
+                ry = boardht-y
+                quadrant = quadrant + 's'
+            if x<150:
+                rx = x
+                quadrant = quadrant + 'w'
+            elif x > boardwd-150:
+                rx = boardht-x
+                quadrant = quadrant + 'e'
+            if len(quadrant)==2:
+                if closest_points.has_key(quadrant):
+                    oldsize = closest_points[quadrant][1]
+                    newsize = rx*ry
+                    if newsize < oldsize:
+                        closest_points[quadrant] = [(x, y), rx*ry]
+                else:
+                    closest_points[quadrant] = [(x, y), rx*ry]
+                print(closest_points)
+
+        for point in directions:
+            cv2.circle(board, closest_points[point][0], 3, 255, -1)
+
+        #TODO:
+        '''use the corners to transform into better grid'''
+
+        self.show_image(board)
 
     #TODO:
     '''Format to send to the machine learning part'''
 
 if __name__ =='__main__':
-    detect = DetectConnectFour()
+    detect = DetectConnectFour(3, 2)
     detect.run()
