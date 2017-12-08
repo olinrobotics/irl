@@ -32,7 +32,7 @@ void grip_cb(const std_msgs::Int16& msg){
     jawServo.write(128);
   }
   else{
-    jawServo.write(105);
+    jawServo.write(103);
   }
 }
 ros::Subscriber<std_msgs::Int16> grip_sub("/gripper", grip_cb);
@@ -43,6 +43,8 @@ void setup() {                         // put your setup code here, to run once:
   pinMode (ledPinB, OUTPUT);           //sets up Blinky "alive" light"  
   pinMode (eStopPin, INPUT);           //sets up Sense input of E-Stop button
   //jawServo.writeMicroseconds(1500);    //set initial servo position to 60 deg
+  digitalWrite (ledPinR, HIGH);
+  delay (delayPeriod);
   jawServo.attach(3);                  //attach the jaw servo to pin 3
   jawServo.write(125);
   
@@ -61,28 +63,10 @@ void setup() {                         // put your setup code here, to run once:
 void loop() {
   nh.spinOnce();
   
-  // Think: Run low level cognition and safety code-ttttttttttttttttttttttttttttttttttttt
-   blink();                          // blink hindbrain running LED
-  
- 
 }
 
 
 // Think Functions-tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt
-void blink (){                   //this function blinks the Hindbrain Alive LED
-  digitalWrite (ledPinR, HIGH);
-  delay (delayPeriod);
-  digitalWrite (ledPinR, LOW);
-  delay  (delayPeriod);
-  digitalWrite (ledPinB, HIGH);
-  delay (delayPeriod);
-  digitalWrite (ledPinB, LOW);
-  delay  (delayPeriod);
-   digitalWrite (ledPinG, HIGH);
-  delay (delayPeriod);
-  digitalWrite (ledPinG, LOW);
-  delay  (delayPeriod);
-  }
 
  
   

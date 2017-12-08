@@ -9,14 +9,19 @@ from sensor_msgs.msg import JointState
 from std_msgs.msg import String
 from math import pi
 from namedlist import namedlist
+import urx
 
 """
 Wrapper for UR5 robotic arm
 Direct requests to the UR5 arm should be sent through this node
 
-Before this, the UR driver needs to be brought online
+Arm can be used via joints(ROS) or via XYZ coordinates(TCP)
 
-rosrun ur_modern_driver ur5_bringup.launch robot_ip:=10.253.0.51
+Note: if scripts or arm ever time out or freeze up, then just restart scripts and restart
+the arm. It's just that there might be big load on the TCP/ROS connections, 
+
+Before this, the UR driver needs to be brought online:
+rosrun ur_modern_driver ur5_bringup.launch robot_ip:=10.42.0.175
 """
 
 Route = namedlist('Route', 'joints duration')
@@ -53,26 +58,74 @@ class Arm():
         self.build_gesture_dict()
 
         #Setting up subscriber
-        self.behav_sub = rospy.Subscriber("behaviors_cmd", String, self.behaviors_callback)
+        self.joints_sub = rospy.Subscriber("joints_cmd", String, self.behaviors_callback)
+        self.coordinates_sub = rospy.Subscriber("coordinates_cmd", String, self.coordinates_callback)
         self.status_pub = rospy.Publisher("arm_status", String, queue_size=0)
+        self.coordinator = urx.Robot("10.42.0.175")
         print "Initialized, listening..."
 
-    def move_to_point(self, point):
+
+    def coordinates_callback(self, data):
         """
-        Creates trajectory to a single point
+        callback for the coordinates_cmd rostopic
         """
 
-        #TODO: implement
-        #implementing this will require looking into UR TCP documentation
-        #cannot be done until new head is installed
-        pass
+        coordinates = data.data
+        pose = [float(item) for item in coordinates.split(' ')]
+        self.move_to_point(pose)
+
+
+    def move_to_point(self, pose):
+        """
+        move to a pose, a.k.a. a XYZ coordinate (with rotational vectors Rx Ry Rz)
+
+        Note: move_to_point works only for small-medium scale movements. Because the joints
+        can move from -360 to 360 (720 degree rotation), if the difference in moving is too far, it can
+        interpret its movement as the +- 360 coordinate, which is equivalent. Therefore, XYZ movement should
+        only be used when necessary and for relatively smaller movements (or break it into two smaller movements).
+        """
+
+        # sets status as busy and gives out current coordinates
+        self.status_pub.publish("busy")
+        old_pose = self.coordinator.getl()
+        print "CURRENT COORDINATES: \n X: %3f Y: %3f Z: %3f Rx: %3f Ry: %3f Rz: %3f" %(old_pose[0],old_pose[1],old_pose[2],old_pose[3],old_pose[4],old_pose[5])
+
+        # moves the robot according to length of input pose. if 6, then does a regular pose move. if 3, then
+        # will move to new XYZ but use old Rx Ry Rz
+        if len(pose) == 6:
+            self.coordinator.movep(pose, acc=0.3, vel=1, wait=False)
+        elif len(pose) == 3:
+            self.coordinator.movep([pose[0], pose[1], pose[2], old_pose[3], old_pose[4], old_pose[5]], acc=0.3, vel=1, wait=False)
+        else:
+            print "INVALID COORDINATES, NOTHING HAPPENING"
+
+        # service/client implementation to pause programming
+        time.sleep(1)
+        while self.coordinator.is_program_running():
+            pass
+        print "FINISHED MOVING"
+        self.status_pub.publish("free")
+
+        # confirm new coordinates
+        new_pose = self.coordinator.getl()
+        print "NOW AT: \n X: %3f Y: %3f Z: %3f Rx: %3f Ry: %3f Rz: %3f" %(new_pose[0],new_pose[1],new_pose[2],new_pose[3],new_pose[4],new_pose[5])
+
 
     def behaviors_callback(self, data):
+        """
+        callback for behaviors_cmd rostopic
+        """
+
         gesture = data.data
         print "GOT GESTURES: ", gesture
         self.run_gesture(gesture)
 
+
     def home_robot(self):
+        """
+        does a homing for running purposes, basically the home position but with the head turned around
+        """
+
         g = FollowJointTrajectoryGoal()
         g.trajectory = JointTrajectory()
         g.trajectory.joint_names = self.JOINT_NAMES
@@ -100,10 +153,12 @@ class Arm():
         except:
             raise
 
+
     def build_gesture_dict(self):
         """
         Gesture dictionary for UR arm
         """
+
         ###SIMON SAYS GESTURES
         self.gestures["dance"] = [Route([83, -128, 40.75, 45,0,0], 2), Route([83, -38, -50, 176.4, 0,0],2)]
         self.gestures["touch_head"] = [Route([-85, -82, -40, -90, 90, 41], 2), Route([-85, -106, -117, -130, 90, 41], 3),
@@ -150,12 +205,11 @@ class Arm():
         self.gestures["sad"] = [Route([-91, -86.8, -40, -52, 90, 62], 2),
                                 Route([-89.2, -78.4, -122.65, -83.4, 90, 62], 3), Route([-89.2, -78.4, -122.65, -113.5, 90, 62], 1),
                                 Route([-89.3, -72, -105, -91.2, 90, 62], 3)]
-        # self.gestures["praise"] =
-
         self.gestures["nod"] = [Route([-10.4, -77.81, -99.38, -17.65, 107.77, 37.25], 2), Route([-10.49, -77.81, -99.38, -61, 107.77, 37.25], 1),
                                 Route([-10.4, -77.81, -99.38, -17.65, 107.77, 37.25], 1)]
-
         self.gestures["nod1"] = [Route([4.55, -99.1, -54.45, 23.07, 89.99, 52.43], 2), Route([4.55, -99.1, -54.45, -65, 90, 52.43], 1), Route([4.55, -99.1, -54.45, 23.07, 89.99, 52.43], 1)]
+
+
     def run_gesture_incremental(self, gesture):
         """
         Runs a gesture based on what it finds in the dictionary
@@ -212,10 +266,12 @@ class Arm():
             print "WRONG LENGTH OF JOINTS: GOT %d, EXPECTED 6" % (len(gest.joints))
             raise
 
+
     def run_gesture(self, gesture):
         """
         Runs a gesture based on what it finds in the dictionary
         """
+
         gest2run = self.gestures.get(gesture, None)
 
         if gest2run is None:
@@ -267,54 +323,48 @@ class Arm():
 
         self.status_pub.publish("free")
 
-    def test_run(self, gesture):
-        try:
-            inp = raw_input("Ready to run? y/n: ")[0]
-            if (inp == 'y'):
-                self.run_gesture_incremental(gesture)
-            else:
-                print "Halting program"
-        except KeyboardInterrupt:
-            rospy.signal_shutdown("KeyboardInterrupt")
-            raise
 
     def run_all(self):
+        """
+        runs a bunch of different behaviors (and coordinates), used for testing
+        """
+
         try:
             inp = raw_input("Ready to run? y/n: ")[0]
             if (inp == 'y'):
-                self.run_gesture("bow")
+                # self.run_gesture("bow")
                 # self.run_gesture("starfish")
-                self.run_gesture("disco")
+                # self.run_gesture("disco")
                 # self.run_gesture("heart")
                 # self.run_gesture("wave")
                 # self.run_gesture("dab")
-                # self.run_gesture("nod")
-                # self.run_gesture("touch_head")
-                # self.run_gesture("rub_tummy")
-                # self.run_gesture("clap_left")
-                # self.run_gesture("gloat")
-                # self.run_gesture("leader")
-                # self.run_gesture("sad")
-                # self.run_gesture("get_set")
-                # self.run_gesture("hug_self")
-                self.home_robot()
-                # self.run_gesture("nod1")
+                self.run_gesture("nod")
+
+                self.move_to_point([.015, -.461, .434, .195, 3.26, -0.056])
+                time.sleep(10)
             else:
                 print "Halting program"
         except KeyboardInterrupt:
             rospy.signal_shutdown("KeyboardInterrupt")
             raise
 
-    def run(self):  
+
+    def run(self):
         print "UR5 control is running"
         r = rospy.Rate(10)
-
         while not rospy.is_shutdown():
-            r.sleep()
+            try:
+                r.sleep()
+            except KeyboardInterrupt:
+                print "\nCLOSING TCP"
+                self.coordinator.close()
+                print "TCP CLOSED"
+                break
+
 
 if __name__ == '__main__':
     a = Arm()
-    # a.run()
-    a.run_all()
-    # a.test_run("hug_self")
+    a.run()
+    # a.run_all()
+    # a.run_all()
     # a.home_robot()
