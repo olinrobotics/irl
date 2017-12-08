@@ -2,7 +2,7 @@
 Purpose: to process a board of Connect4
 Authors: Hannah Kolano and Kevin Zhang
 Contact: hannah.kolano@students.olin.edu
-Last edited: 11/13/17
+Last edited: 12/7/17
 '''
 
 import rospy
@@ -23,7 +23,7 @@ class DetectConnectFour:
         '''initialize camera'''
         #cap = cv2.VideoCapture(0)
         #_, frame = cap.read()
-        frame = cv2.imread('View3.jpg')
+        frame = cv2.imread('View2.jpg')
         frame = cv2.resize(frame,None,fx=.2, fy=.2, interpolation = cv2.INTER_AREA)
         framegray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY) # grayscale image
         #ret, threshCAM = cv2.threshold(framegray, 25, 255, 0)
@@ -35,19 +35,21 @@ class DetectConnectFour:
 
         '''find the frames'''
         viewsilhouette = self.extract_black(frame)
+        self.show_image(viewsilhouette, 'silhouetteview')
         templatesilhouette = self.extract_black(template)
 
         '''find the major contour, reduce the field of view'''
-        contours = self.draw_contours(viewsilhouette, frame)
-        x, y, w, h = self.draw_basic_boxes(contours, frame)
+        contours = self.draw_contours(viewsilhouette, frame) #, showme = 1)
+        x, y, w, h = self.draw_basic_boxes(contours, frame) #, showme = 1)
         board = self.transform_to_grid(frame, np.float32([[x,y],[x,y+h],[x+w,y+h],[x+w,y]]))
 
         '''warp transform to actual grid'''
-        actual_corners = self.detect_corners(board)
+        actual_corners = self.detect_corners(board) #, showme = 1)
         board = self.transform_to_grid(board, actual_corners)
         self.show_image(board, 'after grid')
+        self.determine_layout(board)
 
-    def draw_basic_boxes(self, contours, frame):
+    def draw_basic_boxes(self, contours, frame, showme = 0):
         imagewidth, imageheight, __ = frame.shape
         areas = []
         i = 0
@@ -59,18 +61,25 @@ class DetectConnectFour:
         areas = sorted(areas, key=lambda x: x[1])
         biggest_box = areas[-1]
         x,y,w,h = cv2.boundingRect(contours[biggest_box[0]])
-        #cv2.rectangle(frame,(x,y),(x+w,y+h),(0,0,255),2)
+
+        if showme !=0:
+            cv2.rectangle(frame,(x,y),(x+w,y+h),(0,0,255),2)
+            self.show_image(frame, 'biggest_box')
         return x-10, y-10, w+20, h+20
 
-    def draw_contours(self, thresholdedpic, origpic):
+    def draw_contours(self, thresholdedpic, origpic, showme = 0):
         #TODO:
         ''' check out https://docs.opencv.org/3.3.0/d9/d61/tutorial_py_morphological_ops.html'''
         __, contours, __ = cv2.findContours(thresholdedpic,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
         #cv2.drawContours(origpic, contours, -1, (0,255,0), 2)
+        if showme != 0:
+            cv2.drawContours(origpic, contours, -1, (0,255,0), 2)
+            self.show_image(origpic, 'contours')
         return contours
 
     def extract_black(self, frame):
         # convert BGR to HSV
+        frame = cv2.blur(frame,(11, 11))
         ret, frame2 = cv2.threshold(frame, 50, 255, cv2.THRESH_BINARY_INV)
         hsv = cv2.cvtColor(frame2, cv2.COLOR_BGR2HSV)
 
@@ -83,54 +92,57 @@ class DetectConnectFour:
         mask = 255 - mask
         return mask
 
-    def homog_match(self, trainimage, frame):
-        MIN_MATCH_COUNT = 10
-        sift = cv2.xfeatures2d.SIFT_create()
-        kp1, des1 = sift.detectAndCompute(trainimage,None)
-        kp2, des2 = sift.detectAndCompute(frame,None)
-
-        FLANN_INDEX_KDTREE = 0
-        index_params = dict(algorithm = FLANN_INDEX_KDTREE, trees=5)
-        search_params = dict(checks = 50)
-
-        flann = cv2.FlannBasedMatcher(index_params, search_params)
-        matches = flann.knnMatch(des1, des2, k=2)
-
-        good = []
-        for m, n in matches:
-            if m.distance < 1.5*n.distance:
-                good.append(m)
-
-        if len(good)>MIN_MATCH_COUNT:
-            print "Found enough matches"
-            src_pts = np.float32([ kp1[m.queryIdx].pt for m in good ]).reshape(-1,1,2)
-            dst_pts = np.float32([ kp2[m.trainIdx].pt for m in good ]).reshape(-1,1,2)
-
-            M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC,5.0)
-            matchesMask = mask.ravel().tolist()
-
-            h,w = trainimage.shape
-            pts = np.float32([ [0,0],[0,h-1],[w-1,h-1],[w-1,0] ]).reshape(-1,1,2)
-            dst = cv2.perspectiveTransform(pts,M)
-
-            #cv2.polylines(frame,[np.int32(dst)],True,150,3, cv2.LINE_AA)
-
-            ''''visualize matches'''
-            draw_params = dict(matchColor = (0, 255,0), singlePointColor = None, matchesMask = matchesMask, flags = 2)
-            img3 = cv2.drawMatches(trainimage, kp1, frame, kp2, good, None, **draw_params)
-            plt.imshow(img3, 'gray'), plt.show()
-            return dst
-
-        else:
-            print "Not enough matches are found - %d/%d" % (len(good),MIN_MATCH_COUNT)
-            matchesMask = None
-
-
     def transform_to_grid(self, frame, points):
         zoomed_in = np.float32([[0,0],[0,self.height],[self.width,self.height],[self.width,0]])
         N = cv2.getPerspectiveTransform(points, zoomed_in)
         dst2 = cv2.warpPerspective(frame,N,(self.width,self.height))
         return dst2
+
+    def determine_layout(self, board):
+        layout = []
+        for i in range(self.numcols):
+            layout.append(['']*self.numrows)
+        row = 0
+        col = 0
+        for y in range(self.numcols):
+            for x in range(self.numrows):
+                this_tile = board[row*200:(row+1)*200, col*200:(col+1)*200]
+                color = self.find_pingpong(this_tile, showme = 1)
+                layout[col][row] = color
+                row += 1
+            row = 0
+            col +=1
+        print(layout)
+
+    def find_pingpong(self, space, showme=0):
+        #hsv = cv2.cvtColor(space, cv2.COLOR_BGR2HSV)
+        color = 'Nothing'
+        lower_orange = np.array([0, 0, 75])
+        upper_orange = np.array([50, 50, 250])
+        lower_blue = np.array([85, 50, 0])
+        upper_blue = np.array([160, 150, 100])
+
+        Omask = cv2.inRange(space, lower_orange, upper_orange)
+        Ores = cv2.bitwise_and(space, space, mask=Omask)
+        Oresgrey = cv2.cvtColor(Ores, cv2.COLOR_BGR2GRAY)
+        __, contoursO, __ = cv2.findContours(Oresgrey,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+        for cnt in contoursO:
+            if cv2.contourArea(cnt) > 750:
+                color = 'Orange'
+
+        Bmask = cv2.inRange(space, lower_blue, upper_blue)
+        Bres = cv2.bitwise_and(space, space, mask=Bmask)
+        Bresgrey = cv2.cvtColor(Bres, cv2.COLOR_BGR2GRAY)
+        __, contoursB, __ = cv2.findContours(Bresgrey,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+        for cnt in contoursB:
+            if cv2.contourArea(cnt) > 750:
+                color = 'Blue'
+
+        if showme != 0:
+            self.show_image(Ores, 'Orange')
+            self.show_image(Bres, 'Blue')
+            print("color found", color)
+        return color
 
     def show_image(self, frame, name='frame'):
         while(True):
@@ -142,16 +154,10 @@ class DetectConnectFour:
             elif k == ord('s'):
                 cv2.imwrite('thisthing.png', frame)
 
-    def segment_frame(self, board):
-        gray = cv2.cvtColor(board, cv2.COLOR_BGR2GRAY)
-        ret, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
-        self.show_image(thresh)
-
-    def detect_corners(self, board):
+    def detect_corners(self, board, showme = 0):
         gray = cv2.cvtColor(board, cv2.COLOR_BGR2GRAY)
         boardht, boardwd, __ = board.shape
-        #ret, gray = cv2.threshold(gray, 127, 255, cv2.THRESH_TRUNC)
-        corners = cv2.goodFeaturesToTrack(gray, 25, 0.01, 100)
+        corners = cv2.goodFeaturesToTrack(gray, 25, .01, 100)
         corners = np.int0(corners)
         directions = ['nw', 'sw', 'se', 'ne']
         closest_points = dict()
@@ -159,38 +165,45 @@ class DetectConnectFour:
         for i in corners:
             quadrant = ''
             x, y = i.ravel()
-            if y<150:
+            cv2.circle(board, (x, y), 3, (0, 0, 255), -1)
+            if y<100:
                 ry = y
                 quadrant = quadrant + 'n'
-            elif y > boardht-150:
+            elif y > boardht-100:
                 ry = boardht-y
                 quadrant = quadrant + 's'
-            if x<150:
+            if x<100:
                 rx = x
                 quadrant = quadrant + 'w'
-            elif x > boardwd-150:
+            elif x > boardwd-100:
                 rx = boardht-x
                 quadrant = quadrant + 'e'
             if len(quadrant)==2:
                 if closest_points.has_key(quadrant):
                     oldsize = closest_points[quadrant][1]
-                    newsize = rx*ry
+                    newsize = np.fabs(rx*ry)
                     if newsize < oldsize:
-                        closest_points[quadrant] = [(x, y), rx*ry]
+                        closest_points[quadrant] = [(x, y), np.fabs(rx*ry)]
                 else:
-                    closest_points[quadrant] = [(x, y), rx*ry]
-                print(closest_points)
+                    closest_points[quadrant] = [(x, y), np.fabs(rx*ry)]
+            #print(closest_points)
 
         actual_corners = []
         for point in directions:
             coordinates = closest_points[point][0]
-            cv2.circle(board, coordinates, 3, 255, -1)
+            cv2.circle(board, coordinates, 7, 255, -1)
             actual_corners.append(list(coordinates))
+
+        if showme != 0:
+            self.show_image(board, 'corners')
 
         return np.float32(actual_corners)
 
     #TODO:
     '''Format to send to the machine learning part'''
+
+    #TODO:
+    '''wait until the board changes'''
 
 if __name__ =='__main__':
     detect = DetectConnectFour(3, 2)
