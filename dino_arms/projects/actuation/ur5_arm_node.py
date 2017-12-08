@@ -18,7 +18,7 @@ Direct requests to the UR5 arm should be sent through this node
 Arm can be used via joints(ROS) or via XYZ coordinates(TCP)
 
 Note: if scripts or arm ever time out or freeze up, then just restart scripts and restart
-the arm. It's just that there might be big load on the TCP/ROS connections, 
+the arm. It's just that there might be big load on the TCP/ROS connections,
 
 Before this, the UR driver needs to be brought online:
 rosrun ur_modern_driver ur5_bringup.launch robot_ip:=10.42.0.175
@@ -62,6 +62,8 @@ class Arm():
         self.coordinates_sub = rospy.Subscriber("coordinates_cmd", String, self.coordinates_callback)
         self.status_pub = rospy.Publisher("arm_status", String, queue_size=0)
         self.coordinator = urx.Robot("10.42.0.175")
+        print "Running startup sequence"
+        self.run_gesture("begin")
         print "Initialized, listening..."
 
 
@@ -159,7 +161,7 @@ class Arm():
         Gesture dictionary for UR arm
         """
 
-        ###SIMON SAYS GESTURES
+        ### SIMON SAYS GESTURES
         self.gestures["dance"] = [Route([83, -128, 40.75, 45,0,0], 2), Route([83, -38, -50, 176.4, 0,0],2)]
         self.gestures["touch_head"] = [Route([-85, -82, -40, -90, 90, 41], 2), Route([-85, -106, -117, -130, 90, 41], 3),
                                     Route([-85, -105, -117, -115, 90, 41], 0.5), Route([-85, -106, -117, -130, 90, 41], 0.5),
@@ -191,7 +193,8 @@ class Arm():
         self.gestures["hug_self"] = [Route([0, -48, -123, -129, 82, 30], 4), Route([-19.3, -47, -122, -129, 82.3, 30], 1), Route([21.2, -47, -122, -111, 82.3, 30], 1),
                                     Route([-19.3, -47, -122, -129, 82.3, 30], 1), Route([21.2, -57, -100, -54, 68.9, 47], 2)]
 
-        ###GENERAL GAME GESTURES
+        ### GENERAL GAME GESTURES
+        self.gestures["begin"] = [Route([-4.14, -69.90, -64.94, -60.09, 86.98, 0], 2)]
         self.gestures["gloat"] = [Route([1.15, -83, -79.5, -33.88, 91.58, 40.72], 2), Route([1.15, -67, -104, -4.5, 91.5, 40.7], 0.7),
                                 Route([1.15, -83, -79.5, -33.88, 91.58, 40.72], 0.7), Route([1.15, -67, -104, -4.5, 91.5, 40.7], 0.7)]
         self.gestures["done_game"] = self.gestures["wave"]
@@ -208,6 +211,32 @@ class Arm():
         self.gestures["nod"] = [Route([-10.4, -77.81, -99.38, -17.65, 107.77, 37.25], 2), Route([-10.49, -77.81, -99.38, -61, 107.77, 37.25], 1),
                                 Route([-10.4, -77.81, -99.38, -17.65, 107.77, 37.25], 1)]
         self.gestures["nod1"] = [Route([4.55, -99.1, -54.45, 23.07, 89.99, 52.43], 2), Route([4.55, -99.1, -54.45, -65, 90, 52.43], 1), Route([4.55, -99.1, -54.45, 23.07, 89.99, 52.43], 1)]
+
+        ### CONNECT 4 GAME GESTURES # TODO
+        self.gestures["c4_start"] = [Route([0, 0, 0, 0, 0, 0], 0)]
+        self.gestures["c4_home"] = [Route([0, 0, 0, 0, 0, 0], 0)]
+        self.gestures["c4_end"] = [Route([0, 0, 0, 0, 0, 0], 0)]
+        self.gestures["c4_win"] = [Route([0, 0, 0, 0, 0, 0], 0)]
+        self.gestures["c4_loss"] = [Route([0, 0, 0, 0, 0, 0], 0)]
+        self.gestures["c4_move_1"] = [Route([0, 0, 0, 0, 0, 0], 0)]
+        self.gestures["c4_move_2"] = [Route([0, 0, 0, 0, 0, 0], 0)]
+        self.gestures["c4_move_3"] = [Route([0, 0, 0, 0, 0, 0], 0)]
+        self.gestures["c4_move_4"] = [Route([0, 0, 0, 0, 0, 0], 0)]
+        self.gestures["c4_move_5"] = [Route([0, 0, 0, 0, 0, 0], 0)]
+        self.gestures["c4_move_6"] = [Route([0, 0, 0, 0, 0, 0], 0)]
+        self.gestures["c4_move_7"] = [Route([0, 0, 0, 0, 0, 0], 0)]
+
+        ### IDLE GESTURES # TODO
+        self.gestures["idle_stare_1"] = [Route([0, 0, 0, 0, 0, 0], 0)]
+        self.gestures["idle_stare_2"] = [Route([0, 0, 0, 0, 0, 0], 0)]
+        self.gestures["idle_stare_3"] = [Route([0, 0, 0, 0, 0, 0], 0)]
+        self.gestures["idle_sniff"] = [Route([0, 0, 0, 0, 0, 0], 0)]
+        self.gestures["idle_yawn"] = [Route([0, 0, 0, 0, 0, 0], 0)]
+        self.gestures["idle_butt_wiggle"] = [Route([0, 0, 0, 0, 0, 0], 0)]
+        self.gestures["idle_wander"] = [Route([0, 0, 0, 0, 0, 0], 0)]
+        self.gestures["idle_head_bobble"] = [Route([0, 0, 0, 0, 0, 0], 0)]
+        self.gestures["idle_curiosity"] = [Route([0, 0, 0, 0, 0, 0], 0)]
+        self.gestures["idle_sleep"] = [Route([0, 0, 0, 0, 0, 0], 0)]
 
 
     def run_gesture_incremental(self, gesture):
