@@ -4,13 +4,24 @@
 import imutils
 import rospy
 from std_msgs.msg import Float64
-#from msg import blue_button
+from irl.msg import blue_button, yellow_button, red_button, green_button, all_buttons
 import numpy as np
 import cv2
 
 # define the lower and upper boundaries of the "green"
 # ball in the HSV color space, then initialize the
 # list of tracked points
+
+rospy.init_node('somethingorwhatever')
+buttons = rospy.Publisher('button_data', all_buttons, queue_size=10)
+
+blue_button = blue_button()
+red_button = red_button()
+green_button = green_button()
+yellow_button = yellow_button()
+
+all_buttons = all_buttons()
+
 greenLower = (29, 86, 6)
 greenUpper = (64, 255, 255)
 
@@ -73,20 +84,39 @@ while True:
                 if i == 0:
                     blue_center = center
                     blue_radius = radius
-                    print(type(center))
-                    # Publish to blue
+
+                    blue_button.center_x = center[0]
+                    blue_button.center_y = center[1]
+                    blue_button.radius = radius
                 elif i == 1:
                     green_center = center
                     green_radius = radius
-                    # Publish to green
+
+                    green_button.center_x = center[0]
+                    green_button.center_y = center[1]
+                    green_button.radius = radius
                 elif i == 2:
                     yellow_center = center
                     yellow_radius = radius
-                    # Publish to yellow
+
+                    yellow_button.center_x = center[0]
+                    yellow_button.center_y = center[1]
+                    yellow_button.radius = radius
                 elif i == 3:
                     red_center = center
                     red_radius = radius
-                    # Publish to red
+
+                    red_button.center_x = center[0]
+                    red_button.center_y = center[1]
+                    red_button.radius = radius
+
+
+            all_buttons.blue_button = blue_button
+            all_buttons.green_button = green_button
+            all_buttons.yellow_button = yellow_button
+            all_buttons.red_button = red_button
+
+            buttons.publish(all_buttons)
 
             # draw circle outline and cente
             cv2.circle(frame, (int(x), int(y)), int(radius), (0,255,255), 2)
