@@ -1,17 +1,32 @@
 import random
 
-class Minimax(object):
-    """ Minimax object that takes a current connect four board state
-    """
+"""
+Minimax algorithm for Connect 4
+written by Kevin Zhang
 
+used imported as package by connect4.py in this folder
+
+Basic steps:
+1. gets a given board sequence
+2. uses minimax to dive 4 steps into the future in all 7^4 possible ways, and builds
+a heuristic for each possible future
+3. selects the best possible future and makes that the best move, which is returned
+"""
+
+class Minimax(object):
+    """
+    Minimax object that takes a current connect four board state
+    """
 
     def __init__(self):
         self.colors = ["x", "o"]
+
 
     def convert_board(self, board):
         """
         converts board from vertical to horizontal formatting
         """
+
         state = [[],[],[],[],[],[]]
         column_stack = 5
         stack = 0
@@ -29,13 +44,14 @@ class Minimax(object):
         return state
 
 
-
     def bestMove(self, depth, raw_state):
-        """ Returns the best move (as a column number) and the associated alpha
+        """
+        Returns the best move (as a column number) and the associated alpha
             Calls search()
         """
 
         state = self.convert_board(raw_state)
+
 
         # determine opponent's color
         curr_player = self.colors[1]
@@ -61,8 +77,10 @@ class Minimax(object):
 
         return best_move, best_alpha
 
+
     def search(self, depth, state, curr_player):
-        """ Searches the tree at depth 'depth'
+        """
+        Searches the tree at depth 'depth'
             By default, the state is the board, and curr_player is whomever
             called this search
 
@@ -96,8 +114,10 @@ class Minimax(object):
             alpha = max(alpha, -self.search(depth-1, child, opp_player))
         return alpha
 
+
     def isLegalMove(self, column, state):
-        """ Boolean function to check if a move (column) is a legal move
+        """
+        Boolean function to check if a move (column) is a legal move
         """
 
         for i in range(6):
@@ -118,7 +138,8 @@ class Minimax(object):
 
 
     def makeMove(self, state, column, color):
-        """ Change a state object to reflect a player, denoted by color,
+        """
+         Change a state object to reflect a player, denoted by color,
             making a move at column 'column'
 
             Returns a copy of new state array with the added move
@@ -130,12 +151,15 @@ class Minimax(object):
                 temp[i][column] = color
                 return temp
 
+
     def value(self, state, color):
-        """ Simple heuristic to evaluate board configurations
+        """
+        Simple heuristic to evaluate board configurations
             Heuristic is (num of 4-in-a-rows)*99999 + (num of 3-in-a-rows)*100 +
             (num of 2-in-a-rows)*10 - (num of opponent 4-in-a-rows)*99999 - (num of opponent
             3-in-a-rows)*100 - (num of opponent 2-in-a-rows)*10
         """
+
         if color == self.colors[0]:
             o_color = self.colors[1]
         else:
@@ -152,7 +176,12 @@ class Minimax(object):
         else:
             return my_fours*100000 + my_threes*100 + my_twos
 
+
     def checkForStreak(self, state, color, streak):
+        """
+        checks for streaks in all directions
+        """
+
         count = 0
         # for each piece in the board...
         for i in range(6):
@@ -170,7 +199,12 @@ class Minimax(object):
         # return the sum of streaks of length 'streak'
         return count
 
+
     def verticalStreak(self, row, col, state, streak):
+        """
+        checks vertical streaks
+        """
+
         consecutiveCount = 0
         for i in range(row, 6):
             if state[i][col].lower() == state[row][col].lower():
@@ -183,7 +217,12 @@ class Minimax(object):
         else:
             return 0
 
+
     def horizontalStreak(self, row, col, state, streak):
+        """
+        checks horizontal streaks
+        """
+
         consecutiveCount = 0
         for j in range(col, 7):
             if state[row][j].lower() == state[row][col].lower():
@@ -196,7 +235,11 @@ class Minimax(object):
         else:
             return 0
 
+
     def diagonalCheck(self, row, col, state, streak):
+        """
+        checks diagonal streaks
+        """
 
         total = 0
         # check for diagonals with positive slope
