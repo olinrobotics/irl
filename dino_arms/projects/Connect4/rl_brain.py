@@ -1,12 +1,10 @@
 #!/usr/bin/env python
 
 
-import rospy
 import numpy as np
 import random
 import time
 import pandas as pd
-from std_msgs.msg import String, Int16
 
 class QLearningTable:
     def __init__(self, actions, learning_rate=0.004, reward_decay=0.9, e_greedy=0.95, q_table=None):
@@ -14,7 +12,7 @@ class QLearningTable:
         self.lr = learning_rate
         self.gamma = reward_decay
         self.epsilon = e_greedy
-        self.q_table = pd.DataFrame(columns=self.actions) if q_table is None else q_table
+        self.q_table = pd.DataFrame(columns=self.actions, dtype=np.float64) if q_table is None else q_table
 
     def choose_action(self, observation):
         self.check_state_exist(observation)
@@ -36,9 +34,14 @@ class QLearningTable:
             q_target = r + self.gamma * self.q_table.ix[s_, :].max()  # next state is not terminal
         else:
             q_target = r  # next state is terminal
+	start = time.time()
         self.q_table.ix[s, a] += self.lr * (q_target - q_predict)  # update
-        self.lr *= (1-self.lr *.000025)
-        self.epsilon *= (1-self.epsilon*.0000009)
+        stop = time.time()
+        print 'modify qtable entry', stop - start
+
+    def update_params(self):
+        self.lr *= (1-self.lr *.13)
+        self.epsilon *= (1-self.epsilon*.005)
 
     def check_state_exist(self, state):
         if state not in self.q_table.index:

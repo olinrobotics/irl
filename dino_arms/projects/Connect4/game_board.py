@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 
 
-import rospy
 import numpy as np
 import random
 import time
-from std_msgs.msg import String, Int16
 
 class C4Board(object):
 
@@ -113,8 +111,8 @@ class C4Board(object):
         s_, move = self.make_move(action, player)
 
         if move == False:
-            reward1 = -1
-            reward2 = -1
+            reward1 = 0
+            reward2 = 0
             done = True
             return s_, reward1, reward2, done
         if  self.connect_4(move) and player == 1:
@@ -155,13 +153,13 @@ class C4Board(object):
                 for j in range(7):
                     piece = self.board[j][i]
                     if piece == 0:
-                        line.append("0")
+                        line.append(" ")
                     else:
                         line.append("K" if piece == 1 else "Z")
 
-                print ' '.join(line)
+                print '|'+'|'.join(line)+'|'
 
-            print "\n"
+            print "\n"*10
 
 
 
