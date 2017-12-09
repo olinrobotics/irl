@@ -159,7 +159,7 @@ class buttonTracker(object):
         #if key == ord("q"):
         #    break
 
-    # turn off camera and close any open windows
+    #turn off camera and close any open windows
     #camera.release()
     #cv2.destoryAllWindows
 
