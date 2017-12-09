@@ -1,11 +1,25 @@
 #!/usr/bin/env python
 
-
 import numpy as np
 import random
 import time
 
+"""
+the internal game board for the Connect 4 AI
+written by Kevin Zhang
+
+used as an importable package for connect4.py in this folder
+
+holds the board as an array of arrays, update and visualization functions.
+checks for when game is over, and also who won. can also detect ties.
+
+"""
+
 class C4Board(object):
+    """
+    the connect 4 board, held as an array of array of 0 (empty), 1(player 1), and
+    2 (player 2)
+    """
 
     def __init__(self, render):
         self.action_space = [0,1,2,3,4,5,6]
@@ -16,6 +30,10 @@ class C4Board(object):
 
 
     def init_board(self):
+        """
+        starts the board as a 7x6 with all 0s
+        """
+
         self.board = []
         for i in range(7):
             column = [0]*6
@@ -24,6 +42,10 @@ class C4Board(object):
 
 
     def reset(self):
+        """
+        resets the board for another game, refreshes variables
+        """
+
         self.init_board()
         self.turn = 0
         self.visualize()
@@ -31,6 +53,11 @@ class C4Board(object):
 
 
     def make_move(self, column, player):
+        """
+        physical implementation of a move, where a cell in the board is changed based
+        on an action from a player, will detect ties here
+        """
+
         move = (column, self.column_stack[column])
         if self.column_stack[column] == -1:
             return self.board, move
@@ -43,6 +70,10 @@ class C4Board(object):
 
 
     def connect_4(self, move):
+        """
+        checks for 4 in a row in all directions
+        """
+
         column = move[0]
         row = move[1]
 
@@ -108,43 +139,27 @@ class C4Board(object):
 
 
     def step(self, action, player):
+        """
+        the update board method, will check for a winnter and if game is done
+        """
+
         s_, move = self.make_move(action, player)
 
-        if move == False:
-            reward1 = 0
-            reward2 = 0
-            done = True
-            return s_, reward1, reward2, done
-        if  self.connect_4(move) and player == 1:
-            reward1 = 1
-            reward2 = -1
-            done = True
-        elif self.connect_4(move) and player == 2:
-            reward1 = -1
-            reward2 = 1
+        if  move == False or self.connect_4(move):
             done = True
         else:
-            reward1 = reward2 = 0
             done = False
 
         self.visualize()
 
-
-        return s_, reward1, reward2, done
-
-
-    # def next_turn(self):
-    #     for col in range(7):
-    #         for row in range(6):
-    #             if self.board[col][row] == 1:
-    #                 self.board[col][row] = 2
-    #             elif self.board[col][row] == 2:
-    #                 self.board[col][row] = 1
-    #
-    #     return self.board
+        return s_, done
 
 
     def visualize(self):
+        """
+        visualizer for the board in terminal, can be toggled
+        """
+
         if self.render:
             print "TURN", self.turn
             self.turn += 1
@@ -165,6 +180,7 @@ class C4Board(object):
 
 
 if __name__=="__main__":
+# testing testing 1 2 3
     test = C4Board()
     print test.step(0, 1)
     print test.step(1, 2)
