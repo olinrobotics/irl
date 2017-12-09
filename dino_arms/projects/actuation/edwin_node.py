@@ -17,7 +17,7 @@ class ArmCommands(object):
 
         # rospy.Subscriber('/arm_cmd', String, self.arm_callback, queue_size=1)
         self.debug_pub = rospy.Publisher('arm_debug', String, queue_size=10)
-        # self.status_pub = rospy.Publisher('arm_status', String, queue_size=10)
+        self.status_pub = rospy.Publisher('/arm_cmd_status', String, queue_size=10)
 
         self.joint_state_pub = rospy.Publisher('joint_states', JointState, queue_size=10)
         self.joint_state_msg = JointState()
@@ -39,6 +39,7 @@ class ArmCommands(object):
         self.debug_pub.publish("HOMING DONE")
 
     def arm_callback(self, cmdin):
+        self.status_pub.publish("busy")
         self.arm.joint()
         cmd = cmdin.cmd
         cmd = str(cmd).replace("data: ", "")
@@ -101,12 +102,11 @@ class ArmCommands(object):
             print "setting accel to ", param
             self.arm.set_accel(float(param))
         elif cmd == "run_route":
-            # self.status_pub.publish(1)
             res = self.arm.run_route(param)
 
             if not res:
                 self.debug_pub.publish("ROUTE NOT FOUND: " + param)
-            # self.status_pub.publish(0)
+
         elif cmd == "move_to":
             #NOTE: move_to is in units of mm
             temp = param.split(", ")
@@ -114,46 +114,36 @@ class ArmCommands(object):
             y = temp[1]
             z = temp[2]
             pitch = temp[3]
-            # self.status_pub.publish(1)
             self.arm.move_to(x,y,z,self.arm.debug)
-            # self.status_pub.publish(0)
+
         elif cmd == "rotate_wrist":
-            # self.status_pub.publish(1)
             self.arm.rotate_wrist(param)
-            # self.status_pub.publish(0)
+
         elif cmd == "rotate_wrist_rel":
-            # self.status_pub.publish(1)
             self.arm.rotate_wrist_rel(param)
-            # self.status_pub.publish(0)
+
         elif cmd == "rotate_hand":
-            # self.status_pub.publish(1)
             self.arm.rotate_hand(param)
-            # self.status_pub.publish(0)
+
         elif cmd == "rotate_elbow":
-            # self.status_pub.publish(1)
             self.arm.rotate_elbow(param)
-            # self.status_pub.publish(0)
+
         elif cmd == "rotate_shoulder":
-            # self.status_pub.publish(1)
             self.arm.rotate_shoulder(param)
-            # self.status_pub.publish(0)
+
         elif cmd == "rotate_waist":
-            # self.status_pub.publish(1)
             self.arm.rotate_waist(param)
-            # self.status_pub.publish(0)
+
         elif cmd == "rotate_waist_rel":
-            # self.status_pub.publish(1)
             print "RELATIVE WA ROTATION"
             self.arm.rotate_waist(param)
-            # self.status_pub.publish(0)
+
         elif cmd == "rotate_hand_rel":
-            # self.status_pub.publish(1)
             self.arm.rotate_hand_rel(param)
-            # self.status_pub.publish(0)
+
         elif cmd == "sleeping":
             time.sleep(float(param))
         elif cmd == "get_joint_states":
-            self.status_pub.publish(1)
             joint_states = self.arm.get_joint_states()
 
             h = Header()
@@ -169,14 +159,11 @@ class ArmCommands(object):
 
             self.joint_state_pub.publish(self.joint_state_msg)
 
-            self.status_pub.publish(0)
         elif cmd == "test":
-            self.status_pub.publish(1)
             self.arm.test()
-            self.status_pub.publish(0)
 
 
-
+        self.status_pub.publish("free")
         return ["I have completed the command"]
 
 

@@ -46,7 +46,7 @@ class Arm():
                 self.JOINT_NAMES[i] = prefix + name
 
         #HOME position of the arm
-        self.HOME = [0,-90,0,-90,90,30]
+        self.HOME = [0,-90,0,-90,90,45]
 
         #Gesture dictionary, and building it
         self.gestures = {}
@@ -55,7 +55,7 @@ class Arm():
         #Setting up subscriber
         self.behav_sub = rospy.Subscriber("behaviors_cmd", String, self.behaviors_callback)
         self.status_pub = rospy.Publisher("arm_status", String, queue_size=0)
-        print "Ready to listen"
+        print "Initialized, listening..."
 
     def move_to_point(self, point):
         """
@@ -283,20 +283,20 @@ class Arm():
             inp = raw_input("Ready to run? y/n: ")[0]
             if (inp == 'y'):
                 self.run_gesture("bow")
-                self.run_gesture("starfish")
+                # self.run_gesture("starfish")
                 self.run_gesture("disco")
-                self.run_gesture("heart")
-                self.run_gesture("wave")
-                self.run_gesture("dab")
-                self.run_gesture("nod")
-                self.run_gesture("touch_head")
-                self.run_gesture("rub_tummy")
-                self.run_gesture("clap_left")
-                self.run_gesture("gloat")
-                self.run_gesture("leader")
-                self.run_gesture("sad")
-                self.run_gesture("get_set")
-                self.run_gesture("hug_self")
+                # self.run_gesture("heart")
+                # self.run_gesture("wave")
+                # self.run_gesture("dab")
+                # self.run_gesture("nod")
+                # self.run_gesture("touch_head")
+                # self.run_gesture("rub_tummy")
+                # self.run_gesture("clap_left")
+                # self.run_gesture("gloat")
+                # self.run_gesture("leader")
+                # self.run_gesture("sad")
+                # self.run_gesture("get_set")
+                # self.run_gesture("hug_self")
                 self.home_robot()
                 # self.run_gesture("nod1")
             else:
@@ -305,7 +305,7 @@ class Arm():
             rospy.signal_shutdown("KeyboardInterrupt")
             raise
 
-    def run(self):
+    def run(self):  
         print "UR5 control is running"
         r = rospy.Rate(10)
 
