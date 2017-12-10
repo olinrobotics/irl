@@ -9,6 +9,7 @@ import rospy
 import cv2
 import numpy as np
 from matplotlib import pyplot as plt
+import time
 
 class DetectConnectFour:
 
@@ -17,37 +18,76 @@ class DetectConnectFour:
         self.numcols = numcols
         self.numrows = numrows
         self.width, self.height = numcols*200, numrows*200
+        #self.layout = [['Nothing', 'Nothing'], ['Nothing', 'Nothing'], ['Nothing', 'Nothing']]
+
         print("initialized")
 
     def run(self):
         '''initialize camera'''
-        #cap = cv2.VideoCapture(0)
-        #_, frame = cap.read()
-        frame = cv2.imread('View2.jpg')
-        frame = cv2.resize(frame,None,fx=.2, fy=.2, interpolation = cv2.INTER_AREA)
-        framegray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY) # grayscale image
-        #ret, threshCAM = cv2.threshold(framegray, 25, 255, 0)
+        state = 'empty'
+        playerColor = 'Nothing'
 
-        '''define template'''
-        template = cv2.imread('tryingagain.jpg')
-        template = cv2.resize(template, None, fx=.2, fy=.2, interpolation= cv2.INTER_AREA)
-        templategray = cv2.cvtColor(template, cv2.COLOR_RGB2GRAY)
+        while True:
+            #cap = cv2.VideoCapture(0)
+            #_, frame = cap.read()
+            picture = raw_input('Choose a picture')
+            frame = cv2.imread(picture)
+            frame = cv2.resize(frame,None,fx=.2, fy=.2, interpolation = cv2.INTER_AREA)
 
-        '''find the frames'''
-        viewsilhouette = self.extract_black(frame)
-        self.show_image(viewsilhouette, 'silhouetteview')
-        templatesilhouette = self.extract_black(template)
+            '''define template'''
+            template = cv2.imread('tryingagain.jpg')
+            template = cv2.resize(template, None, fx=.2, fy=.2, interpolation= cv2.INTER_AREA)
+            templategray = cv2.cvtColor(template, cv2.COLOR_RGB2GRAY)
 
-        '''find the major contour, reduce the field of view'''
-        contours = self.draw_contours(viewsilhouette, frame) #, showme = 1)
-        x, y, w, h = self.draw_basic_boxes(contours, frame) #, showme = 1)
-        board = self.transform_to_grid(frame, np.float32([[x,y],[x,y+h],[x+w,y+h],[x+w,y]]))
+            '''find the frames'''
+            viewsilhouette = self.extract_black(frame)
+            #self.show_image(viewsilhouette, 'silhouetteview')
+            templatesilhouette = self.extract_black(template)
 
-        '''warp transform to actual grid'''
-        actual_corners = self.detect_corners(board) #, showme = 1)
-        board = self.transform_to_grid(board, actual_corners)
-        self.show_image(board, 'after grid')
-        self.determine_layout(board)
+            '''find the major contour, reduce the field of view'''
+            contours = self.draw_contours(viewsilhouette, frame) #, showme = 1)
+            x, y, w, h = self.draw_basic_boxes(contours, frame) #, showme = 1)
+            board = self.transform_to_grid(frame, np.float32([[x,y],[x,y+h],[x+w,y+h],[x+w,y]]))
+
+            '''warp transform to actual grid'''
+            actual_corners = self.detect_corners(board) #, showme = 1)
+            board = self.transform_to_grid(board, actual_corners)
+            #self.show_image(board, 'after grid')
+            current_layout = self.determine_layout(board)
+            print(current_layout)
+
+            if state == 'empty':
+                for column in current_layout:
+                    if 'Orange' not in column and 'Blue' not in column:
+                        pass
+                    else:
+                        if 'Orange' in column:
+                            playerColor = 'Orange'
+                        else:
+                            playerColor = 'Blue'
+                        print('player color is', playerColor)
+                        state = 'started'
+                        first_ball = True
+                #SEND STATE TO KEVIN
+
+            if state == 'started':
+                if current_layout != self.layout or first_ball:
+                    changed_column, new_color = self.which_column_changed(current_layout, playerColor)
+                    print('new color is', new_color)
+                    if new_color == playerColor:
+                        print('changed column', changed_column)
+                        #SEND SOMETHING TO KEVIN!
+                    first_ball = False
+
+            self.layout = current_layout
+            time.sleep(1)
+
+    def which_column_changed(self, current_layout, playerColor):
+        for i in range(len(current_layout)):
+            if current_layout[i] != self.layout[i]:
+                for j in range(len(current_layout[i])):
+                    if current_layout[i][j] != 'Nothing':
+                        return i, current_layout[i][j]
 
     def draw_basic_boxes(self, contours, frame, showme = 0):
         imagewidth, imageheight, __ = frame.shape
@@ -107,14 +147,14 @@ class DetectConnectFour:
         for y in range(self.numcols):
             for x in range(self.numrows):
                 this_tile = board[row*200:(row+1)*200, col*200:(col+1)*200]
-                color = self.find_pingpong(this_tile, showme = 1)
+                color = self.find_ball_color(this_tile) #, showme = 1)
                 layout[col][row] = color
                 row += 1
             row = 0
             col +=1
-        print(layout)
+        return layout
 
-    def find_pingpong(self, space, showme=0):
+    def find_ball_color(self, space, showme=0):
         #hsv = cv2.cvtColor(space, cv2.COLOR_BGR2HSV)
         color = 'Nothing'
         lower_orange = np.array([0, 0, 75])
@@ -201,9 +241,6 @@ class DetectConnectFour:
 
     #TODO:
     '''Format to send to the machine learning part'''
-
-    #TODO:
-    '''wait until the board changes'''
 
 if __name__ =='__main__':
     detect = DetectConnectFour(3, 2)
