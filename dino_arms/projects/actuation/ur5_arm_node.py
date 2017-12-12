@@ -106,11 +106,12 @@ class Arm():
         while self.coordinator.is_program_running():
             pass
         print "FINISHED MOVING"
-        self.status_pub.publish("free")
 
         # confirm new coordinates
         new_pose = self.coordinator.getl()
         print "NOW AT: \n X: %3f Y: %3f Z: %3f Rx: %3f Ry: %3f Rz: %3f" %(new_pose[0],new_pose[1],new_pose[2],new_pose[3],new_pose[4],new_pose[5])
+
+        self.status_pub.publish("free")
 
 
     def behaviors_callback(self, data):
@@ -232,6 +233,7 @@ class Arm():
                                     Route(self.HOME, 2), Route([0, -106, -160, 60, 90, 0], 5),
                                     Route([-154, -103.74, -140, 38, 90, 0], 3), Route([-154, -103.74, -121.83, 64.54, 90, 0], 2),
                                     Route([-154, -109, -132.70, 27.76, 90, 0], 1), Route([0, -91, -160, 67.96, 90, 0], 3)]
+        self.gestures["c4_load_token"] = [Route([102.55, -21.88, -139.94, -5.28, 96.65, 0], 2)]
 
         # TODO, requires fine-tuning, which requires a table
         self.gestures["c4_move_1"] = [Route([0, -103, -62.62, -96.06, 90, 0], 2)]
@@ -399,7 +401,8 @@ class Arm():
                 # self.run_gesture("wave")
                 # self.run_gesture("dab")
                 # self.run_gesture("idle_butt_wiggle")
-                self.run_gesture("idle_sleep")
+                self.run_gesture("c4_home")
+                self.run_gesture("c4_load_token")
                 # self.run_gesture("c4_move_1")
 
                 # self.move_to_point([.015, -.461, .434, .195, 3.26, -0.056])
@@ -426,7 +429,7 @@ class Arm():
 
 if __name__ == '__main__':
     a = Arm()
-    # a.run()
-    a.test_run()
+    a.run()
+    # a.test_run()
+    # a.coordinator.close()
     # a.home_robot()
-    a.coordinator.close()
