@@ -52,9 +52,9 @@ class Idler(object):
 
         arm = data.data
         if arm == "free":
-            status = True
+            self.status = True
         else:
-            status = False
+            self.status = False
 
 
     def state_callback(self, data):
@@ -63,7 +63,7 @@ class Idler(object):
         """
 
         command = data.data
-        if command = "go":
+        if command == "go":
             self.state = True
         else:
             self.state = False

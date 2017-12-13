@@ -31,18 +31,20 @@ basic steps:
 """
 
 
-class Connect4(object):
+class C4(object):
     """
     the Connect 4 game, with computer vision for understanding the game board and
     whose turn it is, minimax for planning its own moves, and basic control system
     to make those moves and other interactions
     """
 
-    def __init__(self, render=True):
+    def __init__(self, render=True, ros_node=None):
         self.board = C4Board(render)
         self.max = Minimax()
 
-        rospy.init_node("connect4", anonymous=True)
+        if not ros_node:
+            rospy.init_node("connect4", anonymous=True)
+
         self.ur5_commander = rospy.Publisher("joints_cmd", String, queue_size=10)
         self.token_grabber = rospy.Publisher("gripper", Int16, queue_size=10)
         rospy.Subscriber("arm_status", String, self.status_callback)
