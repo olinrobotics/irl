@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import time
-import roslib; roslib.load_manifest('edwin')
+import roslib; roslib.load_manifest('irl')
 import rospy
 import actionlib
 from control_msgs.msg import *
@@ -9,14 +9,19 @@ from sensor_msgs.msg import JointState
 from std_msgs.msg import String
 from math import pi
 from namedlist import namedlist
+import urx
 
 """
 Wrapper for UR5 robotic arm
 Direct requests to the UR5 arm should be sent through this node
 
-Before this, the UR driver needs to be brought online
+Arm can be used via joints(ROS) or via XYZ coordinates(TCP)
 
-rosrun ur_modern_driver ur5_bringup.launch robot_ip:=10.253.0.51
+Note: if scripts or arm ever time out or freeze up, then just restart scripts and restart
+the arm. It's just that there might be big load on the TCP/ROS connections,
+
+Before this, the UR driver needs to be brought online:
+rosrun ur_modern_driver ur5_bringup.launch robot_ip:=10.42.0.175
 """
 
 Route = namedlist('Route', 'joints duration')
@@ -46,33 +51,83 @@ class Arm():
                 self.JOINT_NAMES[i] = prefix + name
 
         #HOME position of the arm
-        self.HOME = [0,-90,0,-90,90,30]
+        self.HOME = [0,-90,0,-90,90,0]
 
         #Gesture dictionary, and building it
         self.gestures = {}
         self.build_gesture_dict()
 
         #Setting up subscriber
-        self.behav_sub = rospy.Subscriber("behaviors_cmd", String, self.behaviors_callback)
+        self.joints_sub = rospy.Subscriber("joints_cmd", String, self.behaviors_callback)
+        self.coordinates_sub = rospy.Subscriber("coordinates_cmd", String, self.coordinates_callback)
         self.status_pub = rospy.Publisher("arm_status", String, queue_size=0)
-        print "Ready to listen"
+        self.coordinator = urx.Robot("10.42.0.175")
+        print "Running startup sequence"
+        self.run_gesture("begin")
+        print "Initialized, listening..."
 
-    def move_to_point(self, point):
+
+    def coordinates_callback(self, data):
         """
-        Creates trajectory to a single point
+        callback for the coordinates_cmd rostopic
         """
 
-        #TODO: implement
-        #implementing this will require looking into UR TCP documentation
-        #cannot be done until new head is installed
-        pass
+        coordinates = data.data
+        pose = [float(item) for item in coordinates.split(' ')]
+        self.move_to_point(pose)
+
+
+    def move_to_point(self, pose):
+        """
+        move to a pose, a.k.a. a XYZ coordinate (with rotational vectors Rx Ry Rz)
+
+        Note: move_to_point works only for small-medium scale movements. Because the joints
+        can move from -360 to 360 (720 degree rotation), if the difference in moving is too far, it can
+        interpret its movement as the +- 360 coordinate, which is equivalent. Therefore, XYZ movement should
+        only be used when necessary and for relatively smaller movements (or break it into two smaller movements).
+        """
+
+        # sets status as busy and gives out current coordinates
+        self.status_pub.publish("busy")
+        old_pose = self.coordinator.getl()
+        print "CURRENT COORDINATES: \n X: %3f Y: %3f Z: %3f Rx: %3f Ry: %3f Rz: %3f" %(old_pose[0],old_pose[1],old_pose[2],old_pose[3],old_pose[4],old_pose[5])
+
+        # moves the robot according to length of input pose. if 6, then does a regular pose move. if 3, then
+        # will move to new XYZ but use old Rx Ry Rz
+        if len(pose) == 6:
+            self.coordinator.movep(pose, acc=0.3, vel=1, wait=False)
+        elif len(pose) == 3:
+            self.coordinator.movep([pose[0], pose[1], pose[2], old_pose[3], old_pose[4], old_pose[5]], acc=0.3, vel=1, wait=False)
+        else:
+            print "INVALID COORDINATES, NOTHING HAPPENING"
+
+        # service/client implementation to pause programming
+        time.sleep(1)
+        while self.coordinator.is_program_running():
+            pass
+        print "FINISHED MOVING"
+        self.status_pub.publish("free")
+
+        # confirm new coordinates
+        new_pose = self.coordinator.getl()
+        print "NOW AT: \n X: %3f Y: %3f Z: %3f Rx: %3f Ry: %3f Rz: %3f" %(new_pose[0],new_pose[1],new_pose[2],new_pose[3],new_pose[4],new_pose[5])
+
 
     def behaviors_callback(self, data):
+        """
+        callback for behaviors_cmd rostopic
+        """
+
         gesture = data.data
         print "GOT GESTURES: ", gesture
         self.run_gesture(gesture)
 
+
     def home_robot(self):
+        """
+        does a homing for running purposes, basically the home position but with the head turned around
+        """
+
         g = FollowJointTrajectoryGoal()
         g.trajectory = JointTrajectory()
         g.trajectory.joint_names = self.JOINT_NAMES
@@ -92,7 +147,7 @@ class Arm():
             self.client.send_goal(g)
             print "Waiting for result"
             self.client.wait_for_result()
-            print "Gesture completed succesfully"
+            print "Gesture completed successfully"
 
         except KeyboardInterrupt:
             self.client.cancel_goal()
@@ -100,11 +155,13 @@ class Arm():
         except:
             raise
 
+
     def build_gesture_dict(self):
         """
         Gesture dictionary for UR arm
         """
-        ###SIMON SAYS GESTURES
+
+        ### SIMON SAYS GESTURES
         self.gestures["dance"] = [Route([83, -128, 40.75, 45,0,0], 2), Route([83, -38, -50, 176.4, 0,0],2)]
         self.gestures["touch_head"] = [Route([-85, -82, -40, -90, 90, 41], 2), Route([-85, -106, -117, -130, 90, 41], 3),
                                     Route([-85, -105, -117, -115, 90, 41], 0.5), Route([-85, -106, -117, -130, 90, 41], 0.5),
@@ -136,7 +193,8 @@ class Arm():
         self.gestures["hug_self"] = [Route([0, -48, -123, -129, 82, 30], 4), Route([-19.3, -47, -122, -129, 82.3, 30], 1), Route([21.2, -47, -122, -111, 82.3, 30], 1),
                                     Route([-19.3, -47, -122, -129, 82.3, 30], 1), Route([21.2, -57, -100, -54, 68.9, 47], 2)]
 
-        ###GENERAL GAME GESTURES
+        ### GENERAL GAME GESTURES
+        self.gestures["begin"] = [Route([-4.14, -69.90, -64.94, -60.09, 86.98, 0], 2)]
         self.gestures["gloat"] = [Route([1.15, -83, -79.5, -33.88, 91.58, 40.72], 2), Route([1.15, -67, -104, -4.5, 91.5, 40.7], 0.7),
                                 Route([1.15, -83, -79.5, -33.88, 91.58, 40.72], 0.7), Route([1.15, -67, -104, -4.5, 91.5, 40.7], 0.7)]
         self.gestures["done_game"] = self.gestures["wave"]
@@ -150,12 +208,53 @@ class Arm():
         self.gestures["sad"] = [Route([-91, -86.8, -40, -52, 90, 62], 2),
                                 Route([-89.2, -78.4, -122.65, -83.4, 90, 62], 3), Route([-89.2, -78.4, -122.65, -113.5, 90, 62], 1),
                                 Route([-89.3, -72, -105, -91.2, 90, 62], 3)]
-        # self.gestures["praise"] =
-
         self.gestures["nod"] = [Route([-10.4, -77.81, -99.38, -17.65, 107.77, 37.25], 2), Route([-10.49, -77.81, -99.38, -61, 107.77, 37.25], 1),
                                 Route([-10.4, -77.81, -99.38, -17.65, 107.77, 37.25], 1)]
-
         self.gestures["nod1"] = [Route([4.55, -99.1, -54.45, 23.07, 89.99, 52.43], 2), Route([4.55, -99.1, -54.45, -65, 90, 52.43], 1), Route([4.55, -99.1, -54.45, 23.07, 89.99, 52.43], 1)]
+
+        ### CONNECT 4 GAME GESTURES # TODO
+        self.gestures["c4_start"] = [Route([.20, -77.09, -5.45, -124.09, 83.41, .32], 1.5), Route([.20, -77.09, -5.45, -124.09, 96.29, 30], .7),
+                                    Route([.20, -77.09, -5.45, -124.09, 70.16, -30], .7), Route([.20, -77.09, -5.45, -124.09, 83.41, .32], 1),
+                                    Route([.21, -62.29, -115.70, -10.69, 85.97, 0], 1.5)]
+        self.gestures["c4_home"] = [Route([0, -118.02, -149.12, 86.50, 86.35, 0], 2.5)]
+        self.gestures["c4_end"] = [Route([0, -68.93, -102.56, -7.04, 86.35, 0], 1.5), Route([0, -68.93, -106.58, -14.47, 86.35, 0], .5),
+                                    Route([0, -67.81, -98.65, .04, 86.35, 0], .5), Route([0, -68.93, -106.58, -14.47, 86.35, 0], .5),
+                                    Route([0, -67.81, -98.65, .04, 86.35, 0], .5), Route([0, -90.76, -84.70, -4, 86.35, -20.33], .7)]
+        self.gestures["c4_win"] = [Route([0, -60.02, -25.05, -94.00, 90, 0], 1.5), Route([0, -60.00, -20.05, -99.51, 90, 0], .5),
+                                    Route([0, -60.02, -30.01, -88.44, 90, 0], .5), Route([0, -60.02, -20.05, -99.51, 90, 0], .5),
+                                    Route([0, -60.02, -30.01, -88.44, 90, 0], .5), Route([0, -60.02, -20.05, -99.51, 90, 0], .5),
+                                    Route([0, -60.02, -30.01, -88.44, 90, 0], .5), Route([0, -95, -5, -110, 90, 0], 1),
+                                    Route([-15, -90, -5, -110, 90, -20], .7), Route([15, -90, -5, -110, 90, 20], .7),
+                                    Route([-15, -90, -5, -110, 90, -20], .7), Route([15, -90, -5, -110, 90, 20], .7),
+                                    Route([0, -90, -5, -110, 90, 0], 1), Route([0, -115, -95, 46, 90, 0], 2),
+                                    Route([0, -115, -95, 46, 90, 15], 1),Route([0, -115, -95, 46, 90, 30], 1)]
+        self.gestures["c4_loss"] = [Route([0, -70, -20, -125, 90, 0], 1.5), Route(self.HOME, 1.5), Route([0,-91, -98, -40, 88, 0], 3),
+                                    Route(self.HOME, 2), Route([0, -106, -160, 60, 90, 0], 5),
+                                    Route([-154, -103.74, -140, 38, 90, 0], 3), Route([-154, -103.74, -121.83, 64.54, 90, 0], 2),
+                                    Route([-154, -109, -132.70, 27.76, 90, 0], 1), Route([0, -91, -160, 67.96, 90, 0], 3)]
+
+        # TODO, requires fine-tuning, which requires a table
+        self.gestures["c4_move_1"] = [Route([0, -103, -62.62, -96.06, 90, 0], 2)]
+        self.gestures["c4_move_2"] = [Route([0, 0, 0, 0, 0, 0], 0)]
+        self.gestures["c4_move_3"] = [Route([0, 0, 0, 0, 0, 0], 0)]
+        self.gestures["c4_move_4"] = [Route([0, 0, 0, 0, 0, 0], 0)]
+        self.gestures["c4_move_5"] = [Route([0, 0, 0, 0, 0, 0], 0)]
+        self.gestures["c4_move_6"] = [Route([0, 0, 0, 0, 0, 0], 0)]
+        self.gestures["c4_move_7"] = [Route([0, 0, 0, 0, 0, 0], 0)]
+
+        ### IDLE GESTURES # TODO
+        self.gestures["idle_stare_1"] = [Route([0, 0, 0, 0, 0, 0], 0)]
+        self.gestures["idle_stare_2"] = [Route([0, 0, 0, 0, 0, 0], 0)]
+        self.gestures["idle_stare_3"] = [Route([0, 0, 0, 0, 0, 0], 0)]
+        self.gestures["idle_sniff"] = [Route([0, 0, 0, 0, 0, 0], 0)]
+        self.gestures["idle_yawn"] = [Route([0, 0, 0, 0, 0, 0], 0)]
+        self.gestures["idle_butt_wiggle"] = [Route([0, 0, 0, 0, 0, 0], 0)]
+        self.gestures["idle_wander"] = [Route([0, 0, 0, 0, 0, 0], 0)]
+        self.gestures["idle_head_bobble"] = [Route([0, 0, 0, 0, 0, 0], 0)]
+        self.gestures["idle_curiosity"] = [Route([0, 0, 0, 0, 0, 0], 0)]
+        self.gestures["idle_sleep"] = [Route([0, 0, 0, 0, 0, 0], 0)]
+
+
     def run_gesture_incremental(self, gesture):
         """
         Runs a gesture based on what it finds in the dictionary
@@ -212,10 +311,12 @@ class Arm():
             print "WRONG LENGTH OF JOINTS: GOT %d, EXPECTED 6" % (len(gest.joints))
             raise
 
+
     def run_gesture(self, gesture):
         """
         Runs a gesture based on what it finds in the dictionary
         """
+
         gest2run = self.gestures.get(gesture, None)
 
         if gest2run is None:
@@ -267,54 +368,49 @@ class Arm():
 
         self.status_pub.publish("free")
 
-    def test_run(self, gesture):
+
+    def test_run(self):
+        """
+        runs a bunch of different behaviors (and coordinates), used for testing
+        """
+
         try:
             inp = raw_input("Ready to run? y/n: ")[0]
             if (inp == 'y'):
-                self.run_gesture_incremental(gesture)
+                # self.run_gesture("bow")
+                # self.run_gesture("starfish")
+                # self.run_gesture("disco")
+                # self.run_gesture("heart")
+                # self.run_gesture("wave")
+                # self.run_gesture("dab")
+                self.run_gesture("c4_home")
+                self.run_gesture("c4_move_1")
+
+                # self.move_to_point([.015, -.461, .434, .195, 3.26, -0.056])
+                # time.sleep(10)
             else:
                 print "Halting program"
         except KeyboardInterrupt:
             rospy.signal_shutdown("KeyboardInterrupt")
             raise
 
-    def run_all(self):
-        try:
-            inp = raw_input("Ready to run? y/n: ")[0]
-            if (inp == 'y'):
-                self.run_gesture("bow")
-                self.run_gesture("starfish")
-                self.run_gesture("disco")
-                self.run_gesture("heart")
-                self.run_gesture("wave")
-                self.run_gesture("dab")
-                self.run_gesture("nod")
-                self.run_gesture("touch_head")
-                self.run_gesture("rub_tummy")
-                self.run_gesture("clap_left")
-                self.run_gesture("gloat")
-                self.run_gesture("leader")
-                self.run_gesture("sad")
-                self.run_gesture("get_set")
-                self.run_gesture("hug_self")
-                self.home_robot()
-                # self.run_gesture("nod1")
-            else:
-                print "Halting program"
-        except KeyboardInterrupt:
-            rospy.signal_shutdown("KeyboardInterrupt")
-            raise
 
     def run(self):
         print "UR5 control is running"
         r = rospy.Rate(10)
-
         while not rospy.is_shutdown():
-            r.sleep()
+            try:
+                r.sleep()
+            except KeyboardInterrupt:
+                print "\nCLOSING TCP"
+                self.coordinator.close()
+                print "TCP CLOSED"
+                break
+
 
 if __name__ == '__main__':
     a = Arm()
     # a.run()
-    a.run_all()
-    # a.test_run("hug_self")
+    a.test_run()
     # a.home_robot()
+    a.coordinator.close()
