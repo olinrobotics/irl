@@ -1,4 +1,13 @@
 #!/usr/bin/env python
+"""
+By Olin IRL
+Modified by Khang Vu, 2017
+Last modified Dec 13, 2017
+
+This script moves Edwin to write a letter on a specific x, y, z location
+Specifically used for Sudoku Game
+"""
+
 import time
 
 import rospy

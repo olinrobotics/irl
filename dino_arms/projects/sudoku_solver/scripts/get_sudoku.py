@@ -1,5 +1,6 @@
 """
 By Khang Vu, 2017
+Last modified Dec 13, 2017
 
 This script takes a captured sudoku image and parses into a sudoku instance
 It uses predict_knn to predict numbers in the sudoku image
