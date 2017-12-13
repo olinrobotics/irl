@@ -1,5 +1,6 @@
 """
 By Khang Vu, 2017
+Last modified Dec 13, 2017
 
 The is the cell represented in a sudoku that has row, col, and potential numbers
 If potential numbers has only one element, then that is the result number for the cell

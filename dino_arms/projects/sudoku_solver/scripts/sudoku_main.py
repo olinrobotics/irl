@@ -1,3 +1,10 @@
+"""
+By Sherrie Shen & Khang Vu, 2017
+Last modified Dec 13, 2017
+
+This script is the master script of the Sudoku Game
+Currently works for 4x4 Sudoku boards
+"""
 import time
 
 import cv2
@@ -26,7 +33,7 @@ class SudokuMain(object):
         # init ROS subscribers to camera and status
         rospy.Subscriber('arm_cmd_status', String, self.status_callback, queue_size=10)
         rospy.Subscriber('writing_status', String, self.writing_status_callback, queue_size=20)
-        self.image_sub = rospy.Subscriber('usb_cam/image_raw', Image, self.img_callback)
+        rospy.Subscriber('usb_cam/image_raw', Image, self.img_callback)
 
         self.write_pub = rospy.Publisher('/write_cmd', Edwin_Shape, queue_size=10)
 
@@ -186,6 +193,10 @@ class SudokuMain(object):
         cv2.destroyAllWindows()
 
     def capture_video(self):
+        """
+        Capture video from usb_cam
+        :return: None
+        """
         r = rospy.Rate(10)
         while self.frame is None:
             r.sleep()
@@ -202,7 +213,7 @@ class SudokuMain(object):
         Move the arm to (row, col) and write a number
         :return: None
         """
-        x, y, z = self.get_coordinates(row, col)
+        x, y, z = self.get_coordinates_4_by_4(row, col)
         self.move_xyz(x, y, z + 300)
         data = Edwin_Shape(x=x, y=y, z=z - self.z_offset, shape=str(number))
         self.write_pub.publish(data)
@@ -224,7 +235,11 @@ class SudokuMain(object):
                 break
 
     def test_write_numbers(self):
-        for i in range(1, 2):
+        """
+        Test function to write numbers on the 4 x 4 board
+        :return: None
+        """
+        for i in range(4):
             for j in range(4):
                 print "Writing", i, j
                 self.write_number(i, j, 8)
@@ -273,9 +288,10 @@ class SudokuMain(object):
             self.write_numbers()
             self.move_to_center()
 
-    def get_coordinates(self, row, col):
+    def get_coordinates_4_by_4(self, row, col):
         """
         Get coordinates x, y, z from row, col
+        Only applicable for 4 x 4 board
         :param row: 0 to 3
         :param col: 0 to 3
         :return: x, y, z

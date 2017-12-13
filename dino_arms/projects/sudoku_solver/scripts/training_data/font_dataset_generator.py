@@ -1,5 +1,6 @@
 """
 By Khang Vu, 2017
+Last modified Dec 13, 2017
 
 This script generates digit images from fonts
 All basic fonts are stored in folder "./fonts"

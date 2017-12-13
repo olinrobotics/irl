@@ -1,5 +1,6 @@
 """
 By Khang Vu, 2017
+Last modified Dec 13, 2017
 
 The Sudoku instance will takes a problem set, which is an array of (row, col, number)
 and solves the sudoku by running the function solve()

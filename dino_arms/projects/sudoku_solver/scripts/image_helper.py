@@ -1,5 +1,6 @@
 """
 by Khang Vu & Sherrie Shen, 2017
+Last modified Dec 13, 2017
 
 Helper file to handle images
 """

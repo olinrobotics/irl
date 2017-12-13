@@ -1,5 +1,6 @@
 """
 By Sherrie Shen & Khang Vu, 2017
+Last modified Dec 13, 2017
 
 Using knn to predict digits in an image
 This will use the classifier from training_knn.py

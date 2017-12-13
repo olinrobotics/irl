@@ -1,5 +1,6 @@
 """
 By Sherrie Shen, 2017
+Last modified Dec 13, 2017
 
 Training knn using samples and responses from font_training_data.py
 A classifier clf is then created for knn prediction
