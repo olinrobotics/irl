@@ -58,7 +58,7 @@ class Arm():
         self.build_gesture_dict()
 
         #Setting up subscriber
-        self.joints_sub = rospy.Subscriber("joints_cmd", String, self.behaviors_callback)
+        self.joints_sub = rospy.Subscriber("behaviors_cmd", String, self.behaviors_callback)
         self.coordinates_sub = rospy.Subscriber("coordinates_cmd", String, self.coordinates_callback)
         self.status_pub = rospy.Publisher("arm_status", String, queue_size=0)
         self.coordinator = urx.Robot("10.42.0.175")

@@ -32,7 +32,7 @@ class Idler(object):
     def __init__(self):
         rospy.init_node("Idler")
 
-        self.ur5_commander = rospy.Publisher("joints_cmd", String, queue_size=10)
+        self.ur5_commander = rospy.Publisher("behaviors_cmd", String, queue_size=10)
 
         rospy.Subscriber("idle_state", String, self.state_callback)
         rospy.Subscriber("arm_status", String, self.status_callback)
@@ -93,7 +93,8 @@ class Idler(object):
         self.check_for_completion()
 
         self.previous_command = self.idle_command
-        pause = np.random.choice(range(3,7))
+
+        pause = np.random.choice(range(3,6))
         time.sleep(pause)
 
 
@@ -110,6 +111,7 @@ class Idler(object):
                 r.sleep()
                 if self.state:
                     self.idle()
+
             except KeyboardInterrupt:
                 print "\n Idle module turned off"
                 break

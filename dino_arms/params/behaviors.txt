@@ -11,144 +11,140 @@ sS'curiosity'
 p5
 S'R_curious, WR: 800, H: 0'
 p6
-sS'wave'
-p7
-S'SPD: 650, R_wave'
-p8
 sS'sad'
-p9
+p7
 S'SPD: 400, R_sad'
-p10
+p8
 sS'sleep'
-p11
+p9
 S'R_sleep'
-p12
+p10
 sS'laugh'
-p13
+p11
 S'SPD: 700, R_laugh, SPD: 1000'
-p14
+p12
 sS'star'
-p15
+p13
 S'SPD: 700, R_starfish'
-p16
+p14
 sS'disco'
-p17
+p15
 S'SPD: 800, R_disco'
-p18
+p16
 sS'nudge'
-p19
+p17
 S'R_look, H:0, H:-200, R_look'
-p20
+p18
 sS'angry'
-p21
+p19
 S'SPD: 200, R_stare, SPD: 1000'
-p22
+p20
 sS'idle_stare_3'
-p23
+p21
 S'R_stare_3'
-p24
+p22
 sS'idle_stare_2'
+p23
+S'R_stare_yonder'
+p24
+sS'idle_stare_1'
 p25
 S'R_stare'
 p26
-sS'idle_stare_1'
-p27
-S'R_stare_2'
-p28
 sS'idle_butt_wiggle'
-p29
-S'R_scrunch_up'
-p30
+p27
+S'R_curl_up, WA: 4500, WA: 5400, WA: 4500, WA: 5400, WA: 4500, WA: 5400'
+p28
 sS'bored'
-p31
+p29
 S'SPD: 400, R_bored, R_stare'
-p32
+p30
 sS'leader'
-p33
+p31
 S'R_leader'
-p34
+p32
 sS'get_set'
-p35
+p33
 S'SPD: 600, R_get_set'
-p36
+p34
 sS'idle_sleep'
-p37
+p35
 S'R_sleep, WA: 8000, WA: 7000, WA: 8000, WA: 7000'
-p38
+p36
 sS'dab'
-p39
+p37
 S'SPD: 900, R_dab'
-p40
+p38
 sS'rub_tummy'
-p41
+p39
 S'SPD: 700, R_rub_tummy'
-p42
+p40
 sS'nod'
-p43
+p41
 S'R_stare, E:13000, E:12000'
-p44
+p42
 sS'idle_sniff'
-p45
-S'SPD: 800, R_sniff'
-p46
+p43
+S'R_sniff'
+p44
 sS'hug_self'
-p47
+p45
 S'SPD: 500, R_hug_self'
-p48
+p46
 sS'idle_curiosity'
-p49
+p47
 S'R_look_at_draco, WR: 4500'
-p50
+p48
 sS'idle_sneeze'
-p51
-S'SPD: 500, R_sneeze'
-p52
+p49
+S'R_sneeze'
+p50
 sS'gloat'
-p53
+p51
 S'H: 1000\t, WR: 1700, SPD: 400, R_laugh '
-p54
+p52
 sS'idle_head_bobble'
-p55
+p53
 S'R_head_bobble'
+p54
+sS'wave'
+p55
+S'SPD: 650, R_wave'
 p56
-sS'happy_butt_wiggle'
-p57
-S'R_curl_up, WA: 4500, WA: 5400, WA: 4500, WA: 5400, WA: 4500, WA: 5400, SL: .5, R_look'
-p58
 sS'look'
-p59
+p57
 S'R_look'
-p60
+p58
 sS'pout'
-p61
+p59
 S'R_sad_turn, WA: -1000, WA: 1000'
-p62
+p60
 sS'greet'
-p63
+p61
 S'R_greet1, WR:1500, H: 100, H: 0'
-p64
+p62
 sS'bow'
-p65
+p63
 S'SPD: 500, R_bow '
-p66
+p64
 sS'impatient'
-p67
+p65
 S'WA: 250, WA: -250, WA: 250, WA: -250, WA: 0, SPD: 700, R_impatient, SL: 1, R_annoyed_nudge'
-p68
+p66
 sS'praise'
-p69
+p67
 S'SPD: 1000, R_praise'
-p70
+p68
 sS'touch_head'
-p71
+p69
 S'SPD: 600, R_touch_head '
-p72
+p70
 sS'done_game'
-p73
+p71
 S'SPD: 600, R_done_game'
-p74
+p72
 sS'idle_wander'
-p75
+p73
 S'R_squirrel'
-p76
+p74
 s.
