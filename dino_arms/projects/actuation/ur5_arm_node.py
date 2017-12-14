@@ -51,7 +51,7 @@ class Arm():
                 self.JOINT_NAMES[i] = prefix + name
 
         #HOME position of the arm
-        self.HOME = [0,-90,0,-90,90,45]
+        self.HOME = [0,-90,0,-90,90,0]
 
         #Gesture dictionary, and building it
         self.gestures = {}
@@ -147,7 +147,7 @@ class Arm():
             self.client.send_goal(g)
             print "Waiting for result"
             self.client.wait_for_result()
-            print "Gesture completed succesfully"
+            print "Gesture completed successfully"
 
         except KeyboardInterrupt:
             self.client.cancel_goal()
@@ -213,12 +213,28 @@ class Arm():
         self.gestures["nod1"] = [Route([4.55, -99.1, -54.45, 23.07, 89.99, 52.43], 2), Route([4.55, -99.1, -54.45, -65, 90, 52.43], 1), Route([4.55, -99.1, -54.45, 23.07, 89.99, 52.43], 1)]
 
         ### CONNECT 4 GAME GESTURES # TODO
-        self.gestures["c4_start"] = [Route([0, 0, 0, 0, 0, 0], 0)]
-        self.gestures["c4_home"] = [Route([0, 0, 0, 0, 0, 0], 0)]
-        self.gestures["c4_end"] = [Route([0, 0, 0, 0, 0, 0], 0)]
-        self.gestures["c4_win"] = [Route([0, 0, 0, 0, 0, 0], 0)]
-        self.gestures["c4_loss"] = [Route([0, 0, 0, 0, 0, 0], 0)]
-        self.gestures["c4_move_1"] = [Route([0, 0, 0, 0, 0, 0], 0)]
+        self.gestures["c4_start"] = [Route([.20, -77.09, -5.45, -124.09, 83.41, .32], 1.5), Route([.20, -77.09, -5.45, -124.09, 96.29, 30], .7),
+                                    Route([.20, -77.09, -5.45, -124.09, 70.16, -30], .7), Route([.20, -77.09, -5.45, -124.09, 83.41, .32], 1),
+                                    Route([.21, -62.29, -115.70, -10.69, 85.97, 0], 1.5)]
+        self.gestures["c4_home"] = [Route([0, -118.02, -149.12, 86.50, 86.35, 0], 2.5)]
+        self.gestures["c4_end"] = [Route([0, -68.93, -102.56, -7.04, 86.35, 0], 1.5), Route([0, -68.93, -106.58, -14.47, 86.35, 0], .5),
+                                    Route([0, -67.81, -98.65, .04, 86.35, 0], .5), Route([0, -68.93, -106.58, -14.47, 86.35, 0], .5),
+                                    Route([0, -67.81, -98.65, .04, 86.35, 0], .5), Route([0, -90.76, -84.70, -4, 86.35, -20.33], .7)]
+        self.gestures["c4_win"] = [Route([0, -60.02, -25.05, -94.00, 90, 0], 1.5), Route([0, -60.00, -20.05, -99.51, 90, 0], .5),
+                                    Route([0, -60.02, -30.01, -88.44, 90, 0], .5), Route([0, -60.02, -20.05, -99.51, 90, 0], .5),
+                                    Route([0, -60.02, -30.01, -88.44, 90, 0], .5), Route([0, -60.02, -20.05, -99.51, 90, 0], .5),
+                                    Route([0, -60.02, -30.01, -88.44, 90, 0], .5), Route([0, -95, -5, -110, 90, 0], 1),
+                                    Route([-15, -90, -5, -110, 90, -20], .7), Route([15, -90, -5, -110, 90, 20], .7),
+                                    Route([-15, -90, -5, -110, 90, -20], .7), Route([15, -90, -5, -110, 90, 20], .7),
+                                    Route([0, -90, -5, -110, 90, 0], 1), Route([0, -115, -95, 46, 90, 0], 2),
+                                    Route([0, -115, -95, 46, 90, 15], 1),Route([0, -115, -95, 46, 90, 30], 1)]
+        self.gestures["c4_loss"] = [Route([0, -70, -20, -125, 90, 0], 1.5), Route(self.HOME, 1.5), Route([0,-91, -98, -40, 88, 0], 3),
+                                    Route(self.HOME, 2), Route([0, -106, -160, 60, 90, 0], 5),
+                                    Route([-154, -103.74, -140, 38, 90, 0], 3), Route([-154, -103.74, -121.83, 64.54, 90, 0], 2),
+                                    Route([-154, -109, -132.70, 27.76, 90, 0], 1), Route([0, -91, -160, 67.96, 90, 0], 3)]
+
+        # TODO, requires fine-tuning, which requires a table
+        self.gestures["c4_move_1"] = [Route([0, -103, -62.62, -96.06, 90, 0], 2)]
         self.gestures["c4_move_2"] = [Route([0, 0, 0, 0, 0, 0], 0)]
         self.gestures["c4_move_3"] = [Route([0, 0, 0, 0, 0, 0], 0)]
         self.gestures["c4_move_4"] = [Route([0, 0, 0, 0, 0, 0], 0)]
@@ -353,7 +369,7 @@ class Arm():
         self.status_pub.publish("free")
 
 
-    def run_all(self):
+    def test_run(self):
         """
         runs a bunch of different behaviors (and coordinates), used for testing
         """
@@ -367,10 +383,11 @@ class Arm():
                 # self.run_gesture("heart")
                 # self.run_gesture("wave")
                 # self.run_gesture("dab")
-                self.run_gesture("nod")
+                self.run_gesture("c4_home")
+                self.run_gesture("c4_move_1")
 
-                self.move_to_point([.015, -.461, .434, .195, 3.26, -0.056])
-                time.sleep(10)
+                # self.move_to_point([.015, -.461, .434, .195, 3.26, -0.056])
+                # time.sleep(10)
             else:
                 print "Halting program"
         except KeyboardInterrupt:
@@ -393,7 +410,7 @@ class Arm():
 
 if __name__ == '__main__':
     a = Arm()
-    a.run()
-    # a.run_all()
-    # a.run_all()
+    # a.run()
+    a.test_run()
     # a.home_robot()
+    a.coordinator.close()
