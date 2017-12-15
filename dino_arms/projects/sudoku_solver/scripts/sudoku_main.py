@@ -1,6 +1,6 @@
 """
 By Sherrie Shen & Khang Vu, 2017
-Last modified Dec 13, 2017
+Last modified Dec 15, 2017
 
 This script is the master script of the Sudoku Game
 Currently works for 4x4 Sudoku boards
@@ -25,23 +25,25 @@ class SudokuMain(object):
     """
 
     def __init__(self, n=4):
+        # TODO: Ask Kevin: fonts, font images, arm write, arm node, arm routes, init node
         # init ROS nodes
         self.route_string = 'R_sudoku_center'
-        self.z_offset = 75
+        self.z_offset = 5
         rospy.init_node('sudoku_gamemaster', anonymous=True)
 
         # init ROS subscribers to camera and status
-        rospy.Subscriber('arm_cmd_status', String, self.status_callback, queue_size=10)
+        rospy.Subscriber('arm_status', String, self.status_callback, queue_size=10)
         rospy.Subscriber('writing_status', String, self.writing_status_callback, queue_size=20)
         rospy.Subscriber('usb_cam/image_raw', Image, self.img_callback)
 
         self.write_pub = rospy.Publisher('/write_cmd', Edwin_Shape, queue_size=10)
+        self.behavior_pub = rospy.Publisher('behaviors_cmd', String, queue_size=10)
 
         # For the image
         self.bridge = CvBridge()
 
         # Edwin's status: 0 = busy, 1 = free
-        self.status = 0
+        self.status = 1
         self.writing_status = 1
 
         # Video frame
@@ -61,6 +63,25 @@ class SudokuMain(object):
         # Sudoku object
         self.sudoku = None
 
+    def reinit(self):
+        # Edwin's status: 0 = busy, 1 = free
+        self.status = 1
+        self.writing_status = 1
+
+        # Video frame
+        self.frame = None
+
+        # x, y, z positions of Edwin
+        self.x = 0
+        self.y = 0
+        self.z = 0
+
+        # Captured image from the camera
+        self.sudoku_image = None
+
+        # Sudoku object
+        self.sudoku = None
+
     def status_callback(self, data):
         """
         Get status from arm_node
@@ -69,10 +90,8 @@ class SudokuMain(object):
         """
         print "Arm status callback", data.data
         if data.data == "busy" or data.data == "error":
-            print "Busy"
             self.status = 0
         elif data.data == "free":
-            print "Free"
             self.status = 1
 
     def writing_status_callback(self, data):
@@ -83,7 +102,7 @@ class SudokuMain(object):
         """
         print "writing status callback", data.data
         if data.data == "writing":
-            print "Busy"
+            print "Busy writing"
             self.writing_status = 0
         elif data.data == "done":
             print "Free"
@@ -101,6 +120,7 @@ class SudokuMain(object):
             print e
 
     def request_cmd(self, cmd):
+        self.check_completion()
         rospy.wait_for_service('arm_cmd', timeout=15)
         cmd_fnc = rospy.ServiceProxy('arm_cmd', arm_cmd)
         print "I have requested the command"
@@ -112,19 +132,13 @@ class SudokuMain(object):
         except rospy.ServiceException, e:
             print ("Service call failed: %s" % e)
 
-        self.check_completion()
-
-    def check_completion(self, duration=1.0):
+    def check_completion(self, duration=1.5):
         """
         Makes sure that actions run in order by waiting for response from service
         """
         time.sleep(duration)
         r = rospy.Rate(10)
         while self.status == 0 or self.writing_status == 0:
-            if self.status == 0:
-                print "Moving"
-            else:
-                print "Writing"
             r.sleep()
             pass
 
@@ -150,6 +164,11 @@ class SudokuMain(object):
         msg = "data: rotate_hand:: " + str(value)
         print ("sending: ", msg)
         self.request_cmd(msg)
+
+    def behave_move(self, behavior_string):
+        msg = behavior_string
+        print ("sending: ", msg)
+        self.behavior_pub.publish(msg)
 
     def move_head(self, hand_value=None, wrist_value=None):
         """
@@ -213,12 +232,15 @@ class SudokuMain(object):
         Move the arm to (row, col) and write a number
         :return: None
         """
+        if number == -1:
+            return
         x, y, z = self.get_coordinates_4_by_4(row, col)
-        self.move_xyz(x, y, z + 300)
+        self.move_xyz(x, y, z + 200)
+        self.check_completion()
         data = Edwin_Shape(x=x, y=y, z=z - self.z_offset, shape=str(number))
         self.write_pub.publish(data)
         self.check_completion()
-        self.move_xyz(x, y, z + 300)
+        self.move_xyz(x, y, z + 200)
 
     def write_numbers(self):
         """
@@ -239,7 +261,7 @@ class SudokuMain(object):
         Test function to write numbers on the 4 x 4 board
         :return: None
         """
-        for i in range(4):
+        for i in range(1, 4):
             for j in range(4):
                 print "Writing", i, j
                 self.write_number(i, j, 8)
@@ -252,6 +274,7 @@ class SudokuMain(object):
         There is a question asking if the users want to change the z_offset
         :return: True to continue; False otherwise
         """
+        self.check_completion()
         answer = raw_input("Do you want me to continue (yes/no)? ").lower()
         if "y" in answer:
 
@@ -278,15 +301,16 @@ class SudokuMain(object):
         Main function that runs everything
         :return: None
         """
-        # self.capture_video()
+        self.reinit()
         self.move_to_center_route()
         self.move_to_center()
         self.capture_piture()
         self.sudoku = get_sudoku.from_image(im=self.sudoku_image, n=self.n)
-        if self.continue_or_not():
+        if self.sudoku.solution is not None and self.continue_or_not():
             self.sudoku.print_sudoku()
             self.write_numbers()
             self.move_to_center()
+        self.behave_move("done_game")
 
     def get_coordinates_4_by_4(self, row, col):
         """
@@ -385,5 +409,5 @@ class SudokuMain(object):
 
 
 if __name__ == '__main__':
-    sudoku_game = SudokuMain(n=4)
+    sudoku_game = SudokuMain()
     sudoku_game.run()
