@@ -122,7 +122,7 @@ def parse_sudoku(grid, n=4):
 
             number = knn.recognize_one(im=cell, adapt_threshold=False)
 
-            if number != 0:
+            if 0 < number <= n:
                 problem_set.append([i, j, number])
                 cv2.putText(out, str(number), (j * box_len + h/2, i * box_len + h), 0, 1, (255, 255, 255))
 

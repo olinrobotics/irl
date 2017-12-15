@@ -117,6 +117,9 @@ class Sudoku:
 
                     break
 
+        if not self.check_solution():
+            self.solution = None
+
     def update_cells_potentials(self):
         """
         Run through uncompleted array and update cells' potentials.
@@ -261,7 +264,7 @@ class Sudoku:
 
 
 if __name__ == "__main__":
-    problem_set_1 = [[0, 0, 1], [0, 2, 3], [1, 1, 2], [2, 0, 4], [3, 2, 1]]
+    problem_set_1 = [[0, 0, 1], [0, 2, 3], [1, 1, 2], [2, 0, 4], [3, 2, 1], [0, 3, 1]]
     problem_set_2 = [[0, 1, 5], [0, 4, 2], [0, 7, 3],
                      [1, 0, 2], [1, 5, 1], [1, 6, 7], [1, 8, 8],
                      [2, 0, 4], [2, 2, 7], [2, 3, 6],
@@ -276,3 +279,4 @@ if __name__ == "__main__":
     sudoku.print_sudoku()
     sudoku.solve()
     sudoku.print_sudoku()
+
