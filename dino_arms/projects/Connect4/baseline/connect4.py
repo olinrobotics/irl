@@ -45,7 +45,7 @@ class C4(object):
         if not ros_node:
             rospy.init_node("connect4", anonymous=True)
 
-        self.ur5_commander = rospy.Publisher("joints_cmd", String, queue_size=10)
+        self.ur5_commander = rospy.Publisher("behaviors_cmd", String, queue_size=10)
         self.token_grabber = rospy.Publisher("gripper", Int16, queue_size=10)
         rospy.Subscriber("arm_status", String, self.status_callback)
         rospy.Subscriber("opponent_move", Int16, self.player_move)
@@ -148,7 +148,7 @@ class C4(object):
 
             print "I MOVED TO COLUMN", str(move+1)
 
-            self.make_move(move+1)
+            # self.make_move(move+1)
 
             # break if ai wins
             if done:
@@ -162,6 +162,8 @@ class C4(object):
         main interaction sequence
         """
 
+        print "Starting up Connect 4 game"
+        time.sleep(3)
         self.ur5_publish("c4_start")
         self.ur5_publish("c4_home")
 
@@ -177,5 +179,5 @@ class C4(object):
 
 
 if __name__ == "__main__":
-    connect = Connect4()
+    connect = C4()
     connect.run()
