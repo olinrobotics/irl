@@ -134,13 +134,12 @@ class C4Board(object):
                 count = 0
             column2 += 1
             row2 -= 1
-
         return False
 
 
     def step(self, action, player):
         """
-        the update board method, will check for a winnter and if game is done
+        the update board method, will check for a winner and if game is done
         """
 
         s_, move = self.make_move(action, player)
@@ -181,14 +180,14 @@ class C4Board(object):
 
 if __name__=="__main__":
 # testing testing 1 2 3
-    test = C4Board()
+    test = C4Board(render=False)
     print test.step(0, 1)
-    print test.step(1, 2)
+    print test.step(0, 1)
+    print test.step(0, 1)
+    print test.step(0, 2)
     print test.step(1, 1)
+    print test.step(1, 1)
+    print test.step(1, 2)
+    print test.step(2, 1)
     print test.step(2, 2)
-    print test.step(2, 1)
-    print test.step(2, 1)
-    print test.step(3, 1)
     print test.step(3, 2)
-    print test.step(3, 2)
-    print test.step(3, 1)
