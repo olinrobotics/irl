@@ -1,10 +1,26 @@
 """
 By Khang Vu, Cassandra Overney, Enmo Ren & Emma Pan, 2017
-Last modified Dec 13, 2017
+Last modified Dec 16, 2017
 
 This script is the master script of the Set Game
 Currently works for a 3x4 Set board
+
+Dependencies:
+- Turn.py
+- opencv.py
+- USB Camera
+
+To use:
+- Run the code below
+
+roscore
+rosrun irl edwin_node.py
+rosrun irl edwin_routes.py
+rosrun irl edwin_behaviors.py
+rosrun usb_cam usb_cam_node _video_device:='/dev/video1' _image_width:=1280 _image_height:=720
+rosrun irl set_main.py
 """
+
 import time
 
 import rospy
@@ -22,11 +38,13 @@ class SetMain(object):
     Master class of the game Set
     """
 
-    def __init__(self):
+    def __init__(self, ros_node=None):
         # init ROS nodes
         self.route_string = 'R_set_center'
         self.z_offset = 75
-        rospy.init_node('set_gamemaster', anonymous=True)
+
+        if not ros_node:
+            rospy.init_node('set_gamemaster', anonymous=True)
 
         # init ROS subscribers to camera and status
         rospy.Subscriber('arm_cmd_status', String, self.status_callback, queue_size=10)
@@ -38,7 +56,7 @@ class SetMain(object):
         self.bridge = CvBridge()
 
         # Edwin's status: 0 = busy, 1 = free
-        self.status = 0
+        self.status = 1
 
         # Video frame
         self.frame = None
@@ -62,10 +80,8 @@ class SetMain(object):
         """
         print "Arm status callback", data.data
         if data.data == "busy" or data.data == "error":
-            print "Busy"
             self.status = 0
         elif data.data == "free":
-            print "Free"
             self.status = 1
 
     def img_callback(self, data):
@@ -80,6 +96,7 @@ class SetMain(object):
             print e
 
     def request_cmd(self, cmd):
+        self.check_completion()
         rospy.wait_for_service('arm_cmd', timeout=15)
         cmd_fnc = rospy.ServiceProxy('arm_cmd', arm_cmd)
         print "I have requested the command"
@@ -90,8 +107,6 @@ class SetMain(object):
 
         except rospy.ServiceException, e:
             print ("Service call failed: %s" % e)
-
-        self.check_completion()
 
     def check_completion(self, duration=1.0):
         """
@@ -162,6 +177,7 @@ class SetMain(object):
         Capture picture from usb_cam and pass it to self.set_image
         :return: None
         """
+        self.check_completion()
         r = rospy.Rate(10)
         while self.frame is None:
             r.sleep()
@@ -177,6 +193,7 @@ class SetMain(object):
         Capture video from usb_cam
         :return: None
         """
+        self.check_completion()
         r = rospy.Rate(10)
         while self.frame is None:
             r.sleep()
@@ -268,32 +285,26 @@ class SetMain(object):
         Main function that runs everything
         :return: None
         """
-        # self.capture_video()
-        # self.move_to_center_route()
+
         while True:
-            self.move_to_center()
+            # self.move_to_center_route()
+            # self.move_to_center()
             self.capture_piture()
             if not self.continue_or_not():
                 if self.play_again():
                     continue
                 else:
-                    self.behave_move("done_game")
                     break
 
             all_cards = find_matches(self.set_image)
             turn = Turn(all_cards)
             self.result = turn.find_set()
-            turn.print_card_array(self.result)
-
-            cv2.imshow('Image', self.set_image)
-            cv2.waitKey(0)
-            cv2.destroyAllWindows()
+            turn.print_card_array(turn.card_array)
 
             if not self.continue_or_not():
                 if self.play_again():
                     continue
                 else:
-                    self.behave_move("done_game")
                     break
 
             if not self.result:
@@ -301,10 +312,12 @@ class SetMain(object):
                 self.move_to_center()
             else:
                 self.pick_cards()
+
             self.move_to_center()
             if not self.play_again():
-                self.behave_move("done_game")
                 break
+
+        self.behave_move("done_game")
 
     def get_coordinates_3_by_4(self, row, col):
         """
