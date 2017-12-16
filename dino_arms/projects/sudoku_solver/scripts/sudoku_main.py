@@ -2,8 +2,24 @@
 By Sherrie Shen & Khang Vu, 2017
 Last modified Dec 15, 2017
 
-This script is the master script of the Sudoku Game
-Currently works for 4x4 Sudoku boards
+This script is the master script of the Sudoku Game.
+Currently works for 4x4 Sudoku boards.
+
+Dependencies:
+- get_sudoku.py
+- USB Camera
+
+To use:
+- Make sure you have font images in training_data/font_images. If not, read README to download the images.
+- Then run the code below:
+
+roscore
+rosrun irl edwin_node.py
+rosrun irl edwin_routes.py
+rosrun irl edwin_behaviors.py
+rosrun irl edwin_sudoku_write.py
+rosrun usb_cam usb_cam_node _video_device:='/dev/video1' _image_width:=1280 _image_height:=720
+rosrun irl sudoku_main.py
 """
 import time
 
@@ -24,19 +40,24 @@ class SudokuMain(object):
     Master class of the game Sudoku
     """
 
-    def __init__(self, n=4):
-        # TODO: Ask Kevin: fonts, font images, arm write, arm node, arm routes, init node
+    def __init__(self, n=4, ros_node=None):
+        """
+        This init node, subscribers and publishers as well as a sudoku object
+        :param n: 4 or 9
+        :param ros_node: True to init a node
+        """
         # init ROS nodes
         self.route_string = 'R_sudoku_center'
         self.z_offset = 5
-        rospy.init_node('sudoku_gamemaster', anonymous=True)
+        if not ros_node:
+            rospy.init_node('sudoku_gamemaster', anonymous=True)
 
-        # init ROS subscribers to camera and status
+        # init ROS subscribers to camera, arm status and writing status
         rospy.Subscriber('arm_status', String, self.status_callback, queue_size=10)
         rospy.Subscriber('writing_status', String, self.writing_status_callback, queue_size=20)
         rospy.Subscriber('usb_cam/image_raw', Image, self.img_callback)
 
-        self.write_pub = rospy.Publisher('/write_cmd', Edwin_Shape, queue_size=10)
+        self.write_pub = rospy.Publisher('write_cmd', Edwin_Shape, queue_size=10)
         self.behavior_pub = rospy.Publisher('behaviors_cmd', String, queue_size=10)
 
         # For the image
@@ -64,6 +85,10 @@ class SudokuMain(object):
         self.sudoku = None
 
     def reinit(self):
+        """
+        Reinit function to restart the game
+        :return: None
+        """
         # Edwin's status: 0 = busy, 1 = free
         self.status = 1
         self.writing_status = 1
@@ -144,6 +169,11 @@ class SudokuMain(object):
 
     def route_move(self, route_string):
         msg = "data: run_route:: " + route_string
+        print ("sending: ", msg)
+        self.request_cmd(msg)
+
+    def speed_set(self, num):
+        msg = "data: set_speed:: " + str(num)
         print ("sending: ", msg)
         self.request_cmd(msg)
 
@@ -235,24 +265,31 @@ class SudokuMain(object):
         if number == -1:
             return
         x, y, z = self.get_coordinates_4_by_4(row, col)
+
+        # Move Edwin to the position
         self.move_xyz(x, y, z + 200)
-        self.check_completion()
+
+        # Write the number
         data = Edwin_Shape(x=x, y=y, z=z - self.z_offset, shape=str(number))
         self.write_pub.publish(data)
-        self.check_completion()
+
+        # Pick marker off paper
         self.move_xyz(x, y, z + 200)
 
     def write_numbers(self):
         """
         Write solution on the Sudoku board
+        After writing a number, ask users if they want to continue writing. If not, break the loop
         :return: None
         """
         solution = self.sudoku.solution
+        count = len(solution)
         for cell in solution:
             row, col, number = cell.get_rc_num()
+            count -= 1
             print "row = %i, col = %i, num = %i" % (row, col, number)
             self.write_number(row, col, number)
-            if not self.continue_or_not():
+            if count > 0 and not self.continue_or_not():
                 self.move_to_center()
                 break
 
@@ -296,21 +333,64 @@ class SudokuMain(object):
         print "Stopped"
         return False
 
+    def play_again(self):
+        """
+        Function asks the users if they want to play the game again.
+        :return: True to continue; False otherwise
+        """
+        answer = raw_input("Do you want to play again (yes/no)? ").lower()
+        if "y" in answer:
+            print "Re-play"
+            return True
+
+        print "Game ended"
+        return False
+
     def run(self):
         """
         Main function that runs everything
         :return: None
         """
-        # self.reinit()
-        # self.move_to_center_route()
-        # self.move_to_center()
-        # self.capture_piture()
-        # self.sudoku = get_sudoku.from_image(im=self.sudoku_image, n=self.n)
-        # if self.sudoku.solution is not None and self.continue_or_not():
-        #     self.sudoku.print_sudoku()
-        #     self.write_numbers()
-        #     self.move_to_center()
+        while True:
+            # Reinit every time the game starts
+            self.reinit()
+
+            # Speed set to 1000
+            self.speed_set(1000)
+
+            # Move to center
+            self.move_to_center_route()
+            self.move_to_center()
+            time.sleep(0.5)
+
+            # Capture picture of the sudoku
+            self.capture_piture()
+
+            # Convert the picture to a sudoku object
+            self.sudoku = get_sudoku.from_image(im=self.sudoku_image, n=self.n)
+
+            # If everything is alreight, continue
+            if self.continue_or_not():
+                if self.sudoku.solution is not None:
+                    # Print the solution
+                    self.sudoku.print_sudoku()
+
+                    # Tell Edwin to write the solution on the board. Can be canceled after writing one digit
+                    self.write_numbers()
+
+                    # After finishing writing the solution, move Edwin back to center
+                    self.move_to_center()
+
+            # Ask users if they want to play again, if not break the loop
+            if not self.play_again():
+                break
+            # self.test_write_numbers()
+
+        # End game behavior
         self.behave_move("done_game")
+
+        # Make sure the speed is set back to 1000
+        self.speed_set(1000)
 
     def get_coordinates_4_by_4(self, row, col):
         """

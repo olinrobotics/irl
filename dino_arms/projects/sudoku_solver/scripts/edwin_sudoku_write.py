@@ -29,7 +29,7 @@ class Writer:
 
         print "Starting edwin writer...."
 
-        self.status = 0
+        self.status = 1
         self.w = 200
         self.letter_dictionary = {}
         self.make_letter_dictionary()
@@ -42,6 +42,7 @@ class Writer:
             self.status = 1
 
     def request_cmd(self, cmd):
+        self.check_completion()
         rospy.wait_for_service('arm_cmd', timeout=15)
         cmd_fnc = rospy.ServiceProxy('arm_cmd', arm_cmd)
         print "I have requested the command"
@@ -52,8 +53,6 @@ class Writer:
 
         except rospy.ServiceException, e:
             print "Service call failed: %s" % e
-
-        self.check_completion()
 
     def make_letter_dictionary(self):
         w = self.w
@@ -215,7 +214,7 @@ class Writer:
         """
         Makes sure that actions run in order by waiting for response from service
         """
-        time.sleep(1.5)
+        time.sleep(1)
         # r = rospy.Rate(10)
         while self.status == 0:
             # r.sleep()
@@ -240,3 +239,4 @@ class Writer:
 if __name__ == "__main__":
     write = Writer()
     write.run()
+
