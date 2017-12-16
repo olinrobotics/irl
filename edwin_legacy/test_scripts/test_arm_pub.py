@@ -30,7 +30,7 @@ class ArmGui:
 
         except rospy.ServiceException, e:
             print "Service call failed: %s"%e
-            self.arm_status.publish('error')
+            # self.arm_status.publish('error')
             self.serv_prob = True
 
     def route_move(self, num):
