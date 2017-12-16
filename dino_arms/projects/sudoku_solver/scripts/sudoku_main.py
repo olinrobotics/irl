@@ -231,6 +231,7 @@ class SudokuMain(object):
         Capture picture from usb_cam and pass it to self.sudoku_image
         :return: None
         """
+        self.check_completion()
         r = rospy.Rate(10)
         while self.frame is None:
             r.sleep()
@@ -246,6 +247,7 @@ class SudokuMain(object):
         Capture video from usb_cam
         :return: None
         """
+        self.check_completion()
         r = rospy.Rate(10)
         while self.frame is None:
             r.sleep()
@@ -361,7 +363,6 @@ class SudokuMain(object):
             # Move to center
             self.move_to_center_route()
             self.move_to_center()
-            time.sleep(0.5)
 
             # Capture picture of the sudoku
             self.capture_piture()
