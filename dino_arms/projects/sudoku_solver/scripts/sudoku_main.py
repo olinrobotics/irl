@@ -301,15 +301,15 @@ class SudokuMain(object):
         Main function that runs everything
         :return: None
         """
-        self.reinit()
-        self.move_to_center_route()
-        self.move_to_center()
-        self.capture_piture()
-        self.sudoku = get_sudoku.from_image(im=self.sudoku_image, n=self.n)
-        if self.sudoku.solution is not None and self.continue_or_not():
-            self.sudoku.print_sudoku()
-            self.write_numbers()
-            self.move_to_center()
+        # self.reinit()
+        # self.move_to_center_route()
+        # self.move_to_center()
+        # self.capture_piture()
+        # self.sudoku = get_sudoku.from_image(im=self.sudoku_image, n=self.n)
+        # if self.sudoku.solution is not None and self.continue_or_not():
+        #     self.sudoku.print_sudoku()
+        #     self.write_numbers()
+        #     self.move_to_center()
         self.behave_move("done_game")
 
     def get_coordinates_4_by_4(self, row, col):
