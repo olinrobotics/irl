@@ -1,5 +1,5 @@
 import numpy as np
-from sklearn.cluster import KMeans
+
 import cv2
 
 """
@@ -302,8 +302,8 @@ def finalize2():
     Sorts the matched_coords dictionary by center coordinate values and returns an array of the keys
     :return: Array of the card information sorted by position
     """
-    sorted_coord = sorted(matched_coords.items(), key=lambda k: [k[1], k[0]])
-    # print("sorted", sorted_coord)
+    sorted_coord = sorted(matched_coords.items(), key=lambda k: (k[1], k[0]))
+    print("sorted", sorted_coord)
     image_array = []
     for i, thing in enumerate(sorted_coord):
         image_array.append(sorted_coord[i][0])
@@ -487,9 +487,10 @@ def find_matches(im):
     #     cv2.waitKey(2000)
 
     cards4 = [find_color3(cards3[i], c) for i, c in enumerate(getCards(im, num_cards))]
-    #print(cards4)
-
+    print cards4
     for i, c in enumerate(getCards(im, num_cards)):
         finalize(i, cards4[i])
+        print "i =", i
+        print len(matched_coords)
 
     return finalize2()
