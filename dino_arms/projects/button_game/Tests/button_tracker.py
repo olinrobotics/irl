@@ -58,7 +58,6 @@ class buttonTracker(object):
         #self.camera = cv2.VideoCapture(0)
 
     def make_frame(self, data):
-        print("help")
         try:
             self.frame = self.bridge.imgmsg_to_cv2(data, "bgr8")
             self.obtained_frame = True

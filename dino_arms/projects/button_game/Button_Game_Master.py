@@ -1,21 +1,32 @@
+
+import os
+import argparse
 import numpy as np
 import cv2
 import rospy
+from std_msgs.msg import String
 import math
 import random
 import time
-from cv_bridge import CvBridge, CvBridgeError
 
-class SimonSays:
-    def __init__(self, init=False):
+
+class SimonSays():
+    def __init__(self):
         print("INIT | Initializing")
         self.debug = True;
         #track the number of buttons before starting the game
         self.num_Buttons = 0;
+        #total length of sequence
+        self.sequence_length = 5
         #array for storing the correct sequence of colors
-        self.sequence = np.zeros(30);
+        self.sequence = np.zeros(self.sequence_length);
+        print(self.sequence)
         #current element of the simon says sequence
-        self.current_number = 0;
+        self.current_number = 4;
+        #current color press detected by edwin.
+        # -1 is no color
+        self.current_color = -1
+
         #Current state of the game
         #0 = in progress
         #1 = game won
@@ -24,33 +35,36 @@ class SimonSays:
         self.start_time = 0
 
         #publisher for node to move arm to specific coordinate
-        self.node_publish = rospy.Publisher('/arm_cmd', String, queue_size = 10)
+        self.node_publish = rospy.Publisher('arm_cmd', String, queue_size = 10)
+        rospy.init_node('commands', anonymous=True)
+        #subscriber for LED feedback script
+        self.push_sub = rospy.Subscriber("chatter", String, self.push_sub)
         #publisher for node to execute a specfic behavior
         self.behavior_publish = rospy.Publisher('behaviors_cmd', String, queue_size = 10)
 
-
-        #returns edwin to the home position
-        go_home = "create_route:: home; 0, 4000, 4000, 767, 195, 0"
-        print("INIT | Going home")
-
         #sends the home route to other node
-        self.publish(go_home)
-        self.bridge = CvBridge()
-
-        #Do I need this?
-        self.image = rospy.Subscriber("/usb_cam/image_raw", Image, self.callback)
+        #self.publish(go_home)
 
         #actually returns edwin to the home position
-        self.red_coor = "move_to:: #x, #y, #z, #pitch"
-        self.yello_coor = "move_to:: #x, #y, #z, #pitch"
-        self.green_coor = "move_to:: #x, #y, #z, #pitch"
-        self.blue_coor = "move_to:: #x, #y, #z, #pitch"
-        self.home = "move_to:: #x, #y, #z, #pitch"
+        self.red_coor_high = "move_to:: -1500, 6500, 3200"
+        self.red_coor_low = "move_to:: -1500, 6500, -1100"
+        self.yellow_coor_high = "move_to:: 1900, 6500, 3200"
+        self.yellow_coor_low = "move_to:: 1900, 6500, -1100"
+        self.green_coor_high = "move_to:: 1500, 3200, 3200"
+        self.green_coor_low = "move_to:: 1500, 3200, -1100"
+        self.blue_coor_high = "move_to:: 1900, 3200, 3200"
+        self.blue_coor_low = "move_to:: 1900, 3200,-1100"
+        self.home = "move_to:: 0, 4850, 3200"
+
 
         #generates the simon says sequence
         self.sequence = self.generate(self.sequence)
-
+        print(self.sequence)
+        print(self.current_color)
         self.edwin_turn(self.sequence, self.current_number)
+
+    def run(self):
+        print "Service is ready to go"
 
     def move_coor(self, coor):
         """
@@ -67,34 +81,44 @@ class SimonSays:
         either red, yellow, green or blue. This is the array that edwin uses
         to play with the user.
         """
-        for i in Range(30):
-            color = randint(1, 4)
-            if (color == 1):
-                array[i] = "red"
-            elif (color == 2):
-                array[i] = "yellow"
-            elif(color == 3):
-                array[i] = "green"
-            else:
-                array[i] = "blue"
+        for i in range(self.sequence_length):
+            color = random.randint(1, 4)
+            print(color)
+            array[i] = color
+            #red = 1
+            #yellow = 2
+            #green = 3
+            #blue = 4
+        return array
 
-    def detect_press(self):
+    def push_sub(self, data):
         """
         This method detects wheter a button has been pressed. If it has, then
-        it returns the color of the button pressed. If it hasn't, then it returns false
+        it returns the color of the button pressed.
         """
+
+        if data.data == "Red on":
+            self.current_color = 1
+        elif data.data == "Yellow on":
+            self.current_color = 2
+        elif data.data == "Green on":
+            self.current_color =  3
+        elif data.data == "Blue on":
+            self.current_color = 4
+        else:
+            self.current_color = -1
 
     def edwin_turn(self, array, position):
         """
         This method is what edwin will execute when it is his turn. He will
         locate the buttons and press them in the right order the right number
         of times.
-
-
         """
         #return home
         self.move_coor(self.home)
-
+        self.node_publish.publish("rotate_hand:: 3050")
+        self.node_publish.publish("rotate_wrist:: 3650")
+        time.sleep(3)
         #Check to see if the player won
         if (position == len(array)):
             self.game_state = 1
@@ -104,18 +128,26 @@ class SimonSays:
         #cycle through the color array until the current position
         for color in array[:position]:
             if color == 1:
-                move_coor(self.red)
+                self.move_coor(self.red_coor_high)
+                time.sleep(0.5)
+                self.move_coor(self.red_coor_low)
             elif color == 2:
-                move_coor(self.yellow)
+                self.move_coor(self.yellow_coor_high)
+                time.sleep(0.5)
+                self.move_coor(self.yellow_coor_low)
             elif color == 3:
-                move_coor(self.green)
+                self.move_coor(self.green_coor_high)
+                time.sleep(0.5)
+                self.move_coor(self.green_coor_low)
             elif color == 4:
-                move_coor(self.blue)
+                self.move_coor(self.blue_coor_high)
+                time.sleep(0.5)
+                self.move_coor(self.blue_coor_low)
             time.sleep(1)
             self.move_coor(self.home)
 
-            self.start_time = time.time()
-            self.player_turn(array, position)
+            #self.start_time = time.time()
+            #self.player_turn(array, position)
 
 
     def player_turn(self, array, position):
@@ -126,18 +158,21 @@ class SimonSays:
 
         for color in array[:position]:
             #check to see that all buttons are in frame
-            elapsed_time = time.time()
-            while (elapsed_time - 10 < self.start_time)
-                #wait until a button is pressed
-                while (!self.detect_press):
-                    time.sleep(0.1)
-                #React angriy if the wrong button is pressed and end the game.
-                if (self.detect_press != array[color]):
-                    self.behavior_publish("angry")
-                    self.game_state = 2
-                    return None
-                elapsed_time = time.time()
+            #elapsed_time = time.time()
+            #while (elapsed_time - 10 < self.start_time)
+            #wait until a button is pressed
+            while (self.current_color == -1):
+                time.sleep(0.1)
+            #React angriy if the wrong button is pressed and end the game.
+            if (self.current_color != color):
+                self.behavior_publish("angry")
+                self.game_state = 2
+                return None
+                #elapsed_time = time.time()
 
         #by now, the user must have pressed the correct button. add one to the
         #current position array, and then call edwin_turn
         self.edwin_turn(array, position + 1)
+if __name__ == "__main__":
+    button_game = SimonSays()
+    button_game.run()
