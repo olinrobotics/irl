@@ -78,22 +78,6 @@ class SimonSays:
             else:
                 array[i] = "blue"
 
-    '''
-    Depreciated. Buttons are no longer in a random position.
-
-    def calc_coordinates(self, color):
-        """
-        This method looks for a specific color of button from the camera. It
-        then calculates the coordinates in terms of edwin's coordinate system
-        and then returns those coordinates as a string
-        """
-        if (self.num_Buttons != 4):
-            return "ERROR"
-        else:
-
-            #return coordinates from open CV after conversion
-    '''
-
     def detect_press(self):
         """
         This method detects wheter a button has been pressed. If it has, then
@@ -109,7 +93,7 @@ class SimonSays:
 
         """
         #return home
-        self.move_coor("home")
+        self.move_coor(self.home)
 
         #Check to see if the player won
         if (position == len(array)):
@@ -119,16 +103,16 @@ class SimonSays:
 
         #cycle through the color array until the current position
         for color in array[:position]:
-            #If not all the buttons are in view, nod
-            while (self.calc_coordinates(color = color) == "ERROR"):
-                self.behavior_publish("nod")
-                time.sleep(1)
-
-            #Move to the coordinate, and then return home
-            move_command = self.calc_coordinates(color = color)
-            self.node_publish(move_command)
+            if color == 1:
+                move_coor(self.red)
+            elif color == 2:
+                move_coor(self.yellow)
+            elif color == 3:
+                move_coor(self.green)
+            elif color == 4:
+                move_coor(self.blue)
             time.sleep(1)
-            self.run_route("home")
+            self.move_coor(self.home)
 
             self.start_time = time.time()
             self.player_turn(array, position)
@@ -143,9 +127,6 @@ class SimonSays:
         for color in array[:position]:
             #check to see that all buttons are in frame
             elapsed_time = time.time()
-            while (self.calc_coordinates(color = color) == "ERROR"):
-                self.behavior_publish("nod")
-                time.sleep(1)
             while (elapsed_time - 10 < self.start_time)
                 #wait until a button is pressed
                 while (!self.detect_press):
