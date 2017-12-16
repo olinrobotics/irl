@@ -32,6 +32,8 @@ class SetMain(object):
         rospy.Subscriber('arm_cmd_status', String, self.status_callback, queue_size=10)
         rospy.Subscriber('usb_cam/image_raw', Image, self.img_callback)
 
+        self.behavior_pub = rospy.Publisher('behaviors_cmd', String, queue_size=10)
+
         # For the image
         self.bridge = CvBridge()
 
@@ -124,6 +126,11 @@ class SetMain(object):
         print ("sending: ", msg)
         self.request_cmd(msg)
 
+    def behave_move(self, behavior_string):
+        msg = behavior_string
+        print ("sending: ", msg)
+        self.behavior_pub.publish(msg)
+
     def move_head(self, hand_value=None, wrist_value=None):
         """
         Always move hand first, wrist second
@@ -139,8 +146,8 @@ class SetMain(object):
         Move edwin to the center position where it can take a good picture
         :return: None
         """
-        self.move_xyz(x=0, y=3000, z=2700)
-        self.move_head(hand_value=2300, wrist_value=2900)
+        self.move_xyz(x=0, y=3500, z=2000)
+        self.move_head(hand_value=1900, wrist_value=2500)
 
     def move_to_center_route(self):
         """
@@ -181,13 +188,12 @@ class SetMain(object):
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
-    def sad_route(self):
+    def pout_behavior(self):
         """
         Make Edwin do sad behavior to show that there is no Set
         :return:
         """
-        # self.route_move("R_sad")
-        pass
+        self.behave_move("pout")
 
     def pick_card(self, row, col):
         """
@@ -209,10 +215,10 @@ class SetMain(object):
             if not self.continue_or_not():
                 self.move_to_center()
                 break
-            self.move_to_stack()
-            if not self.continue_or_not():
-                self.move_to_center()
-                break
+            # self.move_to_stack()
+            # if not self.continue_or_not():
+            #     self.move_to_center()
+            #     break
 
     def move_to_stack(self):
         """
@@ -229,11 +235,6 @@ class SetMain(object):
         for i in range(4):
             for j in range(3):
                 self.pick_card(i, j)
-                if not self.continue_or_not():
-                    break
-                self.move_to_stack()
-                if not self.continue_or_not():
-                    break
 
     def continue_or_not(self):
         """
@@ -249,6 +250,19 @@ class SetMain(object):
         print "Stopped"
         return False
 
+    def play_again(self):
+        """
+        Function asks the users if they want to play the game again.
+        :return: True to continue; False otherwise
+        """
+        answer = raw_input("Do you want to play again (yes/no)? ").lower()
+        if "y" in answer:
+            print "Re-play"
+            return True
+
+        print "Game ended"
+        return False
+
     def run(self):
         """
         Main function that runs everything
@@ -256,16 +270,41 @@ class SetMain(object):
         """
         # self.capture_video()
         # self.move_to_center_route()
-        self.move_to_center()
-        self.capture_piture()
-        all_cards = find_matches(self.set_image)
-        turn = Turn(all_cards)
-        self.result = turn.find_set()
-        if not self.result:
-            self.sad_route()
-        else:
-            self.pick_cards()
-        self.move_to_center()
+        while True:
+            self.move_to_center()
+            self.capture_piture()
+            if not self.continue_or_not():
+                if self.play_again():
+                    continue
+                else:
+                    self.behave_move("done_game")
+                    break
+
+            all_cards = find_matches(self.set_image)
+            turn = Turn(all_cards)
+            self.result = turn.find_set()
+            turn.print_card_array(self.result)
+
+            cv2.imshow('Image', self.set_image)
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+
+            if not self.continue_or_not():
+                if self.play_again():
+                    continue
+                else:
+                    self.behave_move("done_game")
+                    break
+
+            if not self.result:
+                self.pout_behavior()
+                self.move_to_center()
+            else:
+                self.pick_cards()
+            self.move_to_center()
+            if not self.play_again():
+                self.behave_move("done_game")
+                break
 
     def get_coordinates_3_by_4(self, row, col):
         """
@@ -276,63 +315,64 @@ class SetMain(object):
         :return: x, y, z
         """
         if row == 0 and col == 0:
-            x = -1200
-            y = 5600
+            x = -700
+            y = 5800
             z = 0
 
         elif row == 0 and col == 1:
-            x = 0
-            y = 5600
+            x = 400
+            y = 5800
             z = 0
 
         elif row == 0 and col == 2:
-            x = 1000
-            y = 5600
+            x = 1400
+            y = 5800
             z = 0
 
         elif row == 1 and col == 0:
-            x = -1200
-            y = 4800
+            x = -700
+            y = 5000
             z = 0
 
         elif row == 1 and col == 1:
-            x = 0
-            y = 4800
+            #
+            x = 400
+            y = 5000
             z = 0
 
         elif row == 1 and col == 2:
-            x = 1000
-            y = 4800
+            x = 1400
+            y = 5000
             z = 0
 
         elif row == 2 and col == 0:
-            x = -1200
-            y = 4000
+            x = -700
+            y = 4300
             z = 0
 
         elif row == 2 and col == 1:
-            x = 0
-            y = 4000
+            x = 400
+            y = 4300
             z = 0
 
         elif row == 2 and col == 2:
-            x = 1000
-            y = 4000
+            x = 1400
+            y = 4300
             z = 0
 
         elif row == 3 and col == 0:
-            x = -1200
-            y = 3200
+            x = -700
+            y = 3600
             z = 0
 
         elif row == 3 and col == 1:
-            x = 0
-            y = 3300
+            x = 400
+            y = 3600
             z = 0
 
         elif row == 3 and col == 2:
-            x = 1000
-            y = 3200
+            x = 1400
+            y = 3600
             z = 0
 
         else:
