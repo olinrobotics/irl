@@ -81,7 +81,7 @@ class RouteCreator(object):
         self.route_dictionary['R_sad'] = "R_sad; -2499, 772, 700, 748, 150, 0, -2600, 772, 1500, 685, 150, 0, -2400, 772, 0, 853, -60, 0, -4558, 1467, 2271, 796, 150, 0"
 
         ###################               Sudoku actions               #####################
-        self.route_dictionary['R_sudoku_center'] = "R_sudoku_center; 0, 3400, 4700, 857, 22, 0"
+        self.route_dictionary['R_sudoku_center'] = "R_sudoku_center; 0, 3400, 4700, 856, 50, 0"
 
         ##Routes with lists
         self.route_dictionary["R_1_lookaround"] = ["R_1_lookaround; 4000, 1500, 3000, 185, 240, 21", "R_2_lookaround; 500, 4000, 2000, 185, 240, 21", "R_3_lookaround; 3000, 2000, 4000, -39, 240, 21"]
