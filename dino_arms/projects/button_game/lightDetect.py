@@ -105,7 +105,7 @@ class lightDetector():
             frame = self.frame
             #Get blob list of different colors detected
             redBlobs = self.blobCapture(-15,15,140,255,50,255,frame)   #Red
-            yellowBlobs = self.blobCapture(15,45,50,255,133,255,frame)   #Yellow
+            yellowBlobs = self.blobCapture(15,45,50,255,70,255,frame)   #Yellow
             greenBlobs = self.blobCapture(45,75,86,255,6,255,frame)       #Green
             blueBlobs = self.blobCapture(105,135,50,255,50,255,frame)   #Blue
 

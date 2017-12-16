@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python
 import os
 import argparse
 import numpy as np
@@ -19,6 +19,8 @@ class SimonSays():
         #total length of sequence
         self.sequence_length = 5
         #array for storing the correct sequence of colors
+        rospy.Subscriber('arm_status', String, self.status_callback, queue_size = 10)
+        self.status = 1
         self.sequence = np.zeros(self.sequence_length);
         print(self.sequence)
         #current element of the simon says sequence
@@ -35,7 +37,7 @@ class SimonSays():
         self.start_time = 0
 
         #publisher for node to move arm to specific coordinate
-        self.node_publish = rospy.Publisher('arm_cmd', String, queue_size = 10)
+        self.node_publish = rospy.Publisher('/arm_cmd', String, queue_size = 10)
         rospy.init_node('commands', anonymous=True)
         #subscriber for LED feedback script
         self.push_sub = rospy.Subscriber("chatter", String, self.push_sub)
@@ -61,12 +63,51 @@ class SimonSays():
         self.sequence = self.generate(self.sequence)
         print(self.sequence)
         print(self.current_color)
-        self.edwin_turn(self.sequence, self.current_number)
+        self.request_cmd(self.home)
+        self.check_completion()
+        self.node_publish.publish("rotate_hand:: 3050")
+        self.check_completion()
+        self.node_publish.publish("rotate_wrist:: 3650")
+        self.check_completion()
+        time.sleep(3)
+        #self.edwin_turn(self.sequence, self.current_number)
 
     def run(self):
-        print "Service is ready to go"
+        r = rospy.Rate(10)
+        print("Service is ready to go")
+        while not rospy.is_shutdown():
+            r.sleep()
 
-    def move_coor(self, coor):
+    def status_callback(self, data):
+        print "Writing arm status callback", data.data
+        if data.data == "busy" or data.data == "error":
+            self.status = 0
+        elif data.data == "free":
+            self.status = 1
+    def request_cmd(self, cmd):
+        self.check_completion()
+        rospy.wait_for_service('arm_cmd', timeout=15)
+        cmd_fnc = rospy.ServiceProxy('arm_cmd', arm_cmd)
+        print "I have requested the command"
+
+        try:
+            resp1 = cmd_fnc(cmd)
+            print "Command done"
+
+        except rospy.ServiceException, e:
+            print "Service call failed: %s" % e
+
+    def check_completion(self):
+        """
+        Makes sure that actions run in order by waiting for response from service
+        """
+        time.sleep(1)
+        # r = rospy.Rate(10)
+        while self.status == 0:
+            # r.sleep()
+            pass
+    '''
+    def request_cmd(self, coor):
         """
         This method runs a specific route for edwin
         """
@@ -74,7 +115,7 @@ class SimonSays():
         print("RUN | Sending:", command)
         self.node_publish.publish(command)
         time.sleep(2)
-
+    '''
     def generate(self, array):
         """
         This method generates an array with 30 elements, each a random color,
@@ -115,7 +156,7 @@ class SimonSays():
         of times.
         """
         #return home
-        self.move_coor(self.home)
+        self.request_cmd(self.home)
         self.node_publish.publish("rotate_hand:: 3050")
         self.node_publish.publish("rotate_wrist:: 3650")
         time.sleep(3)
@@ -128,23 +169,23 @@ class SimonSays():
         #cycle through the color array until the current position
         for color in array[:position]:
             if color == 1:
-                self.move_coor(self.red_coor_high)
+                self.request_cmd(self.red_coor_high)
                 time.sleep(0.5)
-                self.move_coor(self.red_coor_low)
+                self.request_cmd(self.red_coor_low)
             elif color == 2:
-                self.move_coor(self.yellow_coor_high)
+                self.request_cmd(self.yellow_coor_high)
                 time.sleep(0.5)
-                self.move_coor(self.yellow_coor_low)
+                self.request_cmd(self.yellow_coor_low)
             elif color == 3:
-                self.move_coor(self.green_coor_high)
+                self.request_cmd(self.green_coor_high)
                 time.sleep(0.5)
-                self.move_coor(self.green_coor_low)
+                self.request_cmd(self.green_coor_low)
             elif color == 4:
-                self.move_coor(self.blue_coor_high)
+                self.request_cmd(self.blue_coor_high)
                 time.sleep(0.5)
-                self.move_coor(self.blue_coor_low)
+                self.request_cmd(self.blue_coor_low)
             time.sleep(1)
-            self.move_coor(self.home)
+            self.request_cmd(self.home)
 
             #self.start_time = time.time()
             #self.player_turn(array, position)
@@ -174,5 +215,6 @@ class SimonSays():
         #current position array, and then call edwin_turn
         self.edwin_turn(array, position + 1)
 if __name__ == "__main__":
+    print("hello")
     button_game = SimonSays()
     button_game.run()
