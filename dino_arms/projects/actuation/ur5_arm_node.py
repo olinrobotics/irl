@@ -74,6 +74,7 @@ class Arm():
 
         coordinates = data.data
         pose = [float(item) for item in coordinates.split(' ')]
+        print pose
         self.move_to_point(pose)
 
 
@@ -243,6 +244,10 @@ class Arm():
         self.gestures["c4_move_5"] = [Route([0, 0, 0, 0, 0, 0], 0)]
         self.gestures["c4_move_6"] = [Route([0, 0, 0, 0, 0, 0], 0)]
         self.gestures["c4_move_7"] = [Route([0, 0, 0, 0, 0, 0], 0)]
+
+        ### Tool Picker Game Gestures
+        self.gestures["tp_welcome"] = [Route([112.1, -90, 98.23, -188.78, 0.00, 0.00], 2)]
+        self.gestures["tp_camera"] = [Route([15.29, -91.65, -84.42, -86.02, 90.21, 0.33],2)]
 
         ### IDLE GESTURES
         self.gestures["idle_stare_1"] = [Route([-40.20, -88.37, -23.93, -66.92, 76.21, 0], 2)]
