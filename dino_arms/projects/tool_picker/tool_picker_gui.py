@@ -26,18 +26,19 @@ class ToolPickerGui(QWidget):
 	def __init__(self):
 		rospy.init_node("ToolPickerGui", anonymous=True)
 		self.cmd_pub = rospy.Publisher("/tool_cmd", String, queue_size=10)
+		self.prev_cmd = ""
 		self.cmd = ""
-		self.res = ""
 		self.is_playing = False
 
 		# Initialize the object as a QWidget and
 		# set its title and minimum width
 		QWidget.__init__(self)
-		self.setWindowTitle('SimonSays')
+		self.setWindowTitle('Tool Picker')
 		self.setMinimumWidth(600)
 		self.setMinimumHeight(400)
 		font = QFont()
-		font.setPointSize(15)
+		font.setPointSize(30)
+		self.setFont(font)
 
 		#Set up timer to listen to command and player gesture
 		self.timer = QTimer()
@@ -45,12 +46,17 @@ class ToolPickerGui(QWidget):
 		# Create the QVBoxLayout that lays out the whole form
 		self.layout = QVBoxLayout()
 
+		# Create the form layout that manages the labeled controls
+		self.form_layout = QFormLayout()
+		self.tool_list = ['Clamp','Cutter', 'Screw Driver','Wrench','Scissors','Piler']
+
 		# Create and fill the combo box to choose the simon_user
-		self.simon_user = QComboBox(self)
-		self.simon_user.addItems(self.user)
+		self.tool_box = QComboBox(self)
+		self.tool_box.addItems(self.tool_list)
 
 		# Add it to the form layout with a label
-		self.form_layout.addRow('&Welcome to the ', self.simon_user)
+		self.form_layout.addRow('&Welcome to Tool Picker game!', self.tool_box)
+		self.form_layout.addRow('&Please pick the tool you want:', self.tool_box)
 
 		# Create the entry control to specify a
 		# recipient and set its placeholder text
@@ -70,44 +76,25 @@ class ToolPickerGui(QWidget):
 		self.setup_button = QPushButton('&Initial Setup',self)
 		self.setup_button.clicked.connect(self.set_this_up)
 
-		self.configured_button = QPushButton('&Ready to play?',self)
-		self.configured_button.clicked.connect(self.lets_play)
+		self.play_button = QPushButton('&Start Playing!',self)
+		self.play_button.clicked.connect(self.lets_play)
 
 		# Add it to the button box
 		self.button_box.addWidget(self.setup_button)
-		self.button_box.addWidget(self.configured_button)
+		self.button_box.addWidget(self.play_button)
 
 		# Add the button box to the bottom of the main VBox layout
 		self.layout.addLayout(self.button_box)
 		# Set the VBox layout as the window's main layout
 		self.setLayout(self.layout)
 
-	def command_callback(self,data):
-		self.cmd = data.data
-
-	def result_callback(self,data):
-		self.res = data.data
-
-	@Slot()
-	def update_text(self):
-		'''
-		Update the text message
-		'''
-		if self.is_playing == True:
-			self.command.setText(self.cmd)
-			self.result.setText(self.res)
-
 	@Slot()
 	def set_this_up(self):
 		'''
 		After the user presses the Initial Setup button
 		'''
-		os.system("gnome-terminal -e 'bash -c \"roslaunch skeleton_markers markers_from_tf.launch; exec bash\"'")
-		time.sleep(1)
-		os.system("gnome-terminal -e 'bash -c \"cd ../; cd skeleton_markers/;  rosrun rviz rviz -d markers_from_tf.rviz;  exec bash\"'")
-		time.sleep(1)
-		os.system("gnome-terminal -e 'bash -c \"rosrun edwin skeleton.py;  exec bash\"'")
-		time.sleep(1)
+		# rosrun usb_cam usb_cam_node _video_device:='/dev/video1'
+		self.cmd_pub.publish("")
 
 	@Slot()
 	def lets_play(self):
@@ -115,23 +102,20 @@ class ToolPickerGui(QWidget):
 		After the user presses the Ready to Play button
 		'''
 		self.is_playing = True
-		os.system("gnome-terminal -e 'bash -c \"cd scripts/; cd sight/; python3 skeleton_characterization.py; exec bash\"'")
-		time.sleep(1)
-		os.system("gnome-terminal -e 'bash -c \"cd scripts/; cd Interactions/; python Simon_Says_practice.py; exec bash\"'")
-		time.sleep(1)
+		self.prev_cmd = self.cmd
+		self.cmd = str(self.tool_box.currentText())
+
+		if self.cmd != self.prev_cmd:
+			self.cmd_pub.publish(self.cmd)
 
 	def run(self):
 		# Show the form
 		self.show()
 
-		#Set Timer for update label
-		self.connect(self.timer, SIGNAL("timeout()"), self.update_text)
-		self.timer.start(300)
-
 		# Run the qt application
 		qt_app.exec_()
 
-if __name__ == "main":
+if __name__ == "__main__":
 	# Create an instance of the application window and run it
 	app = ToolPickerGui()
 	app.run()
