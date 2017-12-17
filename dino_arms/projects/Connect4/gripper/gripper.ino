@@ -11,7 +11,7 @@
 
 
 // Set up Arduino Ports, Pins and Global Variables to support Robot-------------------------------------------
-int ledPinR = 11;          // robot alive red blinky light pin
+int ledPinR = 13;          // robot alive red blinky light pin
 int ledPinG = 10;          // robot alive green blinky light pin
 int ledPinB = 9;           // robot alive blue blinky light pin
 int eStopPin = 5;          // create name for E-Stop reading pin
@@ -45,7 +45,7 @@ void setup() {                         // put your setup code here, to run once:
   //jawServo.writeMicroseconds(1500);    //set initial servo position to 60 deg
   digitalWrite (ledPinR, HIGH);
   delay (delayPeriod);
-  jawServo.attach(3);                  //attach the jaw servo to pin 3
+  jawServo.attach(2);                  //attach the jaw servo to pin 3
   jawServo.write(125);
   
   nh.initNode();
