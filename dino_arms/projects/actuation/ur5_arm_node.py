@@ -106,11 +106,12 @@ class Arm():
         while self.coordinator.is_program_running():
             pass
         print "FINISHED MOVING"
-        self.status_pub.publish("free")
 
         # confirm new coordinates
         new_pose = self.coordinator.getl()
         print "NOW AT: \n X: %3f Y: %3f Z: %3f Rx: %3f Ry: %3f Rz: %3f" %(new_pose[0],new_pose[1],new_pose[2],new_pose[3],new_pose[4],new_pose[5])
+
+        self.status_pub.publish("free")
 
 
     def behaviors_callback(self, data):
@@ -232,6 +233,7 @@ class Arm():
                                     Route(self.HOME, 2), Route([0, -106, -160, 60, 90, 0], 5),
                                     Route([-154, -103.74, -140, 38, 90, 0], 3), Route([-154, -103.74, -121.83, 64.54, 90, 0], 2),
                                     Route([-154, -109, -132.70, 27.76, 90, 0], 1), Route([0, -91, -160, 67.96, 90, 0], 3)]
+        self.gestures["c4_load_token"] = [Route([102.55, -21.88, -139.94, -5.28, 96.65, 0], 2)]
 
         # TODO, requires fine-tuning, which requires a table
         self.gestures["c4_move_1"] = [Route([0, -103, -62.62, -96.06, 90, 0], 2)]
@@ -242,17 +244,32 @@ class Arm():
         self.gestures["c4_move_6"] = [Route([0, 0, 0, 0, 0, 0], 0)]
         self.gestures["c4_move_7"] = [Route([0, 0, 0, 0, 0, 0], 0)]
 
-        ### IDLE GESTURES # TODO
-        self.gestures["idle_stare_1"] = [Route([0, 0, 0, 0, 0, 0], 0)]
-        self.gestures["idle_stare_2"] = [Route([0, 0, 0, 0, 0, 0], 0)]
-        self.gestures["idle_stare_3"] = [Route([0, 0, 0, 0, 0, 0], 0)]
-        self.gestures["idle_sniff"] = [Route([0, 0, 0, 0, 0, 0], 0)]
-        self.gestures["idle_yawn"] = [Route([0, 0, 0, 0, 0, 0], 0)]
-        self.gestures["idle_butt_wiggle"] = [Route([0, 0, 0, 0, 0, 0], 0)]
-        self.gestures["idle_wander"] = [Route([0, 0, 0, 0, 0, 0], 0)]
-        self.gestures["idle_head_bobble"] = [Route([0, 0, 0, 0, 0, 0], 0)]
-        self.gestures["idle_curiosity"] = [Route([0, 0, 0, 0, 0, 0], 0)]
-        self.gestures["idle_sleep"] = [Route([0, 0, 0, 0, 0, 0], 0)]
+        ### IDLE GESTURES
+        self.gestures["idle_stare_1"] = [Route([-40.20, -88.37, -23.93, -66.92, 76.21, 0], 2)]
+        self.gestures["idle_stare_2"] = [Route([64.54, -86.64, -94.69, 8.90, 76.21, 0], 2)]
+        self.gestures["idle_stare_3"] = [Route([0, -70, -29.26, -95.06, 93.53, 0], 2)]
+        self.gestures["idle_sniff"] = [Route([37.5, -106.53, -139.53, 28.33, 84.01, 0], 2), Route([37.5, -106.53, -139.53, 29.81, 84.01, 0], .25),
+                                    Route([37.5, -106.53, -139.53, 28.33, 84.01, 0], .25), Route([37.5, -106.53, -139.53, 29.81, 84.01, 0], .25),
+                                    Route([37.5, -106.53, -139.53, 28.33, 84.01, 0], .25), Route([-43.25, -118.14, -113.51, 19.46, 84.01, 0], 2),
+                                     Route([-43.25, -118.14, -113.51, 21.0, 84.01, 0], .25),  Route([-43.25, -118.14, -113.51, 19.46, 84.01, 0], .25),
+                                      Route([-43.25, -118.14, -113.51, 21.0, 84.01, 0], .25),  Route([-43.25, -118.14, -113.51, 19.46, 84.01, 0], .25),
+                                      Route([0, -66.28, -119.83, 6.66, 84.03, 0], 2)]
+        self.gestures["idle_sneeze"] = [Route([0, -56.66, -76.3, 12.71, 87.62, 0], 5), Route([0, -70.64, -117.23, -12.97, 87.62, 0], 1),
+                                    Route([0, -61.28, -94.58, -24.89, 87.62, 0], 2),]
+        self.gestures["idle_butt_wiggle"] = [Route([0, -106, -154.52, 86.03, 87.62, 0], 2), Route([-5, -106, -154.52, 86.03, 92.85, 0], .3),
+                                             Route([6, -106, -154.52, 86.03, 81.85, 0], .3),  Route([-5, -106, -154.52, 86.03, 92.85, 0], .3),
+                                              Route([6, -106, -154.52, 86.03, 81.85, 0], .3), Route([-5, -106, -154.52, 86.03, 92.85, 0], .3),
+                                               Route([6, -106, -154.52, 86.03, 81.85, 0], .3), Route([0, -106, -154.52, 86.03, 87.62, 0], 1)]
+        self.gestures["idle_wander"] = [Route([-45, -91.4, -32.32, -45.60, 87.74, 0], 1.5), Route([45, -91.4, -32.32, -45.60, 87.74, 0], 5),
+                                        Route([-45, -91.4, -32.32, -45.60, 87.74, 0], 5), Route([45, -91.4, -32.32, -45.60, 87.74, 0], 5)]
+        self.gestures["idle_head_bobble"] = [Route([0, -78.11, -93.63, -10.47, 87.72, 0], 2), Route([0, -80, -99.63, -24.88, 87.72, 0], .5),
+                                            Route([0, -76.11, -87.33, 6, 87.72, 0], .7), Route([0, -80, -99.63, -24.88, 87.72, 0], .5),
+                                            Route([0, -76.11, -87.33, 6, 87.72, 0], .7), Route([0, -78.11, -93.63, -10.47, 87.72, 0], 2)]
+        self.gestures["idle_curiosity"] = [Route([-90, -66.40, -90.69, -35.79, 90, 0], 5), Route([-90, -58.20, -58.50, -81.49, 90, 0], .7),
+                                            Route([-90, -58.20, -58.50, -81.49, 90, -45], 1.5)]
+        self.gestures["idle_sleep"] = [Route([5, -37.48, -160.66, -64.52, 138.11, -46.81], 5), Route([-10, -37.48, -160.66, -64.52, 138.11, -46.81], 2),
+                                        Route([20, -37.48, -160.66, -64.52, 138.11, -46.81], 3), Route([-10, -37.48, -160.66, -64.52, 138.11, -46.81], 4),
+                                        Route([20, -37.48, -160.66, -64.52, 138.11, -46.81], 4.5), Route([5, -37.48, -160.66, -64.52, 138.11, -46.81], 4)]
 
 
     def run_gesture_incremental(self, gesture):
@@ -358,7 +375,7 @@ class Arm():
             self.client.send_goal(g)
             print "Waiting for result"
             self.client.wait_for_result()
-            print "Gesture completed succesfully"
+            print "Gesture completed successfully"
 
         except KeyboardInterrupt:
             self.client.cancel_goal()
@@ -383,8 +400,10 @@ class Arm():
                 # self.run_gesture("heart")
                 # self.run_gesture("wave")
                 # self.run_gesture("dab")
+                # self.run_gesture("idle_butt_wiggle")
                 self.run_gesture("c4_home")
-                self.run_gesture("c4_move_1")
+                self.run_gesture("c4_load_token")
+                # self.run_gesture("c4_move_1")
 
                 # self.move_to_point([.015, -.461, .434, .195, 3.26, -0.056])
                 # time.sleep(10)
@@ -410,7 +429,7 @@ class Arm():
 
 if __name__ == '__main__':
     a = Arm()
-    # a.run()
-    a.test_run()
+    a.run()
+    # a.test_run()
+    # a.coordinator.close()
     # a.home_robot()
-    a.coordinator.close()
