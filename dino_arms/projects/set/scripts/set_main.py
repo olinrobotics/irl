@@ -283,6 +283,7 @@ class SetMain(object):
         Function asks the users if they want to continue the program.
         :return: True to continue; False otherwise
         """
+        self.check_completion(0.5)
         while True:
             answer = raw_input("Do you want me to continue (yes/no)? ").lower()
             if "y" in answer:
@@ -299,6 +300,7 @@ class SetMain(object):
         Function asks the users if they want to continue the program.
         :return: True to continue; False otherwise
         """
+        self.check_completion(0.5)
         while True:
             answer = raw_input("Are you using a suction cup (yes/no)? ").lower()
             if "y" in answer:
@@ -317,6 +319,7 @@ class SetMain(object):
         Function asks the users if they want to play the game again.
         :return: True to continue; False otherwise
         """
+        self.check_completion(0.5)
         while True:
             answer = raw_input("Do you want to play again (yes/no)? ").lower()
             if "y" in answer:
@@ -342,7 +345,6 @@ class SetMain(object):
 
             # Asking if using the suction cup
             self.suction_cup_or_not()
-            self.move_to_center()
 
             # Capture the image
             self.capture_piture()
@@ -363,11 +365,6 @@ class SetMain(object):
 
                 # Check if everything is alright
                 turn.print_card_array(turn.card_array)
-                if not self.continue_or_not():
-                    if self.play_again():
-                        continue
-                    else:
-                        break
 
                 # If there is no result
                 if not self.result:
