@@ -46,7 +46,7 @@ class ArmBehaviors(object):
         self.arm_status.publish('busy')
         self.serv_prob = False
         print "RECEIVED CMD: ", cmdin
-        cmd = str(cmdin).replace("data: ", "")
+        cmd = cmdin.data
         if cmd == "random":
             cmd = "impatient"
         elif "R_" in cmd:
@@ -104,15 +104,19 @@ class ArmBehaviors(object):
         self.behaviors["angry"] = "SPD: 200, R_stare, SPD: 1000"
         self.behaviors["sleep"] = "R_sleep"
         self.behaviors["laugh"] = "SPD: 700, R_laugh, SPD: 1000"
-        self.behaviors["idle_look_distance"] = "R_look_distance"
-        self.behaviors["idle_sniff"] = "SPD: 800, R_sniff"
-        self.behaviors["idle_yawn"] = "SPD: 500, R_yawn"
+        self.behaviors["idle_stare_1"] = "R_stare_2"
+        self.behaviors["idle_stare_2"] = "R_stare"
+        self.behaviors["idle_sniff"] = "SPD: 8000, R_sniff"
+        self.behaviors["idle_sneeze"] = "SPD: 500, R_sneeze"
         self.behaviors["idle_butt_wiggle"] = "R_scrunch_up"
         self.behaviors["idle_head_bobble"] = "R_head_bobble"
         self.behaviors["idle_wander"] = "R_squirrel"
+        self.behaviors["idle_sleep"] = "R_sleep, WA: 8000, WA: 7000, WA: 8000, WA: 7000"
+        self.behaviors["idle_curiosity"] = "R_look_at_draco, WR: 4500"
+        self.behaviors["idle_stare_3"] = "R_stare_3"
         self.behaviors["pout"] = "R_sad_turn, WA: -1000, WA: 1000"
         self.behaviors["impatient"] = "WA: 250, WA: -250, WA: 250, WA: -250, WA: 0, SPD: 700, R_impatient, SL: 1, R_annoyed_nudge"
-        self.behaviors["bored"] = "SPD: 400, R_bored, R_stare_away"
+        self.behaviors["bored"] = "SPD: 400, R_bored, R_stare"
 
         ###################               Simon Says actions           #####################
         self.behaviors['touch_head'] = "SPD: 600, R_touch_head "
