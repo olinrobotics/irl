@@ -18,6 +18,8 @@ python /scripts/training_data/font_dataset_generator.py
 ```
 The images will be stored in /training_data/font_images
 
+Finally, install `usb_camera` [here](https://github.com/olinrobotics/usb_cam).
+
 ### Running the code
 
 Set up ROS Environment
