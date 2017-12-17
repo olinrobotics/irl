@@ -29,7 +29,7 @@ aS'R_disco'
 p14
 aS'R_playful'
 p15
-aS'R_spin_position'
+aS'R_sudoku_center'
 p16
 aS'R_laugh'
 p17
