@@ -246,8 +246,8 @@ class Arm():
         self.gestures["c4_move_7"] = [Route([0, 0, 0, 0, 0, 0], 0)]
 
         ### Tool Picker Game Gestures
-        self.gestures["tp_welcome"] = [Route([112.1, -90, 98.23, -188.78, 0.00, 0.00], 2)]
-        self.gestures["tp_camera"] = [Route([15.29, -91.65, -84.42, -86.02, 90.21, 0.33],2)]
+        self.gestures["tp_welcome"] = [Route([-8.48, -59.81, -92.29, -27.75, 90.64, 1.46], 2)]
+        self.gestures["tp_camera"] = [Route([20.02, -91.66, -80.65, -90.09, 90.64, 18.21],2)]
 
         ### IDLE GESTURES
         self.gestures["idle_stare_1"] = [Route([-40.20, -88.37, -23.93, -66.92, 76.21, 0], 2)]
