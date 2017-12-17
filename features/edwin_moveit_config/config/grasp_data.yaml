@@ -1,5 +1,0 @@
-base_link: 'base_link'
-
-jaw:
-    end_effector_name: 'jaw'
-
