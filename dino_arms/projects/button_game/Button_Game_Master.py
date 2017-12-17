@@ -5,6 +5,7 @@ import numpy as np
 import cv2
 import rospy
 from std_msgs.msg import String
+from irl.srv import arm_cmd
 import math
 import random
 import time
@@ -48,15 +49,15 @@ class SimonSays():
         #self.publish(go_home)
 
         #actually returns edwin to the home position
-        self.red_coor_high = "move_to:: -1500, 6500, 3200"
-        self.red_coor_low = "move_to:: -1500, 6500, -1100"
-        self.yellow_coor_high = "move_to:: 1900, 6500, 3200"
-        self.yellow_coor_low = "move_to:: 1900, 6500, -1100"
-        self.green_coor_high = "move_to:: 1500, 3200, 3200"
-        self.green_coor_low = "move_to:: 1500, 3200, -1100"
-        self.blue_coor_high = "move_to:: 1900, 3200, 3200"
-        self.blue_coor_low = "move_to:: 1900, 3200,-1100"
-        self.home = "move_to:: 0, 4850, 3200"
+        self.red_coor_high = "move_to:: -1500, 6500, 3200, 0"
+        self.red_coor_low = "move_to:: -1500, 6500, -1100, 0"
+        self.yellow_coor_high = "move_to:: 1900, 6500, 3200, 0"
+        self.yellow_coor_low = "move_to:: 1900, 6500, -1100, 0"
+        self.green_coor_high = "move_to:: -1500, 3200, 3200, 0"
+        self.green_coor_low = "move_to:: -1500, 3200, -1100, 0"
+        self.blue_coor_high = "move_to:: 1900, 3200, 3200, 0"
+        self.blue_coor_low = "move_to:: 1900, 3200,-1100, 0"
+        self.home = "move_to:: 0, 4850, 3200, 0"
 
 
         #generates the simon says sequence
@@ -65,16 +66,17 @@ class SimonSays():
         print(self.current_color)
         self.request_cmd(self.home)
         self.check_completion()
-        self.node_publish.publish("rotate_hand:: 3050")
-        self.check_completion()
-        self.node_publish.publish("rotate_wrist:: 3650")
-        self.check_completion()
+        self.request_cmd("rotate_hand:: 3050")
+        self.request_cmd("rotate_wrist:: 3650")
         time.sleep(3)
-        #self.edwin_turn(self.sequence, self.current_number)
+        self.edwin_turn(self.sequence, self.current_number)
 
     def run(self):
         r = rospy.Rate(10)
-        print("Service is ready to go")
+        if self.game_state == 1:
+            print("Game Won!")
+        else:
+            print("Game Lost")
         while not rospy.is_shutdown():
             r.sleep()
 
@@ -157,9 +159,6 @@ class SimonSays():
         """
         #return home
         self.request_cmd(self.home)
-        self.node_publish.publish("rotate_hand:: 3050")
-        self.node_publish.publish("rotate_wrist:: 3650")
-        time.sleep(3)
         #Check to see if the player won
         if (position == len(array)):
             self.game_state = 1
@@ -170,19 +169,15 @@ class SimonSays():
         for color in array[:position]:
             if color == 1:
                 self.request_cmd(self.red_coor_high)
-                time.sleep(0.5)
                 self.request_cmd(self.red_coor_low)
             elif color == 2:
                 self.request_cmd(self.yellow_coor_high)
-                time.sleep(0.5)
                 self.request_cmd(self.yellow_coor_low)
             elif color == 3:
                 self.request_cmd(self.green_coor_high)
-                time.sleep(0.5)
                 self.request_cmd(self.green_coor_low)
             elif color == 4:
                 self.request_cmd(self.blue_coor_high)
-                time.sleep(0.5)
                 self.request_cmd(self.blue_coor_low)
             time.sleep(1)
             self.request_cmd(self.home)
