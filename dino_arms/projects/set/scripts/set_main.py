@@ -78,6 +78,9 @@ class SetMain(object):
         # Result: a set
         self.result = []
 
+        # Whether we're using a suction cup
+        self.use_suction_cup = True
+
     def status_callback(self, data):
         """
         Get status from arm_node
@@ -230,26 +233,41 @@ class SetMain(object):
         """
         print "row = %i, col = %i" % (row, col)
         x, y, z = self.get_coordinates_3_by_4(row, col)
-        self.move_xyz(x, y, z - 400)
+        self.move_xyz(x, y, z - 680)
+        return x, y, z
 
     def pick_cards(self):
         """
         Pick a set (3 cards) from the board
         :return: None
         """
-        for set_card in self.result:
-            row, col = set_card.coord
-            self.pick_card(row, col)
-            if not self.continue_or_not():
-                self.move_to_center()
-                break
+        if self.use_suction_cup:
+            for set_card in self.result:
+                row, col = set_card.coord
+                self.move_xyz(x=0, y=3500, z=2000)
+                x, y, z = self.pick_card(row, col)
+                if not self.continue_or_not():
+                    self.move_xyz(x=0, y=3500, z=2000)
+                    break
+                else:
+                    self.move_xyz(x=x, y=y, z=z - 480)
+                    self.move_to_stack()
+                    if not self.continue_or_not():
+                        break
+        else:
+            for set_card in self.result:
+                row, col = set_card.coord
+                self.pick_card(row, col)
+                if not self.continue_or_not():
+                    self.move_to_center()
+                    break
 
     def move_to_stack(self):
         """
         Move a card to a stack out of the board
         :return:
         """
-        self.move_xyz(x=0, y=3000, z=2700)
+        self.move_xyz(x=-2700, y=4500, z=-680)
 
     def test_pick_cards(self):
         """
@@ -265,26 +283,50 @@ class SetMain(object):
         Function asks the users if they want to continue the program.
         :return: True to continue; False otherwise
         """
-        answer = raw_input("Do you want me to continue (yes/no)? ").lower()
-        if "y" in answer:
-            print "Continue"
-            return True
+        while True:
+            answer = raw_input("Do you want me to continue (yes/no)? ").lower()
+            if "y" in answer:
+                print "Continue"
+                return True
+            if "n" in answer:
+                print "Stopped"
+                return False
+            else:
+                print "Invalid answer"
 
-        print "Stopped"
-        return False
+    def suction_cup_or_not(self):
+        """
+        Function asks the users if they want to continue the program.
+        :return: True to continue; False otherwise
+        """
+        while True:
+            answer = raw_input("Are you using a suction cup (yes/no)? ").lower()
+            if "y" in answer:
+                print "Use suction cup"
+                self.use_suction_cup = True
+                break
+            elif "n" in answer:
+                print "Do not use suction cup"
+                self.use_suction_cup = False
+                break
+            else:
+                print "Invalid answer"
 
     def play_again(self):
         """
         Function asks the users if they want to play the game again.
         :return: True to continue; False otherwise
         """
-        answer = raw_input("Do you want to play again (yes/no)? ").lower()
-        if "y" in answer:
-            print "Re-play"
-            return True
-
-        print "Game ended"
-        return False
+        while True:
+            answer = raw_input("Do you want to play again (yes/no)? ").lower()
+            if "y" in answer:
+                print "Re-play"
+                return True
+            elif "n" in answer:
+                print "Game ended"
+                return False
+            else:
+                print "Invalid answer"
 
     def run(self):
         """
@@ -297,6 +339,9 @@ class SetMain(object):
 
             # Move Edwin to center position
             self.move_to_center_route()
+
+            # Asking if using the suction cup
+            self.suction_cup_or_not()
             self.move_to_center()
 
             # Capture the image
