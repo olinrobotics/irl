@@ -47,7 +47,7 @@ PLAYER_NAME = "player"
 
 class SimonSays(object):
 	"""
-	The master class of the game Simon Says, which holds all the general actions of the Game
+	The master class of the game Simon Says, which holds all the general actions of the Game.py
 	To be the parent of the actual game modes:
 	1. AutonomousSimon - plays by himself
 	2. SimonEdwin - Edwin is the Simon and issues commands to the user
@@ -387,7 +387,7 @@ class SimonSays(object):
 
 class AutonomousSimon(SimonSays):
 	"""
-	Game Mode when Edwin plays against himself, meaning:
+	Game.py Mode when Edwin plays against himself, meaning:
  	1. He will say a Simon command
 	2. He will then move based on his own command
 	"""
@@ -430,10 +430,10 @@ class AutonomousSimon(SimonSays):
 
 class EdwinSimon(SimonSays):
 	"""
-	Game mode where Edwin is Simon, meaning:
+	Game.py mode where Edwin is Simon, meaning:
 	1. Edwin will say a Simon command
 	2. Edwin will check if the user has performed the command
-	3. Game continues for 5 turns or until user fails to perform command
+	3. Game.py continues for 5 turns or until user fails to perform command
 	"""
 	def __init__(self, rospy):
 		super(EdwinSimon, self).__init__(rospy=rospy)
@@ -562,7 +562,7 @@ class EdwinSimon(SimonSays):
 			self.simon_check_response()
 
 		if not self.no_mistakes:
-			statement = random.choice(["Nice try, but you messed up. Game over.", "Get wrecked, baby, it's over.", "Hahahahah, I'm too quick for you! Sorry, but you lost"])
+			statement = random.choice(["Nice try, but you messed up. Game.py over.", "Get wrecked, baby, it's over.", "Hahahahah, I'm too quick for you! Sorry, but you lost"])
 			move = "gloat"
 		else:
 			statement = random.choice(["Congratulations, you finished the game!", "Nice job, you completed my game!", "Wow so good, you're done without a sweat!"])
@@ -585,10 +585,10 @@ class EdwinSimon(SimonSays):
 
 class EdwinPlayer(SimonSays):
 	"""
-	Game mode where Edwin is the player, meaning:
+	Game.py mode where Edwin is the player, meaning:
 	1. Edwin will listen for a Simon command from the user
 	2. Edwin will perform the command based on what he heard
-	3. Game continues until the user says Edwin is wrong, or until 5 turns
+	3. Game.py continues until the user says Edwin is wrong, or until 5 turns
 	"""
 	def __init__(self, difficulty):
 		super(EdwinPlayer, self).__init__()
