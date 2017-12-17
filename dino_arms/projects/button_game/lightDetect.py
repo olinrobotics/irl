@@ -31,6 +31,7 @@ class lightDetector():
         self.frame = None
         self.image_sub = rospy.Subscriber("/usb_cam/image_raw",Image,self.make_frame,queue_size = 10)
         #Storage setup
+        self.prevStates =[1,1,1,1]
         self.currStates = [1,1,1,1]
 
         #video capture setup
@@ -62,6 +63,10 @@ class lightDetector():
             self.detector = cv2.SimpleBlobDetector(self.params)
         else :
             self.detector = cv2.SimpleBlobDetector_create(self.params)
+
+        #Time counter
+        self.prevTime = time.time()
+        self.currTime = time.time()
 
     def make_frame(self, data):
         try:
@@ -113,26 +118,47 @@ class lightDetector():
             #compare current state to last known states
             self.currPresent = [len(redBlobs),len(greenBlobs),len(blueBlobs),len(yellowBlobs)]
 
-            flag = False
+            flagPressed = False
+            flagTimed = False
 
-            if not (self.currPresent[0]):
-                mess = "Red on"
-                flag = True
-            elif not (self.currPresent[1]):
-                mess = "Green on"
-                flag = True
-            elif not (self.currPresent[2]):
-                mess = "Blue on"
-                flag = True
-            elif not (self.currPresent[3]):
-                mess = "Yellow on"
-                flag = True
+            self.currTime = time.time()
+            #Checks to see if there were blips
+            
+            #Initial difference
+            if(self.currStates != self.prevStates):
+                flagTimed = True
+                if(flagTimed) and (self.currTime-self.prevTime > .1): #if enough time has passed
+                    if not (self.currPresent[0]):
+                        mess = "Red on"
+                        flagPressed = True
 
-            if flag:
-                print(mess)
-                flag = False
-                self.pub.publish(mess)
-                time.sleep(0.01)
+                    elif not (self.currPresent[1]):
+                        mess = "Green on"
+                        flagPressed = True
+                    elif not (self.currPresent[2]):
+                        mess = "Blue on"
+                        flagPressed = True
+                    elif not (self.currPresent[3]):
+                        mess = "Yellow on"
+                        flagPressed = True
+
+                    if flagPressed:
+                        print(mess)
+                        flagPressed = False
+                        self.pub.publish(mess)
+                        time.sleep(0.01)
+                elif (self.currTime-self.prevTime < .1): #Continue looping if not enough time
+                    continue
+                else:   #Too much time has passed, it was a blip
+                    flagTimed = False
+                    self.prevStates = self.currStates
+                    self.prevTime = self.currTime
+
+            #No difference detected
+            else:
+                self.prevStates = self.currStates
+                self.prevTime = self.currTime
+
 
             #Uncomment to see visuals
 
