@@ -29,7 +29,7 @@ aS'R_disco'
 p14
 aS'R_playful'
 p15
-aS'R_spin_position'
+aS'R_sudoku_center'
 p16
 aS'R_laugh'
 p17
@@ -61,9 +61,9 @@ aS'R_1_weep'
 p30
 aS'R_dab'
 p31
-aS'R_praise'
+aS'R_nudge'
 p32
-aS'R_bow'
+aS'R_praise'
 p33
 aS'R_stare_2'
 p34

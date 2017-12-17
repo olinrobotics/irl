@@ -461,7 +461,7 @@ class visualMenu:
         self.area_list.append(self.get_area_coords(region))
 
 ################s
-#Game Logic
+#Game.py Logic
 ################
 
     def run_choice(self, option):

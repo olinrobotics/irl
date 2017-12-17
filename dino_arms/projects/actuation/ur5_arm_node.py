@@ -433,3 +433,4 @@ if __name__ == '__main__':
     # a.test_run()
     # a.coordinator.close()
     # a.home_robot()
+    a.coordinator.close()
