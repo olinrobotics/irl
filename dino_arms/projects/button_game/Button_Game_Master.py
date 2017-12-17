@@ -56,7 +56,7 @@ class SimonSays():
         self.green_coor_high = "move_to:: -1500, 3200, 3200, 0"
         self.green_coor_low = "move_to:: -1500, 3200, -1100, 0"
         self.blue_coor_high = "move_to:: 1900, 3200, 3200, 0"
-        self.blue_coor_low = "move_to:: 1900, 3200,-1100, 0"
+        self.blue_coor_low = "move_to:: 1900, 3200, -1100, 21"
         self.home = "move_to:: 0, 4850, 3200, 0"
 
 
@@ -139,7 +139,7 @@ class SimonSays():
         This method detects wheter a button has been pressed. If it has, then
         it returns the color of the button pressed.
         """
-
+        print(data.data)
         if data.data == "Red on":
             self.current_color = 1
         elif data.data == "Yellow on":
