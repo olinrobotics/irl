@@ -21,7 +21,7 @@ find_package(catkin REQUIRED
 	pluginlib
 	roscpp
 	tf_conversions
-    irl
+	irl
 	)
 
 include_directories(
@@ -37,7 +37,7 @@ catkin_package(
 	pluginlib
 	roscpp
 	tf_conversions
-    irl
+	irl
 	)
 
 add_executable(edwin_hardware_node src/edwin_interface.cpp src/st_arm.cpp src/utils.cpp src/Mutex.cpp)

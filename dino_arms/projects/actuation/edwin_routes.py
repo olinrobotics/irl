@@ -82,9 +82,13 @@ class RouteCreator(object):
         self.route_dictionary['R_praise'] = "R_praise; 3200, 2300, 2800, 444, 210, 0, 3200, 2300, 3600, -277, 180, 0, 3200, 2300, 2800, 444, 210, 0, 3200, 2300, 3600, -277, 180, 0, 3200, 2300, 2800, 444, 210, 0, 3200, 2300, 3600, -277, 180, 0, 3600, 2700, 3200, 76, 390, 0"
         self.route_dictionary['R_sad'] = "R_sad; -2499, 772, 700, 748, 150, 0, -2600, 772, 1500, 685, 150, 0, -2400, 772, 0, 853, -60, 0, -4558, 1467, 2271, 796, 150, 0"
 
+
         ###################               Set Game actions           #####################
         self.route_dictionary['R_set_center'] = "R_set_center; 0, 3500, 2000, 847, 180, 0"
 
+        ###################               Sudoku actions               #####################
+        self.route_dictionary['R_sudoku_center'] = "R_sudoku_center; 0, 3400, 4700, 856, 50, 0"
+        
         ##Routes with lists
         self.route_dictionary["R_1_lookaround"] = ["R_1_lookaround; 4000, 1500, 3000, 185, 240, 21", "R_2_lookaround; 500, 4000, 2000, 185, 240, 21", "R_3_lookaround; 3000, 2000, 4000, -39, 240, 21"]
         self.route_dictionary["R_1_weep"] = ["R_1_weep; 1000, -2700, 400, 739, 150, 21", "R_2_weep; 1000, -2700, 300, 819, 150, 21", "R_3_weep; 1000, -2700, 200, 870, 150, 21", "R_4_weep; 1000, -2700, 100, 950, 120, 21", "R_5_weep; 1000, -2700, 0, 1030, 120, 21"]
@@ -105,9 +109,9 @@ class RouteCreator(object):
         except rospy.ServiceException, e:
             print "Service call failed: %s"%e
 
-
     def setup_initial_routes(self):
-        inital_routes = ["R_ttt", "R_laugh", "R_nudge", "R_look", "R_sad_turn", "R_get_set", "R_set_center"]
+        inital_routes = ["R_ttt", "R_laugh", "R_nudge", "R_look", "R_sad_turn", "R_get_set", "R_sudoku_center", "R_set_center"]
+
         for r in inital_routes:
             msg = "create_route:: " + self.route_dictionary[r]
             print "Sending message: ", msg
