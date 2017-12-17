@@ -47,6 +47,7 @@ class C4(object):
 
         self.ur5_commander = rospy.Publisher("behaviors_cmd", String, queue_size=10)
         self.token_grabber = rospy.Publisher("gripper", Int16, queue_size=10)
+        self.computer_vision = rospy.Publisher("c4_ready", Int16, queue_size=10)
         rospy.Subscriber("arm_status", String, self.status_callback)
         rospy.Subscriber("opponent_move", Int16, self.player_move)
 
@@ -131,9 +132,11 @@ class C4(object):
         while True:
 
             print "WAITING FOR OPPONENT'S MOVE"
+            self.computer_vision.publish(0)
             while self.turn != "HUMAN":
                 pass
 
+            self.computer_vision.publish(1)
             observation_, done = self.board.step(self.player_action-1, 1)
 
             # break if human wins
