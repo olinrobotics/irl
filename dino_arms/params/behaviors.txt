@@ -89,7 +89,7 @@ S'R_stare, E:13000, E:12000'
 p44
 sS'idle_sniff'
 p45
-S'SPD: 800, R_sniff'
+S'SPD: 8000, R_sniff'
 p46
 sS'hug_self'
 p47
