@@ -313,7 +313,7 @@ class SudokuMain(object):
         There is a question asking if the users want to change the z_offset
         :return: True to continue; False otherwise
         """
-        self.check_completion(1.0)
+        self.check_completion(0.5)
         while True:
             answer = raw_input("Do you want me to continue (yes/no)? ").lower()
             if "y" in answer:
@@ -343,7 +343,7 @@ class SudokuMain(object):
         Function asks the users if they want to play the game again.
         :return: True to continue; False otherwise
         """
-        self.check_completion(1.0)
+        self.check_completion(0.5)
         while True:
             answer = raw_input("Do you want to play again (yes/no)? ").lower()
             if "y" in answer:
@@ -392,7 +392,6 @@ class SudokuMain(object):
             # Ask users if they want to play again, if not break the loop
             if not self.play_again():
                 break
-            # self.test_write_numbers()
 
         # End game behavior
         self.behave_move("done_game")
