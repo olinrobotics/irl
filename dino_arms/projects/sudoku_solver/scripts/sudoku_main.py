@@ -313,40 +313,47 @@ class SudokuMain(object):
         There is a question asking if the users want to change the z_offset
         :return: True to continue; False otherwise
         """
-        self.check_completion()
-        answer = raw_input("Do you want me to continue (yes/no)? ").lower()
-        if "y" in answer:
-
-            answer = raw_input(
-                "Current offset is %s. Do you want to change the z_offset (yes/no)? " % self.z_offset).lower()
+        self.check_completion(1.0)
+        while True:
+            answer = raw_input("Do you want me to continue (yes/no)? ").lower()
             if "y" in answer:
-                while True:
-                    answer = raw_input("New z_offset = ")
-                    try:
-                        self.z_offset = int(answer)
-                        print self.z_offset
-                        break
-                    except ValueError:
-                        # Handle the exception
-                        print 'Invalid value. Please enter an integer.'
-            print "Continue"
-            return True
 
-        print "Stopped"
-        return False
+                answer = raw_input(
+                    "Current offset is %s. Do you want to change the z_offset (yes/no)? " % self.z_offset).lower()
+                if "y" in answer:
+                    while True:
+                        answer = raw_input("New z_offset = ")
+                        try:
+                            self.z_offset = int(answer)
+                            print self.z_offset
+                            break
+                        except ValueError:
+                            # Handle the exception
+                            print 'Invalid value. Please enter an integer.'
+                print "Continue"
+                return True
+            elif "n" in answer:
+                print "Stopped"
+                return False
+            else:
+                print "Invalid answer"
 
     def play_again(self):
         """
         Function asks the users if they want to play the game again.
         :return: True to continue; False otherwise
         """
-        answer = raw_input("Do you want to play again (yes/no)? ").lower()
-        if "y" in answer:
-            print "Re-play"
-            return True
-
-        print "Game ended"
-        return False
+        self.check_completion(1.0)
+        while True:
+            answer = raw_input("Do you want to play again (yes/no)? ").lower()
+            if "y" in answer:
+                print "Re-play"
+                return True
+            elif "n" in answer:
+                print "Game ended"
+                return False
+            else:
+                print "Invalid answer"
 
     def run(self):
         """
