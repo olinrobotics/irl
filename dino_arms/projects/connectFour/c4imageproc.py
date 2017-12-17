@@ -10,17 +10,50 @@ import cv2
 import numpy as np
 from matplotlib import pyplot as plt
 import time
+from std_msgs.msg import Int16
+from sensor_msgs.msg import Image
+import img_processing as Process
 
 class DetectConnectFour:
+    '''
+    Continuously checks the board
+    '''
 
     def __init__(self, numcols, numrows):
         '''initialize the object'''
+        self.ready = 0
         self.numcols = numcols
         self.numrows = numrows
         self.width, self.height = numcols*200, numrows*200
-        #self.layout = [['Nothing', 'Nothing'], ['Nothing', 'Nothing'], ['Nothing', 'Nothing']]
+
+        rospy.init_node('boardDetector')
+        self.pub_move = rospy.Publisher('opponent_move', Int16, queue_size=10)
+        self.sub_ready = rospy.Subscriber('c4_ready', Int16, self.ready_status, queue_size=10)
+        self.sub_camera = rospy.Subscriber('usb_cam/image_raw', Image, self.img_callback)
+
+        self.bridge = CvBridge() # converts image types to use with OpenCV
 
         print("initialized")
+
+    def ready_status(self, data):
+        self.ready = data.data
+
+    def update_frame(self):
+        ''' DOCSTRING:
+            updates frame with the current frame; cuts out Edwin's eyelid
+            '''
+        self.frame = Process.get_edwin_vision(self.curr_frame)
+
+    def img_callback(self, data):
+        ''' DOCSTRING:
+        Given img data from usb cam, saves img for later use; called every
+        time img recieved from usb cam
+        '''
+        try:
+            # Saves image; converts to opencv format
+            self.curr_frame = self.bridge.imgmsg_to_cv2(data, "bgr8")
+        except CvBridgeError as e:
+            print('ERR:%d',e)
 
     def run(self):
         '''initialize camera'''
@@ -28,59 +61,56 @@ class DetectConnectFour:
         playerColor = 'Nothing'
 
         while True:
-            #cap = cv2.VideoCapture(0)
-            #_, frame = cap.read()
-            picture = raw_input('Choose a picture')
-            frame = cv2.imread(picture)
-            frame = cv2.resize(frame,None,fx=.2, fy=.2, interpolation = cv2.INTER_AREA)
+            if self.ready == 1:
+                #self.update_frame
+                frame = self.curr_frame
+                #cap = cv2.VideoCapture(0)
+                #_, frame = cap.read()
+                #picture = raw_input('Choose a picture')
+                frame = cv2.imread(picture)
+                frame = cv2.resize(frame,None,fx=.2, fy=.2, interpolation = cv2.INTER_AREA)
 
-            '''define template'''
-            template = cv2.imread('tryingagain.jpg')
-            template = cv2.resize(template, None, fx=.2, fy=.2, interpolation= cv2.INTER_AREA)
-            templategray = cv2.cvtColor(template, cv2.COLOR_RGB2GRAY)
+                '''find the frames'''
+                viewsilhouette = self.extract_black(frame)
+                #self.show_image(viewsilhouette, 'silhouetteview')
 
-            '''find the frames'''
-            viewsilhouette = self.extract_black(frame)
-            #self.show_image(viewsilhouette, 'silhouetteview')
-            templatesilhouette = self.extract_black(template)
+                '''find the major contour, reduce the field of view'''
+                contours = self.draw_contours(viewsilhouette, frame) #, showme = 1)
+                x, y, w, h = self.draw_basic_boxes(contours, frame) #, showme = 1)
+                board = self.transform_to_grid(frame, np.float32([[x,y],[x,y+h],[x+w,y+h],[x+w,y]]))
 
-            '''find the major contour, reduce the field of view'''
-            contours = self.draw_contours(viewsilhouette, frame) #, showme = 1)
-            x, y, w, h = self.draw_basic_boxes(contours, frame) #, showme = 1)
-            board = self.transform_to_grid(frame, np.float32([[x,y],[x,y+h],[x+w,y+h],[x+w,y]]))
+                '''warp transform to actual grid'''
+                actual_corners = self.detect_corners(board) #, showme = 1)
+                board = self.transform_to_grid(board, actual_corners)
+                #self.show_image(board, 'after grid')
+                current_layout = self.determine_layout(board)
+                print(current_layout)
 
-            '''warp transform to actual grid'''
-            actual_corners = self.detect_corners(board) #, showme = 1)
-            board = self.transform_to_grid(board, actual_corners)
-            #self.show_image(board, 'after grid')
-            current_layout = self.determine_layout(board)
-            print(current_layout)
-
-            if state == 'empty':
-                for column in current_layout:
-                    if 'Orange' not in column and 'Blue' not in column:
-                        pass
-                    else:
-                        if 'Orange' in column:
-                            playerColor = 'Orange'
+                if state == 'empty':
+                    for column in current_layout:
+                        if 'Orange' not in column and 'Blue' not in column:
+                            pass
                         else:
-                            playerColor = 'Blue'
-                        print('player color is', playerColor)
-                        state = 'started'
-                        first_ball = True
-                #SEND STATE TO KEVIN
+                            if 'Orange' in column:
+                                playerColor = 'Orange'
+                            else:
+                                playerColor = 'Blue'
+                            print('player color is', playerColor)
+                            state = 'started'
+                            first_ball = True
 
-            if state == 'started':
-                if current_layout != self.layout or first_ball:
-                    changed_column, new_color = self.which_column_changed(current_layout, playerColor)
-                    print('new color is', new_color)
-                    if new_color == playerColor:
-                        print('changed column', changed_column)
-                        #SEND SOMETHING TO KEVIN!
-                    first_ball = False
+                if state == 'started':
+                    if current_layout != self.layout or first_ball:
+                        changed_column, new_color = self.which_column_changed(current_layout, playerColor)
+                        changed_column = Int16(changed_column)
+                        print('new color is', new_color)
+                        if new_color == playerColor:
+                            print('changed column', changed_column)
+                            self.pub.publish(changed_column)
+                        first_ball = False
 
-            self.layout = current_layout
-            time.sleep(1)
+                self.layout = current_layout
+                time.sleep(1)
 
     def which_column_changed(self, current_layout, playerColor):
         for i in range(len(current_layout)):

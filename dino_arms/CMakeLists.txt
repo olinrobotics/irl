@@ -41,6 +41,11 @@ add_message_files(
 	SceneAnalysis.msg
 	Bones.msg
 	HHH.msg
+	blue_button.msg
+	yellow_button.msg
+	red_button.msg
+	green_button.msg
+	all_buttons.msg
 
 )
 add_service_files(
