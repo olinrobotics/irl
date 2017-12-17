@@ -1,6 +1,6 @@
 """
-By Khang Vu, Cassandra Overney, Enmo Ren & Emma Pan, 2017
-Last modified Dec 16, 2017
+By Khang Vu, Cassandra Overney & Enmo Ren, 2017
+Last modified Dec 17, 2017
 
 This script is the master script of the Set Game
 Currently works for a 3x4 Set board
@@ -23,6 +23,9 @@ rosrun irl set_main.py
 
 import time
 
+import numpy as np
+
+import cv2
 import rospy
 from cv_bridge import CvBridgeError, CvBridge
 from irl.srv import arm_cmd
@@ -30,7 +33,7 @@ from sensor_msgs.msg import Image
 from std_msgs.msg import String
 
 from Turn import *
-from opencv import *
+from opencv import CEO
 
 
 class SetMain(object):
@@ -39,10 +42,13 @@ class SetMain(object):
     """
 
     def __init__(self, ros_node=None):
-        # init ROS nodes
+        """
+        This init node, subscribers and publishers
+        :param ros_node:
+        """
         self.route_string = 'R_set_center'
-        self.z_offset = 75
 
+        # init ROS nodes
         if not ros_node:
             rospy.init_node('set_gamemaster', anonymous=True)
 
@@ -120,6 +126,11 @@ class SetMain(object):
 
     def route_move(self, route_string):
         msg = "data: run_route:: " + route_string
+        print ("sending: ", msg)
+        self.request_cmd(msg)
+
+    def speed_set(self, num):
+        msg = "data: set_speed:: " + str(num)
         print ("sending: ", msg)
         self.request_cmd(msg)
 
@@ -232,10 +243,6 @@ class SetMain(object):
             if not self.continue_or_not():
                 self.move_to_center()
                 break
-            # self.move_to_stack()
-            # if not self.continue_or_not():
-            #     self.move_to_center()
-            #     break
 
     def move_to_stack(self):
         """
@@ -256,7 +263,6 @@ class SetMain(object):
     def continue_or_not(self):
         """
         Function asks the users if they want to continue the program.
-        There is a question asking if the users want to change the z_offset
         :return: True to continue; False otherwise
         """
         answer = raw_input("Do you want me to continue (yes/no)? ").lower()
@@ -285,39 +291,60 @@ class SetMain(object):
         Main function that runs everything
         :return: None
         """
-
         while True:
-            # self.move_to_center_route()
-            # self.move_to_center()
-            self.capture_piture()
-            if not self.continue_or_not():
-                if self.play_again():
-                    continue
-                else:
-                    break
+            # Speed set to 1000
+            self.speed_set(1000)
 
-            all_cards = find_matches(self.set_image)
-            turn = Turn(all_cards)
-            self.result = turn.find_set()
-            turn.print_card_array(turn.card_array)
-
-            if not self.continue_or_not():
-                if self.play_again():
-                    continue
-                else:
-                    break
-
-            if not self.result:
-                self.pout_behavior()
-                self.move_to_center()
-            else:
-                self.pick_cards()
-
+            # Move Edwin to center position
+            self.move_to_center_route()
             self.move_to_center()
-            if not self.play_again():
-                break
 
+            # Capture the image
+            self.capture_piture()
+
+            # Ask if users want to continue (Does the captured image look right?)
+            if not self.continue_or_not():
+                if self.play_again():
+                    continue
+                else:
+                    break
+
+            # Try to find a set
+            try:
+                ceo = CEO()
+                all_cards = ceo.find_matches(self.set_image)
+                turn = Turn(all_cards)
+                self.result = turn.find_set()
+
+                # Check if everything is alright
+                turn.print_card_array(turn.card_array)
+                if not self.continue_or_not():
+                    if self.play_again():
+                        continue
+                    else:
+                        break
+
+                # If there is no result
+                if not self.result:
+                    self.pout_behavior()
+                    self.move_to_center()
+                # Else go pick the cards
+                else:
+                    self.pick_cards()
+
+                # Move back to center after picking the cards
+                self.move_to_center()
+                if not self.play_again():
+                    break
+            except:
+                print("Something is wrong. Please take another picture!")
+                self.play_again()
+
+        # End game behavior
         self.behave_move("done_game")
+
+        # Make sure the speed is set back to 1000
+        self.speed_set(1000)
 
     def get_coordinates_3_by_4(self, row, col):
         """

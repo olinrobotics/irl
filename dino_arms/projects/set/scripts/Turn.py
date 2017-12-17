@@ -9,6 +9,7 @@ Run: This file is imported in Game.py
 
 """
 
+
 class Turn:
     """
     Takes an array of cards detected from opencv.py and finds ONE Set from the 12 cards. Returns an empty result
@@ -18,8 +19,8 @@ class Turn:
     def __init__(self, image_array):
         self.image_array = image_array
         self.card_array = []
-        self.coord_array = [(3,0), (3,1), (3,2), (2,0), (2,1), (2,2), (1,0), (1,1), (1,2), (0,0), (0,1), (0,2)]
-        #self.coord_array = [(0, 0), (0, 1), (0, 2), (0, 3), (0,4), (1, 0), (1, 1), (1, 2), (1, 3), (1,4)]
+        self.coord_array = [(3, 0), (3, 1), (3, 2), (2, 0), (2, 1), (2, 2), (1, 0), (1, 1), (1, 2), (0, 0), (0, 1),
+                            (0, 2)]
         self.create_cards()
 
     def find_set(self):
@@ -44,15 +45,14 @@ class Turn:
         """
         for i, c in enumerate(self.image_array):
             str = c[:4]
-            #print(str[0], str[1], str[2], str[3])
+            # print(str[0], str[1], str[2], str[3])
             color = int(str[0])
             num = int(str[1])
             shape = int(str[2])
             fill = int(str[3])
             card = Set(Color(color), num, Shape(shape), Fill(fill), self.coord_array[i])
             self.card_array.append(card)
-        #Turn.print_card_array(self.card_array)
-
+        # Turn.print_card_array(self.card_array)
 
     @staticmethod
     def print_card_array(cards):
@@ -63,7 +63,7 @@ class Turn:
         :return: None
         """
         for i, c in enumerate(cards):
-            print i+1, ")", c.color.name, c.num, c.shape.name, c.fill.name, c.coord
+            print i + 1, ")", c.color.name, c.num, c.shape.name, c.fill.name, c.coord
 
     @staticmethod
     def create_test():
