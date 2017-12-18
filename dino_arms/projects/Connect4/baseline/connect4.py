@@ -114,9 +114,11 @@ class C4(object):
         then moving to drop it into the chosen column, then returning to home position
         """
 
+        # looks for token
         self.ur5_publish("c4_load_token")
         self.control_mouth()
 
+        # makes a move and drops token
         self.ur5_publish("c4_move_"+str(move))
         self.control_mouth()
         self.ur5_publish("c4_home")
@@ -131,12 +133,15 @@ class C4(object):
 
         while True:
 
+            # waits for opponent move from rostopic
             print "WAITING FOR OPPONENT'S MOVE"
             self.computer_vision.publish(0)
             while self.turn != "HUMAN":
                 pass
 
             self.computer_vision.publish(1)
+
+            # updates its own digital board
             observation_, done = self.board.step(self.player_action-1, 1)
 
             # break if human wins
@@ -145,12 +150,14 @@ class C4(object):
                 print "HUMAN WINS"
                 return "HUMAN"
 
+            # AI makes moves and updates digital board
             self.turn = "AI"
             move, value = self.max.bestMove(5, observation_)
             _, done = self.board.step(move, 2)
 
             print "I MOVED TO COLUMN", str(move+1)
 
+            # AI physically moves
             # self.make_move(move+1)
 
             # break if ai wins
@@ -167,8 +174,8 @@ class C4(object):
 
         print "Starting up Connect 4 game"
         time.sleep(3)
-        self.ur5_publish("c4_start")
-        self.ur5_publish("c4_home")
+        # self.ur5_publish("c4_start")
+        # self.ur5_publish("c4_home")
 
         result = self.play_game()
 
@@ -177,8 +184,8 @@ class C4(object):
         else:
             command = "c4_loss"
 
-        self.ur5_publish(command)
-        self.ur5_publish("c4_end")
+        # self.ur5_publish(command)
+        # self.ur5_publish("c4_end")
 
 
 if __name__ == "__main__":
