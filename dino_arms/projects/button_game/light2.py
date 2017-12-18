@@ -25,13 +25,17 @@ To run:
 class lightDetector():
 
     def __init__(self):
+        #How long to wait to consider something not a blip
+        self.WAIT_TIME = .5
+
         #pull images from edwin's right camera
         self.bridge = CvBridge()
         self.obtained_frame = False
         self.frame = None
         self.image_sub = rospy.Subscriber("/usb_cam/image_raw",Image,self.make_frame,queue_size = 10)
         #Storage setup
-        self.currStates = [1,1,1,1]
+        self.prevStates =[1,1,1]
+        self.currStates = [1,1,1]
 
         #video capture setup
         self.cap = cv2.VideoCapture(0)
@@ -62,6 +66,10 @@ class lightDetector():
             self.detector = cv2.SimpleBlobDetector(self.params)
         else :
             self.detector = cv2.SimpleBlobDetector_create(self.params)
+
+        #Time counter
+        self.prevTime = time.time()
+        self.currTime = time.time()
 
     def make_frame(self, data):
         try:
@@ -104,46 +112,70 @@ class lightDetector():
         while(True):
             frame = self.frame
             #Get blob list of different colors detected
-            redBlobs = self.blobCapture(-15,15,170,240,110,190,frame)   #Red
-            yellowBlobs = self.blobCapture(70,100,80,110,110,140,frame)   #Yellow
-            greenBlobs = self.blobCapture(45,75,86,255,6,255,frame)       #Green
+            redBlobs = self.blobCapture(-15,15,140,255,50,255,frame)   #Red
+            #yellowBlobs = self.blobCapture(15,45,50,255,70,255,frame)   #Yellow
+            greenBlobs = self.blobCapture(50,90,90,165,150,210,frame)       #Green
             blueBlobs = self.blobCapture(105,135,50,255,50,255,frame)   #Blue
 
 
             #compare current state to last known states
-            self.currPresent = [len(redBlobs),len(greenBlobs),len(blueBlobs),len(yellowBlobs)]
+            self.currStates = [len(redBlobs),len(greenBlobs),len(blueBlobs)]
 
-            flag = False
+            flagPressed = False
+            flagTimed = False
 
-            if not (self.currPresent[0]):
-                mess = "Red on"
-                flag = True
-            elif not (self.currPresent[1]):
-                mess = "Green on"
-                flag = True
-            elif not (self.currPresent[2]):
-                mess = "Blue on"
-                flag = True
-            elif not (self.currPresent[3]):
-                mess = "Yellow on"
-                flag = True
+            self.currTime = time.time()
+            #Checks to see if there were blips
+            #Initial difference
+            print(self.currStates)
+            print(self.prevStates)
+            if(self.currStates != self.prevStates):
 
-            if flag:
-                print(mess)
-                flag = False
-                self.pub.publish(mess)
-                time.sleep(0.01)
+                flagTimed = True
+                if(flagTimed) and (self.currTime-self.prevTime > self.WAIT_TIME): #if enough time has passed
+
+                    if not (self.currStates[0]):
+                        mess = "Red on"
+                        flagPressed = True
+
+                    elif not (self.currStates[1]):
+                        mess = "Green on"
+                        flagPressed = True
+                    elif not (self.currStates[2]):
+                        mess = "Blue on"
+                        flagPressed = True
+
+                    if flagPressed:
+                        print(mess)
+                        flagPressed = False
+                        flagTimed = False
+                        self.pub.publish(mess)
+                        time.sleep(0.01)
+
+                elif (self.currTime-self.prevTime < self.WAIT_TIME): #Continue looping if not enough time
+                    print("wait state")
+                    continue
+                else:   #Too much time has passed, it was a blip
+                    flagTimed = False
+                    self.prevStates = self.currStates
+                    self.prevTime = self.currTime
+
+            #No difference detected
+            else:
+                self.prevStates = self.currStates
+                self.prevTime = self.currTime
+
 
             #Uncomment to see visuals
 
             drawBlobs1 = cv2.drawKeypoints(frame, redBlobs, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
             drawBlobs2 = cv2.drawKeypoints(drawBlobs1, greenBlobs, np.array([]), (0,255,0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
             drawBlobs3 = cv2.drawKeypoints(drawBlobs2, blueBlobs, np.array([]), (255,0,0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-            drawBlobs = cv2.drawKeypoints(drawBlobs3, yellowBlobs, np.array([]), (0,255,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+            #drawBlobs = cv2.drawKeypoints(drawBlobs3, yellowBlobs, np.array([]), (0,255,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
-            res1 = cv2.addWeighted(drawBlobs,0.5,drawBlobs1,0.5,0)
+            #res1 = cv2.addWeighted(drawBlobs,0.5,drawBlobs1,0.5,0)
             res2 = cv2.addWeighted(drawBlobs2,0.5,drawBlobs3,0.5,0)
-            result = cv2.addWeighted(res1,0.5, res2,0.5,0)
+            result = cv2.addWeighted(drawBlobs1,0.5, res2,0.5,0)
 
             cv2.imshow('blur', result)
 
@@ -155,4 +187,4 @@ class lightDetector():
 
 if __name__ == '__main__':
     ld1 = lightDetector()
-    ld1.run()
+ld1.run()
