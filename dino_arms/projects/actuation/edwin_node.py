@@ -17,7 +17,7 @@ class ArmCommands(object):
 
         # rospy.Subscriber('/arm_cmd', String, self.arm_callback, queue_size=1)
         self.debug_pub = rospy.Publisher('arm_debug', String, queue_size=10)
-        self.status_pub = rospy.Publisher('/arm_cmd_status', String, queue_size=10)
+        self.status_pub = rospy.Publisher('/arm_status', String, queue_size=10)
 
         self.joint_state_pub = rospy.Publisher('joint_states', JointState, queue_size=10)
         self.joint_state_msg = JointState()
