@@ -30,7 +30,7 @@ class SimonSays:
 
 
         #returns edwin to the home position
-        go_home = "create_route:: home; #x, #y, #z, #pitch, #roll, #yaw"
+        go_home = "create_route:: home; 0, 4000, 4000, 767, 195, 0"
         print("INIT | Going home")
 
         #sends the home route to other node
@@ -41,18 +41,22 @@ class SimonSays:
         self.image = rospy.Subscriber("/usb_cam/image_raw", Image, self.callback)
 
         #actually returns edwin to the home position
-        self.run_route("home");
+        self.red_coor = "move_to:: #x, #y, #z, #pitch"
+        self.yello_coor = "move_to:: #x, #y, #z, #pitch"
+        self.green_coor = "move_to:: #x, #y, #z, #pitch"
+        self.blue_coor = "move_to:: #x, #y, #z, #pitch"
+        self.home = "move_to:: #x, #y, #z, #pitch"
 
         #generates the simon says sequence
         self.sequence = self.generate(self.sequence)
 
         self.edwin_turn(self.sequence, self.current_number)
 
-    def run_route(self, route):
+    def move_coor(self, coor):
         """
         This method runs a specific route for edwin
         """
-        command = "run_route:: " + route
+        command = coor
         print("RUN | Sending:", command)
         self.node_publish.publish(command)
         time.sleep(2)
@@ -74,6 +78,9 @@ class SimonSays:
             else:
                 array[i] = "blue"
 
+    '''
+    Depreciated. Buttons are no longer in a random position.
+
     def calc_coordinates(self, color):
         """
         This method looks for a specific color of button from the camera. It
@@ -85,6 +92,7 @@ class SimonSays:
         else:
 
             #return coordinates from open CV after conversion
+    '''
 
     def detect_press(self):
         """
@@ -101,7 +109,7 @@ class SimonSays:
 
         """
         #return home
-        self.run_route("home")
+        self.move_coor("home")
 
         #Check to see if the player won
         if (position == len(array)):
