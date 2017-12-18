@@ -68,7 +68,7 @@ class ObjectFind:
         self.lowlimit_z = -1000
         self.highlimit_z = 4000
 
-        # Game Elements
+        # Game.py Elements
         self.timecounter = 0
         self.human_in_frame = False   # False if Edwin does not detect human, True if he does
         self.object_in_frame = False     # False if Edwin does not detect object, True if he does

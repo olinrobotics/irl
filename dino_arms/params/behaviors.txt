@@ -89,7 +89,7 @@ S'R_sniff'
 p44
 sS'hug_self'
 p45
-S'SPD: 500, R_hug_self'
+S'SPD: 8000, R_sniff'
 p46
 sS'idle_curiosity'
 p47
