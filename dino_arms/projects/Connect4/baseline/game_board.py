@@ -106,7 +106,7 @@ class C4Board(object):
         while column1 > 0 and row1 > 0:
             column1 -= 1
             row1 -= 1
-        while column1 < 4 and row1 < 5:
+        while column1 < 6 and row1 < 5:
             if self.board[column1][row1] != 0 and self.board[column1][row1] == self.board[column1+1][row1+1]:
                 count += 1
                 if count == 3:
@@ -124,7 +124,7 @@ class C4Board(object):
         while column2 > 0 and row2 < 5:
             column2 -= 1
             row2 += 1
-        while column2 < 4 and row2 > 0:
+        while column2 < 6 and row2 > 0:
             if self.board[column2][row2] != 0 and self.board[column2][row2] == self.board[column2+1][row2-1]:
                 count += 1
                 if count == 3:
@@ -144,7 +144,9 @@ class C4Board(object):
 
         s_, move = self.make_move(action, player)
 
-        if  move == False or self.connect_4(move):
+        if  move == False:
+            done = "Draw"
+        elif self.connect_4(move):
             done = True
         else:
             done = False
@@ -181,13 +183,19 @@ class C4Board(object):
 if __name__=="__main__":
 # testing testing 1 2 3
     test = C4Board(render=False)
-    print test.step(0, 1)
-    print test.step(0, 1)
-    print test.step(0, 1)
-    print test.step(0, 2)
     print test.step(1, 1)
     print test.step(1, 1)
     print test.step(1, 2)
+    print test.step(2, 2)
+    print test.step(2, 1)
     print test.step(2, 1)
     print test.step(2, 2)
+    print test.step(3, 1)
+    print test.step(3, 1)
     print test.step(3, 2)
+    print test.step(3, 1)
+    print test.step(4, 2)
+    print test.step(4, 2)
+    print test.step(4, 2)
+    print test.step(4, 1)
+    print test.step(0, 1)
