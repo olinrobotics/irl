@@ -15,7 +15,7 @@ class ArmCommands(object):
         s = rospy.Service('arm_cmd', arm_cmd, self.arm_callback)
         print "Service ONLINE"
 
-        # rospy.Subscriber('/arm_cmd', String, self.arm_callback, queue_size=1)
+        rospy.Subscriber('/arm_cmd', String, self.arm_callback, queue_size=1)
         self.debug_pub = rospy.Publisher('arm_debug', String, queue_size=10)
         self.status_pub = rospy.Publisher('/arm_status', String, queue_size=10)
 
