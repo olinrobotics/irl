@@ -53,7 +53,7 @@ class SetMain(object):
             rospy.init_node('set_gamemaster', anonymous=True)
 
         # init ROS subscribers to camera and status
-        rospy.Subscriber('arm_cmd_status', String, self.status_callback, queue_size=10)
+        rospy.Subscriber('arm_status', String, self.status_callback, queue_size=10)
         rospy.Subscriber('usb_cam/image_raw', Image, self.img_callback)
 
         self.behavior_pub = rospy.Publisher('behaviors_cmd', String, queue_size=10)
