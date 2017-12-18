@@ -4,10 +4,11 @@ import rospy
 import numpy as np
 import time
 
-from std_msgs.msg import String
+from std_msgs.msg import String, Int16
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 from sift_finder import sift_finder
+# from yolo import yolo_detect
 
 import cv2
 
@@ -22,6 +23,7 @@ class ToolPicker():
         self.coordinates_pub = rospy.Publisher("/coordinates_cmd", String, queue_size=10)
         self.joints_pub = rospy.Publisher("/joints_cmd", String, queue_size=10)
         self.say_pub = rospy.Publisher("/edwin_speech_cmd", String, queue_size=10)
+        self.grip_pub = rospy.Publisher("/gripper", Int16, queue_size=10)
         self.status_sub = rospy.Subscriber("/arm_status", String, self.status_callback)
         self.bridge = CvBridge()
 
@@ -46,10 +48,7 @@ class ToolPicker():
         # Wrench: 621.14, 258.69, -182.75, 1.5584, -3.0017, 0.4328
         # Piler: 691.87, 256.99, -176.88, 1.9490, -2.7767, 0.5292
 
-        # z location will be hardcoded for each tool
-        # TODO: calibrate offset and Z position with new mounts
-        self.z_dict = {'Clamp':0.5, 'Cutter':0.5, 'Screwdriver':0.5, 'Wrench':0.5, 'Scissors':0.5, 'Piler':0.5}
-        self.xy_offset = {'Clamp':(0,0), 'Cutter':(0,0), 'Screwdriver':(0,0), 'Wrench':(0,0),'Scissors':(0,0),'Piler':(0,0)}
+        self.pickup_list = [(0.75, 0.29), (0.65, 0.29), (0.56, 0.29), (0.56, -0.02), (0.66, -0.02)]
 
     def command_callback(self, data):
         self.cmd = data.data
@@ -75,7 +74,7 @@ class ToolPicker():
         print("Sending: ", msg)
         self.joints_pub.publish(msg)
         statement = "Hello! I am here to help. What tool do you want me to pick up?"
-        self.say_pub.publish(statement)
+        self.say_pub.publish(statement)self.z_dict[self.cmd]
         time.sleep(1)
 
     def find_tool(self, tool_name):
@@ -95,6 +94,7 @@ class ToolPicker():
             self.say_pub.publish(statement)
             print(statement)
         else:
+            self.grip_pub.publish(0)
             self.pick_up_tool(coordinate_list)
             statement = "Ha I found your tool! Wanna try another one?"
             self.say_pub.publish(statement)
@@ -109,34 +109,57 @@ class ToolPicker():
         # frame size 480, 640
         robot_x = 0.75 - coordinate_list[1] / 480 * (0.75 - 0.45)
         robot_y = 0.28 - coordinate_list[0] / 640 * (0.28 + 0.1)
-        robot_z = self.z_dict[self.cmd]
-        msg = str(robot_x) + ' ' + str(robot_y) + ' ' + str(robot_z)
+        up_z = 0.35
+        down_z = 0.2
+
+        min_dist = 1000
+        min_point = 0
+        for i in len(pickup_list):
+            dist = (pickup_list[i][0] - robot_x)**2 + (pickup_list[i][1]-robot_y)**2
+            if dist < min_dist:
+                min_point = i
+                min_dist = dist
+
+        pickup_x = pickup_list[min_point][0]
+        pickup_y = pickup_list[min_point][1]
+        msg = str(pickup_x) + ' ' + str(pickup_y) + ' ' + str(up_z)
         print('Sending:' + msg)
         self.coordinates_pub.publish(msg)
-        time.sleep(2)
-        # # TODO: jaw actuation
-        #
+        time.sleep(3)
+
+        msg = str(pickup_x) + ' ' + str(pickup_y) + ' ' + str(down_z)
+        print('Sending:' + msg)
+        self.coordinates_pub.publish(msg)
+        time.sleep(3)
+
+        # 1 for grip; 0 for release
+        self.grip_pub.publish(1)
+
         # # Return to welcome pose after finishing
         msg = 'tp_welcome'
         self.joints_pub.publish(msg)
+        time.sleep(2)
+
+        self.grip_pub.publish(0)
+        time.sleep(2)
+        self.grip_pub.publish(1)
         time.sleep(1)
 
     def run(self):
         print("Tool picker engine running")
         while not rospy.is_shutdown():
-            # wait for user to imput command
-            while self.cmd == "":
-                pass
-            if self.cmd == "start":
-                self.welcome_player()
+            try:
+                # wait for user to imput command
+                if self.cmd == "start":
+                    self.welcome_player()
+                    time.sleep(1)
+                elif self.cmd != "":
+                    self.find_tool(self.cmd)
+                    time.sleep(2)
 
-            while self.cmd == "start" or self.cmd == "":
-                pass
-
-            self.find_tool(self.cmd)
-            time.sleep(2)
-
-            self.cmd = ""
+                self.cmd = ""
+            except KeyboardInterrupt:
+                break
 
 if __name__ == "__main__":
     tp = ToolPicker()

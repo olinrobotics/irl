@@ -53,7 +53,7 @@ class ToolPickerGui(QWidget):
 
 		# Create the form layout that manages the labeled controls
 		self.form_layout = QFormLayout()
-		self.tool_list = ['Clamp','Cutter', 'Screwdriver','Wrench','Scissors','Piler']
+		self.tool_list = ['Clamp','Cutter','Wrench','Scissors','Piler']
 
 		# Create and fill the combo box to choose the simon_user
 		self.tool_box = QComboBox(self)
