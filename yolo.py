@@ -111,72 +111,44 @@ def detect(net, meta, image, thresh=.5, hier_thresh=.5, nms=.45):
     res = []
     for j in range(num):
         for i in range(meta.classes):
-            if probs[j][i] > 0:
+            if probs[j][i] > 0.8:
                 res.append((meta.names[i], probs[j][i], (boxes[j].x, boxes[j].y, boxes[j].w, boxes[j].h)))
     res = sorted(res, key=lambda x: -x[1])
     free_image(im)
     free_ptrs(cast(probs, POINTER(c_void_p)), num)
-    return res[0]
+    return res
 
-def detect_img(fp):
+def detect_img(fp, passed_frame,passed_cls):
     net = load_net((fp + "cfg/yolo.cfg"), (fp + "backup/yolo_200.weights"), 0)
     meta = load_meta(fp + "/data/toolpick.data")
 
-    cap = cv2.VideoCapture(0)
-    temp = True
-    flag = 0 #Number of current frames- Keeping track of runtime
-    maxruntime = 10000 #frames- Max runtime hard cutoff
     foundobj = False
 
-    while(foundobj == False):
-        #Capture frame-by-frame
-        ret, frame = cap.read()
-        if not ret:
-            print ret
-            print frame
-            temp == False
-
-        #Display the resulting frame
-
-        # if foundobj is True:
-        #     cv2.rectangle(frame, (int(math.floor(x)), int(math.floor(y))), (int(math.floor(x+w)), int(math.floor(x+h))), (255,0,0), 5)
-        #     cv2.rectangle(frame, (0, 0), (5, 5), (255,0,0), 5)
-        # tic = time.time()
-        # if foundobj is True:
-        #     if tic > (toc + 26):
-        #         foundobj = False
-        # cv2.imshow('frame', frame)
-
-        # if foundobj is False and flag > 50:
-        if flag > 50:
-            print("Detecting...")
-            tic = time.time()
-            cv2.imwrite( fp + "temp.jpg", frame );
-            # object_name, confidence, (x,y,w,h) = detect(net, meta, (fp + "data/34.jpg"))
-            object_name, confidence, (x,y,w,h) = detect(net, meta, fp + "temp.jpg")
+    print("Detecting...")
+    tic = time.time()
+    cv2.imwrite( fp + "temp.jpg", passed_frame );
+    # object_name, confidence, (x,y,w,h) = detect(net, meta, (fp + "data/34.jpg"))
+    detected_object_list = detect(net, meta, fp + "temp.jpg")
+    for obj in detected_object_list:
+        object_name, confidence, (x,y,w,h) = detected_object_list[obj]
+        if object_name is passed_cls:
+            cv2.rectangle(passed_frame,(int(floor(x)),int(floor(y))),(int(floor(x+w)),int(floor(y+h))),(0,255,0),3)
+            cv2.imwrite( fp + "temp.jpg", passed_frame );
+            foundobj = True
             toc = time.time()
             elapsed = (toc-tic)
+
             print('Took %.2f seconds' % elapsed)
-            foundobj = True
-            # print x, y, w, h
-            return (x+(w/2), y+(h/2))
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-        if flag > maxruntime:
-            temp = cap.release() #if frame read correctly == True
-            cv2.destroyAllWindows()
-
-        flag = flag + 1
-
-    #release the capture
-    temp = cap.release() #if frame read correctly == True
-    cv2.destroyAllWindows()
+            return foundobj, (x+(w/2), y+(h/2))
+    return foundobj, (0, 0)
     
 
-def main():
+def yolo_detect():
     filepath = "/home/lzuehsow/catkin_ws/src/darknet/"
-    (x_coord, y_coord) = detect_img(filepath)
+    foundobj, (x_coord, y_coord) = detect_img(filepath)
+    #Input: Camera frame, class (str)
+    #Output: Flag (found/notfound), tuple (x,y)
 
 if __name__ == "__main__":
 
-    main()
+    yolo_detect()
