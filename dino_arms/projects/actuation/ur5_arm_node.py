@@ -217,7 +217,7 @@ class Arm():
         self.gestures["c4_start"] = [Route([.20, -77.09, -5.45, -124.09, 83.41, .32], 2), Route([.20, -77.09, -5.45, -124.09, 96.29, 30], .7),
                                     Route([.20, -77.09, -5.45, -124.09, 70.16, -30], .7), Route([.20, -77.09, -5.45, -124.09, 83.41, .32], 1),
                                     Route([.21, -62.29, -115.70, -10.69, 85.97, 0], 1.5)]
-        self.gestures["c4_home"] = [Route([0, -118.02, -149.12, 86.50, 86.35, 0], 2.5)]
+        self.gestures["c4_home"] = [Route([99.73, -21.24, -161.23, -1.74, 78.85, 0], 3)]
         self.gestures["c4_end"] = [Route([0, -68.93, -102.56, -7.04, 86.35, 0], 1.5), Route([0, -68.93, -106.58, -14.47, 86.35, 0], .5),
                                     Route([0, -67.81, -98.65, .04, 86.35, 0], .5), Route([0, -68.93, -106.58, -14.47, 86.35, 0], .5),
                                     Route([0, -67.81, -98.65, .04, 86.35, 0], .5), Route([0, -90.76, -84.70, -4, 86.35, -20.33], .7)]
@@ -229,20 +229,20 @@ class Arm():
                                     Route([-15, -90, -5, -110, 90, -20], .7), Route([15, -90, -5, -110, 90, 20], .7),
                                     Route([0, -90, -5, -110, 90, 0], 1), Route([0, -115, -95, 46, 90, 0], 2),
                                     Route([0, -115, -95, 46, 90, 15], 1),Route([0, -115, -95, 46, 90, 30], 1)]
-        self.gestures["c4_loss"] = [Route([0, -70, -20, -125, 90, 0], 2), Route(self.HOME, 1.5), Route([0,-91, -98, -40, 88, 0], 3),
+        self.gestures["c4_loss"] = [Route([90, -70, -20, -125, 90, 0], 2), Route(self.HOME, 1.5), Route([0,-91, -98, -40, 88, 0], 3),
                                     Route(self.HOME, 2), Route([0, -106, -160, 60, 90, 0], 5),
                                     Route([-154, -103.74, -140, 38, 90, 0], 3), Route([-154, -103.74, -121.83, 64.54, 90, 0], 2),
                                     Route([-154, -109, -132.70, 27.76, 90, 0], 1), Route([0, -91, -160, 67.96, 90, 0], 3)]
-        self.gestures["c4_load_token"] = [Route([102.55, -21.88, -139.94, -5.28, 96.65, 0], 2)]
+        self.gestures["c4_load_token"] = [Route([120.55, -21.88, -139.94, -5.28, 96.65, 0], 2)]
 
-        # TODO, requires fine-tuning, which requires a table
-        self.gestures["c4_move_1"] = [Route([0, -103, -62.62, -96.06, 90, 0], 2)]
-        self.gestures["c4_move_2"] = [Route([0, 0, 0, 0, 0, 0], 0)]
-        self.gestures["c4_move_3"] = [Route([0, 0, 0, 0, 0, 0], 0)]
-        self.gestures["c4_move_4"] = [Route([0, 0, 0, 0, 0, 0], 0)]
-        self.gestures["c4_move_5"] = [Route([0, 0, 0, 0, 0, 0], 0)]
-        self.gestures["c4_move_6"] = [Route([0, 0, 0, 0, 0, 0], 0)]
-        self.gestures["c4_move_7"] = [Route([0, 0, 0, 0, 0, 0], 0)]
+        # column movements
+        self.gestures["c4_move_1"] = [Route([95.87, -129.31, -5.41, -103.53, 94.48, 0], 3)]
+        self.gestures["c4_move_2"] = [Route([92.63, -129.01, -5.41, -101.52, 94.14, 0], 3)]
+        self.gestures["c4_move_3"] = [Route([89.27, -129.34, -5.16, -101.00, 94.13, 0], 3)]
+        self.gestures["c4_move_4"] = [Route([85.98, -129.48, -5.43, -98.69, 92.92, 0], 3)]
+        self.gestures["c4_move_5"] = [Route([85.50, -129.93, -5.43, -99.00, 84.06, 0], 3)]
+        self.gestures["c4_move_6"] = [Route([84.96, -129.56, -5.42, -96.52, 75.68, 0], 3)]
+        self.gestures["c4_move_7"] = [Route([81.08, -130.39, -5.39, -95.13, 76.69, 0], 3)]
 
         ### IDLE GESTURES
         self.gestures["idle_stare_1"] = [Route([-40.20, -88.37, -23.93, -66.92, 76.21, 0], 2)]
@@ -401,8 +401,8 @@ class Arm():
                 # self.run_gesture("wave")
                 # self.run_gesture("dab")
                 # self.run_gesture("idle_butt_wiggle")
-                self.run_gesture("c4_home")
-                self.run_gesture("c4_load_token")
+                # self.run_gesture("c4_home")
+                self.run_gesture("c4_move_3")
                 # self.run_gesture("c4_move_1")
 
                 # self.move_to_point([.015, -.461, .434, .195, 3.26, -0.056])
@@ -433,4 +433,4 @@ if __name__ == '__main__':
     # a.test_run()
     # a.coordinator.close()
     # a.home_robot()
-    a.coordinator.close()
+    # a.coordinator.close()

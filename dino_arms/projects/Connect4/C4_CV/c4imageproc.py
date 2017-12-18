@@ -1,6 +1,7 @@
+#!/usr/bin/env python
+
 '''
 Purpose: to process a board of Connect4
-Authors: Hannah Kolano and Kevin Zhang
 Contact: hannah.kolano@students.olin.edu
 Last edited: 12/7/17
 '''
@@ -24,7 +25,7 @@ class DetectConnectFour:
         self.ready = 0
         self.numcols = numcols
         self.numrows = numrows
-        self.width, self.height = numcols*200, numrows*200
+        self.width, self.height = numcols*100, numrows*100
 
         rospy.init_node('boardDetector')
         self.pub_move = rospy.Publisher('opponent_move', Int16, queue_size=10)
@@ -34,7 +35,7 @@ class DetectConnectFour:
         self.bridge = CvBridge() # converts image types to use with OpenCV
 
 
-        print "initialized"
+        print "C4 CV Initialized"
 
     def ready_status(self, data):
         self.ready = data.data
@@ -57,24 +58,26 @@ class DetectConnectFour:
 
         while True:
             '''check if Draco is ready to look'''
-            self.ready = raw_input('Ready?')
+            # self.ready = raw_input('Ready?')
 
-            if self.ready == 'yes':
+            if self.ready == 1:
+                print "Searching..."
                 frame = self.curr_frame
                 #picture = raw_input('Choose a picture')
                 #frame = cv2.imread(picture)
-                frame = cv2.resize(frame,None,fx=1, fy=1, interpolation = cv2.INTER_AREA)
+                #frame = cv2.resize(frame,None,fx=1, fy=1, interpolation = cv2.INTER_AREA)
 
                 '''parse for black'''
                 viewsilhouette = self.extract_black(frame)
 
                 '''find the major contour, reduce the field of view'''
-                contours = self.draw_contours(viewsilhouette, frame)#, showme = 1)
+                contours = self.draw_contours(viewsilhouette, frame)# showme = 1)
                 x, y, w, h = self.draw_basic_boxes(contours, frame)# showme = 1)
                 board = self.transform_to_grid(frame, np.float32([[x,y],[x,y+h],[x+w,y+h],[x+w,y]]))
 
                 '''warp transform to actual grid'''
-                actual_corners = self.detect_corners(board)#, showme = 1)
+                if state == 'empty':
+                    actual_corners = self.detect_corners(board)#, showme = 1)
                 board = self.transform_to_grid(board, actual_corners)
                 #self.show_image(board, 'after grid')
                 current_layout = self.determine_layout(board)
@@ -103,14 +106,14 @@ class DetectConnectFour:
                             if new_color == playerColor:
                                 print('changed column', changed_column)
                                 self.pub_move.publish(changed_column)
-                                self.ready = 'no'
                             first_ball = False
                     except AttributeError as err:
                         print 'I need an empty layout first!'
                         print 'Here is what I got instead:', current_layout
 
+                self.ready = 0
                 self.layout = current_layout
-                time.sleep(1)
+                # time.sleep(1)
 
     def which_column_changed(self, current_layout, playerColor):
         '''DOCSTRING:
@@ -149,7 +152,7 @@ class DetectConnectFour:
         if showme !=0:
             cv2.rectangle(frame,(x-20,y-20),(x+w+20,y+h+20),(0,0,255),2)
             self.show_image(frame, 'biggest_box')
-        return x-20, y-20, w+40, h+40
+        return x-20, y-20, w+40, h+30
 
     def draw_contours(self, thresholdedpic, origpic, showme = 0):
         '''DOCSTRING:
@@ -170,12 +173,12 @@ class DetectConnectFour:
         Gets all the black from a picture, returns black and white image
         '''
         # convert BGR to HSV
-        frame = cv2.blur(frame,(11, 11))
+        frame = cv2.blur(frame,(19, 19))
         ret, frame2 = cv2.threshold(frame, 50, 255, cv2.THRESH_BINARY_INV)
         hsv = cv2.cvtColor(frame2, cv2.COLOR_BGR2HSV)
 
         # define range of blue color in HSV
-        lower_ref = np.array([0, 0, 175])
+        lower_ref = np.array([0, 0, 100])
         upper_ref = np.array([179, 255, 255])
 
         # Threshold the SSV image to get only blue colors
@@ -212,7 +215,7 @@ class DetectConnectFour:
         for y in range(self.numcols):
             for x in range(self.numrows):
                 #define the area that space occupies in the picture
-                this_tile = board[row*200:(row+1)*200, col*200:(col+1)*200]
+                this_tile = board[row*100:(row+1)*100, col*100:(col+1)*100]
                 color = self.find_ball_color(this_tile)#,  showme = 1)
                 layout[col][row] = color
                 row += 1
@@ -232,7 +235,7 @@ class DetectConnectFour:
         #threshold upper and lower bounds of colors in hsv
         lower_orange = np.array([5, 50, 100])
         upper_orange = np.array([15, 255, 255])
-        lower_blue = np.array([95, 128, 90])
+        lower_blue = np.array([90, 50, 50])
         upper_blue = np.array([105, 255, 255])
 
         #Create mask for orange threshold and determine if there are any
@@ -242,7 +245,7 @@ class DetectConnectFour:
         Oresgrey = cv2.cvtColor(Ores, cv2.COLOR_BGR2GRAY)
         __, contoursO, __ = cv2.findContours(Oresgrey,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
         for cnt in contoursO:
-            if cv2.contourArea(cnt) > 750:
+            if cv2.contourArea(cnt) > 2000:
                 color = 'Orange'
 
         #Same for blue
@@ -251,7 +254,7 @@ class DetectConnectFour:
         Bresgrey = cv2.cvtColor(Bres, cv2.COLOR_BGR2GRAY)
         __, contoursB, __ = cv2.findContours(Bresgrey,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
         for cnt in contoursB:
-            if cv2.contourArea(cnt) > 750:
+            if cv2.contourArea(cnt) > 2000:
                 color = 'Blue'
 
         #Displays the square and what color it thinks it found
@@ -286,7 +289,7 @@ class DetectConnectFour:
         boardht, boardwd, __ = board.shape
 
         #Corner detection (#possible points, quality, smallest distance apart)
-        corners = cv2.goodFeaturesToTrack(gray, 75, .01, 25)
+        corners = cv2.goodFeaturesToTrack(gray, 300, .01, 12)
         corners = np.int0(corners)
         directions = ['nw', 'sw', 'se', 'ne']
         closest_points = dict()
@@ -307,7 +310,7 @@ class DetectConnectFour:
                 rx = x
                 quadrant = quadrant + 'w'
             elif x > boardwd-100:
-                rx = boardht-x
+                rx = boardwd-x
                 quadrant = quadrant + 'e'
             #if it is close to 2 edges, it might be the corner of the board
             #Finds the closest corner to the corners of the image
@@ -339,5 +342,5 @@ class DetectConnectFour:
             self.show_image(board, 'corners')
 
 if __name__ =='__main__':
-    detect = DetectConnectFour(3, 2)
+    detect = DetectConnectFour(7, 6)
     detect.run()
