@@ -18,13 +18,15 @@ class ArmBehaviors(object):
     def __init__(self):
         rospy.init_node('behavior_arm', anonymous=True)
         rospy.Subscriber('/behaviors_cmd', String, self.behavior_callback, queue_size=10)
+        rospy.Subscriber('/route_arm_status', String, self.route_status_callback, queue_size=10)
         self.arm_status = rospy.Publisher('/arm_status', String, queue_size=10)
         self.behaviors = {}
-        self.moving = False
+        self.status = True
         self.serv_prob = False
 
         self.create_behaviors()
-        print "Starting behavior node"
+        print "Behavior node initialized"
+
 
     def request_cmd(self, cmd):
         rospy.wait_for_service('arm_cmd', timeout=15)
@@ -38,8 +40,19 @@ class ArmBehaviors(object):
 
         except rospy.ServiceException, e:
             print "Service call failed: %s"%e
-            self.arm_status.publish('error')
-            self.serv_prob = True
+            # self.arm_status.publish('error')
+            # self.serv_prob = True
+
+
+    def route_status_callback(self, data):
+        """
+        callback from routes for coordination on passing messages
+        """
+
+        if data.data == "busy":
+            self.status = False
+        else:
+            self.status = True
 
 
     def behavior_callback(self, cmdin):
@@ -54,8 +67,6 @@ class ArmBehaviors(object):
         elif cmd in list(self.behaviors.keys()):
             cmd_list = self.behaviors[cmd].split(", ")
             for elem in cmd_list:
-                while self.moving == True:
-                    continue
                 if "R_" in elem:
                     msg = "data: run_route:: " + str(elem)
                 elif "SPD" in elem:
@@ -85,17 +96,16 @@ class ArmBehaviors(object):
 
                 print "Publishing: ", msg
                 self.request_cmd(msg)
+                while not self.status:
+                    pass
         if not self.serv_prob:
             self.arm_status.publish('free')
-
-
 
 
     def create_behaviors(self):
 
         ###################               General actions           #####################
 
-        self.behaviors["happy_butt_wiggle"] = "R_curl_up, WA: 4500, WA: 5400, WA: 4500, WA: 5400, WA: 4500, WA: 5400, SL: .5, R_look"
         self.behaviors["curiosity"] =  "R_curious, WR: 800, H: 0"
         self.behaviors["greet"] = "R_greet1, WR:1500, H: 100, H: 0"
         self.behaviors["nudge"] = "R_look, H:0, H:-200, R_look"
@@ -104,11 +114,11 @@ class ArmBehaviors(object):
         self.behaviors["angry"] = "SPD: 200, R_stare, SPD: 1000"
         self.behaviors["sleep"] = "R_sleep"
         self.behaviors["laugh"] = "SPD: 700, R_laugh, SPD: 1000"
-        self.behaviors["idle_stare_1"] = "R_stare_2"
-        self.behaviors["idle_stare_2"] = "R_stare"
-        self.behaviors["idle_sniff"] = "SPD: 8000, R_sniff"
-        self.behaviors["idle_sneeze"] = "SPD: 500, R_sneeze"
-        self.behaviors["idle_butt_wiggle"] = "R_scrunch_up"
+        self.behaviors["idle_butt_wiggle"] = "R_curl_up, WA: 4500, WA: 5400, WA: 4500, WA: 5400, WA: 4500, WA: 5400"
+        self.behaviors["idle_stare_1"] = "R_stare"
+        self.behaviors["idle_stare_2"] = "R_stare_yonder"
+        self.behaviors["idle_sniff"] = "R_sniff"
+        self.behaviors["idle_sneeze"] = "R_sneeze"
         self.behaviors["idle_head_bobble"] = "R_head_bobble"
         self.behaviors["idle_wander"] = "R_squirrel"
         self.behaviors["idle_sleep"] = "R_sleep, WA: 8000, WA: 7000, WA: 8000, WA: 7000"
@@ -117,6 +127,7 @@ class ArmBehaviors(object):
         self.behaviors["pout"] = "R_sad_turn, WA: -1000, WA: 1000"
         self.behaviors["impatient"] = "WA: 250, WA: -250, WA: 250, WA: -250, WA: 0, SPD: 700, R_impatient, SL: 1, R_annoyed_nudge"
         self.behaviors["bored"] = "SPD: 400, R_bored, R_stare"
+        self.behaviors["look"] = "R_look"
 
         ###################               Simon Says actions           #####################
         self.behaviors['touch_head'] = "SPD: 600, R_touch_head "
