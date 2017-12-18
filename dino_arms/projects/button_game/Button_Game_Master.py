@@ -25,10 +25,11 @@ class SimonSays():
         self.sequence = np.zeros(self.sequence_length);
         print(self.sequence)
         #current element of the simon says sequence
-        self.current_number = 4;
+        self.current_number = 0
         #current color press detected by edwin.
         # -1 is no color
         self.current_color = -1
+        self.looking = False
 
         #Current state of the game
         #0 = in progress
@@ -49,15 +50,15 @@ class SimonSays():
         #self.publish(go_home)
 
         #actually returns edwin to the home position
-        self.red_coor_high = "move_to:: -1500, 6500, 3200, 0"
-        self.red_coor_low = "move_to:: -1500, 6500, -1100, 0"
-        self.yellow_coor_high = "move_to:: 1900, 6500, 3200, 0"
-        self.yellow_coor_low = "move_to:: 1900, 6500, -1100, 0"
-        self.green_coor_high = "move_to:: -1500, 3200, 3200, 0"
-        self.green_coor_low = "move_to:: -1500, 3200, -1100, 0"
-        self.blue_coor_high = "move_to:: 1900, 3200, 3200, 0"
-        self.blue_coor_low = "move_to:: 1900, 3200, -1100, 21"
-        self.home = "move_to:: 0, 4850, 3200, 0"
+        self.red_coor_high = "move_to:: 1000, 3600, 1100, 0"
+        self.red_coor_low = "move_to:: 1000, 3600, -1100, 0"
+        #self.yellow_coor_high = "move_to:: 1900, 6500, 3200, 0"
+        #self.yellow_coor_low = "move_to:: 1900, 6500, -1100, 0"
+        self.green_coor_high = "move_to:: -1100, 3600, 1100, 0"
+        self.green_coor_low = "move_to:: -1100, 3600, -1100, 0"
+        self.blue_coor_high = "move_to:: 0, 6500, 1100, 0"
+        self.blue_coor_low = "move_to:: 0, 6500, -1100, 21"
+        self.home = "move_to:: 0, 4850, 1100, 0"
 
 
         #generates the simon says sequence
@@ -66,8 +67,8 @@ class SimonSays():
         print(self.current_color)
         self.request_cmd(self.home)
         self.check_completion()
-        self.request_cmd("rotate_hand:: 3050")
-        self.request_cmd("rotate_wrist:: 3650")
+        self.request_cmd("rotate_hand:: 2000")
+        self.request_cmd("rotate_wrist:: 2600")
         time.sleep(3)
         self.edwin_turn(self.sequence, self.current_number)
 
@@ -125,13 +126,12 @@ class SimonSays():
         to play with the user.
         """
         for i in range(self.sequence_length):
-            color = random.randint(1, 4)
+            color = random.randint(1, 3)
             print(color)
             array[i] = color
             #red = 1
-            #yellow = 2
-            #green = 3
-            #blue = 4
+            #green = 2
+            #blue = 3
         return array
 
     def push_sub(self, data):
@@ -139,15 +139,14 @@ class SimonSays():
         This method detects wheter a button has been pressed. If it has, then
         it returns the color of the button pressed.
         """
-        print(data.data)
-        if data.data == "Red on":
-            self.current_color = 1
-        elif data.data == "Yellow on":
-            self.current_color = 2
-        elif data.data == "Green on":
-            self.current_color =  3
-        elif data.data == "Blue on":
-            self.current_color = 4
+        if self.looking:
+            print(data.data)
+            if data.data == "Red on":
+                self.current_color = 1
+            elif data.data == "Green on":
+                self.current_color =  2
+            elif data.data == "Blue on":
+                self.current_color = 3
         else:
             self.current_color = -1
 
@@ -157,12 +156,15 @@ class SimonSays():
         locate the buttons and press them in the right order the right number
         of times.
         """
+        print("edwin's turn!")
+        self.looking = False
+        self.current_color = -1
         #return home
         self.request_cmd(self.home)
         #Check to see if the player won
-        if (position == len(array)):
+        if (position + 1 == len(array)):
             self.game_state = 1
-            self.behavior_publish("praise")
+            self.behavior_publish.publish("praise")
             return None
 
         #cycle through the color array until the current position
@@ -171,39 +173,38 @@ class SimonSays():
                 self.request_cmd(self.red_coor_high)
                 self.request_cmd(self.red_coor_low)
             elif color == 2:
-                self.request_cmd(self.yellow_coor_high)
-                self.request_cmd(self.yellow_coor_low)
-            elif color == 3:
                 self.request_cmd(self.green_coor_high)
                 self.request_cmd(self.green_coor_low)
-            elif color == 4:
+            elif color == 3:
                 self.request_cmd(self.blue_coor_high)
                 self.request_cmd(self.blue_coor_low)
             time.sleep(1)
             self.request_cmd(self.home)
 
             #self.start_time = time.time()
-            #self.player_turn(array, position)
+        self.player_turn(array, position)
 
 
     def player_turn(self, array, position):
         """
         This method makes edwin watch the user's inputs to make sure they're valid
         """
-
-
+        print("player's turn!")
+        self.looking = True
         for color in array[:position]:
             #check to see that all buttons are in frame
             #elapsed_time = time.time()
             #while (elapsed_time - 10 < self.start_time)
             #wait until a button is pressed
             while (self.current_color == -1):
-                time.sleep(0.1)
+                time.sleep(0.01)
             #React angriy if the wrong button is pressed and end the game.
             if (self.current_color != color):
-                self.behavior_publish("angry")
+                self.behavior_publish.publish("angry")
                 self.game_state = 2
                 return None
+            time.sleep(0.5)
+            self.current_color = -1
                 #elapsed_time = time.time()
 
         #by now, the user must have pressed the correct button. add one to the
