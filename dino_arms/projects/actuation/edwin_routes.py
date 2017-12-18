@@ -18,7 +18,7 @@ class RouteCreator(object):
         rospy.init_node('route_creator', anonymous=True)
         # self.arm_pub = rospy.Publisher('/arm_cmd', String, queue_size=2)
         self.debug_pub = rospy.Publisher('/arm_debug', String, queue_size=1)
-        self.arm_status = rospy.Publisher('/arm_status', String, queue_size=10)
+        self.arm_status = rospy.Publisher('/route_arm_status', String, queue_size=10)
         rospy.Subscriber('/arm_debug', String, self.create_callback, queue_size=2)
         time.sleep(1)
 
@@ -47,10 +47,10 @@ class RouteCreator(object):
         self.route_dictionary["R_inhale"] = "R_inhale; 1000, -2700, 1000, 547, 300, 21"
         self.route_dictionary["R_sigh_up"] = "R_sigh_up; 1000, -3000, 1700, 209, 180, 21"
         self.route_dictionary["R_sigh_down"] = "R_sigh_down; 1000, -2500, 0, 940, 165, 21"
-        self.route_dictionary["R_curl_up"] = "R_curl_up; 1573, 1574, 1262, 760, 150, 21"
-        self.route_dictionary["R_stare_2"] = "R_stare_2; 1000, -2500, 6000, 80, 240, 21"
-        self.route_dictionary["R_sniff"] = "R_sniff; 1000, 4000, -700, 358, 240, 21, 1000, 4000, -700, 298, 270, 21, 1000, 4000, -700, 358, 240, 21, 1000, 4000, -700, 298, 270, 21,  1000, 4000, -700, 358, 240, 21, 4000, -100, -500, 346, 240, 21, 4000, -100, -500, 286, 240, 21, 4000, -100, -500, 346, 240, 21, 4000, -100, -500, 286, 240, 21, 4000, -100, -500, 346, 240, 21, 3600, 1770, -200, 346, 240, 21, 3600, 1770, -200, 286, 240, 21, 3600, 1770, -200, 346, 240, 21, 3600, 1770, -200, 286, 240, 21, 3600, 1770, -200, 346, 240, 21, 2564, 1974, 3013, 110, 225, 0"
-        self.route_dictionary["R_yawn"] = "R_yawn; 1100, 1100, 7000, -850, 210, 21, 2400, 2400, 1000, 602, 210, 21, 2400, 2400, 1000, 151, 240, 21, 2564, 1974, 3013, 110, 225, 0"
+        self.route_dictionary["R_curl_up"] = "R_curl_up; 1573, 1574, 1262, 69, 240, 21"
+        self.route_dictionary["R_stare_yonder"] = "R_stare_yonder; 1000, -2500, 6000, 80, 240, 21"
+        self.route_dictionary["R_sniff"] = "R_sniff; 1000, 4000, -700, 358, 240, 21, 4000, -100, -500, 346, 240, 21, 3600, 1770, -200, 346, 240, 21, 2564, 1974, 3013, 110, 225, 0"
+        self.route_dictionary["R_sneeze"] = "R_sneeze; 1100, 1100, 7000, -850, 210, 21, 2400, 2400, 1000, 602, 210, 21, 2400, 2400, 1000, 151, 240, 21, 2564, 1974, 3013, 110, 225, 0"
         self.route_dictionary["R_scrunch_up"] = "R_scrunch_up; 400, 3500, 300, 186, 240, 21"
         self.route_dictionary["R_head_bobble"] = "R_head_bobble; 3600, -100, 3500, 187, 240, 21, 4000, -100, 5000, 310, 240, 21, 4000, -100, 2000, 117, 240, 21, 4000, -100, 5000, 310, 240, 21, 4000, -100, 2000, 117, 240, 21, 3600, -100, 3500, 187, 240, 21, 2564, 1974, 3013, 110, 225, 0"
         self.route_dictionary["R_squirrel"] = "R_squirrel; 4500, -1200, 5000, -195, 240, 21, 3000, 4000, 3000, 82, 240, 21, 2564, 1974, 3013, 110, 225, 0"
@@ -59,7 +59,7 @@ class RouteCreator(object):
         self.route_dictionary["R_leaving"] = "R_leaving; -2689, 2612, 375, 27, 0, 18"
         self.route_dictionary["R_wakeup"] = "R_wakeup; 0, 3523, 5032, 1, 0, 0"
         self.route_dictionary["R_playful"] = "R_playful; 2027, 981, 98, -11, 0, 72"
-        self.route_dictionary["R_sleep"] = "R_sleep; 1450, 542, 1400, 645, 150, 0"
+        self.route_dictionary["R_sleep"] = "R_sleep; 1450, 542, 1400, 645, -150, 0"
         self.route_dictionary["R_look_at_draco"] = "R_look_at_draco; 0, 3000, 3000, 228, 238, 0, 0, 999, 6000, 302, 210, 0"
         self.route_dictionary["R_stare_3"] = "R_stare_3; 3500, 200, 4500, 108, 225, 0"
 
@@ -155,7 +155,7 @@ class RouteCreator(object):
             print "Sending message: ", msg
             self.request_cmd(msg)
 
-        time.sleep(1.5)
+        time.sleep(1)
         self.request_cmd("run_route:: " + route.split(";")[0])
 
         self.arm_status.publish("free")
