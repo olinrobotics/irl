@@ -5,8 +5,7 @@ import time
 import numpy as np
 from std_msgs.msg import String, Int16
 
-#TODO tons of imports
-from Connect4.baseline.connect4 import C4
+from baseline.connect4 import C4
 
 """
 Kevin Zhang
@@ -30,18 +29,16 @@ class The_Brain(object):
     def __init__(self):
         rospy.init_node("brainf17", anonymous=True)
         self.idle_command = rospy.Publisher("idle_state", String, queue_size=10)
-        self.games = {'c':'Connect4', 's':"Set", "t":"Tool Picker", "u":"Sudoku", "b":"Button Game"}
         self.connect = C4(ros_node=rospy)
 
 
-    def play_game(self, choice):
+    def play_game(self):
         """
         giant decision tree to choose a game to play
         """
 
-        if choice == "c":
-            # self.connect.run()
-            print "PLAYING CONNECT 4"
+        self.connect.run()
+        # print "PLAYING CONNECT 4"
 
 
     def run(self):
@@ -64,14 +61,13 @@ class The_Brain(object):
 
             while continue_game:
                 game = None
-                while game not in self.games:
-                    game = raw_input("\n\nWhen ready, please choose from the menu: \n"
-                        "c: Connect4   s: Set   b: ButtonGame   t: ToolPicker   u: Sudoku\n\n")
+                while game != 'c':
+                    game = raw_input("\n\nWhen ready, please start Connect 4 by entering c: \n")
                 self.idle_command.publish("stop")
-                print "PLAYING GAME", self.games[game]
-                self.play_game(game)
-                print "GAME OVER"+"\n"*5
-                c = raw_input("Want to play again now or go into idle? (y or n)\n"
+                print "PLAYING C4"
+                self.play_game()
+                print "GAME OVER"+"\n"
+                c = raw_input("Go into idle? (y or n)\n"
                             "To exit the brain, input 'end'\n\n")
                 continue_game = True if c == "y" else False
                 running = False if c == "end" else True
