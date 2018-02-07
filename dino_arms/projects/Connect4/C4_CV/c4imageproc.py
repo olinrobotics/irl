@@ -59,7 +59,6 @@ class DetectConnectFour:
         while True:
             '''check if Draco is ready to look'''
             # self.ready = raw_input('Ready?')
-
             if self.ready == 1:
                 print "Searching..."
                 frame = self.curr_frame
@@ -71,13 +70,13 @@ class DetectConnectFour:
                 viewsilhouette = self.extract_black(frame)
 
                 '''find the major contour, reduce the field of view'''
-                contours = self.draw_contours(viewsilhouette, frame)# showme = 1)
-                x, y, w, h = self.draw_basic_boxes(contours, frame)# showme = 1)
+                contours = self.draw_contours(viewsilhouette, frame)#, showme = 1)
+                x, y, w, h = self.draw_basic_boxes(contours, frame)#, showme = 1)
                 board = self.transform_to_grid(frame, np.float32([[x,y],[x,y+h],[x+w,y+h],[x+w,y]]))
 
                 '''warp transform to actual grid'''
                 if state == 'empty':
-                    actual_corners = self.detect_corners(board)#, showme = 1)
+                    actual_corners = self.detect_corners(board, showme = 1)
                 board = self.transform_to_grid(board, actual_corners)
                 #self.show_image(board, 'after grid')
                 current_layout = self.determine_layout(board)
@@ -114,6 +113,7 @@ class DetectConnectFour:
                 self.ready = 0
                 self.layout = current_layout
                 # time.sleep(1)
+
 
     def which_column_changed(self, current_layout, playerColor):
         '''DOCSTRING:
@@ -233,7 +233,7 @@ class DetectConnectFour:
         color = 'Nothing'
 
         #threshold upper and lower bounds of colors in hsv
-        lower_orange = np.array([5, 50, 100])
+        lower_orange = np.array([5, 50, 30])
         upper_orange = np.array([15, 255, 255])
         lower_blue = np.array([90, 50, 50])
         upper_blue = np.array([105, 255, 255])
@@ -245,7 +245,7 @@ class DetectConnectFour:
         Oresgrey = cv2.cvtColor(Ores, cv2.COLOR_BGR2GRAY)
         __, contoursO, __ = cv2.findContours(Oresgrey,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
         for cnt in contoursO:
-            if cv2.contourArea(cnt) > 2000:
+            if cv2.contourArea(cnt) > 1500:
                 color = 'Orange'
 
         #Same for blue
@@ -254,7 +254,7 @@ class DetectConnectFour:
         Bresgrey = cv2.cvtColor(Bres, cv2.COLOR_BGR2GRAY)
         __, contoursB, __ = cv2.findContours(Bresgrey,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
         for cnt in contoursB:
-            if cv2.contourArea(cnt) > 2000:
+            if cv2.contourArea(cnt) > 1500:
                 color = 'Blue'
 
         #Displays the square and what color it thinks it found
