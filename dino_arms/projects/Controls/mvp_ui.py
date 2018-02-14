@@ -3,6 +3,7 @@
 import numpy as np
 import time
 import sys
+import rospy
 import Tkinter as tk
 
 
@@ -22,6 +23,11 @@ class Cell(object):
         self.fill= False
         self.rect = None
 
+        self.xmin = self.abs * self.size
+        self.xmax = self.xmin + self.size
+        self.ymin = self.ord * self.size
+        self.ymax = self.ymin + self.size
+
     def switch(self):
         """ Switch if the cell is filled or not. """
         self.fill= not self.fill
@@ -31,12 +37,7 @@ class Cell(object):
         if self.canvas != None :
             fill = "#66d9ef" if self.fill else "#104494"
 
-            xmin = self.abs * self.size
-            xmax = xmin + self.size
-            ymin = self.ord * self.size
-            ymax = ymin + self.size
-
-            self.rect = self.canvas.create_rectangle(xmin, ymin, xmax, ymax, fill = fill, activefill="#a1e9f7")
+            self.rect = self.canvas.create_rectangle(self.xmin, self.ymin, self.xmax, self.ymax, fill = fill, activefill="#a1e9f7")
             self.canvas.tag_bind(self.rect, "<Button-1>", self.handleMouseClick)
 
     def handleMouseClick(self, event):
@@ -50,6 +51,7 @@ class UI(tk.Tk, object):
     def __init__(self):
         super(UI, self).__init__()
         self.title('Minecraft MVP')
+        self.publisher = rospy.Publisher("minimap", String, queue_size=10)
         self.build_env()
 
     def build_env(self):
@@ -77,7 +79,15 @@ class UI(tk.Tk, object):
         self.canvas.pack()
 
     def callback(self, event):
-        print "Button pressed"
+        print "Begin Processing"
+        cubes = []
+        for row in range(5):
+            for column in range(5):
+                if self.grid[row][column].fill:
+                    cubes.append(self.grid[row][column])
+
+
+
 
     def draw(self):
         for row in self.grid:
