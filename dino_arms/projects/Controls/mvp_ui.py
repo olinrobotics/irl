@@ -5,6 +5,7 @@ import time
 import sys
 import rospy
 import Tkinter as tk
+from edwin.msg import minimap, blocks
 
 
 UNIT = 100   # pixels
@@ -51,7 +52,7 @@ class UI(tk.Tk, object):
     def __init__(self):
         super(UI, self).__init__()
         self.title('Minecraft MVP')
-        self.publisher = rospy.Publisher("minimap", String, queue_size=10)
+        self.publisher = rospy.Publisher("minimap", minimap, queue_size=10)
         self.build_env()
 
     def build_env(self):
@@ -84,9 +85,7 @@ class UI(tk.Tk, object):
         for row in range(5):
             for column in range(5):
                 if self.grid[row][column].fill:
-                    cubes.append(self.grid[row][column])
-
-
+                    cubes.append((self.grid[row][column].xmin, self.grid[row][column].ymin))
 
 
     def draw(self):
