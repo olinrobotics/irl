@@ -21,7 +21,7 @@ Note: if scripts or arm ever time out or freeze up, then just restart scripts an
 the arm. It's just that there might be big load on the TCP/ROS connections.
 
 Before this, the UR driver needs to be brought online:
-rosrun ur_modern_driver ur5_bringup.launch robot_ip:=10.42.0.175 or 10.42.0.54
+roslaunch ur_modern_driver ur5_bringup.launch robot_ip:=10.42.0.175 or 10.42.0.54
 
 then make sure to run this code with _robot_ip:=10.42.0.175 or 10.42.0.54
 """
