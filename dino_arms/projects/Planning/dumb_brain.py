@@ -17,6 +17,7 @@ class Dumb_Brain(object):
         rospy.Subscriber("minimap", minimap, queue_size=10, callback=self.get_cubes)
 
         self.cubes = []
+        self.cube_numbers = []
 
     def get_cubes(self, data):
         self.cubes = data.structure
@@ -24,14 +25,16 @@ class Dumb_Brain(object):
         print "Here are the cubes I have, in no particular order:"
         for cube in self.cubes:
             print "Cube %s - x: %d, y: %d" %(cube.name, cube.x, cube.y)
+            self.cube_numbers.append(int(cube.name))
+
+        print self.cube_numbers
 
 
-    # def init_ui(self):
-    #
-    #
+
     def run(self):
+        r = rospy.Rate(10)
         while not rospy.is_shutdown():
-            pass
+            r.sleep()
 
 
 
