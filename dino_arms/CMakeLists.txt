@@ -46,6 +46,8 @@ add_message_files(
 	red_button.msg
 	green_button.msg
 	all_buttons.msg
+	minimap.msg
+	blocks.msg
 
 )
 add_service_files(
