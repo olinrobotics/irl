@@ -120,6 +120,14 @@ class Arm():
         self.status_pub.publish("free")
 
 
+    def get_coordinates(self):
+        """
+        returns the current position of the arm in X, Y, Z, RX, RY, RZ
+        """
+
+        return self.coordinator.getl()
+
+
     def behaviors_callback(self, data):
         """
         callback for behaviors_cmd rostopic
