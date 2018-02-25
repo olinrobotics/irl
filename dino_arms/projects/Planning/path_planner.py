@@ -19,12 +19,7 @@ class PathPlanner():
         self.grip_pub = rospy.Publisher("/grip_cmd", String, queue_size=10)
 
         self.curr_model = [[0 for col in range(5)] for row in range(5)]
-        self.target_model = [[0 for col in range(5)] for row in range(5)]
         self.is_building = False
-
-        self.my_x = -1
-        self.my_y = -1
-        self.my_z = -1
 
         self.my_arm = Arm(rospy)
 
@@ -37,23 +32,47 @@ class PathPlanner():
     def model_callback(self,data):
         # parse the data to transform it to a np array
         # need to determine input format
-        self.target_model = data
+        self.curr_model = data
 
-    def coord_trans(self):
+    def pickup(self):
+        # pick up the cube from a predefined location
+        pass
+
+    def coord_trans(self, base):
+        # transform base coordinates to actual coordinate for the arm
         pass
 
     def place_block(self):
         # Go to universal starting position
         # Assume the block has already been picked up
         # pg_hover: 90, -90, 45, -45, -90, 0
-        msg = "tp_camera"
+        # coor : 110.29 -372.42 289.06
+        # turn the wrist 90 degrees if other blocks are in the way
+        if (self.cmd[1]>0 and self.curr_model[self.cmd[0],self.cmd[1]-1] >= self.cmd[2]) or (self.cmd[1]<4 and self.curr_model[self.cmd[0],self.cmd[1]+1] >= self.cmd[2]):
+            msg = "pg_hover_alternate"
+        else:
+            msg = "pg_hover"
         print("Sending: ", msg)
         self.joints_pub.publish(msg)
         time.sleep(3)
 
+        curr_location = my_arm.get_coordinates()
+        cmd_location = self.coord_trans(self.cmd)
+
         # go to x,y coordinates
+        msg = str(cmd_location[0]) + ' ' + str(cmd_location[1]) + ' ' + str(curr_location[2])
+        print('Sending:' + msg)
+        self.coordinates_pub.publish(msg)
 
         # go to z coordinate and place the block
+        msg = str(cmd_location[0]) + ' ' + str(cmd_location[1]) + ' ' + str(cmd_location[2])
+        print('Sending:' + msg)
+        self.coordinates_pub.publish(msg)
+
+        # update the current model2
+        self.curr_model[self.cmd[0],self.cmd[1]] += 1
+        self.model_pub.publish(str(self.curr_model))
+        self.is_building = False
 
     def run(self):
         print("Path planner running")

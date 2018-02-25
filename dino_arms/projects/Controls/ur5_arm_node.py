@@ -272,7 +272,8 @@ class Arm():
         self.gestures["tp_camera"] = [Route([20.02, -91.66, -80.65, -90.09, 90.64, 18.21],2)]
 
         ### Project Gemini Gestures
-        self.gestures["pg_hover"] = [Route([90, -90, 45, -45, -90, 0,],2)]
+        self.gestures["pg_hover"] = [Route([90, -90, 45, -45, -90, 0],2)]
+        self.gestures["pg_hover_alternate"] = [Route([90, -90, 45, -45, -90, 90],2)]
 
         ### IDLE GESTURES
         self.gestures["idle_stare_1"] = [Route([-40.20, -88.37, -23.93, -66.92, 76.21, 0], 2)]
