@@ -2,8 +2,10 @@
 
 import rospy
 import numpy as np
+import time
 
 from std_msgs.msg import String
+from ur5_arm_node import Arm
 
 class PathPlanner():
     def __init__(self):
@@ -19,6 +21,13 @@ class PathPlanner():
         self.curr_model = [[0 for col in range(5)] for row in range(5)]
         self.target_model = [[0 for col in range(5)] for row in range(5)]
         self.is_building = False
+
+        self.my_x = -1
+        self.my_y = -1
+        self.my_z = -1
+
+        self.my_arm = Arm(rospy)
+
         self.cmd = []
 
     def cmd_callback(self,data):
@@ -30,14 +39,21 @@ class PathPlanner():
         # need to determine input format
         self.target_model = data
 
-    def pickup(self):
-        pass
-
     def coord_trans(self):
         pass
 
     def place_block(self):
-        pass
+        # Go to universal starting position
+        # Assume the block has already been picked up
+        # pg_hover: 90, -90, 45, -45, -90, 0
+        msg = "tp_camera"
+        print("Sending: ", msg)
+        self.joints_pub.publish(msg)
+        time.sleep(3)
+
+        # go to x,y coordinates
+
+        # go to z coordinate and place the block
 
     def run(self):
         print("Path planner running")
