@@ -129,7 +129,7 @@ class Arm():
         return self.coordinator.getl()
 
 
-    def get_coordinates(self):
+    def get_joints(self):
         """
         returns the current position of the arm in joint angles
         """
