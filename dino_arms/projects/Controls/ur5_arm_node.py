@@ -34,9 +34,10 @@ def rad2pi(joint_states):
     return [(j*pi/180) for j in joint_states]
 
 class Arm():
-    def __init__(self):
+    def __init__(self,rospy_node=None):
         #Setting up the connection to UR5 server
-        rospy.init_node("arm_node", anonymous=True, disable_signals=True)
+        if rospy_node == None:
+            rospy.init_node("arm_node", anonymous=True, disable_signals=True)
         self.client = actionlib.SimpleActionClient('follow_joint_trajectory', FollowJointTrajectoryAction)
         print "Waiting for server..."
         self.client.wait_for_server()
@@ -269,6 +270,9 @@ class Arm():
         ### Tool Picker Game Gestures
         self.gestures["tp_welcome"] = [Route([-8.48, -59.81, -92.29, -27.75, 90.64, 1.46], 2)]
         self.gestures["tp_camera"] = [Route([20.02, -91.66, -80.65, -90.09, 90.64, 18.21],2)]
+
+        ### Project Gemini Gestures
+        self.gestures["pg_hover"] = [Route([90, -90, 45, -45, -90, 0,],2)]
 
         ### IDLE GESTURES
         self.gestures["idle_stare_1"] = [Route([-40.20, -88.37, -23.93, -66.92, 76.21, 0], 2)]
