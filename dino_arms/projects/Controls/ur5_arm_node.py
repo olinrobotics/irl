@@ -128,6 +128,14 @@ class Arm():
         return self.coordinator.getl()
 
 
+    def get_coordinates(self):
+        """
+        returns the current position of the arm in joint angles
+        """
+
+        return self.coordinator.getj()
+
+
     def behaviors_callback(self, data):
         """
         callback for behaviors_cmd rostopic
