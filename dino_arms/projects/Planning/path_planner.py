@@ -11,9 +11,9 @@ class PathPlanner():
     def __init__(self):
         rospy.init_node("path_planner", anonymous=True)
         # receive model and xyz location
-        self.model_sub = rospy.Subscriber("/model_cmd", String, self.model_callback,queue_size=1)
-        self.model_pub = rospy.Subscriber("/model_cmd", String, queue_size=1)
-        self.cmd_pub = rospy.Subscriber("/build_cmd", String, self.cmd_callback,queue_size=1)
+        self.model_pub = rospy.Publisher("/model_cmd", String, queue_size=1)
+        # build_cmd is rececived from the brain as a string of three numbers as the xyz coordinates of the block to be placed
+        self.cmd_sub = rospy.Subscriber("/build_cmd", String, self.cmd_callback,queue_size=1)
         self.coordinates_pub = rospy.Publisher("/coordinates_cmd", String, queue_size=10)
         self.joints_pub = rospy.Publisher("/joints_cmd", String, queue_size=10)
         self.grip_pub = rospy.Publisher("/grip_cmd", String, queue_size=10)
@@ -28,11 +28,6 @@ class PathPlanner():
     def cmd_callback(self,data):
         self.cmd = [int(i) for i in data.split(" ")]
         self.is_building = True
-
-    def model_callback(self,data):
-        # parse the data to transform it to a np array
-        # need to determine input format
-        self.curr_model = data
 
     def pickup(self):
         # pick up the cube from a predefined location
@@ -56,7 +51,7 @@ class PathPlanner():
         self.joints_pub.publish(msg)
         time.sleep(3)
 
-        curr_location = my_arm.get_coordinates()
+        curr_location = self.my_arm.get_coordinates()
         cmd_location = self.coord_trans(self.cmd)
 
         # go to x,y coordinates
@@ -69,6 +64,8 @@ class PathPlanner():
         print('Sending:' + msg)
         self.coordinates_pub.publish(msg)
 
+        # Publish to gripper to release
+
         # update the current model2
         self.curr_model[self.cmd[0],self.cmd[1]] += 1
         self.model_pub.publish(str(self.curr_model))
@@ -80,11 +77,12 @@ class PathPlanner():
             try:
                 # wait for user input
                 if self.is_building:
-                    self.pickup();
-                    self.place_block();
+                    self.pickup()
+                    self.place_block()
                     time.sleep(1)
             except KeyboardInterrupt:
                 break
 
 if __name__ == "__main__":
-    pp = PathPlanner();
+    pp = PathPlanner()
+    pp.run()
