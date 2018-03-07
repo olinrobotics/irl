@@ -34,10 +34,9 @@ def rad2pi(joint_states):
     return [(j*pi/180) for j in joint_states]
 
 class Arm():
-    def __init__(self,rospy_node=None):
+    def __init__(self):
         #Setting up the connection to UR5 server
-        if rospy_node == None:
-            rospy.init_node("arm_node", anonymous=True, disable_signals=True)
+        rospy.init_node("arm_node", anonymous=True, disable_signals=True)
         self.client = actionlib.SimpleActionClient('follow_joint_trajectory', FollowJointTrajectoryAction)
         print "Waiting for server..."
         self.client.wait_for_server()
@@ -64,6 +63,8 @@ class Arm():
         self.joints_sub = rospy.Subscriber("behaviors_cmd", String, self.behaviors_callback)
         self.coordinates_sub = rospy.Subscriber("coordinates_cmd", String, self.coordinates_callback)
         self.status_pub = rospy.Publisher("arm_status", String, queue_size=0)
+        self.query_sub = rospy.Subscriber("query_cmd", String, self.query_callback, queue_size=10)
+        self.info_pub = rospy.Publisher("arm_info", String, queue_size=10)
 
         #Setup TCP
         tcp_ip = rospy.get_param("~robot_ip")
@@ -83,6 +84,13 @@ class Arm():
         print pose
         self.move_to_point(pose)
 
+    def query_callback(self, data):
+        if data.data == "joints":
+            joints_msg = self.get_joints
+            self.info_pub.publish(str(joints_msg))
+        elif data.data == "coordinates":
+            coord_msg = self.get_coordinates
+            self.info_pub.publish(str(coord_msg))
 
     def move_to_point(self, pose):
         """
