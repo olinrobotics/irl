@@ -114,8 +114,8 @@ if __name__ == "__main__":
                       metrics=['accuracy'])
 
     for ind,(X,Y) in enumerate(batch_gen(batch_size, seq_len, max_no)):
-        print(X.shape)
-        print(Y.shape)
+        # print(X.shape)
+        # print(Y.shape)
         loss, acc = model.train_on_batch(X, Y)
         # check the model performance after each 100th iteration
         if ind % 100 == 0:
@@ -127,8 +127,10 @@ if __name__ == "__main__":
 
             if verbose:
                 y = model.predict(test, batch_size=1)
+                print(y.shape)
                 np_sorted = np.sort(testX)[0]
                 rnn_sorted = np.argmax(y, axis=2)[0]
+                print(rnn_sorted)
                 is_equal = np.array_equal(np_sorted, rnn_sorted)
                 if is_equal:
                     print(colors.ok+'-----CORRECTLY SORTED-----'+colors.close)
