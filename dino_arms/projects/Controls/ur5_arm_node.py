@@ -89,7 +89,7 @@ class Arm():
             joints_msg = self.get_joints
             self.info_pub.publish(str(joints_msg))
         elif data.data == "coordinates":
-            coord_msg = self.get_coordinates
+            coord_msg = self.coordinator.getl()
             self.info_pub.publish(str(coord_msg))
 
     def move_to_point(self, pose):

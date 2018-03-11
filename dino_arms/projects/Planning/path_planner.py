@@ -36,19 +36,20 @@ class PathPlanner():
 
     def cmd_callback(self,data):
         # cmd is from 0 to 4
-        self.cmd = [int(i) for i in data.data.split(" ")]
+        print(data.data.split(" "))
+        self.cmd = [int(math.trunc(float(i))) for i in data.data.split(" ")]
         print(self.cmd)
         self.is_building = True
 
     def info_callback(self,data):
         if self.query == "coordinates":
             arm_info = data.data[1:len(data.data)-1]
-            print(arm_info)
-            self.curr_location = [math.trunc(float(i)) for i in arm_info.split(',')]
+            print("Arm coordinates are: " + arm_info)
+            self.curr_location = [float(i) for i in arm_info.split(',')]
         elif self.query == "joints":
             arm_info = data.data[1:len(data.data)-1]
-            print(arm_info)
-            self.curr_angle = [math.trunc(float(i)) for i in arm_info.split(',')]
+            print("Joing angles are: " + arm_info)
+            self.curr_angle = [float(i) for i in arm_info.split(',')]
 
     def pickup(self):
         # TODO pick up the cube from a predefined location
@@ -58,12 +59,13 @@ class PathPlanner():
         # transform base coordinates to actual coordinate for the arm
         # Each cube has the dimension of 101.6mm. Assume the default location is 110.29, -372.42, 289.06 for now
         # zero z is -191.0
-        default = [110.3, -372.4, 289.0]
-        # TODO
-        # need to redefine zero of z
-        unit_length = 101.6
+        unit_length = 0.1016
+        default = [0.1103, -0.3718, 0.2890]
+        default[1] = default[1] + unit_length
+        # TODO redefine zero of z
+
         real_x = default[0] + (base[0]-2) * unit_length
-        real_y = default[1] + base[1] * unit_length
+        real_y = default[1] - base[1] * unit_length
         real_z = default[2] + base[2] * unit_length
         return [real_x, real_y, real_z]
 
@@ -87,22 +89,26 @@ class PathPlanner():
         self.query_pub.publish(self.query)
         time.sleep(3)
 
+        print("cmd is: " + str(self.cmd))
+        print(type(self.cmd[0]))
         cmd_location = self.coord_trans(self.cmd)
 
         # go to x,y coordinates
         msg = str(cmd_location[0]) + ' ' + str(cmd_location[1]) + ' ' + str(self.curr_location[2])
         print('Sending:' + msg)
         self.coordinates_pub.publish(msg)
+        time.sleep(5)
 
         # go to z coordinate and place the block
         msg = str(cmd_location[0]) + ' ' + str(cmd_location[1]) + ' ' + str(cmd_location[2])
         print('Sending:' + msg)
         self.coordinates_pub.publish(msg)
+        time.sleep(5)
 
         # TODO Publish to gripper to release
 
         # update the current model2
-        self.curr_model[self.cmd[0],self.cmd[1]] += 1
+        self.curr_model[self.cmd[0]][self.cmd[1]] += 1
         self.model_pub.publish(str(self.curr_model))
 
     def run(self):
