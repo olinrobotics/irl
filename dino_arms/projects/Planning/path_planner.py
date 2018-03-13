@@ -61,10 +61,10 @@ class PathPlanner():
         # zero z is -191.0
         unit_length = 0.1016
         default = [0.1103, -0.3718, 0.2890]
-        default[1] = default[1] + unit_length
+        default[1] = default[1] + 2 * unit_length
         # TODO redefine zero of z
 
-        real_x = default[0] + (base[0]-2) * unit_length
+        real_x = default[0] - (base[0]-2) * unit_length
         real_y = default[1] - base[1] * unit_length
         real_z = default[2] + base[2] * unit_length
         return [real_x, real_y, real_z]
@@ -87,23 +87,22 @@ class PathPlanner():
         # make query to ur5_arm_node and wait for callback
         self.query = "coordinates"
         self.query_pub.publish(self.query)
-        time.sleep(3)
+        time.sleep(2)
 
         print("cmd is: " + str(self.cmd))
-        print(type(self.cmd[0]))
         cmd_location = self.coord_trans(self.cmd)
 
         # go to x,y coordinates
         msg = str(cmd_location[0]) + ' ' + str(cmd_location[1]) + ' ' + str(self.curr_location[2])
         print('Sending:' + msg)
         self.coordinates_pub.publish(msg)
-        time.sleep(5)
+        time.sleep(3)
 
         # go to z coordinate and place the block
         msg = str(cmd_location[0]) + ' ' + str(cmd_location[1]) + ' ' + str(cmd_location[2])
         print('Sending:' + msg)
         self.coordinates_pub.publish(msg)
-        time.sleep(5)
+        time.sleep(3)
 
         # TODO Publish to gripper to release
 
