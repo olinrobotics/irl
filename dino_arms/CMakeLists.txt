@@ -48,6 +48,8 @@ add_message_files(
 	all_buttons.msg
 	minimap.msg
 	blocks.msg
+	cubes.msg
+	structure.msg
 
 )
 add_service_files(

@@ -12,8 +12,8 @@ timesteps = 15
 hidden_size = 128
 class_size = 15
 max_no = 100
+n_layers = 3
 batch_size = 32
-n_layers = 2
 training_steps = 100000
 display_step = 100
 
@@ -53,7 +53,9 @@ def batch_gen():
 
 
 def lstm_cell():
-    return tf.contrib.rnn.BasicLSTMCell(hidden_size, forget_bias=1.0)
+    cell = tf.contrib.rnn.BasicLSTMCell(hidden_size, forget_bias=1.0)
+    # cell = tf.contrib.rnn.DropoutWrapper(cell, output_keep_prob=0.6)
+    return cell
 
 def RNN(x, weights, bias):
     # print x.shape
@@ -65,6 +67,9 @@ def RNN(x, weights, bias):
     init_state = stacked_lstm.zero_state(batch_size, dtype=tf.float32)
 
     outputs, final_state = tf.nn.dynamic_rnn(cell=stacked_lstm, inputs=x, initial_state=init_state, dtype=tf.float32, time_major=False)
+    # outputs = tf.layers.dropout(outputs, rate=.4)
+    print "wut", outputs.shape
+    # outputs = tf.layers.dense(outputs, units=128, activation=tf.nn.softmax)
     outputs = tf.reshape(outputs, [-1, hidden_size])
     result = tf.matmul(outputs, weights["out"]) + bias["out"]
     result = tf.reshape(result, [-1, timesteps, input_size])
@@ -75,9 +80,9 @@ def RNN(x, weights, bias):
 
 logits = RNN(x_var, weights, bias)
 prediction = tf.nn.softmax(logits)
-print "logits", logits.shape
+# print "logits", logits.shape
 
-print "shape", y_var.shape
+# print "shape", y_var.shape
 cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=y_var))
 optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
 trainer = optimizer.minimize(cost)
