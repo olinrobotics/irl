@@ -4,15 +4,15 @@ import rospy
 import numpy as np
 from std_msgs.msg import String, Int16
 import time
-from irl.msg import cubes, structure
-from cube import Cube
+from irl.msg import Cube, Structure
+from cube import Digital_Cube
 
 
 
 class Environment(object):
 
     def __init__(self):
-        self.vCube = np.vectorize(Cube)
+        self.vCube = np.vectorize(Digital_Cube)
         self.env = np.empty((5,5,5), dtype=object)
         for i in range(5):
             for j in range(5):
@@ -22,7 +22,7 @@ class Environment(object):
         self.build_prob = 0.7
 
         rospy.init_node("environment")
-        self.pub = rospy.Publisher("digital_env", structure, queue_size=10)
+        self.pub = rospy.Publisher("digital_env", Structure, queue_size=10)
         rospy.Subscriber("digital_sig", String, self.create_a_struct)
 
     def reset(self):
@@ -59,8 +59,9 @@ class Environment(object):
                         self.env[i,j,k].set_connectivity(connections)
                         self.cubes.append(self.make_real_cube(self.env[i,j,k]))
 
+
     def make_real_cube(self, cube):
-        real_cube = cubes()
+        real_cube = Cube()
         real_cube.height = cube.height
         real_cube.connections = cube.connections
         real_cube.x = cube.x
@@ -71,9 +72,9 @@ class Environment(object):
 
     def send_struct(self):
         np.random.shuffle(self.cubes)
-        struct = structure()
+        struct = Structure()
         for block in self.cubes:
-            struct.structure.append(block)
+            struct.building.append(block)
 
         print "SENDING BUILDING BLOCKS"
         self.pub.publish(struct)
@@ -84,14 +85,17 @@ class Environment(object):
     def print_struct(self):
         column = 0
         printed_map = np.zeros((5,5))
+        total = 0
         for i in range(5):
             for j in range(5):
                 k = 0
                 while k < 5 and self.env[i,j,k].activated:
                     k += 1
+                    total += 1
                 printed_map[i,j] = k
 
         print "STRUCT AS SEEN FROM BIRD EYE VIEW"
+        print total, "total cubes in this structure\n"
         for  i in range(5):
             print np.array2string(printed_map[i,:])[1:-1]
 

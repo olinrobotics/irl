@@ -7,7 +7,7 @@ import time
 
 
 
-class Cube(object):
+class Digital_Cube(object):
 
     def __init__(self):
         self.height = 0
