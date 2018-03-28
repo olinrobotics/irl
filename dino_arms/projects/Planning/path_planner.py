@@ -33,12 +33,11 @@ class PathPlanner():
         self.query = ""
         self.curr_location = []
         self.curr_angle = []
+        self.push_flag = 0 # 0:don't need pushing; 1:push from back; 2:push from front; 3:push from left; 4: push from right
 
     def cmd_callback(self,data):
         # cmd is from 0 to 4
-        print(data.data.split(" "))
         self.cmd = [int(math.trunc(float(i))) for i in data.data.split(" ")]
-        print(self.cmd)
         self.is_building = True
 
     def info_callback(self,data):
@@ -69,6 +68,18 @@ class PathPlanner():
         real_z = default[2] + base[2] * unit_length
         return [real_x, real_y, real_z]
 
+    def front_blocked(self):
+        return self.cmd[1]<4 and self.curr_model[self.cmd[0]][self.cmd[1]+1] > self.cmd[2]
+
+    def back_blocked(self):
+        return self.cmd[1]>0 and self.curr_model[self.cmd[0]][self.cmd[1]-1] > self.cmd[2]
+
+    def left_blocked(self):
+        return self.cmd[0]>0 and self.curr_model[self.cmd[1]][self.cmd[0]-1] > self.cmd[2]
+
+    def right_blocked(self):
+        return self.cmd[0]<4 and self.curr_model[self.cmd[1]][self.cmd[0]+1] > self.cmd[2]
+
     def place_block(self):
         # Go to universal starting position
         # Assume the block has already been picked up
@@ -76,10 +87,26 @@ class PathPlanner():
         # coor : 110.29 -372.42 289.06
         # turn the wrist 90 degrees if other blocks are in the way
 
-        if (self.cmd[1]>0 and self.curr_model[self.cmd[0]][self.cmd[1]-1] >= self.cmd[2]) or (self.cmd[1]<4 and self.curr_model[self.cmd[0]][self.cmd[1]+1] >= self.cmd[2]):
-            msg = "pg_hover_alternate"
+        if self.back_blocked or self.front_blocked:
+            if self.left_blocked or self.right_blocked:
+                if !self.left_blocked:
+                    msg = "pg_hover_alternate"
+                    self.push_flag = 3
+                elif !self.right_blocked:
+                    msg = "pg_hover_alternate"
+                    self.push_flag = 4
+                elif !self.back_blocked:
+                    msg = "pg_hover"
+                    self.push_flag = 1
+                else:
+                    msg = "pg_hover"
+                    self.push_flag = 1
+            else:
+                msg = "pg_hover_alternate"
+                self.push_flag = 0
         else:
             msg = "pg_hover"
+            self.push_flag = 0
         print("Sending: ", msg)
         self.joints_pub.publish(msg)
         time.sleep(3)
@@ -91,6 +118,10 @@ class PathPlanner():
 
         print("cmd is: " + str(self.cmd))
         cmd_location = self.coord_trans(self.cmd)
+
+        self.pickup()
+
+        # TODO define how to push
 
         # go to x,y coordinates
         msg = str(cmd_location[0]) + ' ' + str(cmd_location[1]) + ' ' + str(self.curr_location[2])
