@@ -17,9 +17,9 @@ import random
 import time
 from std_msgs.msg import String, Int16
 from irl.msg import Cube, Structure
-from cube import Digital_Cube
+from Assembler.cube import Digital_Cube
 
-from assembly_instructor import Assembler
+from Assembler.assembly_instructor import Assembler
 
 class Brain_Spring_2018(object):
     """

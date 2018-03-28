@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-The Digital Environment (mainly for testing)
+The Digital Environment (testing RL, just 3x3 instead of 5x5)
 
 by Kevin Zhang
 
@@ -16,7 +16,7 @@ to execute a structure
 
 how it works:
 1. resets its Environment
-2. builds a new environment, randomly choosing where to build in a 5x5x5 space, and
+2. builds a new environment, randomly choosing where to build in a 3x3x3 space, and
 only building on top of previously built cubes (so no floating cubes, builds in layers)
 3. with the built environment, extracts information and makes usable Cube structs
 4. sends out the info and waits for another prompt
@@ -39,7 +39,7 @@ class Environment(object):
 
     def __init__(self):
         self.vCube = np.vectorize(Digital_Cube) # faster python struct using numpy
-        self.env_size = 5 # dimension of env
+        self.env_size = 3 # dimension of env
 
         self.env = np.empty((self.env_size,self.env_size,self.env_size), dtype=object) # the digital environment
         # filling out the environment with cubes, but they start deactivated
@@ -61,7 +61,7 @@ class Environment(object):
         deactivates all cubes in the environment
         resets cube list and build_prob
         """
-        
+
         for x, y, z in itertools.product(*map(xrange,(self.env_size, self.env_size, self.env_size))):
             self.env[x,y,z].turn_off()
         self.cubes = []
@@ -132,8 +132,8 @@ class Environment(object):
         print "DONE"
 
         # currently tuned to test with the assembly instructor
-        time.sleep(1)
-        self.signal_pub.publish("2nd_stage")
+        # time.sleep(1)
+        # self.signal_pub.publish("2nd_stage")
 
 
     def print_struct(self):
@@ -158,9 +158,10 @@ class Environment(object):
         print total, "total cubes in this structure\n"
         for  i in range(self.env_size):
             print ' | '.join(map(str,map(int, printed_map[i,:])))
-            if i < 4:
-                print "-----------------"
+            if i < self.env_size-1:
+                print "---------"
         print "\n"
+        return total
 
 
     def create_a_struct(self, data):
