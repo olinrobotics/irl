@@ -11,3 +11,15 @@ import itertools
 
 
 class RL_brain(object):
+
+    def __init__(self):
+        pass
+
+    def choose_action(self, observation):
+        pass
+
+    def learn(self, observation, action, reward, observation_):
+        pass
+
+    def check_state_exist(self, state):
+        pass

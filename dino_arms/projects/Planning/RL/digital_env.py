@@ -28,6 +28,7 @@ from std_msgs.msg import String, Int16
 import time
 from irl.msg import Cube, Structure
 from cube import Digital_Cube
+from assembly_instructor import Assembler
 import itertools
 
 
@@ -47,12 +48,7 @@ class Environment(object):
             self.env[x,y,z] = self.vCube()
         self.cubes = [] # the final list of cube information
         self.build_prob = 0.7 # the randomizer
-
-        rospy.init_node("environment")
-        rospy.Subscriber("digital_sig", String, self.create_a_struct)
-
-        self.env_pub = rospy.Publisher("digital_env", Structure, queue_size=10)
-        self.signal_pub = rospy.Publisher("test_run", String, queue_size=10)
+        self.asm = Assembler()
 
 
     def reset(self):
@@ -114,7 +110,7 @@ class Environment(object):
         return real_cube
 
 
-    def send_struct(self):
+    def sequence_struct(self):
         """
         shuffles the struct for better testing, and then sends the struct out
         for use by whatever other module
@@ -127,13 +123,12 @@ class Environment(object):
         for block in self.cubes:
             struct.building.append(block)
 
-        print "SENDING BUILDING BLOCKS"
-        self.env_pub.publish(struct)
-        print "DONE"
+        print "BUILDING BLOCKS MADE, NOW SEQUENCING"
 
-        # currently tuned to test with the assembly instructor
-        # time.sleep(1)
-        # self.signal_pub.publish("2nd_stage")
+        self.asm.set_cube_list(struct)
+        return self.asm.sequence()
+
+
 
 
     def print_struct(self):
@@ -164,17 +159,16 @@ class Environment(object):
         return total
 
 
-    def create_a_struct(self, data):
+    def create_a_struct(self):
         """
         callback that prompts the script to refresh and make a brand new random
         struct for testing
         """
 
-        if data.data == "build":
-            self.reset()
-            self.build_struct()
-            self.print_struct()
-            self.send_struct()
+        self.reset()
+        self.build_struct()
+        self.print_struct()
+        return self.sequence_struct()
 
 
     def run(self):
