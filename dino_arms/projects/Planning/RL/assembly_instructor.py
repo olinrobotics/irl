@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-MVP assembler sequencer
+MVP assembler sequencer FOR USE IN RL
 
 by Kevin Zhang
 
@@ -10,7 +10,7 @@ then returns a "sorted" list of building block instructions for how to go about
 building that structure. uses formal systematic rule-based methods to determine
 the sequence of blocks
 
-this script is imported by Brain_Spring_2018 as package
+this script is imported by digital_env.py as package
 
 how it works:
 1. it merely sits and waits for a prompt from the brain executing its set_cube_list()
@@ -93,14 +93,13 @@ class Assembler(object):
 
         # sort by height
         self.layers = self.sort_by_height(self.raw_sequence)
-
         # within each height bin, sort by connections
         for layer in self.layers:
             self.instructions.extend(self.sort_by_connections(layer))
 
         # print out instructions, and then return finished sequence to the brain
         self.print_sequence(self.instructions)
-        return self.package_sequence(self.instructions)
+        return self.instructions
 
 
     def sort_by_height(self, cube_sequence):
@@ -132,23 +131,29 @@ class Assembler(object):
         """
         for each binned height array, sort by number of connections of the cube
         with other cubes (how many faces are touching other cubes)
+
+        for the purposes of RL, also bins the sorted cubes into different connections
+        for easier targeting
         """
 
         layer.sort(key=lambda x: x.connections, reverse=True)
-        return layer
 
-
-    def package_sequence(self, instructions):
-        """
-        create a ros data structure to hold the information and return it back to
-        the brain
-        """
-
-        msg = Structure()
-        for cube in instructions:
-            msg.building.append(self.make_real_cube(cube))
-
-        return msg
+        binned_by_connections = []
+        connections = 4
+        connection_bin = []
+        index = 0
+        while index < len(layer):
+            cube = layer[index]
+            if cube.connections == connections:
+                connection_bin.append(cube)
+                index += 1
+            else:
+                if connection_bin != []:
+                    binned_by_connections.append(connection_bin)
+                connection_bin = []
+                connections -= 1
+        binned_by_connections.append(connection_bin)
+        return binned_by_connections
 
 
     def print_sequence(self, instructions):
@@ -159,10 +164,12 @@ class Assembler(object):
         print "FINISHED INSTRUCTIONS ARE AS FOLLOWS"
         i = 1
         for instruction in instructions:
-            print "Step", i, ": cube at", "x:", instruction.x, \
-                                          "y:", instruction.y, \
-                                          "z:", instruction.z
-            i += 1
+            print "Connections:", instruction[0].connections, "Height:", instruction[0].height
+            for item in instruction:
+                print "Step", i, ": cube at", "x:", item.x, \
+                                              "y:", item.y, \
+                                              "z:", item.z
+                i += 1
 
         print "THOSE ARE ALL THE INSTRUCTIONS"
 
