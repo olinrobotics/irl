@@ -98,7 +98,7 @@ class Assembler(object):
             self.instructions.extend(self.sort_by_connections(layer))
 
         # print out instructions, and then return finished sequence to the brain
-        self.print_sequence(self.instructions)
+        # self.print_sequence(self.instructions)
         return self.instructions
 
 

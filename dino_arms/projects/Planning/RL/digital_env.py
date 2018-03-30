@@ -123,7 +123,7 @@ class Environment(object):
         for block in self.cubes:
             struct.building.append(block)
 
-        print "BUILDING BLOCKS MADE, NOW SEQUENCING"
+        # print "BUILDING BLOCKS MADE, NOW SEQUENCING"
 
         self.asm.set_cube_list(struct)
         return self.asm.sequence()
@@ -167,7 +167,7 @@ class Environment(object):
 
         self.reset()
         self.build_struct()
-        self.print_struct()
+        # self.print_struct()
         return self.sequence_struct()
 
 

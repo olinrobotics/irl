@@ -19,9 +19,8 @@ class RL_environment(object):
         self.action_space = range(27)
         self.num_actions = len(self.action_space)
         self.target = None
-        self.current_index = 0
         self.current_bin = []
-        self.agent_state = np.zeros(27)
+        self.agent_state = [0]*27
         self.one_hot_mapping = {"[0, 0, 0]":0,  "[0, 1, 0]":1,  "[0, 2, 0]":2, \
                                 "[1, 0, 0]":3,  "[1, 1, 0]":4,  "[1, 2, 0]":5, \
                                 "[2, 0, 0]":6,  "[2, 1, 0]":7,  "[2, 2, 0]":8, \
@@ -40,6 +39,7 @@ class RL_environment(object):
     def reset(self):
         structure = self.env.create_a_struct()
         self.target = []
+        self.current_bin = []
         for cube_bin in structure:
             target_bin = []
             for cube in cube_bin:
@@ -47,30 +47,28 @@ class RL_environment(object):
                 target_bin.append(one_hot)
                 self.agent_state[one_hot] = 1
             self.target.append(target_bin)
-        return self.agent_state
+        return self.agent_state[:]
 
     def step(self, action):
         s = self.agent_state
-        self.agent_state[action] = 0
+        self.agent_state[action.astype(int)] = 0
         s_ = self.agent_state
 
-        if action not in self.target[self.current_index]:
+        if action not in self.target[0]:
             reward = -1
             done = True
             return s_, reward, done
-        if action in self.target[self.current_index]:
+        if action in self.target[0]:
             reward = 0
             done = False
             self.current_bin.append(action)
-            if sorted(self.current_bin) == sorted(self.target.current_index):
+            if sorted(self.current_bin) == sorted(self.target[0]):
                 self.target = self.target[1:]
                 self.current_bin = []
-                self.current_index += 1
 
         if self.target == []:
             reward = 1
             done = True
-
         return s_, reward, done
 
 
