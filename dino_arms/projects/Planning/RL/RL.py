@@ -58,10 +58,13 @@ class RL_brain(object):
         except KeyError:
             eval_func = eval("lambda: " + s_)
             num_actions = np.count_nonzero(eval_func())
+            num_actions = num_actions if num_actions > 0 else 1
             self.q_table[s_] = np.zeros(num_actions)
         # print "IN LEARN", self.encoded_action
         # print "IN LEARN LENGTH OF QTABLE", len(self.q_table[s])
         # print "IN LEARN OBSERVATION", s
+        # print "IN LEARN OBSERVATION2", s_
+        # print "IN LEARN WHAT IS THIS", self.q_table[s_]
 
         q_predict = self.q_table[s][self.encoded_action]
         q_target = r + self.gamma * np.amax(self.q_table[s_])
