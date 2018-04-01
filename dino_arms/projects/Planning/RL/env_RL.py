@@ -30,7 +30,6 @@ class RL_environment(object):
                                 "[0, 0, 2]":18,  "[0, 1, 2]":19,  "[0, 2, 2]":20, \
                                 "[1, 0, 2]":21,  "[1, 1, 2]":22,  "[1, 2, 2]":23, \
                                 "[2, 0, 2]":24,  "[2, 1, 2]":25,  "[2, 2, 2]":26}
-        self.build_maze()
 
     def build_maze(self):
         self.reset()
@@ -40,6 +39,7 @@ class RL_environment(object):
         structure = self.env.create_a_struct()
         self.target = []
         self.current_bin = []
+        self.agent_state = [0]*27
         for cube_bin in structure:
             target_bin = []
             for cube in cube_bin:
@@ -47,12 +47,13 @@ class RL_environment(object):
                 target_bin.append(one_hot)
                 self.agent_state[one_hot] = 1
             self.target.append(target_bin)
+
+        # print "THE TARGET", self.target
         return self.agent_state[:]
 
     def step(self, action):
-        s = self.agent_state
         self.agent_state[action.astype(int)] = 0
-        s_ = self.agent_state
+        s_ = self.agent_state[:]
 
         if action not in self.target[0]:
             reward = -1
@@ -63,11 +64,13 @@ class RL_environment(object):
             done = False
             self.current_bin.append(action)
             if sorted(self.current_bin) == sorted(self.target[0]):
+                reward = 1
                 self.target = self.target[1:]
                 self.current_bin = []
 
+        # print "TARGET", self.target
         if self.target == []:
-            reward = 1
+            reward = 9
             done = True
         return s_, reward, done
 

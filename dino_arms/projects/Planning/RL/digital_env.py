@@ -95,6 +95,10 @@ class Environment(object):
                 self.env[x,y,z].set_connectivity(connections)
                 self.cubes.append(self.make_real_cube(self.env[x,y,z]))
 
+        # ensures that the environment is never empty
+        if self.cubes == []:
+            self.build_struct()
+
 
     def make_real_cube(self, cube):
         """
