@@ -3,11 +3,7 @@
 import rospy
 import numpy as np
 import pandas as pd
-from std_msgs.msg import String, Int16
 import time
-from irl.msg import Cube, Structure
-from cube import Digital_Cube
-import itertools
 
 
 class RL_brain(object):
@@ -23,7 +19,8 @@ class RL_brain(object):
     def choose_action(self, observation):
         # action selection
         eval_func = eval("lambda: " + observation)
-        num_actions = np.count_nonzero(eval_func())
+        state = eval_func()
+        num_actions = np.count_nonzero(state)
         try:
             state_action = self.q_table[observation]
         except KeyError:
@@ -39,7 +36,6 @@ class RL_brain(object):
             # choose random action
             self.encoded_action = np.random.choice(np.arange(num_actions))
 
-        state = eval_func()
         self.real_action = np.nonzero(state)[0][self.encoded_action]
         # print "IN CHOOSE ACTION", self.encoded_action
         # print "IN CHOOSE LENGTH OF QTABLE", len(self.q_table[observation])

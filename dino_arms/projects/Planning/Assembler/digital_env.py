@@ -51,7 +51,7 @@ class Environment(object):
         rospy.init_node("environment")
         rospy.Subscriber("digital_sig", String, self.create_a_struct)
 
-        self.env_pub = rospy.Publisher("digital_env", Structure, queue_size=10)
+        self.env_pub = rospy.Publisher("perception", Structure, queue_size=10)
         self.signal_pub = rospy.Publisher("test_run", String, queue_size=10)
 
 
