@@ -46,26 +46,26 @@ class Main(object):
 
                 self.observation = self.observation2
 
-        #
-        #     self.RL.update_params()
-        #
-        #     if i%self.test_interval == 0:
-        #         accuracy = 0
-        #         for _ in range(10):
-        #             self.observation = self.env.reset()
-        #             self.trial_finished = False
-        #             while not self.trial_finished:
-        #                 self.action = self.RL.choose_action(str(self.observation))
-        #                 self.observation, self.reward, self.trial_finished = self.env.step(self.action)
-        #             self.accuracy += 1 if self.reward != -1 else 0
-        #         print "TEST ACCRUACY", self.accuracy / 10.0
-        #
-        # print "FINISHED TRAINING"
-        # print "THERE ARE", len(self.RL.q_table), "TOTAL STATES"
-        # with open('/home/rooster/catkin_ws/src/irl/dino_arms/projects/Planning/RL/memory.txt', 'wb') as f:
-        #     pickle.dump(self.RL.q_table, f)
-        #
-        # print "MEMORY SAVED"
+
+            self.RL.update_params()
+
+            if i%self.test_interval == 0:
+                accuracy = 0
+                for _ in range(100):
+                    self.observation = self.env.reset()
+                    self.trial_finished = False
+                    while not self.trial_finished:
+                        self.action = self.RL.choose_action(str(self.observation))
+                        self.observation, self.reward, self.trial_finished = self.env.step(self.action)
+                    self.accuracy += 0 if self.reward == -1 else 1
+                print "TEST ACCRUACY", self.accuracy / 100.0
+
+        print "FINISHED TRAINING"
+        print "THERE ARE", len(self.RL.q_table), "TOTAL STATES"
+        with open('/home/rooster/catkin_ws/src/irl/dino_arms/projects/Planning/RL/memory.txt', 'wb') as f:
+            pickle.dump(self.RL.q_table, f)
+
+        print "MEMORY SAVED"
 
 if __name__ == "__main__":
     main = Main()
