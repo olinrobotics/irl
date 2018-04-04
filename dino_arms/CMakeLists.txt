@@ -50,6 +50,7 @@ add_message_files(
 	blocks.msg
 	Cube.msg
 	Structure.msg
+	Cube_Structures.msg
 
 )
 add_service_files(

@@ -42,7 +42,7 @@ class Assembler(object):
 
     def set_cube_list(self, cubes):
         """
-        this is linked to a subscriber in Brain_Spring_2018, which when receiving
+        this is linked to Brain_Spring_2018, which when receiving
         a message will execute this method and populate the class with a list of cubes
         to be sorted
         """
@@ -99,7 +99,7 @@ class Assembler(object):
             self.instructions.extend(self.sort_by_connections(layer))
 
         # print out instructions, and then return finished sequence to the brain
-        self.print_sequence(self.instructions)
+        # self.print_sequence(self.instructions)
         return self.package_sequence(self.instructions)
 
 
@@ -114,7 +114,7 @@ class Assembler(object):
 
         # binning
         binned_by_height = []
-        layer = 0
+        layer = 1
         layer_bin = []
         for cube in cube_sequence:
             if cube.height == layer:
@@ -171,7 +171,7 @@ class Assembler(object):
         """
         main run loop
         """
-        
+
         print "Assembly Sequencer is running"
         r = rospy.Rate(10)
         while not rospy.is_shutdown():

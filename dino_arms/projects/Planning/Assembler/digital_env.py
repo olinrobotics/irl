@@ -51,7 +51,7 @@ class Environment(object):
         rospy.init_node("environment")
         rospy.Subscriber("digital_sig", String, self.create_a_struct)
 
-        self.env_pub = rospy.Publisher("digital_env", Structure, queue_size=10)
+        self.env_pub = rospy.Publisher("perception", Structure, queue_size=10)
         self.signal_pub = rospy.Publisher("test_run", String, queue_size=10)
 
 
@@ -61,7 +61,7 @@ class Environment(object):
         deactivates all cubes in the environment
         resets cube list and build_prob
         """
-        
+
         for x, y, z in itertools.product(*map(xrange,(self.env_size, self.env_size, self.env_size))):
             self.env[x,y,z].turn_off()
         self.cubes = []
@@ -158,7 +158,7 @@ class Environment(object):
         print total, "total cubes in this structure\n"
         for  i in range(self.env_size):
             print ' | '.join(map(str,map(int, printed_map[i,:])))
-            if i < 4:
+            if i < self.env_size-1:
                 print "-----------------"
         print "\n"
 

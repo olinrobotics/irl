@@ -1,0 +1,2 @@
+Structure real_building
+Structure grid_building
