@@ -1,6 +1,6 @@
-# Robot Arm Play Set
+# Robot Arm Plays Set
 
-For this project, we programmed [a robot arm Edwin](https://github.com/olinrobotics/irl) to play [Set](https://en.wikipedia.org/wiki/Set_(game))
+For this project, we programmed [a robotic arm Edwin](https://github.com/olinrobotics/irl) to play [Set](https://en.wikipedia.org/wiki/Set_(game))
 
 ## Getting Started
 

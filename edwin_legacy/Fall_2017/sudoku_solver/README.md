@@ -1,6 +1,6 @@
-# Robot Arm Solve Sudoku
+# Robot Arm Solves Sudoku
 
-For this project, we programmed [a robot arm Edwin](https://github.com/olinrobotics/irl) to solve a 4x4 Sudoku.
+For this project, we programmed [a robotic arm Edwin](https://github.com/olinrobotics/irl) to solve a 4x4 Sudoku.
 
 ## Getting Started
 
