@@ -23,6 +23,7 @@ from Assembler.cube import Digital_Cube
 from Assembler.assembly_instructor import Assembler
 
 #TODO: import Ben's module
+from Transformation.coordFrames import coordFrames
 
 class Planner(object):
     """
@@ -35,6 +36,7 @@ class Planner(object):
         self.asm = Assembler()
 
         # TODO: initialize Ben's class(es)
+        self.coord_trans = coordFrames()
 
         self.cube_list = Structure() # the premlinary cube list input used to model the env
         self.cubes = Structure() # the cube list output used to sort the cubes
@@ -59,13 +61,15 @@ class Planner(object):
         self.cube_list.building = cube_list.building
 
         # self.current_env = # TODO: call ben's method that will take self.cube_list and return a 3D array of the gridworld cubes
+        self.current_env = self.coord_trans.convertBoard(self.cube_list)
         #
-        # self.add_descriptors()
+        self.add_descriptors()
         self.sorted_grid_cubes = self.sequence()
 
         # self.sorted_real_cubes = # TODO: call ben's method that will take sorted_grid_cubes and return a list of sorted cubes in the real world
+        self.sorted_real_cubes = self.coord_trans.convertReal(self.sorted_grid_cubes)
 
-        # self.two_structs.real_building = self.sorted_real_cubes
+        self.two_structs.real_building = self.sorted_real_cubes
         self.two_structs.grid_building = self.sorted_grid_cubes
 
         self.instructions_pub.publish(self.two_structs)
