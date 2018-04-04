@@ -24,7 +24,6 @@ class RL_brain(object):
         try:
             state_action = self.q_table[observation]
         except KeyError:
-
             self.q_table[observation] = np.zeros(num_actions)
             state_action = self.q_table[observation]
 

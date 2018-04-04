@@ -97,6 +97,7 @@ class Environment(object):
 
         # ensures that the environment is never empty
         if self.cubes == []:
+            self.reset()
             self.build_struct()
 
 

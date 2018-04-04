@@ -49,6 +49,7 @@ class RL_environment(object):
             self.target.append(target_bin)
 
         # print "THE TARGET", self.target
+        # print "TARGET FLATTENED", [item for sublist in self.target for item in sublist]
         return self.agent_state[:]
 
     def step(self, action):
@@ -77,4 +78,4 @@ class RL_environment(object):
 
 if __name__=="__main__":
     test = RL_environment()
-    # test.reset()
+    test.reset()
