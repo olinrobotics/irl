@@ -39,7 +39,7 @@ class Main(object):
     def test(self):
         print "LOADING MEMORY"
 
-        with open('/home/rooster/catkin_ws/src/memory2.txt', 'rb') as f:
+        with open('/home/rooster/catkin_ws/src/memory3.txt', 'rb') as f:
             q_table = pickle.load(f)
         print "DONE"
         self.RL = RL_brain(e_greedy=0, q_table=q_table)
@@ -112,12 +112,12 @@ class Main(object):
 
         print "FINISHED TRAINING"
         print "THERE ARE", len(self.RL.q_table), "TOTAL STATES"
-        with open('/home/rooster/catkin_ws/src/memory2.txt', 'wb') as f:
+        with open('/home/rooster/catkin_ws/src/memory3.txt', 'wb') as f:
             pickle.dump(self.RL.q_table, f)
 
         print "MEMORY SAVED"
-        plt.plot(range(20000000/1000), acc_list)
-        plt.axis([0,20000000, 0, 100])
+        plt.plot(range(10000000/1000), acc_list)
+        plt.axis([0,10000000/1000, 0, 100])
         plt.show()
 
 if __name__ == "__main__":
