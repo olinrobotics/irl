@@ -12,7 +12,14 @@ To use:
 
 roslaunch realsense_ros_camera rs_rgbd.launch
 
+TODO:
+- Hand Detection
+- Fix hole problem
+- Make paper grid
+- Color detection to get the pixel of the paper grid
+- From that, get two vectors on the table and make another function to find_height_angle
 """
+
 import numpy as np
 
 import cv2
@@ -52,7 +59,7 @@ class CameraType:
 
 
 class Perception:
-    def __init__(self, camera_type="D400", width=640, height=480):
+    def __init__(self, camera_type="D400", cube_size=localization.CUBE_SIZE_SMALL, width=640, height=480):
         self.bridge = CvBridge()
         rospy.init_node('depth_cam', anonymous=True)
         rospy.Subscriber('/camera/color/image_raw', Image, self.rgb_callback, queue_size=10)
@@ -60,6 +67,7 @@ class Perception:
         rospy.Subscriber('/camera/depth_registered/points', PointCloud2, self.pointcloud_callback, queue_size=10)
         self.publisher = rospy.Publisher("perception", Structure, queue_size=10)
         self.cam = CameraType(camera_type, width, height)
+        self.cube_size = cube_size
         self.r = rospy.Rate(10)
         self.rgb_data = self.depth_data = self.point_cloud = self.angle = self.height = None
         self._coords = [None] * self.cam.IMAGE_HEIGHT * self.cam.IMAGE_WIDTH
@@ -286,7 +294,7 @@ class Perception:
         coords = self.get_transformed_coords()
         print "original", self._coords[self.rowcol_to_i(self.cam.MID_ROW, self.cam.MID_COL)]
         print "transformed", coords[self.rowcol_to_i(self.cam.MID_ROW, self.cam.MID_COL)]
-        cubes = localization.cube_localization(coords)
+        cubes = localization.cube_localization(coords, self.cube_size)
         print cubes, len(cubes), "cubes"
         self.publish(cubes)
 
@@ -297,7 +305,7 @@ class Perception:
         print "original", self._coords[self.rowcol_to_i(self.cam.MID_ROW, self.cam.MID_COL)]
         print "transformed", coords[self.rowcol_to_i(self.cam.MID_ROW, self.cam.MID_COL)]
         np.savetxt('coords_8.txt', coords, fmt='%f')
-        cubes = localization.cube_localization(coords)
+        cubes = localization.cube_localization(coords, self.cube_size)
         print cubes
         print len(cubes), "cubes"
         import plot
@@ -305,7 +313,7 @@ class Perception:
 
 
 if __name__ == '__main__':
-    perception = Perception()
+    perception = Perception(cube_size=localization.CUBE_SIZE_SMALL)
     perception.show_rgbd()
     # while True:
     #     angle, height = perception.find_height_angle()
@@ -313,8 +321,8 @@ if __name__ == '__main__':
     # if angle:
     #     break
     # perception.get_structure()
-    cubes = [[0, 0, 2], [3, 4, 3]]
+    # cubes = [[0, 0, 2], [3, 4, 3]]
     r = rospy.Rate(10)
     while True:
         r.sleep()
-        perception.publish(cubes)
+        perception.get_structure()
