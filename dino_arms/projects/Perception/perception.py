@@ -152,11 +152,11 @@ class Perception:
         Get the current transformed point cloud coordinates
         :return: numpy array of 3D transformed coordinates; if there's no transformed coordinates, return original ones
         """
-        self.find_height_angle()
-        if self.is_not_nan(self.height):
-            return np.asarray(transformation.transformPointCloud(self._coords, self.angle, self.height))
-        print "No angle found, returns original coordinates"
-        return np.asarray(self._coords)
+        self.find_height_angle_old()
+        while not self.is_not_nan(self.angle):
+            self.find_height_angle_old()
+            print "No angle found. Keep searching for an angle!"
+        return np.asarray(transformation.transformPointCloud(self._coords, self.angle, self.height))
 
     def get_coord_from_pixel(self, pixel):
         """
@@ -207,7 +207,7 @@ class Perception:
                     break
         return np.asarray(coords)
 
-    def find_height_angle(self):
+    def find_height_angle_old(self):
         """
         Find the angle and height of the camera
         :return: angle (degrees), height
@@ -315,13 +315,6 @@ class Perception:
 if __name__ == '__main__':
     perception = Perception(cube_size=localization.CUBE_SIZE_SMALL)
     perception.show_rgbd()
-    # while True:
-    #     angle, height = perception.find_height_angle()
-    #     print angle, height
-    # if angle:
-    #     break
-    # perception.get_structure()
-    # cubes = [[0, 0, 2], [3, 4, 3]]
     r = rospy.Rate(10)
     while True:
         r.sleep()
