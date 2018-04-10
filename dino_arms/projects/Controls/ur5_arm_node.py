@@ -63,6 +63,8 @@ class Arm():
         self.joints_sub = rospy.Subscriber("behaviors_cmd", String, self.behaviors_callback)
         self.coordinates_sub = rospy.Subscriber("coordinates_cmd", String, self.coordinates_callback)
         self.status_pub = rospy.Publisher("arm_status", String, queue_size=0)
+        self.query_sub = rospy.Subscriber("query_cmd", String, self.query_callback, queue_size=10)
+        self.info_pub = rospy.Publisher("arm_info", String, queue_size=10)
 
         #Setup TCP
         tcp_ip = rospy.get_param("~robot_ip")
@@ -82,6 +84,13 @@ class Arm():
         print pose
         self.move_to_point(pose)
 
+    def query_callback(self, data):
+        if data.data == "joints":
+            joints_msg = self.get_joints
+            self.info_pub.publish(str(joints_msg))
+        elif data.data == "coordinates":
+            coord_msg = self.coordinator.getl()
+            self.info_pub.publish(str(coord_msg))
 
     def move_to_point(self, pose):
         """
@@ -269,6 +278,10 @@ class Arm():
         ### Tool Picker Game Gestures
         self.gestures["tp_welcome"] = [Route([-8.48, -59.81, -92.29, -27.75, 90.64, 1.46], 2)]
         self.gestures["tp_camera"] = [Route([20.02, -91.66, -80.65, -90.09, 90.64, 18.21],2)]
+
+        ### Project Gemini Gestures
+        self.gestures["pg_hover"] = [Route([90, -90, 45, -45, -90, 0],2)]
+        self.gestures["pg_hover_alternate"] = [Route([90, -90, 45, -45, -90, 90],2)]
 
         ### IDLE GESTURES
         self.gestures["idle_stare_1"] = [Route([-40.20, -88.37, -23.93, -66.92, 76.21, 0], 2)]
