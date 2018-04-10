@@ -8,7 +8,7 @@ import time
 
 class RL_brain(object):
 
-    def __init__(self, learning_rate=.1, reward_decay=0.9, e_greedy=1.0, q_table=None):
+    def __init__(self, learning_rate=.002, reward_decay=0.9, e_greedy=1.0, q_table=None):
         self.encoded_action = None
         self.real_action = None
         self.lr = learning_rate
@@ -40,7 +40,7 @@ class RL_brain(object):
         self.real_action = np.nonzero(state)[0][self.encoded_action]
         # print "IN CHOOSE ACTION", self.encoded_action
         # print "IN CHOOSE LENGTH OF QTABLE", len(self.q_table[observation])
-        # print "IN CHOOSE OBSERVATION", observation
+        # print "IN CHOOSE OBSERVATION            ", observation
         # print "ENCODED", self.encoded_action
         # print "REAL", self.real_action
         return self.real_action
@@ -74,6 +74,7 @@ class RL_brain(object):
     def update_params(self):
         if self.iterations % 1000000 == 0:
             # self.lr *= (1-self.lr *.000025)
-            self.lr *= 0.5
+            self.lr *= 0.9
         self.iterations += 1
-        self.epsilon *= (1-self.epsilon*.0000004)**2
+        # self.epsilon *= (1-self.epsilon*.0000004)**2
+        self.epsilon *= (1-self.epsilon*.0000009)
