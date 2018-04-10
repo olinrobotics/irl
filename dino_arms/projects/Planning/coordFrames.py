@@ -8,7 +8,7 @@ Recieves cube struct from Kevin containing
 
 import numpy
 import math
-#from irl.msg import Cube, Structure, Cube_Structures
+from irl.msg import Cube, Structure, Cube_Structures
 
 
 
@@ -19,9 +19,9 @@ class CoordFrames():
 
 	#TODO
 	#Camera values. GET THESE FROM FIRST YEAR DATA
-	self.pixelX = [.8, 2.4, 4.0, 5.6, 7.2]
-	self.pixelY = [.8, 2.4, 4.0, 5.6, 7.2]
-	self.pixelZ = [.8, 2.4, 4.0, 5.6, 7.2]
+	self.pixelX = [-81.28, -40.64, 0, 40.64, 81.28]
+	self.pixelY = [538.48, 497.84, 457.2, 416.56, 375.92]
+	self.pixelZ = [20.32, 60.96, 101.6, 142.24, 182.88]
 
 	def closest(self, values, val):
 		min = 999999
