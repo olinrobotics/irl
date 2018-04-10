@@ -21,17 +21,23 @@ e = 1
 e_list = []
 e2 = 1
 e_list_2 = []
-lr = .01
-for i in range(20000000):
-    e *= (1-e*.0000002)**2
-    e2 *= (1-e2*.0000002)
-    lr = 
+lr = .02
+lr_list = []
+for i in range(1,30000001):
+    e *= (1-e2*.0000009)**.3
+    e2 *= (1-e2*.0000009)
+    # e2 *= 9/10
+    if i%1000000==0:
+        lr *= 0.9
     e_list.append(e)
     e_list_2.append(e2)
+    lr_list.append(lr)
     # print i/1000000, e
 
-plt.plot(range(20000000), e_list, 'r')
-plt.plot(range(20000000), e_list_2, 'g')
+# print e, e2
+# print lr
+plt.plot(range(30000000), e_list, 'r', range(30000000), e_list_2, 'g')
+# plt.plot(range(30000000), lr_list, 'b')
 
-plt.axis([0,20000000,0,1])
+plt.axis([0,30000000,0,1])
 plt.show()

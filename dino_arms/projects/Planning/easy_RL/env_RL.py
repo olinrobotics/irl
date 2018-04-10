@@ -16,11 +16,11 @@ class RL_environment(object):
 
     def __init__(self):
         self.env = Environment()
-        self.action_space = range(27)
+        self.action_space = range(9)
         self.num_actions = len(self.action_space)
         self.target = None
         self.current_bin = []
-        self.agent_state = [0]*27
+        self.agent_state = [0]*self.num_actions
         self.one_hot_mapping = {"[0, 0, 0]":0,  "[0, 1, 0]":1,  "[0, 2, 0]":2, \
                                 "[1, 0, 0]":3,  "[1, 1, 0]":4,  "[1, 2, 0]":5, \
                                 "[2, 0, 0]":6,  "[2, 1, 0]":7,  "[2, 2, 0]":8, \
@@ -39,7 +39,7 @@ class RL_environment(object):
         structure = self.env.create_a_struct()
         self.target = []
         self.current_bin = []
-        self.agent_state = [0]*27
+        self.agent_state = [0]*self.num_actions
         for cube_bin in structure:
             target_bin = []
             for cube in cube_bin:
@@ -71,7 +71,7 @@ class RL_environment(object):
 
         # print "TARGET", self.target
         if self.target == []:
-            reward = 9
+            reward = 3
             done = True
         return s_, reward, done
 
