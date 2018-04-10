@@ -19,8 +19,9 @@ class Main(object):
 
     def __init__(self, train):
         self.env = RL_environment()
+        self.RL = None
         self.accuracy = 0
-        self.trials = 10000000
+        self.trials = 40000000
         self.trial_finished = False
         self.observation = None
         self.action = None
@@ -39,7 +40,7 @@ class Main(object):
     def test(self):
         print "LOADING MEMORY"
 
-        with open('/home/rooster/catkin_ws/src/memory3.txt', 'rb') as f:
+        with open('/home/rooster/catkin_ws/src/memory/memory4.txt', 'rb') as f:
             q_table = pickle.load(f)
         print "DONE"
         self.RL = RL_brain(e_greedy=0, q_table=q_table)
@@ -67,7 +68,7 @@ class Main(object):
                 sequence.append(self.action)
                 self.observation, self.reward, done_sequencing = self.env.step(self.action)
 
-            print "CORRECT SEQUENCE" if self.reward != -1 else "MISSED IT"
+            print "-----CORRECT SEQUENCE-----" if self.reward != -1 else "MISSED IT"
             print "RL's SEQUENCE", sequence
             print "TARGET's LIST", target
 
@@ -84,6 +85,8 @@ class Main(object):
             if i%self.test_interval == 0:
                 print "EPISODE", i
             while not self.trial_finished:
+
+                # print "MAKING MOVE"
 
                 # print "IN MAIN OBSERVATION BEFORE CHOOSE", str(self.observation)
                 self.action = self.RL.choose_action(str(self.observation))
@@ -112,12 +115,12 @@ class Main(object):
 
         print "FINISHED TRAINING"
         print "THERE ARE", len(self.RL.q_table), "TOTAL STATES"
-        with open('/home/rooster/catkin_ws/src/memory3.txt', 'wb') as f:
+        with open('/home/rooster/catkin_ws/src/memory/memory40mil_.002lr.txt', 'wb') as f:
             pickle.dump(self.RL.q_table, f)
 
         print "MEMORY SAVED"
-        plt.plot(range(10000000/1000), acc_list)
-        plt.axis([0,10000000/1000, 0, 100])
+        plt.plot(range(self.trials/self.test_interval), acc_list)
+        plt.axis([0,self.trials/self.test_interval, 0, 100])
         plt.show()
 
 if __name__ == "__main__":
