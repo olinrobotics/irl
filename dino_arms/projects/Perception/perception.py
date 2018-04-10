@@ -21,6 +21,7 @@ TODO:
 """
 
 import numpy as np
+import random
 
 import cv2
 import rospy
@@ -179,7 +180,7 @@ class Perception:
 
     def get_coords_from_pixels(self, pixels):
         """
-        Get coordinates of pixels of an image
+        Get coordinates of pixels of an image. Also, update self._coords
         :param pixels: pixels of the image
         :return: untransformed 3D coordinates of these pixels
         """
@@ -195,17 +196,69 @@ class Perception:
             list.append(self.rowcol_to_i(row, col))
 
         coords = []
-        count = 0
         points_gen = pc2.read_points(self.point_cloud, field_names=("x", "y", "z"))
         for i, p in enumerate(points_gen):
-            if i in list:
-                coord = self.get_xyz_numpy(p)
-                count += 1
-                if self.is_not_nan(coord[0]):
-                    coords.append(coord)
-                if count == len(list):
-                    break
+            self._coords[i] = self.get_xyz_numpy(p)
+            if self.is_not_nan(self._coords[i]):
+                if i in list:
+                    coords.append(self._coords[i])
         return np.asarray(coords)
+
+    def find_height_angle(self):
+        """
+        Find the angle and height of the camera
+        :return: angle (degrees), height
+        """
+        table_coords = self.get_coord_from_pixel([0, 0, 0])
+        if len(table_coords) < 3:
+            return None, None
+
+        def find_angles(points):
+            v1, v2, v3 = points[0] - points[1], points[1] - points[2], points[2] - points[0]
+            zhat = np.asarray([0, 0, 1])
+            a1 = np.matmul(np.cross(v1, v2), zhat)
+            a2 = np.matmul(np.cross(v2, v3), zhat)
+            a3 = np.matmul(np.cross(v3, v1), zhat)
+            if np.degrees(a1) > 90:
+                a1 = 180 - np.degrees(a1)
+            if np.degrees(a2) > 90:
+                a2 = 180 - np.degrees(a2)
+            if np.degrees(a3) > 90:
+                a3 = 180 - np.degrees(a3)
+            return a1, a2, a3
+
+        def find_height(points):
+            v1, v2 = points[0] - points[1], points[1] - points[2]
+            normal_vector = np.cross(v1, v2)
+            d = np.matmul(normal_vector, points[0])
+            origin = [0, 0, 0]
+            height = abs(np.matmul(origin, normal_vector) - d) / np.sqrt(sum(normal_vector ** 2))
+            return height
+
+        error = angle = points = None
+        for _ in range(0, 20):
+            i1, i2, i3 = random.sample(range(0, len(table_coords)), 3)
+            pts = [table_coords[i1], table_coords[i2], table_coords[i3]]
+            angle1, angle2, angle3 = find_angles(pts)
+            e1 = abs(angle1 - angle2)
+            e2 = abs(angle2 - angle3)
+            e3 = abs(angle3 - angle1)
+            if e1 < 1 and e2 < 1 and e3 < 1:
+                angle = (angle1 + angle2 + angle3) / 3
+                points = pts
+                break
+            elif error > np.max([e1, e2, e3]) or error is None:
+                angle = (angle1 + angle2 + angle3) / 3
+                points = pts
+                error = np.max([e1, e2, e3])
+
+        # Find height of the camera
+        height = find_height(points)
+
+        # If not nan, update angle and height
+        if self.is_not_nan(height):
+            self.angle, self.height = angle, height
+        return angle, height
 
     def find_height_angle_old(self):
         """
