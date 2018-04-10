@@ -12,6 +12,11 @@ from ur5_arm_node import Arm
 
 # python path_planner.py _robot_ip:=10.42.0.54
 class PathPlanner():
+    '''
+    This is the path planner for the Spring 18 Interactive Robotics Lab project
+    This module is capable of placing the blocks at the designated location
+    without collision with other blocks. The program
+    '''
     def __init__(self):
         rospy.init_node("path_planner", anonymous=True)
         # receive model and xyz location
@@ -40,11 +45,17 @@ class PathPlanner():
         self.push_instruction = [(0,0), (0, -1.0/3), (0,1.0/3), (-1.0/3, 0), (1.0/3, 0)]
 
     def cmd_callback(self,data):
+        '''
+        Parse the build command from the brain
+        '''
         # cmd is from 0 to 4
         self.cmd = [int(math.trunc(float(i))) for i in data.data.split(" ")]
         self.is_building = True
 
     def info_callback(self,data):
+        '''
+        Parse realtime coordinates / joint angles of the arm
+        '''
         if self.query == "coordinates":
             arm_info = data.data[1:len(data.data)-1]
             # print("Arm coordinates are: " + arm_info)
@@ -59,9 +70,11 @@ class PathPlanner():
         pass
 
     def coord_trans(self, base):
-        # transform base coordinates to actual coordinate for the arm to place the block
-        # Each cube has the dimension of 101.6mm. Assume the default location is 110.29, -372.42, 289.06 for now
-        # zero z is -191.0
+        '''
+        transform base coordinates to actual coordinate for the arm to place the block
+        Each cube has the dimension of 101.6mm. Assume the default location is 110.29, -372.42, 289.06 for now
+        zero z is -191.0
+        '''
         default = [0.1103, -0.3718, 0.2890]
         default[1] = default[1] + 2 * self.unit_length
         # TODO redefine zero of z
@@ -72,6 +85,9 @@ class PathPlanner():
         return [real_x, real_y, real_z]
 
     def push_block(self):
+        '''
+        Model that deal with block pushing
+        '''
         # make query to ur5 arm for current coordinates
         self.query = "coordinates"
         self.query_pub.publish(self.query)
