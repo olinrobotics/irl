@@ -22,7 +22,7 @@ import rospy
 import numpy as np
 import time
 from std_msgs.msg import String, Int16
-from irl.msg import Cube, Structure
+from irl.msg import Grid_Cube, Grid_Structure
 from cube import Digital_Cube
 
 
@@ -34,7 +34,7 @@ class Assembler(object):
 
     def __init__(self):
         self.vCube = np.vectorize(Digital_Cube) # faster struct using numpy
-        self.cube_list = Structure() # custom ros data structure
+        self.cube_list = Grid_Structure() # custom ros data structure
         self.instructions = []  # the finished set of instructions
         self.raw_sequence = [] # the starting set of shuffled instructions
         self.layers = []    # a middle man for sequencing
@@ -73,7 +73,7 @@ class Assembler(object):
         converting between data types, this one converts from python cube to ros cube
         """
 
-        real_cube = Cube()
+        real_cube = Grid_Cube()
         real_cube.height = cube.height
         real_cube.connections = cube.connections
         real_cube.x = cube.x
@@ -99,7 +99,7 @@ class Assembler(object):
             self.instructions.extend(self.sort_by_connections(layer))
 
         # print out instructions, and then return finished sequence to the brain
-        # self.print_sequence(self.instructions)
+        self.print_sequence(self.instructions)
         return self.package_sequence(self.instructions)
 
 
@@ -144,7 +144,7 @@ class Assembler(object):
         the brain
         """
 
-        msg = Structure()
+        msg = Grid_Structure()
         for cube in instructions:
             msg.building.append(self.make_real_cube(cube))
 

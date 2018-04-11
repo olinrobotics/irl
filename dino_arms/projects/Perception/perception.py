@@ -26,7 +26,7 @@ import random
 import cv2
 import rospy
 import sensor_msgs.point_cloud2 as pc2
-from irl.msg import Cube, Structure
+from irl.msg import Real_Cube, Real_Structure
 from cv_bridge import CvBridgeError, CvBridge
 from sensor_msgs.msg import Image, PointCloud2
 import transformation
@@ -66,7 +66,7 @@ class Perception:
         rospy.Subscriber('/camera/color/image_raw', Image, self.rgb_callback, queue_size=10)
         rospy.Subscriber('/camera/depth/image_rect_raw', Image, self.depth_callback, queue_size=10)
         rospy.Subscriber('/camera/depth_registered/points', PointCloud2, self.pointcloud_callback, queue_size=10)
-        self.publisher = rospy.Publisher("perception", Structure, queue_size=10)
+        self.publisher = rospy.Publisher("perception", Real_Structure, queue_size=10)
         self.cam = CameraType(camera_type, width, height)
         self.cube_size = cube_size
         self.r = rospy.Rate(10)
@@ -332,9 +332,9 @@ class Perception:
         return a is not None and not np.isnan(a)
 
     def publish(self, cubes):
-        structure = Structure()
+        structure = Real_Structure()
         for cube in cubes:
-            structure.building.append(Cube(height=0, connections=0, x=cube[0], y=cube[2], z=cube[1]))
+            structure.building.append(Real_Cube(x=cube[0], y=cube[2], z=cube[1]))
         self.publisher.publish(structure)
 
     def is_hand(self):
@@ -369,6 +369,6 @@ if __name__ == '__main__':
     perception = Perception(cube_size=localization.CUBE_SIZE_SMALL)
     perception.show_rgbd()
     r = rospy.Rate(10)
-    while True:
-        r.sleep()
-        perception.get_structure()
+    # while True:
+    r.sleep()
+    perception.get_structure()
