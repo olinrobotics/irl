@@ -21,7 +21,7 @@ class Main(object):
         self.env = RL_environment()
         self.RL = None
         self.avg_reward = 0
-        self.trials = 10000000
+        self.trials = 20000000
         self.trial_finished = False
         self.observation = None
         self.action = None
@@ -102,8 +102,8 @@ class Main(object):
             self.RL.update_params()
 
             if i%self.test_interval == 0:
+                self.avg_reward = 0
                 for _ in range(100):
-                    self.avg_reward = 0
                     self.observation = self.env.reset()
                     self.trial_finished = False
                     while not self.trial_finished:
@@ -116,7 +116,7 @@ class Main(object):
 
         print "FINISHED TRAINING"
         print "THERE ARE", len(self.RL.q_table), "TOTAL STATES"
-        with open('/home/rooster/catkin_ws/src/memory/memory25mil_new_reward.txt', 'wb') as f:
+        with open('/home/rooster/catkin_ws/src/memory/memory20mil_new_lr_and_epilson.txt', 'wb') as f:
             pickle.dump(self.RL.q_table, f)
 
         print "MEMORY SAVED"
