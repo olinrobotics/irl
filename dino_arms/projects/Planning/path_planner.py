@@ -22,13 +22,15 @@ class PathPlanner():
         rospy.init_node("path_planner", anonymous=True)
         # receive model and xyz location
         self.model_pub = rospy.Publisher("/model_cmd", String, queue_size=1)
-        # build_cmd is rececived from the brain as a string of three numbers as the xyz coordinates of the block to be placed
+        # build_cmd is rececived from the brain as a cube structures with real and grid coordinates
         self.cmd_sub = rospy.Subscriber("/build_cmd", Cube_Structures, self.cmd_callback,queue_size=1)
+        # two ways of controlling the arm with coordinates / joint behaviors
         self.coordinates_pub = rospy.Publisher("/coordinates_cmd", String, queue_size=10)
         self.joints_pub = rospy.Publisher("/behaviors_cmd", String, queue_size=10)
         # Make query about the joints/coordinates information and wait for callback
         self.query_pub = rospy.Publisher("/query_cmd", String, queue_size=10)
         self.info_sub = rospy.Subscriber("/arm_info", String, self.info_callback, queue_size=10)
+        # controller_status determines when Perception start looking for a new goal
         self.status_pub = rospy.Publisher("/controller_status", Bool, query_size=10)
 
         self.grip_pub = rospy.Publisher("/grip_cmd", String, queue_size=10)
@@ -51,7 +53,6 @@ class PathPlanner():
         '''
         Parse the build command from the brain
         '''
-        # cmd is from 0 to 4
         self.grid_building = data.grid_building
         self.real_building = data.real_building
         self.is_building = True
@@ -130,11 +131,12 @@ class PathPlanner():
         time.sleep(2)
 
     def place_block(self, grid_coord, real_coord):
-        # Go to universal starting position
-        # Assume the block has already been picked up
-        # pg_hover: 90, -90, 45, -45, -90, 0
-        # coor : 110.29 -372.42 289.06
-        # turn the wrist 90 degrees if other blocks are in the way
+        '''
+        Go to universal starting position and place blocks in provided order
+        turn the wrist 90 degrees if other blocks are in the way and use pushing to place cube at tricky position
+        pg_hover: 90, -90, 45, -45, -90, 0
+        coor : 110.29 -372.42 289.06
+        '''
 
         self.back_blocked = (grid_coord.y<4 and self.curr_model[grid_coord.x][grid_coord.y+1] > grid_coord.z)
         self.front_blocked = (grid_coord.y>0 and self.curr_model[grid_coord.x][grid_coord.y-1] > grid_coord.z)
