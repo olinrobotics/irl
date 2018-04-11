@@ -5,11 +5,12 @@ import numpy as np
 import time
 import sys
 import math
-sys.path.append('/home/yichen/catkin_ws/src/irl/dino_arms/projects/Controls')
-
-from std_msgs.msg import String
-from ur5_arm_node import Arm
 from irl.msg import Cube_Structures, Cube, Structure
+from std_msgs.msg import String
+sys.path.append('/home/rooster/catkin_ws/src/irl/dino_arms/projects/Controls')
+from ur5_arm_node import Arm
+
+
 
 # python path_planner.py _robot_ip:=10.42.0.54
 class PathPlanner():
@@ -136,7 +137,7 @@ class PathPlanner():
 
         self.back_blocked = (grid_coord.y<4 and self.curr_model[grid_coord.x][grid_coord.y+1] > grid_coord.z)
         self.front_blocked = (grid_coord.y>0 and self.curr_model[grid_coord.x][grid_coord.y-1] > grid_coord.z)
-        self.right_blocked = (grid_coord.x>0 and self.curr_model[grid_coord.x-1][grid_coord.y] > grid_coord.z
+        self.right_blocked = (grid_coord.x>0 and self.curr_model[grid_coord.x-1][grid_coord.y] > grid_coord.z)
         self.left_blocked = (grid_coord.x<4 and self.curr_model[grid_coord.x+1][grid_coord.y] > grid_coord.z)
 
         if (self.back_blocked or self.front_blocked):

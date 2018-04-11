@@ -20,8 +20,8 @@ class Main(object):
     def __init__(self, train):
         self.env = RL_environment()
         self.RL = None
-        self.accuracy = 0
-        self.trials = 40000000
+        self.avg_reward = 0
+        self.trials = 10000000
         self.trial_finished = False
         self.observation = None
         self.action = None
@@ -76,7 +76,7 @@ class Main(object):
 
     def train(self):
         self.RL = RL_brain()
-        acc_list = []
+        reward_list = []
 
         for i in range(self.trials):
             self.observation = self.env.reset()
@@ -102,25 +102,26 @@ class Main(object):
             self.RL.update_params()
 
             if i%self.test_interval == 0:
-                self.accuracy = 0
                 for _ in range(100):
+                    self.avg_reward = 0
                     self.observation = self.env.reset()
                     self.trial_finished = False
                     while not self.trial_finished:
                         self.action = self.RL.choose_action(str(self.observation))
                         self.observation, self.reward, self.trial_finished = self.env.step(self.action)
-                    self.accuracy += 0 if self.reward == -1 else 1
-                print "TEST ACCURACY", self.accuracy, "%"
-                acc_list.append(self.accuracy)
+                    self.avg_reward += self.reward
+                self.avg_reward /= 100.0
+                print "AVG. REWARD (per 100)", self.avg_reward, ""
+                reward_list.append(self.avg_reward)
 
         print "FINISHED TRAINING"
         print "THERE ARE", len(self.RL.q_table), "TOTAL STATES"
-        with open('/home/rooster/catkin_ws/src/memory/memory40mil_.002lr.txt', 'wb') as f:
+        with open('/home/rooster/catkin_ws/src/memory/memory25mil_new_reward.txt', 'wb') as f:
             pickle.dump(self.RL.q_table, f)
 
         print "MEMORY SAVED"
-        plt.plot(range(self.trials/self.test_interval), acc_list)
-        plt.axis([0,self.trials/self.test_interval, 0, 100])
+        plt.plot(range(self.trials/self.test_interval), reward_list)
+        plt.axis([0,self.trials/self.test_interval, -1, 1])
         plt.show()
 
 if __name__ == "__main__":

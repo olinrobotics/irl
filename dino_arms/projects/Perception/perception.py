@@ -369,6 +369,6 @@ if __name__ == '__main__':
     perception = Perception(cube_size=localization.CUBE_SIZE_SMALL)
     perception.show_rgbd()
     r = rospy.Rate(10)
-    while True:
-        r.sleep()
-        perception.get_structure()
+    # while True:
+    r.sleep()
+    perception.get_structure()

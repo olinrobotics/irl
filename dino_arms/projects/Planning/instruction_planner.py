@@ -21,9 +21,7 @@ from std_msgs.msg import String, Int16
 from Assembler.cube import Digital_Cube
 
 from Assembler.assembly_instructor import Assembler
-
-#TODO: import Ben's module
-from Transformation.coordFrames import coordFrames
+from Transformation.coordFrames import CoordFrames
 
 class Planner(object):
     """
@@ -35,7 +33,6 @@ class Planner(object):
     def __init__(self):
         self.asm = Assembler()
 
-        # TODO: initialize Ben's class(es)
         self.coord_trans = coordFrames()
 
         self.cube_list = Structure() # the premlinary cube list input used to model the env
@@ -47,7 +44,7 @@ class Planner(object):
         self.sorted_grid_cubes = None
         self.sorted_real_cubes = None
 
-        rospy.init_node("planner")
+        rospy.init_node("instruction planner")
         # rospy.Subscriber("test_run", String, queue_size=10, callback=self.test_run)
         # rospy.Subscriber("/digital_env", Structure, self.asm.set_cube_list)
         rospy.Subscriber("/perception", Structure, self.plan)
@@ -60,13 +57,11 @@ class Planner(object):
 
         self.cube_list.building = cube_list.building
 
-        # self.current_env = # TODO: call ben's method that will take self.cube_list and return a 3D array of the gridworld cubes
         self.current_env = self.coord_trans.convertBoard(self.cube_list)
-        #
+
         self.add_descriptors()
         self.sorted_grid_cubes = self.sequence()
 
-        # self.sorted_real_cubes = # TODO: call ben's method that will take sorted_grid_cubes and return a list of sorted cubes in the real world
         self.sorted_real_cubes = self.coord_trans.convertReal(self.sorted_grid_cubes)
 
         self.two_structs.real_building = self.sorted_real_cubes
