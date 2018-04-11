@@ -1,13 +1,16 @@
 #!/usr/bin/env python
 
 import rospy
+import rospkg
 import numpy as np
 import time
 import sys
 import math
-from irl.msg import Cube_Structures, Cube, Structure
-sys.path.append('/home/rooster/catkin_ws/src/irl/dino_arms/projects/Controls')
+from irl.msg import Cube_Structures, Grid_Cube, Real_Cube, Real_Structure, Grid_Structure
 from std_msgs.msg import String
+rospack = rospkg.RosPack()
+PACKAGE_PATH = rospack.get_path("irl")
+sys.path.append(PACKAGE_PATH + '/projects/Controls')
 from ur5_arm_node import Arm
 
 
@@ -39,8 +42,8 @@ class PathPlanner():
         # geometry of the cube
         self.unit_length = 0.1016
 
-        self.grid_building = Structure()
-        self.real_building = Structure()
+        self.grid_building = Grid_Structure()
+        self.real_building = Real_Structure()
         self.query = ""
         self.curr_location = []
         self.curr_angle = []
