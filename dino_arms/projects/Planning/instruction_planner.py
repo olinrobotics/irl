@@ -16,14 +16,12 @@ import pandas as pd
 import random
 import time
 import itertools
-from irl.msg import Cube, Structure, Cube_Structures
+from irl.msg import Real_Cube, Grid_Cube, Real_Structure, Grid_Structure, Cube_Structures
 from std_msgs.msg import String, Int16
 from Assembler.cube import Digital_Cube
 
 from Assembler.assembly_instructor import Assembler
-
-#TODO: import Ben's module
-from Transformation.coordFrames import coordFrames
+from Transformation.coordFrames import CoordFrames
 
 class Planner(object):
     """
@@ -35,11 +33,10 @@ class Planner(object):
     def __init__(self):
         self.asm = Assembler()
 
-        # TODO: initialize Ben's class(es)
-        self.coord_trans = coordFrames()
+        self.coord_trans = CoordFrames()
 
-        self.cube_list = Structure() # the premlinary cube list input used to model the env
-        self.cubes = Structure() # the cube list output used to sort the cubes
+        self.cube_list = Real_Structure() # the premlinary cube list input used to model the env
+        self.cubes = Grid_Structure() # the cube list output used to sort the cubes
         self.two_structs = Cube_Structures()
         self.env_size = 5 # dimension of env
         self.current_env = np.empty((self.env_size,self.env_size,self.env_size), dtype=object) # the digital environment
@@ -47,26 +44,24 @@ class Planner(object):
         self.sorted_grid_cubes = None
         self.sorted_real_cubes = None
 
-        rospy.init_node("planner")
+        rospy.init_node("instruction_planner")
         # rospy.Subscriber("test_run", String, queue_size=10, callback=self.test_run)
         # rospy.Subscriber("/digital_env", Structure, self.asm.set_cube_list)
-        rospy.Subscriber("/perception", Structure, self.plan)
+        rospy.Subscriber("/perception", Real_Structure, self.plan)
 
         # self.digital_env_pub = rospy.Publisher("/digital_sig", String, queue_size=10)
         self.instructions_pub = rospy.Publisher("/build_cmd", Cube_Structures, queue_size=10)
 
 
     def plan(self, cube_list):
-
         self.cube_list.building = cube_list.building
 
-        # self.current_env = # TODO: call ben's method that will take self.cube_list and return a 3D array of the gridworld cubes
         self.current_env = self.coord_trans.convertBoard(self.cube_list)
-        #
+
         self.add_descriptors()
+        print self.cubes
         self.sorted_grid_cubes = self.sequence()
 
-        # self.sorted_real_cubes = # TODO: call ben's method that will take sorted_grid_cubes and return a list of sorted cubes in the real world
         self.sorted_real_cubes = self.coord_trans.convertReal(self.sorted_grid_cubes)
 
         self.two_structs.real_building = self.sorted_real_cubes
@@ -79,19 +74,19 @@ class Planner(object):
 
         # make actual usable cubes from the environment and filling out all the information
         for x, y, z in itertools.product(*map(xrange,(self.env_size, self.env_size, self.env_size))):
-            if self.current_env[x,y,z]:
+            if self.current_env[x][y][z]:
                 connections = 0
                 for c in [[x+1, y],[x-1, y], [x,y+1], [x,y-1]]:
-                    if all(n >= 0 and n < self.env_size for n in c) and self.current_env[c[0],c[1],z]:
+                    if all(n >= 0 and n < self.env_size for n in c) and self.current_env[c[0]][c[1]][z]:
                         connections += 1
-                self.current_env[x,y,z].connections = connections
-                self.current_env[x,y,z].height = self.current_env[x,y,z].z + 1
-                self.cubes.building.append(self.current_env[x,y,z])
+                self.current_env[x][y][z].connections = connections
+                self.current_env[x][y][z].height = self.current_env[x][y][z].z + 1
+                self.cubes.building.append(self.current_env[x][y][z])
 
 
     def sequence(self):
 
-        self.asm.set_cube_list(self.cube_list)
+        self.asm.set_cube_list(self.cubes)
         return self.asm.sequence()
 
     # def test_run(self, data):
