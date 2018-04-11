@@ -65,13 +65,13 @@ class RL_environment(object):
             done = False
             self.current_bin.append(action)
             if sorted(self.current_bin) == sorted(self.target[0]):
-                reward = 1
+                # reward = 1
                 self.target = self.target[1:]
                 self.current_bin = []
 
         # print "TARGET", self.target
         if self.target == []:
-            reward = 3
+            reward = 1
             done = True
         return s_, reward, done
 
