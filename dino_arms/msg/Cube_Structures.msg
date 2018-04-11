@@ -1,2 +1,2 @@
-Structure real_building
-Structure grid_building
+Real_Structure real_building
+Grid_Structure grid_building
