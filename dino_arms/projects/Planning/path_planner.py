@@ -38,8 +38,8 @@ class PathPlanner():
         # geometry of the cube
         self.unit_length = 0.1016
 
-        self.grid_building = Structure
-        self.real_building = Structure
+        self.grid_building = Structure()
+        self.real_building = Structure()
         self.query = ""
         self.curr_location = []
         self.curr_angle = []
