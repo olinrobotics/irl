@@ -11,7 +11,7 @@ Recieves cube struct from Kevin containing
 from __future__ import absolute_import
 import numpy
 import math
-from irl.msg import Cube, Structure, Cube_Structures
+from irl.msg import Grid_Cube, Real_Cube, Real_Structure, Grid_Structure, Cube_Structures
 import rospy
 
 
@@ -64,12 +64,12 @@ class CoordFrames(object):
         #Convert cube data to board dimensions
         #Fill out board according to cube data
         for cube in cubes.building:
-            cube.x = self.closest(self.pixelX, cube.x)
-            cube.y = self.closest(self.pixelY, cube.y)
-            cube.z = self.closest(self.pixelZ, cube.z)
-            board[cube.z][cube.x][cube.y] = cube
-
-
+            gcube = Grid_Cube()
+            gcube.x = self.closest(self.pixelX, cube.x)
+            gcube.y = self.closest(self.pixelY, cube.y)
+            gcube.z = self.closest(self.pixelZ, cube.z)
+            board[gcube.z][gcube.x][gcube.y] = gcube
+        print board
         return board #3d array with x, y, and z of blocks
 
 
@@ -81,9 +81,9 @@ class CoordFrames(object):
         """
 
         #Fill out board according to cube data
-        real_cubes = Structure()
+        real_cubes = Real_Structure()
         for cube in cubes.building:
-            real_cube = Cube()
+            real_cube = Real_Cube()
             real_cube.x = self.realX[cube.x]
             real_cube.y = self.realY[cube.y]
             real_cube.z = self.realZ[cube.z]

@@ -48,8 +48,10 @@ add_message_files(
 	all_buttons.msg
 	minimap.msg
 	blocks.msg
-	Cube.msg
-	Structure.msg
+	Real_Cube.msg
+	Grid_Cube.msg
+	Real_Structure.msg
+	Grid_Structure.msg
 	Cube_Structures.msg
 
 )

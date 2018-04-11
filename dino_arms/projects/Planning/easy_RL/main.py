@@ -21,7 +21,7 @@ class Main(object):
         self.env = RL_environment()
         self.RL = None
         self.avg_reward = 0
-        self.trials = 10000000
+        self.trials = 1000000
         self.trial_finished = False
         self.observation = None
         self.action = None
