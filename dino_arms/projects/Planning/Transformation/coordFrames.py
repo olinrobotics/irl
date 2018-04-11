@@ -24,9 +24,9 @@ class CoordFrames(object):
 
         #TODO
         #Camera values. GET THESE FROM FIRST YEAR DATA
-        self.pixelX = [-81.28, -40.64, 0, 40.64, 81.28]
-        self.pixelY = [538.48, 497.84, 457.2, 416.56, 375.92]
-        self.pixelZ = [20.32, 60.96, 101.6, 142.24, 182.88]
+        self.pixelX = [-.025, .015, .055, .095, .135]
+        self.pixelY = [.580, .540, .500, .460, .420]
+        self.pixelZ = [.0185, .0585, .0985, .139, .180]
 
         self.realX = [-177.8, -88.9, 0, 88.9, 177.8]
         self.realY = [-177.8, -88.9, 0, 88.9, 177.8]
@@ -37,9 +37,8 @@ class CoordFrames(object):
         min_index = None
         for i in range(5):
             if math.fabs(val-values[i]) < mini:
-                mini = values[i]
+                mini = math.fabs(val-values[i])
                 min_index = i
-
         return min_index
 
 
@@ -49,7 +48,6 @@ class CoordFrames(object):
 
         Called by Kevin's script for building planning
         """
-
         #Set Up board
         board = []
 
@@ -69,7 +67,6 @@ class CoordFrames(object):
             gcube.y = self.closest(self.pixelY, cube.y)
             gcube.z = self.closest(self.pixelZ, cube.z)
             board[gcube.z][gcube.x][gcube.y] = gcube
-        print board
         return board #3d array with x, y, and z of blocks
 
 
