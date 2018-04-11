@@ -6,8 +6,8 @@ import time
 import sys
 import math
 from irl.msg import Cube_Structures, Cube, Structure
-from std_msgs.msg import String
 sys.path.append('/home/rooster/catkin_ws/src/irl/dino_arms/projects/Controls')
+from std_msgs.msg import String
 from ur5_arm_node import Arm
 
 
@@ -209,9 +209,9 @@ class PathPlanner():
                 if self.is_building:
                     # self.pickup()
                     block_index = 0
-                    while block_index < len(self.grid_building):
+                    while block_index < len(self.grid_building.building):
                         # continue building until the build sequence is empty
-                        self.place_block(self.grid_building[block_index], self.real_building[block_index])
+                        self.place_block(self.grid_building.building[block_index], self.real_building.building[block_index])
                         block_index += 1
                     self.is_building = False
                     time.sleep(1)

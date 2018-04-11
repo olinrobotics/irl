@@ -33,7 +33,7 @@ class Planner(object):
     def __init__(self):
         self.asm = Assembler()
 
-        self.coord_trans = coordFrames()
+        self.coord_trans = CoordFrames()
 
         self.cube_list = Structure() # the premlinary cube list input used to model the env
         self.cubes = Structure() # the cube list output used to sort the cubes
@@ -44,7 +44,7 @@ class Planner(object):
         self.sorted_grid_cubes = None
         self.sorted_real_cubes = None
 
-        rospy.init_node("instruction planner")
+        rospy.init_node("instruction_planner")
         # rospy.Subscriber("test_run", String, queue_size=10, callback=self.test_run)
         # rospy.Subscriber("/digital_env", Structure, self.asm.set_cube_list)
         rospy.Subscriber("/perception", Structure, self.plan)
@@ -74,14 +74,14 @@ class Planner(object):
 
         # make actual usable cubes from the environment and filling out all the information
         for x, y, z in itertools.product(*map(xrange,(self.env_size, self.env_size, self.env_size))):
-            if self.current_env[x,y,z]:
+            if self.current_env[x][y][z]:
                 connections = 0
                 for c in [[x+1, y],[x-1, y], [x,y+1], [x,y-1]]:
-                    if all(n >= 0 and n < self.env_size for n in c) and self.current_env[c[0],c[1],z]:
+                    if all(n >= 0 and n < self.env_size for n in c) and self.current_env[c[0]][c[1]][z]:
                         connections += 1
-                self.current_env[x,y,z].connections = connections
-                self.current_env[x,y,z].height = self.current_env[x,y,z].z + 1
-                self.cubes.building.append(self.current_env[x,y,z])
+                self.current_env[x][y][z].connections = connections
+                self.current_env[x][y][z].height = self.current_env[x][y][z].z + 1
+                self.cubes.building.append(self.current_env[x][y][z])
 
 
     def sequence(self):
