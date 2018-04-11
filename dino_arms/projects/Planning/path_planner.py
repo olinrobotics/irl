@@ -7,7 +7,7 @@ import sys
 import math
 sys.path.append('/home/yichen/catkin_ws/src/irl/dino_arms/projects/Controls')
 
-from std_msgs.msg import String
+from std_msgs.msg import String, Bool
 from ur5_arm_node import Arm
 from irl.msg import Cube_Structures, Cube, Structure
 
@@ -29,6 +29,7 @@ class PathPlanner():
         # Make query about the joints/coordinates information and wait for callback
         self.query_pub = rospy.Publisher("/query_cmd", String, queue_size=10)
         self.info_sub = rospy.Subscriber("/arm_info", String, self.info_callback, queue_size=10)
+        self.status_pub = rospy.Publisher("/controller_status", Bool, query_size=10)
 
         self.grip_pub = rospy.Publisher("/grip_cmd", String, queue_size=10)
 
@@ -54,6 +55,7 @@ class PathPlanner():
         self.grid_building = data.grid_building
         self.real_building = data.real_building
         self.is_building = True
+        self.status_pub.publish(True)
 
     def info_callback(self,data):
         '''
@@ -136,7 +138,7 @@ class PathPlanner():
 
         self.back_blocked = (grid_coord.y<4 and self.curr_model[grid_coord.x][grid_coord.y+1] > grid_coord.z)
         self.front_blocked = (grid_coord.y>0 and self.curr_model[grid_coord.x][grid_coord.y-1] > grid_coord.z)
-        self.right_blocked = (grid_coord.x>0 and self.curr_model[grid_coord.x-1][grid_coord.y] > grid_coord.z
+        self.right_blocked = (grid_coord.x>0 and self.curr_model[grid_coord.x-1][grid_coord.y] > grid_coord.z)
         self.left_blocked = (grid_coord.x<4 and self.curr_model[grid_coord.x+1][grid_coord.y] > grid_coord.z)
 
         if (self.back_blocked or self.front_blocked):
@@ -213,6 +215,7 @@ class PathPlanner():
                         self.place_block(self.grid_building[block_index], self.real_building[block_index])
                         block_index += 1
                     self.is_building = False
+                    self.status_pub.publish(False)
                     time.sleep(1)
             except KeyboardInterrupt:
                 break
