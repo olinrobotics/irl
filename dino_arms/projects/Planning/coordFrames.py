@@ -55,9 +55,9 @@ class CoordFrames():
 		#Convert cube data to board dimensions
 		#Fill out board according to cube data
 		for cube in cubes:
-			cube.x = self.closest(self.pixelX, cube.x)]
-			cube.y = self.closest(self.pixely, cube.y)]
-			cube.z = self.closest(self.pixelz, cube.z)]
+			cube.x = self.closest(self.pixelX, cube.x)
+			cube.y = self.closest(self.pixely, cube.y)
+			cube.z = self.closest(self.pixelz, cube.z)
 			board[cube.z][cube.x][cube.y] = cube
 
 		return board #3d array with x, y, and z of blocks
