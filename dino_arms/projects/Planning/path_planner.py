@@ -9,7 +9,7 @@ sys.path.append('/home/yichen/catkin_ws/src/irl/dino_arms/projects/Controls')
 
 from std_msgs.msg import String
 from ur5_arm_node import Arm
-from irl.msg import Cube_Structures, Cube
+from irl.msg import Cube_Structures, Cube, Structure
 
 # python path_planner.py _robot_ip:=10.42.0.54
 class PathPlanner():
@@ -23,7 +23,7 @@ class PathPlanner():
         # receive model and xyz location
         self.model_pub = rospy.Publisher("/model_cmd", String, queue_size=1)
         # build_cmd is rececived from the brain as a string of three numbers as the xyz coordinates of the block to be placed
-        self.cmd_sub = rospy.Subscriber("/build_command", Cube_Structures, self.cmd_callback,queue_size=1)
+        self.cmd_sub = rospy.Subscriber("/build_cmd", Cube_Structures, self.cmd_callback,queue_size=1)
         self.coordinates_pub = rospy.Publisher("/coordinates_cmd", String, queue_size=10)
         self.joints_pub = rospy.Publisher("/behaviors_cmd", String, queue_size=10)
         # Make query about the joints/coordinates information and wait for callback
@@ -38,8 +38,8 @@ class PathPlanner():
         # geometry of the cube
         self.unit_length = 0.1016
 
-        self.grid_building = []
-        self.real_building = []
+        self.grid_building = Structure
+        self.real_building = Structure
         self.query = ""
         self.curr_location = []
         self.curr_angle = []
@@ -134,10 +134,10 @@ class PathPlanner():
         # coor : 110.29 -372.42 289.06
         # turn the wrist 90 degrees if other blocks are in the way
 
-        self.back_blocked = (grid_coord.y<4 and self.curr_model[grid_coord.x][grid_coord.y+1] > grid_coord[2])
-        self.front_blocked = (grid_coord.y>0 and self.curr_model[grid_coord.x][grid_coord.y-1] > grid_coord[2])
-        self.right_blocked = (grid_coord.x>0 and self.curr_model[grid_coord.x-1][grid_coord.y] > grid_coord[2])
-        self.left_blocked = (grid_coord.x<4 and self.curr_model[grid_coord.x+1][grid_coord.y] > grid_coord[2])
+        self.back_blocked = (grid_coord.y<4 and self.curr_model[grid_coord.x][grid_coord.y+1] > grid_coord.z)
+        self.front_blocked = (grid_coord.y>0 and self.curr_model[grid_coord.x][grid_coord.y-1] > grid_coord.z)
+        self.right_blocked = (grid_coord.x>0 and self.curr_model[grid_coord.x-1][grid_coord.y] > grid_coord.z
+        self.left_blocked = (grid_coord.x<4 and self.curr_model[grid_coord.x+1][grid_coord.y] > grid_coord.z)
 
         if (self.back_blocked or self.front_blocked):
             if (self.left_blocked or self.right_blocked):
