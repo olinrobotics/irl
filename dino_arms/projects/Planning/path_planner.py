@@ -9,6 +9,7 @@ sys.path.append('/home/yichen/catkin_ws/src/irl/dino_arms/projects/Controls')
 
 from std_msgs.msg import String
 from ur5_arm_node import Arm
+from irl.msg import Cube_Structures, Cube
 
 # python path_planner.py _robot_ip:=10.42.0.54
 class PathPlanner():
@@ -22,7 +23,7 @@ class PathPlanner():
         # receive model and xyz location
         self.model_pub = rospy.Publisher("/model_cmd", String, queue_size=1)
         # build_cmd is rececived from the brain as a string of three numbers as the xyz coordinates of the block to be placed
-        self.cmd_sub = rospy.Subscriber("/build_cmd", String, self.cmd_callback,queue_size=1)
+        self.cmd_sub = rospy.Subscriber("/build_command", Cube_Structures, self.cmd_callback,queue_size=1)
         self.coordinates_pub = rospy.Publisher("/coordinates_cmd", String, queue_size=10)
         self.joints_pub = rospy.Publisher("/behaviors_cmd", String, queue_size=10)
         # Make query about the joints/coordinates information and wait for callback
@@ -37,7 +38,8 @@ class PathPlanner():
         # geometry of the cube
         self.unit_length = 0.1016
 
-        self.cmd = []
+        self.grid_building = []
+        self.real_building = []
         self.query = ""
         self.curr_location = []
         self.curr_angle = []
@@ -49,7 +51,8 @@ class PathPlanner():
         Parse the build command from the brain
         '''
         # cmd is from 0 to 4
-        self.cmd = [int(math.trunc(float(i))) for i in data.data.split(" ")]
+        self.grid_building = data.grid_building
+        self.real_building = data.real_building
         self.is_building = True
 
     def info_callback(self,data):
@@ -74,6 +77,7 @@ class PathPlanner():
         transform base coordinates to actual coordinate for the arm to place the block
         Each cube has the dimension of 101.6mm. Assume the default location is 110.29, -372.42, 289.06 for now
         zero z is -191.0
+        Not being used anymore
         '''
         default = [0.1103, -0.3718, 0.2890]
         default[1] = default[1] + 2 * self.unit_length
@@ -123,17 +127,17 @@ class PathPlanner():
         self.coordinates_pub.publish(msg)
         time.sleep(2)
 
-    def place_block(self):
+    def place_block(self, grid_coord, real_coord):
         # Go to universal starting position
         # Assume the block has already been picked up
         # pg_hover: 90, -90, 45, -45, -90, 0
         # coor : 110.29 -372.42 289.06
         # turn the wrist 90 degrees if other blocks are in the way
 
-        self.back_blocked = (self.cmd[1]<4 and self.curr_model[self.cmd[0]][self.cmd[1]+1] > self.cmd[2])
-        self.front_blocked = (self.cmd[1]>0 and self.curr_model[self.cmd[0]][self.cmd[1]-1] > self.cmd[2])
-        self.right_blocked = (self.cmd[0]>0 and self.curr_model[self.cmd[0]-1][self.cmd[1]] > self.cmd[2])
-        self.left_blocked = (self.cmd[0]<4 and self.curr_model[self.cmd[0]+1][self.cmd[1]] > self.cmd[2])
+        self.back_blocked = (grid_coord.y<4 and self.curr_model[grid_coord.x][grid_coord.y+1] > grid_coord[2])
+        self.front_blocked = (grid_coord.y>0 and self.curr_model[grid_coord.x][grid_coord.y-1] > grid_coord[2])
+        self.right_blocked = (grid_coord.x>0 and self.curr_model[grid_coord.x-1][grid_coord.y] > grid_coord[2])
+        self.left_blocked = (grid_coord.x<4 and self.curr_model[grid_coord.x+1][grid_coord.y] > grid_coord[2])
 
         if (self.back_blocked or self.front_blocked):
             if (self.left_blocked or self.right_blocked):
@@ -166,19 +170,21 @@ class PathPlanner():
         self.query_pub.publish(self.query)
         time.sleep(2)
 
-        print("cmd is: " + str(self.cmd))
-        cmd_location = self.coord_trans(self.cmd)
+        # cmd_location = self.coord_trans(grid_coord)
+        # add extra space for pushing
+        real_coord.x += self.push_instruction[self.push_flag][0] * self.unit_length
+        real_coord.y += self.push_instruction[self.push_flag][1] * self.unit_length
 
         # TODO pick up the block
 
         # go to x,y coordinates
-        msg = str(cmd_location[0]) + ' ' + str(cmd_location[1]) + ' ' + str(self.curr_location[2])
+        msg = str(real_coord.x) + ' ' + str(real_coord.y) + ' ' + str(self.curr_location[2])
         print('Sending:' + msg)
         self.coordinates_pub.publish(msg)
         time.sleep(2)
 
         # go to z coordinate and place the block
-        msg = str(cmd_location[0]) + ' ' + str(cmd_location[1]) + ' ' + str(cmd_location[2])
+        msg = str(real_coord.x) + ' ' + str(real_coord.y) + ' ' + str(real_coord.z)
         print('Sending:' + msg)
         self.coordinates_pub.publish(msg)
         time.sleep(2)
@@ -187,11 +193,11 @@ class PathPlanner():
 
         # push the block into place
         if self.push_flag != 0:
-            # TODO let the gripper grip firmly
+            # TODO grip firmly
             self.push_block();
 
         # update the current model
-        self.curr_model[self.cmd[0]][self.cmd[1]] += 1
+        self.curr_model[grid_coord.x][grid_coord.y] += 1
         self.model_pub.publish(str(self.curr_model))
 
     def run(self):
@@ -201,10 +207,11 @@ class PathPlanner():
                 # wait for user input
                 if self.is_building:
                     # self.pickup()
-                    if self.cmd[0]>=0 and self.cmd[0]<=4 and self.cmd[1]>=0 and self.cmd[1]<=4:
-                        self.place_block()
-                    else:
-                        print('Input is illegal')
+                    block_index = 0
+                    while block_index < len(self.grid_building):
+                        # continue building until the build sequence is empty
+                        self.place_block(self.grid_building[block_index], self.real_building[block_index])
+                        block_index += 1
                     self.is_building = False
                     time.sleep(1)
             except KeyboardInterrupt:
