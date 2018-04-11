@@ -28,6 +28,7 @@ import rospy
 import sensor_msgs.point_cloud2 as pc2
 from irl.msg import Real_Cube, Real_Structure
 from cv_bridge import CvBridgeError, CvBridge
+from ColorDetection import *
 from sensor_msgs.msg import Image, PointCloud2
 import transformation
 import localization
@@ -199,7 +200,7 @@ class Perception:
         points_gen = pc2.read_points(self.point_cloud, field_names=("x", "y", "z"))
         for i, p in enumerate(points_gen):
             self._coords[i] = self.get_xyz_numpy(p)
-            if self.is_not_nan(self._coords[i]):
+            if self.is_not_nan(p[0]):
                 if i in list:
                     coords.append(self._coords[i])
         return np.asarray(coords)
@@ -209,23 +210,21 @@ class Perception:
         Find the angle and height of the camera
         :return: angle (degrees), height
         """
-        table_coords = self.get_coord_from_pixel([0, 0, 0])
+        while self.point_cloud is None:
+            pass
+
+        table_coords = self.get_coords_from_pixels(find_paper(image=self.rgb_data))
         if len(table_coords) < 3:
             return None, None
 
-        def find_angles(points):
-            v1, v2, v3 = points[0] - points[1], points[1] - points[2], points[2] - points[0]
+        def find_angle(points):
+            v1, v2 = points[0] - points[1], points[1] - points[2]
             zhat = np.asarray([0, 0, 1])
-            a1 = np.matmul(np.cross(v1, v2), zhat)
-            a2 = np.matmul(np.cross(v2, v3), zhat)
-            a3 = np.matmul(np.cross(v3, v1), zhat)
+            normal_vector = np.cross(v1, v2)
+            a1 = np.arccos(np.matmul(normal_vector, zhat) / (np.norm(normal_vector) * np.norm(zhat)))
             if np.degrees(a1) > 90:
                 a1 = 180 - np.degrees(a1)
-            if np.degrees(a2) > 90:
-                a2 = 180 - np.degrees(a2)
-            if np.degrees(a3) > 90:
-                a3 = 180 - np.degrees(a3)
-            return a1, a2, a3
+            return a1
 
         def find_height(points):
             v1, v2 = points[0] - points[1], points[1] - points[2]
@@ -235,22 +234,15 @@ class Perception:
             height = abs(np.matmul(origin, normal_vector) - d) / np.sqrt(sum(normal_vector ** 2))
             return height
 
-        error = angle = points = None
-        for _ in range(0, 20):
-            i1, i2, i3 = random.sample(range(0, len(table_coords)), 3)
-            pts = [table_coords[i1], table_coords[i2], table_coords[i3]]
-            angle1, angle2, angle3 = find_angles(pts)
-            e1 = abs(angle1 - angle2)
-            e2 = abs(angle2 - angle3)
-            e3 = abs(angle3 - angle1)
-            if e1 < 1 and e2 < 1 and e3 < 1:
-                angle = (angle1 + angle2 + angle3) / 3
-                points = pts
-                break
-            elif error > np.max([e1, e2, e3]) or error is None:
-                angle = (angle1 + angle2 + angle3) / 3
-                points = pts
-                error = np.max([e1, e2, e3])
+        angle = points = None
+
+        i1, i2, i3 = random.sample(range(0, len(table_coords)), 3)
+        print i1
+        pts = [table_coords[i1], table_coords[i2], table_coords[i3]]
+        print pts
+        angle = find_angle(pts)
+        points = pts
+        print angle
 
         # Find height of the camera
         height = find_height(points)
@@ -370,5 +362,7 @@ if __name__ == '__main__':
     perception.show_rgbd()
     r = rospy.Rate(10)
     # while True:
-    r.sleep()
-    perception.get_structure()
+    # r.sleep()
+    # perception.get_structure()
+    print perception.find_height_angle_old()
+    print perception.find_height_angle()
