@@ -15,9 +15,8 @@ roslaunch realsense_ros_camera rs_rgbd.launch
 TODO:
 - Hand Detection
 - Fix hole problem
-- Make paper grid
-- Color detection to get the pixel of the paper grid
 - From that, get two vectors on the table and make another function to find_height_angle
+- Ignore unreliable results
 """
 
 import numpy as np
@@ -28,7 +27,7 @@ import rospy
 import sensor_msgs.point_cloud2 as pc2
 from irl.msg import Real_Cube, Real_Structure
 from cv_bridge import CvBridgeError, CvBridge
-from ColorDetection import *
+from color_detection import *
 from sensor_msgs.msg import Image, PointCloud2
 import transformation
 import localization
@@ -144,6 +143,9 @@ class Perception:
         Get the current point cloud coordinates
         :return: numpy array of 3D coordinates
         """
+        while self.point_cloud is None:
+            print "No point cloud found"
+
         gen = pc2.read_points(self.point_cloud, field_names=("x", "y", "z"))
         for i, p in enumerate(gen):
             self._coords[i] = self.get_xyz_numpy(p)
@@ -154,7 +156,7 @@ class Perception:
         Get the current transformed point cloud coordinates
         :return: numpy array of 3D transformed coordinates; if there's no transformed coordinates, return original ones
         """
-        self.find_height_angle_old()
+        self.find_height_angle()
         while not self.is_not_nan(self.angle):
             self.find_height_angle_old()
             print "No angle found. Keep searching for an angle!"
@@ -185,24 +187,16 @@ class Perception:
         :param pixels: pixels of the image
         :return: untransformed 3D coordinates of these pixels
         """
-        while self.point_cloud is None:
-            print "No point cloud found"
-
-        list = []
-        for i, pixel in enumerate(pixels):
-            row, col = pixel
+        coords = []
+        for p in pixels:
+            row, col = p
             if row < 0 or col < 0 or row >= self.cam.IMAGE_HEIGHT or col >= self.cam.IMAGE_WIDTH:
                 print "Row {} and Col {} are invalid".format(row, col)
                 continue
-            list.append(self.rowcol_to_i(row, col))
+            if self._coords[self.rowcol_to_i(row, col)] is not None and self.is_not_nan(
+                    self._coords[self.rowcol_to_i(row, col)][0]):
+                coords.append(self._coords[self.rowcol_to_i(row, col)])
 
-        coords = []
-        points_gen = pc2.read_points(self.point_cloud, field_names=("x", "y", "z"))
-        for i, p in enumerate(points_gen):
-            self._coords[i] = self.get_xyz_numpy(p)
-            if self.is_not_nan(p[0]):
-                if i in list:
-                    coords.append(self._coords[i])
         return np.asarray(coords)
 
     def find_height_angle(self):
@@ -210,43 +204,40 @@ class Perception:
         Find the angle and height of the camera
         :return: angle (degrees), height
         """
-        while self.point_cloud is None:
-            pass
-
-        table_coords = self.get_coords_from_pixels(find_paper(image=self.rgb_data))
+        self.get_pointcloud_coords()
+        table_pixels = find_paper(image=self.rgb_data)
+        table_coords = self.get_coords_from_pixels(table_pixels)
         if len(table_coords) < 3:
             return None, None
 
         def find_angle(points):
             v1, v2 = points[0] - points[1], points[1] - points[2]
-            zhat = np.asarray([0, 0, 1])
             normal_vector = np.cross(v1, v2)
-            a1 = np.arccos(np.matmul(normal_vector, zhat) / (np.norm(normal_vector) * np.norm(zhat)))
-            if np.degrees(a1) > 90:
-                a1 = 180 - np.degrees(a1)
-            return a1
+            zhat = np.asarray([0, 0, 1])
+            angle = np.arccos(np.matmul(normal_vector, zhat) / (np.linalg.norm(normal_vector) * np.linalg.norm(zhat)))
+            angle = np.degrees(angle)
+            if angle > 90:
+                angle = 180 - angle
+            return angle
 
         def find_height(points):
             v1, v2 = points[0] - points[1], points[1] - points[2]
             normal_vector = np.cross(v1, v2)
-            d = np.matmul(normal_vector, points[0])
+            d = np.matmul(normal_vector, points[0])  # d in equation ax + by + cz = d
             origin = [0, 0, 0]
-            height = abs(np.matmul(origin, normal_vector) - d) / np.sqrt(sum(normal_vector ** 2))
+            height = abs(np.matmul(origin, normal_vector) - d) / np.linalg.norm(normal_vector)
             return height
 
-        angle = points = None
-
         i1, i2, i3 = random.sample(range(0, len(table_coords)), 3)
-        print i1
-        pts = [table_coords[i1], table_coords[i2], table_coords[i3]]
-        print pts
-        angle = find_angle(pts)
-        points = pts
-        print angle
+        points = [table_coords[i1], table_coords[i2], table_coords[i3]]
+        while self._is_linear_dependent(points):
+            i3 = random.randint(0, len(table_coords))
+            points = [table_coords[i1], table_coords[i2], table_coords[i3]]
 
+        # Find angle of the camera
+        angle = find_angle(points)
         # Find height of the camera
         height = find_height(points)
-
         # If not nan, update angle and height
         if self.is_not_nan(height):
             self.angle, self.height = angle, height
@@ -311,6 +302,15 @@ class Perception:
         return i / self.cam.IMAGE_WIDTH, i % self.cam.IMAGE_WIDTH
 
     @staticmethod
+    def _is_linear_dependent(points):
+        v1, v2 = points[0] - points[1], points[1] - points[2]
+        angle = np.arccos(np.matmul(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2)))
+        angle = np.degrees(angle)
+        if abs(angle) < 15 or abs(angle) > 165:
+            return True
+        return False
+
+    @staticmethod
     def distance(a, b):
         """
         :param a: array
@@ -361,8 +361,9 @@ if __name__ == '__main__':
     perception = Perception(cube_size=localization.CUBE_SIZE_SMALL)
     perception.show_rgbd()
     r = rospy.Rate(10)
-    # while True:
-    # r.sleep()
-    # perception.get_structure()
-    print perception.find_height_angle_old()
-    print perception.find_height_angle()
+    while True:
+        r.sleep()
+        perception.get_structure()
+        # print "Start"
+        # print perception.find_height_angle_old()
+        # print perception.find_height_angle()
