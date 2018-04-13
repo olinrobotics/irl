@@ -2,8 +2,8 @@
 By Khang Vu, 2018
 Last Modified Mar 22, 2018
 
-Given transformed coordinates and the cube's size, this scripts tries to
-estimate the locations of the cubes
+Given transformed coordinates and the cube's size,
+this scripts estimates the locations of the cubes
 """
 import numpy as np
 
@@ -43,7 +43,7 @@ def reduced_coords(coords, cube_size):
     """
     r_coords = []
     for coord in coords:
-        # TODO: transform y coordinate to -y
+        # y coordinates flips for the librealsense camera
         coord[1] = -coord[1]
         x, y, z = coord
         if 0.75 * cube_size <= y <= 6.25 * cube_size and z < 0.65:
@@ -187,7 +187,6 @@ def check_cubes_old(coords, height_level, cube_size):
 if __name__ == '__main__':
     coords = np.loadtxt('coords_7.txt', dtype=float)
     cubes = cube_localization(coords)
-    print cubes
-    print len(cubes), "cubes"
+    print cubes, len(cubes), "cubes"
     import plot
     plot.plot_cube2d(cubes)

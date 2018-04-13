@@ -1,16 +1,18 @@
 """
 By Khang Vu & Sherrie Shen, 2018
-Last Modified Mar 22, 2018
+Last Modified April 13, 2018
 
 The script ...
 
 Dependencies:
-- realsense_ros_camera
+- realsense2_camera: https://github.com/intel-ros/realsense
+- librealsense: https://github.com/IntelRealSense/librealsense
+- rgbd.launch: https://github.com/ros-drivers/rgbd_launch.git
 
 To use:
 - Open Terminal and run the code below:
 
-roslaunch realsense_ros_camera rs_rgbd.launch
+roslaunch realsense2_camera rs_rgbd.launch
 
 TODO:
 - Hand Detection
@@ -27,8 +29,8 @@ import rospy
 import sensor_msgs.point_cloud2 as pc2
 from irl.msg import Real_Cube, Real_Structure
 from cv_bridge import CvBridgeError, CvBridge
-from color_detection import *
 from sensor_msgs.msg import Image, PointCloud2
+import color_detection
 import transformation
 import localization
 
@@ -70,7 +72,9 @@ class Perception:
         self.cam = CameraType(camera_type, width, height)
         self.cube_size = cube_size
         self.r = rospy.Rate(10)
-        self.rgb_data = self.depth_data = self.point_cloud = self.angle = self.height = None
+        self.rgb_data = self.depth_data = self.point_cloud = None
+        self.angle = self.height = None
+        self.cubes = None
         self._coords = [None] * self.cam.IMAGE_HEIGHT * self.cam.IMAGE_WIDTH
 
     def rgb_callback(self, data):
@@ -156,34 +160,15 @@ class Perception:
         Get the current transformed point cloud coordinates
         :return: numpy array of 3D transformed coordinates; if there's no transformed coordinates, return original ones
         """
-        self.find_height_angle()
-        while not self.is_not_nan(self.angle):
-            self.find_height_angle_old()
+        angle, height = self.find_height_angle()
+        while not self.is_not_nan(angle):
+            angle, height = self.find_height_angle()
             print "No angle found. Keep searching for an angle!"
         return np.asarray(transformation.transformPointCloud(self._coords, self.angle, self.height))
 
-    def get_coord_from_pixel(self, pixel):
-        """
-        Get the coordinate of a pixel of an image
-        :param pixel: pixel of an image
-        :return: untransformed 3D coordinate of that pixel
-        """
-        while self.point_cloud is None:
-            print "No point cloud found"
-
-        row, col = pixel
-        if row < 0 or col < 0 or row >= self.cam.IMAGE_HEIGHT or col >= self.cam.IMAGE_WIDTH:
-            print "Row {} and Col {} are invalid".format(row, col)
-            return
-
-        points_gen = pc2.read_points(self.point_cloud, field_names=("x", "y", "z"))
-        for i, p in enumerate(points_gen):
-            if i == self.rowcol_to_i(row, col):
-                return self.get_xyz_numpy(p)
-
     def get_coords_from_pixels(self, pixels):
         """
-        Get coordinates of pixels of an image. Also, update self._coords
+        Get coordinates of pixels of an image, assuming we jave self._coords
         :param pixels: pixels of the image
         :return: untransformed 3D coordinates of these pixels
         """
@@ -205,7 +190,7 @@ class Perception:
         :return: angle (degrees), height
         """
         self.get_pointcloud_coords()
-        table_pixels = find_paper(image=self.rgb_data)
+        table_pixels = color_detection.find_paper(image=self.rgb_data)
         table_coords = self.get_coords_from_pixels(table_pixels)
         if len(table_coords) < 3:
             return None, None
@@ -260,9 +245,9 @@ class Perception:
         o = np.asarray([0, 0, 0])
 
         # Find lengths of ab, oa, ob
-        ab = self.distance(a, b)
-        oa = self.distance(o, a)
-        ob = self.distance(o, b)
+        ab = self._distance(a, b)
+        oa = self._distance(o, a)
+        ob = self._distance(o, b)
 
         # Find the angle using cosine law
         angle = 90 - np.degrees(np.arccos((ab ** 2 + oa ** 2 - ob ** 2) / (2 * oa * ab)))
@@ -311,7 +296,7 @@ class Perception:
         return False
 
     @staticmethod
-    def distance(a, b):
+    def _distance(a, b):
         """
         :param a: array
         :param b: array
@@ -323,9 +308,9 @@ class Perception:
     def is_not_nan(a):
         return a is not None and not np.isnan(a)
 
-    def publish(self, cubes):
+    def publish(self):
         structure = Real_Structure()
-        for cube in cubes:
+        for cube in self.cubes:
             structure.building.append(Real_Cube(x=cube[0], y=cube[2], z=cube[1]))
         self.publisher.publish(structure)
 
@@ -337,24 +322,13 @@ class Perception:
         if self.is_hand():
             return
         coords = self.get_transformed_coords()
+        cubes = localization.cube_localization(coords, self.cube_size)
         print "original", self._coords[self.rowcol_to_i(self.cam.MID_ROW, self.cam.MID_COL)]
         print "transformed", coords[self.rowcol_to_i(self.cam.MID_ROW, self.cam.MID_COL)]
-        cubes = localization.cube_localization(coords, self.cube_size)
         print cubes, len(cubes), "cubes"
-        self.publish(cubes)
-
-    """ TESTING FUNCTIONS """
-
-    def test_transform_coords(self):
-        coords = self.get_transformed_coords()
-        print "original", self._coords[self.rowcol_to_i(self.cam.MID_ROW, self.cam.MID_COL)]
-        print "transformed", coords[self.rowcol_to_i(self.cam.MID_ROW, self.cam.MID_COL)]
-        np.savetxt('coords_8.txt', coords, fmt='%f')
-        cubes = localization.cube_localization(coords, self.cube_size)
-        print cubes
-        print len(cubes), "cubes"
-        import plot
-        plot.plot_cube2d(cubes)
+        if self.cubes is None or abs(len(self.cubes) - len(cubes)) <= 2:
+            self.cubes = cubes
+        self.publish()
 
 
 if __name__ == '__main__':
