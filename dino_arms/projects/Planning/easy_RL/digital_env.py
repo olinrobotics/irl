@@ -26,7 +26,7 @@ import rospy
 import numpy as np
 from std_msgs.msg import String, Int16
 import time
-from irl.msg import Cube, Structure
+from irl.msg import Grid_Cube, Grid_Structure
 from cube import Digital_Cube
 from assembly_instructor import Assembler
 import itertools
@@ -107,7 +107,7 @@ class Environment(object):
         converts between python class cube and ros data structure cube
         """
 
-        real_cube = Cube()
+        real_cube = Grid_Cube()
         real_cube.height = cube.height
         real_cube.connections = cube.connections
         real_cube.x = cube.x
@@ -125,7 +125,7 @@ class Environment(object):
         np.random.shuffle(self.cubes)
 
         # makes a ros structure to hold all the cubes, useful for publishing
-        struct = Structure()
+        struct = Grid_Structure()
         for block in self.cubes:
             struct.building.append(block)
 

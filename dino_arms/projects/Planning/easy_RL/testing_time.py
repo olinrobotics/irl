@@ -40,8 +40,8 @@ for i in range(1,20000001):
 
 # print e, e2
 print lr
-# plt.plot(range(20000000), e_list, 'r', range(20000000), e_list_2, 'g')
-plt.plot(range(20000000), lr_list, 'b')
+plt.plot(range(20000000), e_list, 'r', range(20000000), e_list_2, 'g')
+# plt.plot(range(20000000), lr_list, 'b')
 
-plt.axis([0,20000000,0,.02])
+plt.axis([0,20000000,0,1])
 plt.show()
