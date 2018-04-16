@@ -1,6 +1,6 @@
 """
 By Khang Vu & Sherrie Shen, 2018
-Last Modified April 13, 2018
+Last Modified April 15, 2018
 
 The script ...
 
@@ -27,12 +27,13 @@ import random
 import cv2
 import rospy
 import sensor_msgs.point_cloud2 as pc2
-from irl.msg import Real_Cube, Real_Structure
 from cv_bridge import CvBridgeError, CvBridge
+from irl.msg import Real_Cube, Real_Structure
 from sensor_msgs.msg import Image, PointCloud2
 import color_detection
-import transformation
 import localization
+import skin_detector
+import transformation
 
 
 class CameraType:
@@ -65,9 +66,9 @@ class Perception:
     def __init__(self, camera_type="D400", cube_size=localization.CUBE_SIZE_SMALL, width=640, height=480):
         self.bridge = CvBridge()
         rospy.init_node('depth_cam', anonymous=True)
-        rospy.Subscriber('/camera/color/image_raw', Image, self.rgb_callback, queue_size=10)
-        rospy.Subscriber('/camera/depth/image_rect_raw', Image, self.depth_callback, queue_size=10)
-        rospy.Subscriber('/camera/depth_registered/points', PointCloud2, self.pointcloud_callback, queue_size=10)
+        rospy.Subscriber('/camera/color/image_raw', Image, self._rgb_callback, queue_size=10)
+        rospy.Subscriber('/camera/depth/image_rect_raw', Image, self._depth_callback, queue_size=10)
+        rospy.Subscriber('/camera/depth_registered/points', PointCloud2, self._pointcloud_callback, queue_size=10)
         self.publisher = rospy.Publisher("perception", Real_Structure, queue_size=10)
         self.cam = CameraType(camera_type, width, height)
         self.cube_size = cube_size
@@ -77,19 +78,19 @@ class Perception:
         self.cubes = None
         self._coords = [None] * self.cam.IMAGE_HEIGHT * self.cam.IMAGE_WIDTH
 
-    def rgb_callback(self, data):
+    def _rgb_callback(self, data):
         try:
             self.rgb_data = self.bridge.imgmsg_to_cv2(data, "bgr8")
         except CvBridgeError as e:
             print e
 
-    def depth_callback(self, data):
+    def _depth_callback(self, data):
         try:
             self.depth_data = self.bridge.imgmsg_to_cv2(data)
         except CvBridgeError as e:
             print e
 
-    def pointcloud_callback(self, data):
+    def _pointcloud_callback(self, data):
         self.point_cloud = data
 
     def show_rgb(self):
@@ -161,7 +162,7 @@ class Perception:
         :return: numpy array of 3D transformed coordinates; if there's no transformed coordinates, return original ones
         """
         angle, height = self.find_height_angle()
-        while not self.is_not_nan(angle):
+        while not self._is_not_nan(angle):
             angle, height = self.find_height_angle()
             print "No angle found. Keep searching for an angle!"
         return np.asarray(transformation.transformPointCloud(self._coords, self.angle, self.height))
@@ -178,7 +179,7 @@ class Perception:
             if row < 0 or col < 0 or row >= self.cam.IMAGE_HEIGHT or col >= self.cam.IMAGE_WIDTH:
                 print "Row {} and Col {} are invalid".format(row, col)
                 continue
-            if self._coords[self.rowcol_to_i(row, col)] is not None and self.is_not_nan(
+            if self._coords[self.rowcol_to_i(row, col)] is not None and self._is_not_nan(
                     self._coords[self.rowcol_to_i(row, col)][0]):
                 coords.append(self._coords[self.rowcol_to_i(row, col)])
 
@@ -224,7 +225,7 @@ class Perception:
         # Find height of the camera
         height = find_height(points)
         # If not nan, update angle and height
-        if self.is_not_nan(height):
+        if self._is_not_nan(height):
             self.angle, self.height = angle, height
         return angle, height
 
@@ -256,7 +257,7 @@ class Perception:
         height = np.cos(np.radians(angle)) * oa
 
         # If not nan, update angle and height
-        if self.is_not_nan(height):
+        if self._is_not_nan(height):
             self.angle, self.height = angle, height
         return angle, height
 
@@ -305,30 +306,34 @@ class Perception:
         return np.sqrt((b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2 + (b[2] - a[2]) ** 2)
 
     @staticmethod
-    def is_not_nan(a):
+    def _is_not_nan(a):
         return a is not None and not np.isnan(a)
 
-    def publish(self):
+    def _publish(self):
         structure = Real_Structure()
         for cube in self.cubes:
             structure.building.append(Real_Cube(x=cube[0], y=cube[2], z=cube[1]))
         self.publisher.publish(structure)
 
-    def is_hand(self):
-        # TODO: write function
-        return False
+    def _has_hand(self):
+        """
+        Check if there is a human hand in the video stream
+        :return: True (has hand) or False (no hand)
+        """
+        if self.rgb_data is None:
+            return True
+        return skin_detector.has_hand(self.rgb_data)
 
     def get_structure(self):
-        if self.is_hand():
-            return
-        coords = self.get_transformed_coords()
-        cubes = localization.cube_localization(coords, self.cube_size)
-        print "original", self._coords[self.rowcol_to_i(self.cam.MID_ROW, self.cam.MID_COL)]
-        print "transformed", coords[self.rowcol_to_i(self.cam.MID_ROW, self.cam.MID_COL)]
-        print cubes, len(cubes), "cubes"
-        if self.cubes is None or abs(len(self.cubes) - len(cubes)) <= 2:
-            self.cubes = cubes
-        self.publish()
+        if not self._has_hand():
+            coords = self.get_transformed_coords()
+            cubes = localization.cube_localization(coords, self.cube_size)
+            print "original", self._coords[self.rowcol_to_i(self.cam.MID_ROW, self.cam.MID_COL)]
+            print "transformed", coords[self.rowcol_to_i(self.cam.MID_ROW, self.cam.MID_COL)]
+            print cubes, len(cubes), "cubes"
+            if self.cubes is None or abs(len(self.cubes) - len(cubes)) <= 2:
+                self.cubes = cubes
+        self._publish()
 
 
 if __name__ == '__main__':
