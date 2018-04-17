@@ -24,12 +24,12 @@ e_list_2 = []
 lr = .02
 lr_list = []
 found = True
-for i in range(1,20000001):
-    e *= (1-e*.000009)
-    e2 *= (1-e2*.000004)
+for i in range(1,30000001):
+    e *= (1-e*.0000002)
+    e2 *= (1-e2*.0000003)
     # e2 *= 9/10
     if i%1000000==0:
-        lr *= 0.85
+        lr *= 0.9
     e_list.append(e)
     e_list_2.append(e2)
     lr_list.append(lr)
@@ -38,10 +38,10 @@ for i in range(1,20000001):
         print i
     # print i/1000000, e
 
-# print e, e2
-print lr
-plt.plot(range(20000000), e_list, 'r', range(20000000), e_list_2, 'g')
-# plt.plot(range(20000000), lr_list, 'b')
+print e, e2
+# print lr
+plt.plot(range(30000000), e_list, 'r', range(30000000), e_list_2, 'g')
+# plt.plot(range(30000000), lr_list, 'b')
 
-plt.axis([0,20000000,0,1])
+plt.axis([0,30000000,0,1])
 plt.show()
