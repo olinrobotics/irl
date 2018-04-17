@@ -310,9 +310,12 @@ class Perception:
         return a is not None and not np.isnan(a)
 
     def _publish(self):
+        if self.cubes is None:
+            return
         structure = Real_Structure()
         for cube in self.cubes:
             structure.building.append(Real_Cube(x=cube[0], y=cube[2], z=cube[1]))
+        print self.cubes, len(self.cubes), "cubes"
         self.publisher.publish(structure)
 
     def _has_hand(self):
@@ -330,8 +333,7 @@ class Perception:
             cubes = localization.cube_localization(coords, self.cube_size)
             print "original", self._coords[self.rowcol_to_i(self.cam.MID_ROW, self.cam.MID_COL)]
             print "transformed", coords[self.rowcol_to_i(self.cam.MID_ROW, self.cam.MID_COL)]
-            print cubes, len(cubes), "cubes"
-            if self.cubes is None or abs(len(self.cubes) - len(cubes)) <= 2:
+            if self.cubes is None or abs(len(self.cubes) - len(cubes)) <= 10:
                 self.cubes = cubes
         self._publish()
 
@@ -343,6 +345,3 @@ if __name__ == '__main__':
     while True:
         r.sleep()
         perception.get_structure()
-        # print "Start"
-        # print perception.find_height_angle_old()
-        # print perception.find_height_angle()

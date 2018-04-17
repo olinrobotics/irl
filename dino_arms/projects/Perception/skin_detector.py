@@ -13,6 +13,7 @@ import imutils
 def has_hand(image):
     # define the upper and lower boundaries of the HSV pixel
     # intensities to be considered 'skin'
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     lower = np.array([0, 48, 80], dtype="uint8")
     upper = np.array([20, 255, 255], dtype="uint8")
 
@@ -39,10 +40,8 @@ def has_hand(image):
             if elm == 255:
                 count += 1
 
-    print(count)
-
     if count > 1500:
-        print("has skin")
+        print("Hand detected")
         return True
     else:
         return False
@@ -51,5 +50,5 @@ def has_hand(image):
 if __name__ == '__main__':
     image_path = "test_images/hand6.JPG"
     image = cv2.imread(image_path)
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
     has_hand(image)
