@@ -21,7 +21,7 @@ class Main(object):
         self.env = RL_environment()
         self.RL = None
         self.avg_reward = 0
-        self.trials = 20000000
+        self.trials = 30000000
         self.trial_finished = False
         self.observation = None
         self.action = None
@@ -40,20 +40,20 @@ class Main(object):
     def test(self):
         print "LOADING MEMORY"
 
-        with open('/home/rooster/catkin_ws/src/memory/memory4.txt', 'rb') as f:
+        with open('/home/rooster/catkin_ws/src/memory/memory30mil_new_context.txt', 'rb') as f:
             q_table = pickle.load(f)
         print "DONE"
         self.RL = RL_brain(e_greedy=0, q_table=q_table)
 
         print "------FIRST SHOWING TESTING ON 100\n"
+        accuracy = 0
         for i in range(100):
             self.observation = self.env.reset()
             done_sequencing = False
-            accuracy = 0
             while not done_sequencing:
                 self.action = self.RL.choose_action(str(self.observation))
                 self.observation, self.reward, done_sequencing = self.env.step(self.action)
-                accuracy += 0 if self.reward == -1 else 1
+            accuracy += 0 if self.reward == -1 else 1
         print "TEST ACCURACY", accuracy, "%"
 
         print "------NOW SHOWING VERBOSE ON 10\n"
@@ -77,9 +77,14 @@ class Main(object):
     def train(self):
         self.RL = RL_brain()
         reward_list = []
+        # test = {}
 
         for i in range(self.trials):
             self.observation = self.env.reset()
+            # try:
+            #     test[len(np.nonzero(self.observation)[0])/2.0] += 1
+            # except KeyError:
+            #     test[len(np.nonzero(self.observation)[0])/2.0] = 1
             self.trial_finished = False
             # print "OBESRVATION IN MAIN", self.observation
             if i%self.test_interval == 0:
@@ -100,6 +105,7 @@ class Main(object):
 
 
             self.RL.update_params()
+            # print 'Correct\n' if self.reward == 1 else "NOT\n"
 
             if i%self.test_interval == 0:
                 self.avg_reward = 0
@@ -116,7 +122,8 @@ class Main(object):
 
         print "FINISHED TRAINING"
         print "THERE ARE", len(self.RL.q_table), "TOTAL STATES"
-        with open('/home/rooster/catkin_ws/src/memory/memory20mil_new_lr_and_epilson.txt', 'wb') as f:
+        # print test
+        with open('/home/rooster/catkin_ws/src/memory/memory30mil_new_context.txt', 'wb') as f:
             pickle.dump(self.RL.q_table, f)
 
         print "MEMORY SAVED"
