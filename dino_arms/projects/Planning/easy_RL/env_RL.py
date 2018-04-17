@@ -20,7 +20,7 @@ class RL_environment(object):
         self.num_actions = len(self.action_space)
         self.target = None
         # self.current_bin = []
-        self.agent_state = [0]*self.num_actions
+        self.agent_state = [0]*(self.num_actions*2)
         self.one_hot_mapping = {"[0, 0, 0]":0,  "[0, 1, 0]":1,  "[0, 2, 0]":2, \
                                 "[1, 0, 0]":3,  "[1, 1, 0]":4,  "[1, 2, 0]":5, \
                                 "[2, 0, 0]":6,  "[2, 1, 0]":7,  "[2, 2, 0]":8, \
@@ -39,13 +39,14 @@ class RL_environment(object):
         structure = self.env.create_a_struct()
         self.target = []
         # self.current_bin = []
-        self.agent_state = [0]*self.num_actions
+        self.agent_state = [0]*(self.num_actions*2)
         for cube in structure:
             # target_bin = []
             # for cube in cube_bin:
             one_hot = self.one_hot_mapping[str([cube.x, cube.y,cube.z])]
             # target_bin.append(one_hot)
             self.agent_state[one_hot] = 1
+            self.agent_state[one_hot+self.num_actions] = 1
             self.target.append(one_hot)
 
         # print "THE TARGET", self.target
@@ -61,14 +62,10 @@ class RL_environment(object):
             reward = -1
             done = True
             # return s_, reward, done
-        elif action == self.target[0] and len(self.target) > 1:
-            reward = 0
-            done = False
+        elif action == self.target[0]:
             self.target = self.target[1:]
-        elif action == self.target[0] and len(self.target) == 1:
-            reward = 1
-            done = True
-            self.target = self.target[1:]
+            reward = 1 if len(self.target) == 0 else 0
+            done = True if len(self.target) == 0 else False
 
             # self.current_bin.append(action)
             # if sorted(self.current_bin) == sorted(self.target[0]):

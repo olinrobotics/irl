@@ -21,7 +21,7 @@ class Main(object):
         self.env = RL_environment()
         self.RL = None
         self.avg_reward = 0
-        self.trials = 20000000
+        self.trials = 30000000
         self.trial_finished = False
         self.observation = None
         self.action = None
@@ -40,7 +40,7 @@ class Main(object):
     def test(self):
         print "LOADING MEMORY"
 
-        with open('/home/rooster/catkin_ws/src/memory/memory20mil_new_context.txt', 'rb') as f:
+        with open('/home/rooster/catkin_ws/src/memory/memory30mil_new_context.txt', 'rb') as f:
             q_table = pickle.load(f)
         print "DONE"
         self.RL = RL_brain(e_greedy=0, q_table=q_table)
@@ -77,9 +77,14 @@ class Main(object):
     def train(self):
         self.RL = RL_brain()
         reward_list = []
+        # test = {}
 
         for i in range(self.trials):
             self.observation = self.env.reset()
+            # try:
+            #     test[len(np.nonzero(self.observation)[0])/2.0] += 1
+            # except KeyError:
+            #     test[len(np.nonzero(self.observation)[0])/2.0] = 1
             self.trial_finished = False
             # print "OBESRVATION IN MAIN", self.observation
             if i%self.test_interval == 0:
@@ -117,7 +122,8 @@ class Main(object):
 
         print "FINISHED TRAINING"
         print "THERE ARE", len(self.RL.q_table), "TOTAL STATES"
-        with open('/home/rooster/catkin_ws/src/memory/memory20mil_new_context.txt', 'wb') as f:
+        # print test
+        with open('/home/rooster/catkin_ws/src/memory/memory30mil_new_context.txt', 'wb') as f:
             pickle.dump(self.RL.q_table, f)
 
         print "MEMORY SAVED"
