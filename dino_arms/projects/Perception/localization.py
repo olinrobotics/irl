@@ -9,6 +9,10 @@ import numpy as np
 
 CUBE_SIZE_SMALL = 0.037  # in meter
 CUBE_SIZE_LARGE = 0.086  # in meter
+GRID_HEIGHT = 0.00635  # in meter
+
+
+# GRID_HEIGHT = 0 # in meter
 
 
 def cube_localization(coords, cube_size=CUBE_SIZE_SMALL):
@@ -46,7 +50,7 @@ def reduced_coords(coords, cube_size):
         # y coordinates flips for the librealsense camera
         coord[1] = -coord[1]
         x, y, z = coord
-        if 0.75 * cube_size <= y <= 6.25 * cube_size and z < 0.65:
+        if 0.75 * cube_size + 0 <= y <= 6.25 * cube_size + 0 and z < 0.65:
             r_coords.append(coord)
     return np.asarray(r_coords)
 
@@ -58,7 +62,7 @@ def find_cubes_at_height(coords, height_level, cube_size):
     coords_at_y = []
     i_remove_list = []
     for i, coord in enumerate(coords):
-        if abs(coord[1] - height_level * cube_size) <= cube_size / 3:
+        if abs(coord[1] - height_level * cube_size) <= cube_size / 3 + GRID_HEIGHT:
             coords_at_y.append(coord)
             i_remove_list.append(i)
     coords_at_y = np.asarray(coords_at_y)

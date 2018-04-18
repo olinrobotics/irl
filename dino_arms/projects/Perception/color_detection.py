@@ -5,7 +5,7 @@ import numpy as np
 def find_paper(image, show_video=False):
     blur = cv2.GaussianBlur(image, (5, 5), 0)
     rgb = cv2.cvtColor(blur, cv2.COLOR_BGR2RGB)
-    lower_white = np.array([150, 150, 150])
+    lower_white = np.array([165, 165, 165])
     upper_white = np.array([255, 255, 255])
     mask = cv2.inRange(rgb, lower_white, upper_white)
     paper = []
