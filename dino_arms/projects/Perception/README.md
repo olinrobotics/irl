@@ -26,10 +26,11 @@ We then check the cube by height. We define the height of the top surface of the
 ##### Step3: ```find_cubes_at_height(coords, height_level, cube_size)```
 * For each slice, we compute the minimum x value, maximum x value, minimum z value and maximum z value of the structure and define a bounding box. The coordinates of the four corners of the bounding box are (min_x, max_z), (min_x, min_z), (max_x, max_z), (max_x, min_z).  
 * We then sort the point cloud at each slice by depth and divide the slice into strips where the cubes in each strip have the same depth (z) with respect to the camera.
-* Lastly, we scan each strip starting from the points with minimum x coordinates and progress by increments of the cube size. The strip of point clouds is divided into multiple regions of square shape to allow for checking the presence of a cube.
+* Lastly, we scan each strip starting from the points with minimum x coordinates and progress to the right by increments of the cube size. The strip of point clouds is divided into multiple regions of square shape to allow for checking the presence of a cube.
 
-##### Step4: ```check_cubes_old(coords, height_level, cube_size)```
-* check number of points in the point cloud
+##### Step4: ```check_cubes(coords, height_level, cube_size)```
+* Give a confined region of square shape as defined in Step3, we first scanned the number of points in the point cloud. If the number of points in the region is less than threshold, we categorized that region as no cubes present. The threshold is currently defined to be
+* If the region have number of points greater than the threshold, we then
 * check the area formed by the point cloud
 * check presence of a hole
 
