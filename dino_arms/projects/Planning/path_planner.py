@@ -43,6 +43,7 @@ class PathPlanner():
         # Make query about the joints/coordinates information and wait for callback
         self.query_pub_pollux = rospy.Publisher("/query_cmd_pollux", String, queue_size=10)
         self.info_sub_pollux = rospy.Subscriber("/arm_info_pollux", String, self.info_callback, queue_size=10)
+        self.arm_status_pollux = rospy.Subscriber("/arm_status_pollux", String, self.pollux_status_callback, queue_size=10)
 
         # two ways of controlling the arm with coordinates / joint behaviors
         self.coordinates_pub_castor = rospy.Publisher("/coordinates_cmd_castor", String, queue_size=10)
@@ -50,6 +51,7 @@ class PathPlanner():
         # Make query about the joints/coordinates information and wait for callback
         self.query_pub_castor = rospy.Publisher("/query_cmd_castor", String, queue_size=10)
         self.info_sub_castor = rospy.Subscriber("/arm_info_castor", String, self.info_callback, queue_size=10)
+        self.arm_status_castor = rospy.Subscriber("/arm_info_castor", String, self.castor_status_callback, queue_size=10)
 
         # controller_status determines when Perception start looking for a new goal
         self.status_pub = rospy.Publisher("/controller_status", Bool, queue_size=10)
@@ -58,6 +60,8 @@ class PathPlanner():
 
         self.curr_model = [[0 for col in range(5)] for row in range(5)]
         self.is_building = False
+        self.castor_busy = False
+        self.pollux_busy = False
 
         # geometry of the cube
         self.unit_length = 0.1016
@@ -92,10 +96,38 @@ class PathPlanner():
             # print("Joing angles are: " + arm_info)
             self.curr_angle = [float(i) for i in arm_info.split(',')]
 
+    def castor_status_callback(self, data):
+        '''
+        check if castor is busy
+        '''
+        if data.data = "busy":
+            self.castor_busy = True
+        else:
+            self.castor_busy = False
+
+    def pollux_status_callback(self, data):
+        '''
+        check if pollux is busy
+        '''
+        if data.data = "busy":
+            self.pollux_busy = True
+        else:
+            self.pollux_busy = False
+
+    def check_castor(self):
+        time.sleep(0.5)
+        while self.castor_busy:
+            pass
+
+    def check_pollux(self):
+        time.sleep(0.5)
+        while self.pollux_busy:
+            pass
+
     def pickup(self):
         '''
-        Mick up the cube from a predefined location
-        pick-up location will be mirrored for two arms
+        Pick up the cube from a predefined location
+        pick-up locations will be mirrored for two arms
         '''
         pass
 
@@ -133,10 +165,11 @@ class PathPlanner():
         if grid_coord.y<2:
             print('Sending Pollux:' + msg)
             self.coordinates_pub_pollux.publish(msg)
+            self.check_pollux()
         else:
             print('Sending Castor:' + msg)
             self.coordinates_pub_castor.publish(msg)
-        time.sleep(2)
+            self.check_castor()
 
         # go outward
         self.curr_location[0] = self.curr_location[0] + self.push_instruction[self.push_flag][0] * 4 * self.unit_length;
@@ -145,10 +178,11 @@ class PathPlanner():
         if grid_coord.y<2:
             print('Sending Pollux:' + msg)
             self.coordinates_pub_pollux.publish(msg)
+            self.check_pollux()
         else:
             print('Sending Castor:' + msg)
             self.coordinates_pub_castor.publish(msg)
-        time.sleep(2)
+            self.check_castor()
 
         # go down 2 units
         self.curr_location[2] = self.curr_location[2] - 2 * self.unit_length;
@@ -156,10 +190,11 @@ class PathPlanner():
         if grid_coord.y<2:
             print('Sending Pollux:' + msg)
             self.coordinates_pub_pollux.publish(msg)
+            self.check_pollux()
         else:
             print('Sending Castor:' + msg)
             self.coordinates_pub_castor.publish(msg)
-        time.sleep(2)
+            self.check_castor()
 
         # push inward
         self.curr_location[0] = self.curr_location[0] - self.push_instruction[self.push_flag][0] * 2 * self.unit_length;
@@ -168,10 +203,11 @@ class PathPlanner():
         if grid_coord.y<2:
             print('Sending Pollux:' + msg)
             self.coordinates_pub_pollux.publish(msg)
+            self.check_pollux()
         else:
             print('Sending Castor:' + msg)
             self.coordinates_pub_castor.publish(msg)
-        time.sleep(2)
+            self.check_castor()
 
     def place_block(self, grid_coord, real_coord):
         '''
@@ -209,9 +245,10 @@ class PathPlanner():
         print("Sending: ", msg)
         if grid_coord.y<2:
             self.joints_pub_pollux.publish(msg)
+            self.check_pollux()
         else:
             self.joints_pub_castor.publish(msg)
-        time.sleep(2)
+            self.check_castor()
 
         print('Push Flag:' + str(self.push_flag))
 
@@ -235,20 +272,22 @@ class PathPlanner():
         if grid_coord.y<2:
             print('Sending Pollux:' + msg)
             self.coordinates_pub_pollux.publish(msg)
+            self.check_pollux()
         else:
             print('Sending Castor:' + msg)
             self.coordinates_pub_castor.publish(msg)
-        time.sleep(2)
+            self.check_castor()
 
         # go to z coordinate and place the block
         msg = str(real_coord.x) + ' ' + str(real_coord.y) + ' ' + str(real_coord.z)
         if grid_coord.y<2:
             print('Sending Pollux:' + msg)
             self.coordinates_pub_pollux.publish(msg)
+            self.check_pollux()
         else:
             print('Sending Castor:' + msg)
             self.coordinates_pub_castor.publish(msg)
-        time.sleep(2)
+            self.check_castor()
 
         # TODO Publish to gripper to release
 

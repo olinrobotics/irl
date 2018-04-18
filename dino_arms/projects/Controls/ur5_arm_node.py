@@ -62,12 +62,12 @@ class Arm():
         #Setup TCP
         tcp_ip = rospy.get_param("~robot_ip")
         self.coordinator = urx.Robot(tcp_ip)
-        arm_dict = {'10.42.0.175':'pollux','10.42.0.54':'castor'}
+        arm_dict = {'10.42.0.175':'_pollux','10.42.0.54':'_castor'}
 
         #Setting up subscriber
         self.joints_sub = rospy.Subscriber("behaviors_cmd%s"%arm_dict[tcp_ip], String, self.behaviors_callback)
         self.coordinates_sub = rospy.Subscriber("coordinates_cmd%s"%arm_dict[tcp_ip], String, self.coordinates_callback)
-        self.status_pub = rospy.Publisher("arm_status", String, queue_size=0)
+        self.status_pub = rospy.Publisher("arm_status%s"%arm_dict[tcp_ip], String, queue_size=0)
         self.query_sub = rospy.Subscriber("query_cmd%s"%arm_dict[tcp_ip], String, self.query_callback, queue_size=10)
         self.info_pub = rospy.Publisher("arm_info%s"%arm_dict[tcp_ip], String, queue_size=10)
 
