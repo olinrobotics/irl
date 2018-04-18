@@ -1,5 +1,13 @@
 #!/usr/bin/env python
 
+"""
+Project Gemini planner
+
+By Yichen Jiang
+
+Path Planner and Executer for block placement.
+"""
+
 import rospy
 import rospkg
 import numpy as np
@@ -7,15 +15,14 @@ import time
 import sys
 import math
 from irl.msg import Cube_Structures, Grid_Cube, Real_Cube, Real_Structure, Grid_Structure
-from std_msgs.msg import String
+from std_msgs.msg import String, Bool
 rospack = rospkg.RosPack()
 PACKAGE_PATH = rospack.get_path("irl")
 sys.path.append(PACKAGE_PATH + '/projects/Controls')
 from ur5_arm_node import Arm
 
-
-
 # python path_planner.py _robot_ip:=10.42.0.54
+# pollux: 10.42.0.175, castor: 10.42.0.54
 class PathPlanner():
     '''
     This is the path planner for the Spring 18 Interactive Robotics Lab project
@@ -28,14 +35,24 @@ class PathPlanner():
         self.model_pub = rospy.Publisher("/model_cmd", String, queue_size=1)
         # build_cmd is rececived from the brain as a cube structures with real and grid coordinates
         self.cmd_sub = rospy.Subscriber("/build_cmd", Cube_Structures, self.cmd_callback,queue_size=1)
+
+        # setting up publisher for two arms
         # two ways of controlling the arm with coordinates / joint behaviors
-        self.coordinates_pub = rospy.Publisher("/coordinates_cmd", String, queue_size=10)
-        self.joints_pub = rospy.Publisher("/behaviors_cmd", String, queue_size=10)
+        self.coordinates_pub_pollux = rospy.Publisher("/coordinates_cmd_pollux", String, queue_size=10)
+        self.joints_pub_pollux = rospy.Publisher("/behaviors_cmd_pollux", String, queue_size=10)
         # Make query about the joints/coordinates information and wait for callback
-        self.query_pub = rospy.Publisher("/query_cmd", String, queue_size=10)
-        self.info_sub = rospy.Subscriber("/arm_info", String, self.info_callback, queue_size=10)
+        self.query_pub_pollux = rospy.Publisher("/query_cmd_pollux", String, queue_size=10)
+        self.info_sub_pollux = rospy.Subscriber("/arm_info_pollux", String, self.info_callback, queue_size=10)
+
+        # two ways of controlling the arm with coordinates / joint behaviors
+        self.coordinates_pub_castor = rospy.Publisher("/coordinates_cmd_castor", String, queue_size=10)
+        self.joints_pub_castor = rospy.Publisher("/behaviors_cmd_castor", String, queue_size=10)
+        # Make query about the joints/coordinates information and wait for callback
+        self.query_pub_castor = rospy.Publisher("/query_cmd_castor", String, queue_size=10)
+        self.info_sub_castor = rospy.Subscriber("/arm_info_castor", String, self.info_callback, queue_size=10)
+
         # controller_status determines when Perception start looking for a new goal
-        self.status_pub = rospy.Publisher("/controller_status", Bool, query_size=10)
+        self.status_pub = rospy.Publisher("/controller_status", Bool, queue_size=10)
 
         self.grip_pub = rospy.Publisher("/grip_cmd", String, queue_size=10)
 
@@ -76,15 +93,18 @@ class PathPlanner():
             self.curr_angle = [float(i) for i in arm_info.split(',')]
 
     def pickup(self):
-        # TODO pick up the cube from a predefined location
+        '''
+        Mick up the cube from a predefined location
+        pick-up location will be mirrored for two arms
+        '''
         pass
 
     def coord_trans(self, base):
         '''
-        transform base coordinates to actual coordinate for the arm to place the block
+        Transform base coordinates to actual coordinate for the arm to place the block
         Each cube has the dimension of 101.6mm. Assume the default location is 110.29, -372.42, 289.06 for now
         zero z is -191.0
-        Not being used anymore
+        Not used anymore
         '''
         default = [0.1103, -0.3718, 0.2890]
         default[1] = default[1] + 2 * self.unit_length
@@ -95,43 +115,62 @@ class PathPlanner():
         real_z = default[2] + base[2] * self.unit_length
         return [real_x, real_y, real_z]
 
-    def push_block(self):
+    def push_block(self, grid_coord):
         '''
-        Model that deal with block pushing
+        Pushing building blocks into desired location when necessary
         '''
         # make query to ur5 arm for current coordinates
         self.query = "coordinates"
-        self.query_pub.publish(self.query)
+        if grid_coord.y<2:
+            self.query_pub_pollux.publish(self.query)
+        else:
+            self.query_pub_castor.publish(self.query)
         time.sleep(2)
 
         # go up 2 units
         self.curr_location[2] = self.curr_location[2] + 2 * self.unit_length;
         msg = str(self.curr_location[0]) + ' ' + str(self.curr_location[1]) + ' ' + str(self.curr_location[2])
-        print('Sending:' + msg)
-        self.coordinates_pub.publish(msg)
+        if grid_coord.y<2:
+            print('Sending Pollux:' + msg)
+            self.coordinates_pub_pollux.publish(msg)
+        else:
+            print('Sending Castor:' + msg)
+            self.coordinates_pub_castor.publish(msg)
         time.sleep(2)
 
         # go outward
         self.curr_location[0] = self.curr_location[0] + self.push_instruction[self.push_flag][0] * 4 * self.unit_length;
         self.curr_location[1] = self.curr_location[1] + self.push_instruction[self.push_flag][1] * 4 * self.unit_length;
         msg = str(self.curr_location[0]) + ' ' + str(self.curr_location[1]) + ' ' + str(self.curr_location[2])
-        print('Sending:' + msg)
-        self.coordinates_pub.publish(msg)
+        if grid_coord.y<2:
+            print('Sending Pollux:' + msg)
+            self.coordinates_pub_pollux.publish(msg)
+        else:
+            print('Sending Castor:' + msg)
+            self.coordinates_pub_castor.publish(msg)
         time.sleep(2)
 
         # go down 2 units
         self.curr_location[2] = self.curr_location[2] - 2 * self.unit_length;
         msg = str(self.curr_location[0]) + ' ' + str(self.curr_location[1]) + ' ' + str(self.curr_location[2])
-        print('Sending:' + msg)
-        self.coordinates_pub.publish(msg)
+        if grid_coord.y<2:
+            print('Sending Pollux:' + msg)
+            self.coordinates_pub_pollux.publish(msg)
+        else:
+            print('Sending Castor:' + msg)
+            self.coordinates_pub_castor.publish(msg)
         time.sleep(2)
 
         # push inward
         self.curr_location[0] = self.curr_location[0] - self.push_instruction[self.push_flag][0] * 2 * self.unit_length;
         self.curr_location[1] = self.curr_location[1] - self.push_instruction[self.push_flag][1] * 2 * self.unit_length;
         msg = str(self.curr_location[0]) + ' ' + str(self.curr_location[1]) + ' ' + str(self.curr_location[2])
-        print('Sending:' + msg)
-        self.coordinates_pub.publish(msg)
+        if grid_coord.y<2:
+            print('Sending Pollux:' + msg)
+            self.coordinates_pub_pollux.publish(msg)
+        else:
+            print('Sending Castor:' + msg)
+            self.coordinates_pub_castor.publish(msg)
         time.sleep(2)
 
     def place_block(self, grid_coord, real_coord):
@@ -168,14 +207,20 @@ class PathPlanner():
             msg = "pg_hover"
             self.push_flag = 0
         print("Sending: ", msg)
-        self.joints_pub.publish(msg)
+        if grid_coord.y<2:
+            self.joints_pub_pollux.publish(msg)
+        else:
+            self.joints_pub_castor.publish(msg)
         time.sleep(2)
 
         print('Push Flag:' + str(self.push_flag))
 
         # make query to ur5_arm_node and wait for callback
         self.query = "coordinates"
-        self.query_pub.publish(self.query)
+        if grid_coord.y<2:
+            self.query_pub_pollux.publish(self.query)
+        else:
+            self.query_pub_castor.publish(self.query)
         time.sleep(2)
 
         # cmd_location = self.coord_trans(grid_coord)
@@ -187,14 +232,22 @@ class PathPlanner():
 
         # go to x,y coordinates
         msg = str(real_coord.x) + ' ' + str(real_coord.y) + ' ' + str(self.curr_location[2])
-        print('Sending:' + msg)
-        self.coordinates_pub.publish(msg)
+        if grid_coord.y<2:
+            print('Sending Pollux:' + msg)
+            self.coordinates_pub_pollux.publish(msg)
+        else:
+            print('Sending Castor:' + msg)
+            self.coordinates_pub_castor.publish(msg)
         time.sleep(2)
 
         # go to z coordinate and place the block
         msg = str(real_coord.x) + ' ' + str(real_coord.y) + ' ' + str(real_coord.z)
-        print('Sending:' + msg)
-        self.coordinates_pub.publish(msg)
+        if grid_coord.y<2:
+            print('Sending Pollux:' + msg)
+            self.coordinates_pub_pollux.publish(msg)
+        else:
+            print('Sending Castor:' + msg)
+            self.coordinates_pub_castor.publish(msg)
         time.sleep(2)
 
         # TODO Publish to gripper to release
@@ -202,7 +255,7 @@ class PathPlanner():
         # push the block into place
         if self.push_flag != 0:
             # TODO grip firmly
-            self.push_block();
+            self.push_block(grid_coord);
 
         # update the current model
         self.curr_model[grid_coord.x][grid_coord.y] += 1
