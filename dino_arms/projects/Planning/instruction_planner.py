@@ -59,7 +59,6 @@ class Planner(object):
         self.current_env = self.coord_trans.convertBoard(self.cube_list)
 
         self.add_descriptors()
-        print self.cubes
         self.sorted_grid_cubes = self.sequence()
 
         self.sorted_real_cubes = self.coord_trans.convertReal(self.sorted_grid_cubes)
@@ -72,6 +71,7 @@ class Planner(object):
 
     def add_descriptors(self):
 
+        self.cubes = Grid_Structure()
         # make actual usable cubes from the environment and filling out all the information
         for x, y, z in itertools.product(*map(xrange,(self.env_size, self.env_size, self.env_size))):
             if self.current_env[x][y][z]:

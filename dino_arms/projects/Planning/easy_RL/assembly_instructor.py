@@ -22,7 +22,7 @@ import rospy
 import numpy as np
 import time
 from std_msgs.msg import String, Int16
-from irl.msg import Cube, Structure
+from irl.msg import Grid_Cube, Grid_Structure
 from cube import Digital_Cube
 
 
@@ -34,10 +34,19 @@ class Assembler(object):
 
     def __init__(self):
         self.vCube = np.vectorize(Digital_Cube) # faster struct using numpy
-        self.cube_list = Structure() # custom ros data structure
+        self.cube_list = Grid_Structure() # custom ros data structure
         self.instructions = []  # the finished set of instructions
         self.raw_sequence = [] # the starting set of shuffled instructions
         self.layers = []    # a middle man for sequencing
+        self.plane_mapping = {"[0, 0, 0]":0,  "[0, 1, 0]":1,  "[0, 2, 0]":2, \
+                                "[1, 0, 0]":3,  "[1, 1, 0]":4,  "[1, 2, 0]":5, \
+                                "[2, 0, 0]":6,  "[2, 1, 0]":7,  "[2, 2, 0]":8, \
+                                "[0, 0, 1]":9,  "[0, 1, 1]":10,  "[0, 2, 1]":11, \
+                                "[1, 0, 1]":12,  "[1, 1, 1]":13,  "[1, 2, 1]":14, \
+                                "[2, 0, 1]":15,  "[2, 1, 1]":16,  "[2, 2, 1]":17, \
+                                "[0, 0, 2]":18,  "[0, 1, 2]":19,  "[0, 2, 2]":20, \
+                                "[1, 0, 2]":21,  "[1, 1, 2]":22,  "[1, 2, 2]":23, \
+                                "[2, 0, 2]":24,  "[2, 1, 2]":25,  "[2, 2, 2]":26}
 
 
     def set_cube_list(self, cubes):
@@ -73,7 +82,7 @@ class Assembler(object):
         converting between data types, this one converts from python cube to ros cube
         """
 
-        real_cube = Cube()
+        real_cube = Grid_Cube()
         real_cube.height = cube.height
         real_cube.connections = cube.connections
         real_cube.x = cube.x
@@ -94,8 +103,11 @@ class Assembler(object):
         # sort by height
         self.layers = self.sort_by_height(self.raw_sequence)
         # within each height bin, sort by connections
+        per_layer = []
         for layer in self.layers:
-            self.instructions.extend(self.sort_by_connections(layer))
+            per_layer.extend(self.sort_by_connections(layer))
+        for layer in per_layer:
+            self.instructions.extend(self.sort_by_plane(layer))
 
         # print out instructions, and then return finished sequence to the brain
         # self.print_sequence(self.instructions)
@@ -155,6 +167,11 @@ class Assembler(object):
         binned_by_connections.append(connection_bin)
         return binned_by_connections
 
+
+    def sort_by_plane(self, layer):
+
+        layer.sort(key=lambda x: self.plane_mapping[str([x.x, x.y, x.z])])
+        return layer
 
     def print_sequence(self, instructions):
         """
