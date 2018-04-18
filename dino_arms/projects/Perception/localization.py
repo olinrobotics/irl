@@ -176,11 +176,22 @@ def check_cubes_old(coords, height_level, cube_size):
     if coord_area >= 0.7 * expected_area:
         cube_x = min_x + cube_size / 2
         cube_z = min_z + cube_size / 2
-        while height_level >= 1:
-            cube_y = (height_level - 1) * cube_size + cube_size / 2
-            cube = np.asarray([cube_x, cube_y, cube_z])
-            cubes.append(cube)
-            height_level -= 1
+        min_x = cube_x - cube_size * 0.8
+        max_x = cube_x + cube_size * 0.8
+        min_z = cube_z - cube_size * 0.8
+        max_z = cube_z + cube_size * 0.8
+        count = 0
+        for coord in coords:
+            x, y, z = coord
+            if min_x <= x <= max_x and min_z <= z <= max_z:
+                count += 1
+        print("count", count)
+        if count > 500:
+            while height_level >= 1:
+                cube_y = (height_level - 1) * cube_size + cube_size / 2
+                cube = np.asarray([cube_x, cube_y, cube_z])
+                cubes.append(cube)
+                height_level -= 1
     return cubes
 
 
@@ -189,4 +200,5 @@ if __name__ == '__main__':
     cubes = cube_localization(coords)
     print cubes, len(cubes), "cubes"
     import plot
+
     plot.plot_cube2d(cubes)

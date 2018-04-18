@@ -15,10 +15,7 @@ To use:
 roslaunch realsense2_camera rs_rgbd.launch
 
 TODO:
-- Hand Detection
-- Fix hole problem
-- From that, get two vectors on the table and make another function to find_height_angle
-- Ignore unreliable results
+- More testing
 """
 
 import numpy as np
@@ -150,7 +147,6 @@ class Perception:
         """
         while self.point_cloud is None:
             print "No point cloud found"
-
         gen = pc2.read_points(self.point_cloud, field_names=("x", "y", "z"))
         for i, p in enumerate(gen):
             self._coords[i] = self.get_xyz_numpy(p)
@@ -190,7 +186,6 @@ class Perception:
         Find the angle and height of the camera
         :return: angle (degrees), height
         """
-        self.get_pointcloud_coords()
         table_pixels = color_detection.find_paper(image=self.rgb_data)
         table_coords = self.get_coords_from_pixels(table_pixels)
         if len(table_coords) < 3:
@@ -229,38 +224,6 @@ class Perception:
             self.angle, self.height = angle, height
         return angle, height
 
-    def find_height_angle_old(self):
-        """
-        Find the angle and height of the camera
-        :return: angle (degrees), height
-        """
-        while self.point_cloud is None:
-            pass
-
-        # Get the current point cloud
-        self.get_pointcloud_coords()
-
-        # Find two points a and b on the ground. a also lies on Oz
-        a = self._coords[self.rowcol_to_i(self.cam.MID_ROW, self.cam.MID_COL)]
-        b = self._coords[self.rowcol_to_i(self.cam.MID_ROW + self.cam.MID_ROW / 4, self.cam.MID_COL)]
-        o = np.asarray([0, 0, 0])
-
-        # Find lengths of ab, oa, ob
-        ab = self._distance(a, b)
-        oa = self._distance(o, a)
-        ob = self._distance(o, b)
-
-        # Find the angle using cosine law
-        angle = 90 - np.degrees(np.arccos((ab ** 2 + oa ** 2 - ob ** 2) / (2 * oa * ab)))
-
-        # Find height of the camera
-        height = np.cos(np.radians(angle)) * oa
-
-        # If not nan, update angle and height
-        if self._is_not_nan(height):
-            self.angle, self.height = angle, height
-        return angle, height
-
     def get_xyz(self, p):
         """
         Get coordinates from a point in point cloud
@@ -293,6 +256,7 @@ class Perception:
         angle = np.arccos(np.matmul(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2)))
         angle = np.degrees(angle)
         if abs(angle) < 15 or abs(angle) > 165:
+            print "Linear dependent. Finding a different point"
             return True
         return False
 
@@ -312,10 +276,11 @@ class Perception:
     def _publish(self):
         if self.cubes is None:
             return
+        else:
+            print self.cubes, len(self.cubes), "cubes"
         structure = Real_Structure()
         for cube in self.cubes:
             structure.building.append(Real_Cube(x=cube[0], y=cube[2], z=cube[1]))
-        print self.cubes, len(self.cubes), "cubes"
         self.publisher.publish(structure)
 
     def _has_hand(self):
@@ -329,18 +294,20 @@ class Perception:
 
     def get_structure(self):
         if not self._has_hand():
-            coords = self.get_transformed_coords()
-            cubes = localization.cube_localization(coords, self.cube_size)
+            self.r.sleep()
+            self.get_pointcloud_coords()
             print "original", self._coords[self.rowcol_to_i(self.cam.MID_ROW, self.cam.MID_COL)]
+            coords = self.get_transformed_coords()
             print "transformed", coords[self.rowcol_to_i(self.cam.MID_ROW, self.cam.MID_COL)]
+            cubes = localization.cube_localization(coords, self.cube_size)
             if self.cubes is None or abs(len(self.cubes) - len(cubes)) <= 10:
                 self.cubes = cubes
-        self._publish()
+            self._publish()
 
 
 if __name__ == '__main__':
     perception = Perception(cube_size=localization.CUBE_SIZE_SMALL)
-    perception.show_rgbd()
+    perception.show_rgb()
     r = rospy.Rate(10)
     while True:
         r.sleep()
