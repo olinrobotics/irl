@@ -97,7 +97,6 @@ class Assembler(object):
         # within each height bin, sort by connections
         for layer in self.layers:
             self.instructions.extend(self.sort_by_connections(layer))
-
         # print out instructions, and then return finished sequence to the brain
         self.print_sequence(self.instructions)
         return self.package_sequence(self.instructions)

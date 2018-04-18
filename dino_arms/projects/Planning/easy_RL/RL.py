@@ -21,7 +21,7 @@ class RL_brain(object):
         # action selection
         eval_func = eval("lambda: " + observation)
         state = eval_func()
-        num_actions = np.count_nonzero(state)
+        num_actions = np.count_nonzero(state[:9])
         try:
             state_action = self.q_table[observation]
             # print "STATE ACTION", state_action
@@ -51,13 +51,13 @@ class RL_brain(object):
             check = self.q_table[s]
         except KeyError:
             eval_func = eval("lambda: " + s)
-            num_actions = np.count_nonzero(eval_func())
+            num_actions = np.count_nonzero(eval_func()[:9])
             self.q_table[s] = np.zeros(num_actions)
         try:
             check = self.q_table[s_]
         except KeyError:
             eval_func = eval("lambda: " + s_)
-            num_actions = np.count_nonzero(eval_func())
+            num_actions = np.count_nonzero(eval_func()[:9])
             num_actions = num_actions if num_actions > 0 else 1
             self.q_table[s_] = np.zeros(num_actions)
         # print "IN LEARN", self.encoded_action
@@ -74,7 +74,7 @@ class RL_brain(object):
     def update_params(self):
         if self.iterations % 1000000 == 0:
             # self.lr *= (1-self.lr *.000025)
-            self.lr *= 0.8
+            self.lr *= 0.9
         self.iterations += 1
-        self.epilson *= (1-self.epilson*.000004)
+        self.epsilon *= (1-self.epsilon*.0000002)
         # self.epsilon *= (1-self.epsilon*.0000009)
