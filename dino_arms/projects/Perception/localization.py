@@ -1,6 +1,6 @@
 """
-By Khang Vu, 2018
-Last Modified Mar 22, 2018
+By Khang Vu, Cassandra & Sherrie, 2018
+Last Modified April 18, 2018
 
 Given transformed coordinates and the cube's size,
 this scripts estimates the locations of the cubes
@@ -50,7 +50,7 @@ def reduced_coords(coords, cube_size):
         # y coordinates flips for the librealsense camera
         coord[1] = -coord[1]
         x, y, z = coord
-        if 0.75 * cube_size + 0 <= y <= 6.25 * cube_size + 0 and z < 0.65:
+        if 0.75 * cube_size + GRID_HEIGHT <= y <= 6.25 * cube_size + GRID_HEIGHT and z < 0.65:
             r_coords.append(coord)
     return np.asarray(r_coords)
 
@@ -62,7 +62,7 @@ def find_cubes_at_height(coords, height_level, cube_size):
     coords_at_y = []
     i_remove_list = []
     for i, coord in enumerate(coords):
-        if abs(coord[1] - height_level * cube_size) <= cube_size / 3 + GRID_HEIGHT:
+        if abs(coord[1] - GRID_HEIGHT - height_level * cube_size) <= cube_size / 3:
             coords_at_y.append(coord)
             i_remove_list.append(i)
     coords_at_y = np.asarray(coords_at_y)
@@ -103,7 +103,7 @@ def find_cubes_at_height(coords, height_level, cube_size):
 
             # After limit all the point cloud to coords_at_yzx,
             # check if those coords form the top surface of a pile of cubes
-            new_cubes = check_cubes_old(coords_at_yzx, height_level, cube_size)
+            new_cubes = check_cubes(coords_at_yzx, height_level, cube_size)
             cubes.extend(new_cubes)
 
     return cubes, coords
@@ -119,44 +119,8 @@ def check_cubes(coords, height_level, cube_size):
     :return: list of COMs of the cubes; empty list if there is no cube
     """
     cubes = []
-    min_z = max_z = None
-    min_x, max_x = coords[0][0], coords[-1][0]
 
-    # Find min_z, max_z
-    for coord in coords:
-        x, y, z = coord
-        if min_z > z or min_z is None:
-            min_z = z
-        if max_z <= z or max_z is None:
-            max_z = z
-
-    center_coords = []
-    for coord in coords:
-        x, y, z = coord
-        if min_x + cube_size / 10 < x < max_x - cube_size / 10 and min_z + cube_size / 10 < z < max_z - cube_size / 10:
-            center_coords.append(coord)
-
-    if len(center_coords) >= 300:
-        cube_x = min_x + cube_size / 2
-        cube_z = min_z + cube_size / 2
-        while height_level >= 1:
-            cube_y = (height_level - 1) * cube_size + cube_size / 2
-            cube = np.asarray([cube_x, cube_y, cube_z])
-            cubes.append(cube)
-            height_level -= 1
-    return cubes
-
-
-def check_cubes_old(coords, height_level, cube_size):
-    """
-    Check if the given coords can form the top surface of a cube.
-    If so, return a list of cubes from the top level to the bottom
-    :param coords: coords sorted by x that might make a cube
-    :param height_level: height level
-    :param cube_size: size of the cube
-    :return: list of COMs of the cubes; empty list if there is no cube
-    """
-    cubes = []
+    # 1st check: eliminate the case when the number of point cloud < 400
     if len(coords) < 400:
         return cubes
     min_z = max_z_left = max_z_right = None
@@ -172,12 +136,13 @@ def check_cubes_old(coords, height_level, cube_size):
         if abs(max_x - x) <= cube_size / 2 and (max_z_right <= z or max_z_right is None):
             max_z_right = z
 
-    # max_z_left and max_z_right should not be much different.
+    # 2nd check: max_z_left and max_z_right should not be much different.
     # If they are different, then the top surface area will be small, hence not a cube
     max_z = (max_z_left + max_z_right) / 2
     coord_area = abs(max_x - min_x) * abs(max_z - min_z)
     expected_area = cube_size * cube_size
     if coord_area >= 0.7 * expected_area:
+        # 3rd check: eliminate the case when the number of center coords < 500
         cube_x = min_x + cube_size / 2
         cube_z = min_z + cube_size / 2
         min_x = cube_x - cube_size * 0.8
@@ -190,6 +155,8 @@ def check_cubes_old(coords, height_level, cube_size):
             if min_x <= x <= max_x and min_z <= z <= max_z:
                 count += 1
         print("count", count)
+
+        # Now it's officially a valid top surface
         if count > 500:
             while height_level >= 1:
                 cube_y = (height_level - 1) * cube_size + cube_size / 2
@@ -204,5 +171,4 @@ if __name__ == '__main__':
     cubes = cube_localization(coords)
     print cubes, len(cubes), "cubes"
     import plot
-
     plot.plot_cube2d(cubes)
