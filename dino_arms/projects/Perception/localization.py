@@ -50,7 +50,7 @@ def reduced_coords(coords, cube_size):
         # y coordinates flips for the librealsense camera
         coord[1] = -coord[1]
         x, y, z = coord
-        if 0.75 * cube_size + GRID_HEIGHT <= y <= 6.25 * cube_size + GRID_HEIGHT and z < 0.65:
+        if 0.75 * cube_size + GRID_HEIGHT <= y <= 6.25 * cube_size + GRID_HEIGHT and z < 1:
             r_coords.append(coord)
     return np.asarray(r_coords)
 
@@ -141,7 +141,7 @@ def check_cubes(coords, height_level, cube_size):
     max_z = (max_z_left + max_z_right) / 2
     coord_area = abs(max_x - min_x) * abs(max_z - min_z)
     expected_area = cube_size * cube_size
-    if coord_area >= 0.7 * expected_area:
+    if coord_area >= 0.65 * expected_area:
         # 3rd check: eliminate the case when the number of center coords < 500
         cube_x = min_x + cube_size / 2
         cube_z = min_z + cube_size / 2

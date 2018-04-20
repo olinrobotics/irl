@@ -40,7 +40,7 @@ def has_hand(image):
             if elm == 255:
                 count += 1
 
-    if count > 1500:
+    if count > 50:
         print("Hand detected")
         return True
     else:

@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import axes3d, Axes3D
 import numpy as np
 
 
@@ -20,8 +21,9 @@ def reduce_coords(coords):
     c = []
     for i, coord in enumerate(coords):
         x, y, z = coord
-        if not np.math.isnan(x) and y < 0.5 and z < 1.5 and 0 < x < 0.25 and z < 0.65:
-            if i % 5 != 0:
+        y = -y
+        if not np.math.isnan(x) and z < 1:
+            if i % 10 != 0:
                 continue
             c.append(coord)
 
@@ -29,6 +31,6 @@ def reduce_coords(coords):
 
 
 if __name__ == '__main__':
-    coords = np.loadtxt('coords_7.txt', dtype=float)
+    coords = np.loadtxt('coords_1.txt', dtype=float)
     coords = reduce_coords(coords)
     plot_cube3d(coords)
