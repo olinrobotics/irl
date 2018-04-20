@@ -17,16 +17,17 @@ import rospy
 
 class CoordFrames(object):
 
-    def __init__(self, arm):
+    def __init__(self):
         """"
         Setup and variables associated with coordinate frames
-
-        arm is 1 for castor, -1 for pollux
         """
-        self.armOffSetX = 590 * arm
 
+        #Physical offsets of global origin
+        self.armOffSetY = -.550
+        self.polluxOffSetX = -.0254
+        self.polluxOffSetY = -.010
 
-        #Add these to respective axes to get actual global origin
+        self.cubeSize = .0889
 
 
         #TODO
@@ -35,12 +36,17 @@ class CoordFrames(object):
         self.pixelY = [.580, .540, .500, .460, .420]
         self.pixelZ = [.0185, .0585, .0985, .139, .180]
 
-        #Real world values - from GLOBAL origin (center of board)
-        self.realX = [-177.8, -88.9, 0, 88.9, 177.8]
-        for i in range(len(self.realX)):
-            self.realX[i] += self.armOffSetX
-        self.realY = [177.8, 88.9, 0, -88.9, -177.8]
-        self.realZ = [47, 141, 237, 329, 423]
+        #Real world values
+        #Castor set
+        self.realXC = [2.0*self.cubeSize, self.cubeSize, 0.0, -self.cubeSize, -2.0*self.cubeSize]
+        self.realYC = [2.0*self.cubeSize+self.armOffSetY, self.cubeSize+self.armOffSetY, self.armOffSetY, 0.0, 0.0]
+
+        #Pollux Set
+        self.realXP = [-2.0*self.cubeSize+self.polluxOffSetX, -self.cubeSize+self.polluxOffSetX, 0.0, -self.cubeSize+self.polluxOffSetX, -2.0*self.cubeSize+self.polluxOffSetX]
+        self.realYP = [0.0, 0.0, 0.0, self.armOffSetY+self.cubeSize+self.polluxOffSetY, self.armOffSetY+2.0*self.cubeSize+self.polluxOffSetY]
+        
+        #Shared
+        self.realZ = [.047, .141, .237, .329, .423]
 
 
     def closest(self, values, val):
