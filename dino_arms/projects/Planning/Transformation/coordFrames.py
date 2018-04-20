@@ -37,6 +37,8 @@ class CoordFrames(object):
 
         #Real world values - from GLOBAL origin (center of board)
         self.realX = [-177.8, -88.9, 0, 88.9, 177.8]
+        for i in range(len(self.realX)):
+            self.realX += self.armOffSetX
         self.realY = [177.8, 88.9, 0, -88.9, -177.8]
         self.realZ = [47, 141, 237, 329, 423]
 
