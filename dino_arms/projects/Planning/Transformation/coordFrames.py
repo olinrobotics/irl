@@ -18,11 +18,16 @@ import rospy
 class CoordFrames(object):
 
     def __init__(self, arm):
-        #Dimensions of cubes in mm
+        """"
+        Setup and variables associated with coordinate frames
+
+        arm is 1 for castor, -1 for pollux
+        """
+        self.armOffSetX = 590 * arm
+
 
         #Add these to respective axes to get actual global origin
 
-        self.armOffSetX = 590
 
         #TODO
         #Camera values. CONFIRM THESE WITH FIRST YEAR DATA
@@ -35,7 +40,12 @@ class CoordFrames(object):
         self.realY = [177.8, 88.9, 0, -88.9, -177.8]
         self.realZ = [47, 141, 237, 329, 423]
 
+
     def closest(self, values, val):
+        """
+        Returns the element from a list's index that is 
+        closest to the given value
+        """
         mini = 999999
         min_index = None
         for i in range(5):
