@@ -158,7 +158,7 @@ class Perception:
         :return: numpy array of 3D transformed coordinates; if there's no transformed coordinates, return original ones
         """
         angle, height = self.find_height_angle()
-        while not self._is_not_nan(angle):
+        while not self._is_not_nan(angle) and not self._is_not_nan(height):
             angle, height = self.find_height_angle()
             print "No angle found. Keep searching for an angle!"
         return np.asarray(transformation.transformPointCloud(self._coords, self.angle, self.height))
@@ -219,9 +219,8 @@ class Perception:
         angle = find_angle(points)
         # Find height of the camera
         height = find_height(points)
-        # If not nan, update angle and height
-        if self._is_not_nan(height):
-            self.angle, self.height = angle, height
+
+        self.angle, self.height = angle, height
         return angle, height
 
     def get_xyz(self, p):
@@ -294,13 +293,13 @@ class Perception:
 
     def get_structure(self):
         if not self._has_hand():
-            self.r.sleep()
             self.get_pointcloud_coords()
+            print "height", self.height, "angle", self.angle
             print "original", self._coords[self.rowcol_to_i(self.cam.MID_ROW, self.cam.MID_COL)]
             coords = self.get_transformed_coords()
             print "transformed", coords[self.rowcol_to_i(self.cam.MID_ROW, self.cam.MID_COL)]
             cubes = localization.cube_localization(coords, self.cube_size)
-            if self.cubes is None or abs(len(self.cubes) - len(cubes)) <= 10:
+            if self.cubes is None or abs(len(self.cubes) - len(cubes)) <= 10 and len(cubes) != 0:
                 self.cubes = cubes
             self._publish()
 
