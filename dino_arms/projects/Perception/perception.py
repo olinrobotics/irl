@@ -16,6 +16,8 @@ roslaunch realsense2_camera rs_rgbd.launch
 
 TODO:
 - More testing
+- Modify publisher/subscriber
+- Extend code to work with the big world
 """
 
 import numpy as np
@@ -27,7 +29,7 @@ import sensor_msgs.point_cloud2 as pc2
 from cv_bridge import CvBridgeError, CvBridge
 from irl.msg import Real_Cube, Real_Structure
 from sensor_msgs.msg import Image, PointCloud2
-import color_detection
+
 import localization
 import skin_detector
 import transformation
@@ -69,7 +71,6 @@ class Perception:
         self.publisher = rospy.Publisher("perception", Real_Structure, queue_size=10)
         self.cam = CameraType(camera_type, width, height)
         self.cube_size = cube_size
-        self.r = rospy.Rate(10)
         self.rgb_data = self.depth_data = self.point_cloud = None
         self.angle = self.height = None
         self.cubes = None
@@ -77,7 +78,7 @@ class Perception:
 
     def _rgb_callback(self, data):
         try:
-            self.rgb_data = self.bridge.imgmsg_to_cv2(data, "bgr8")
+            self.rgb_data = self.bridge.imgmsg_to_cv2(data, "rgb8")
         except CvBridgeError as e:
             print e
 
@@ -99,7 +100,7 @@ class Perception:
             pass
 
         while not rospy.is_shutdown():
-            self.r.sleep()
+            rospy.Rate(10).sleep()
             cv2.imshow('RGB Image', self.rgb_data)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
@@ -114,7 +115,7 @@ class Perception:
             pass
 
         while not rospy.is_shutdown():
-            self.r.sleep()
+            rospy.Rate(10).sleep()
             d = self.depth_data * self.cam.DEPTH_UNIT
             d = cv2.applyColorMap(d.astype(np.uint8), cv2.COLORMAP_RAINBOW)
             cv2.imshow('Depth Image', d)
@@ -131,7 +132,7 @@ class Perception:
             pass
 
         while not rospy.is_shutdown():
-            self.r.sleep()
+            rospy.Rate(10).sleep()
             d = self.depth_data * self.cam.DEPTH_UNIT
             d = cv2.applyColorMap(d.astype(np.uint8), cv2.COLORMAP_RAINBOW)
             dc = np.concatenate((d, self.rgb_data), axis=1)
@@ -150,45 +151,57 @@ class Perception:
         gen = pc2.read_points(self.point_cloud, field_names=("x", "y", "z"))
         for i, p in enumerate(gen):
             self._coords[i] = self.get_xyz_numpy(p)
-        return np.asarray(self._coords)
+        return self._coords
 
     def get_transformed_coords(self):
         """
         Get the current transformed point cloud coordinates
-        :return: numpy array of 3D transformed coordinates; if there's no transformed coordinates, return original ones
+        :return: numpy array of 3D transformed coordinates; if there's no transformed coordinates, keep searching for one
         """
-        angle, height = self.find_height_angle()
-        while not self._is_not_nan(angle) and not self._is_not_nan(height):
-            angle, height = self.find_height_angle()
+        self.find_height_angle()
+        while not self._is_not_nan(self.angle) and not self._is_not_nan(self.height):
+            self.find_height_angle()
             print "No angle found. Keep searching for an angle!"
-        return np.asarray(transformation.transformPointCloud(self._coords, self.angle, self.height))
+        print "height", self.height, "angle", self.angle
+        return transformation.transformPointCloud(self._coords, self.angle, self.height)
 
-    def get_coords_from_pixels(self, pixels):
+    def find_paper_coords(self, show_video=False):
         """
-        Get coordinates of pixels of an image, assuming we jave self._coords
-        :param pixels: pixels of the image
-        :return: untransformed 3D coordinates of these pixels
+        Find all white pixels of the paper and get the corresponding coordinates
+        :param show_video: True to show the processed image
+        :return:
         """
-        coords = []
-        for p in pixels:
-            row, col = p
-            if row < 0 or col < 0 or row >= self.cam.IMAGE_HEIGHT or col >= self.cam.IMAGE_WIDTH:
-                print "Row {} and Col {} are invalid".format(row, col)
-                continue
-            if self._coords[self.rowcol_to_i(row, col)] is not None and self._is_not_nan(
-                    self._coords[self.rowcol_to_i(row, col)][0]):
-                coords.append(self._coords[self.rowcol_to_i(row, col)])
+        blur = cv2.GaussianBlur(self.rgb_data, (5, 5), 0)
+        rgb = cv2.cvtColor(blur, cv2.COLOR_BGR2RGB)
+        lower_white = np.array([140, 140, 140])
+        upper_white = np.array([255, 255, 255])
+        mask = cv2.inRange(rgb, lower_white, upper_white)
 
-        return np.asarray(coords)
+        # Erosion
+        kernel = np.ones((50, 50), np.uint8)
+        mask = cv2.erode(mask, kernel, iterations=1)
+
+        paper_coords = []
+        for row, item in enumerate(mask):
+            for col, value in enumerate(item):
+                if value == 255:
+                    i = self.rowcol_to_i(row, col)
+                    if self._coords[i] is not None and self._is_not_nan(self._coords[i][0]):
+                        paper_coords.append(self._coords[i])
+        if show_video:
+            cv2.imshow('image', self.rgb_data)
+            cv2.imshow('mask', mask)
+            cv2.waitKey(0)
+
+        return paper_coords
 
     def find_height_angle(self):
         """
         Find the angle and height of the camera
         :return: angle (degrees), height
         """
-        table_pixels = color_detection.find_paper(image=self.rgb_data)
-        table_coords = self.get_coords_from_pixels(table_pixels)
-        if len(table_coords) < 3:
+        paper_coords = self.find_paper_coords()
+        if len(paper_coords) < 3:
             return None, None
 
         def find_angle(points):
@@ -209,19 +222,19 @@ class Perception:
             height = abs(np.matmul(origin, normal_vector) - d) / np.linalg.norm(normal_vector)
             return height
 
-        i1, i2, i3 = random.sample(range(0, len(table_coords)), 3)
-        points = [table_coords[i1], table_coords[i2], table_coords[i3]]
-        while self._is_linear_dependent(points):
-            i3 = random.randint(0, len(table_coords))
-            points = [table_coords[i1], table_coords[i2], table_coords[i3]]
+        heights_angles = []
+        for _ in range(10):
+            i1, i2, i3 = random.sample(range(0, len(paper_coords)), 3)
+            points = [paper_coords[i1], paper_coords[i2], paper_coords[i3]]
+            while self._is_linear_dependent(points):
+                i3 = random.randint(0, len(paper_coords))
+                points = [paper_coords[i1], paper_coords[i2], paper_coords[i3]]
 
-        # Find angle of the camera
-        angle = find_angle(points)
-        # Find height of the camera
-        height = find_height(points)
-
-        self.angle, self.height = angle, height
-        return angle, height
+            # Find 10 heights and angles of the camera
+            heights_angles.append([find_angle(points), find_height(points)])
+        heights_angles.sort(key=lambda x: x[0])
+        self.angle, self.height = heights_angles[5]
+        return self.angle, self.height
 
     def get_xyz(self, p):
         """
@@ -251,6 +264,12 @@ class Perception:
 
     @staticmethod
     def _is_linear_dependent(points):
+        """
+        Check three points on a surface and see if they're linear dependent (a.k.a on the same line)
+        :param points: 3 points
+        :return: True if linear dependent
+        :rtype: bool
+        """
         v1, v2 = points[0] - points[1], points[1] - points[2]
         angle = np.arccos(np.matmul(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2)))
         angle = np.degrees(angle)
@@ -265,6 +284,7 @@ class Perception:
         :param a: array
         :param b: array
         :return: distance between two points in 2D
+        :rtype: float
         """
         return np.sqrt((b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2 + (b[2] - a[2]) ** 2)
 
@@ -293,15 +313,16 @@ class Perception:
 
     def get_structure(self):
         if not self._has_hand():
-            self.get_pointcloud_coords()
-            print "height", self.height, "angle", self.angle
-            print "original", self._coords[self.rowcol_to_i(self.cam.MID_ROW, self.cam.MID_COL)]
-            coords = self.get_transformed_coords()
-            print "transformed", coords[self.rowcol_to_i(self.cam.MID_ROW, self.cam.MID_COL)]
-            cubes = localization.cube_localization(coords, self.cube_size)
-            if self.cubes is None or abs(len(self.cubes) - len(cubes)) <= 10 and len(cubes) != 0:
-                self.cubes = cubes
-            self._publish()
+            rospy.Rate(20).sleep()
+            if not self._has_hand():
+                self.get_pointcloud_coords()
+                print "Original", self._coords[self.rowcol_to_i(self.cam.MID_ROW, self.cam.MID_COL)]
+                coords = self.get_transformed_coords()
+                print "Transformed", coords[self.rowcol_to_i(self.cam.MID_ROW, self.cam.MID_COL)]
+                cubes = localization.cube_localization(coords, self.cube_size)
+                if self.cubes is None or abs(len(self.cubes) - len(cubes)) <= 10 and len(cubes) != 0:
+                    self.cubes = cubes
+                self._publish()
 
 
 if __name__ == '__main__':
