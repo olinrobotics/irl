@@ -13,7 +13,6 @@ import imutils
 def has_hand(image):
     # define the upper and lower boundaries of the HSV pixel
     # intensities to be considered 'skin'
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     lower = np.array([0, 48, 80], dtype="uint8")
     upper = np.array([20, 255, 255], dtype="uint8")
 
@@ -27,8 +26,7 @@ def has_hand(image):
     # apply a series of erosions and dilations to the mask
     # using an elliptical kernel
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (10, 10))
-    skinMask = cv2.erode(skinMask, kernel, iterations=2)
-    skinMask = cv2.dilate(skinMask, kernel, iterations=2)
+    skinMask = cv2.morphologyEx(skinMask, cv2.MORPH_OPEN, kernel)
 
     # blur the mask to help remove noise, then apply the
     # mask to the frame
@@ -39,16 +37,13 @@ def has_hand(image):
         for elm in array:
             if elm == 255:
                 count += 1
-
-    if count > 50:
-        print("Hand detected")
-        return True
-    else:
-        return False
+                if count > 50:
+                    print "Hand detected"
+                    return True
+    return False
 
 
 if __name__ == '__main__':
     image_path = "test_images/hand6.JPG"
     image = cv2.imread(image_path)
-
     has_hand(image)
