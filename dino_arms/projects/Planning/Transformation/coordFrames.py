@@ -102,9 +102,15 @@ class CoordFrames(object):
         real_cubes = Real_Structure()
         for cube in cubes.building:
             real_cube = Real_Cube()
-            real_cube.x = self.realX[cube.x]+self.armOffSetX
-            real_cube.y = self.realY[cube.y]
-            real_cube.z = self.realZ[cube.z]
+            if(real_cube.y < 3):
+                real_cube.x = self.realXC[cube.x]
+                real_cube.y = self.realYC[cube.y]
+                real_cube.z = self.realZ[cube.z]
+            else:
+                real_cube.x = self.realXP[cube.x]
+                real_cube.y = self.realYP[cube.y]
+                real_cube.z = self.realZ[cube.z]
+
             real_cubes.building.append(real_cube)
         return real_cubes
 
