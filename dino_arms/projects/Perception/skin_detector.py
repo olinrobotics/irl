@@ -1,7 +1,12 @@
 """
-USAGE
-# python skin_detector.py
-# python skin_detector.py --video video/skin_example.mov
+By Cassandra & Enmo, 2018
+Last Modified April 22, 2018
+
+Given an array of RGB pixels, the presence of a hand is determined using a range of HSV pixel intensities that could be
+considered as skin. A skinMask is then created to isolate the relevant pixels and has_hand returns true if the count
+reaches a certain threshold.
+
+Credits to the pyimagesearch tutorial on skin detection
 """
 
 import numpy as np
@@ -11,6 +16,11 @@ import imutils
 
 
 def has_hand(image):
+    """
+    This function determines whether there is a hand in the input image
+    :param image: image from camera, passed in from get_structure()
+    :return: true if there is a hand, false otherwise
+    """
     # define the upper and lower boundaries of the HSV pixel
     # intensities to be considered 'skin'
     lower = np.array([0, 48, 80], dtype="uint8")
@@ -38,7 +48,7 @@ def has_hand(image):
             if elm == 255:
                 count += 1
                 if count > 50:
-                    print "Hand detected"
+                    print("Hand detected")
                     return True
     return False
 

@@ -36,6 +36,9 @@ We then check the cube by height. We define the height of the top surface of the
 
 
 ## ```skin_detection.py```
+* Given an array of RGB pixels, the presence of a hand is determined using a range of HSV pixel intensities that could be
+considered as skin. A skinMask is then created to isolate the relevant pixels and has_hand() returns true if the count
+reaches a certain threshold.
 
 ## ```color_detection.py```
 * Perform paper detection using color detection of white given an image from the intel realsense camera and output the row and column of the paper.
