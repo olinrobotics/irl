@@ -100,5 +100,5 @@ class RL_brain(object):
         #     # self.lr *= 0.9
         #     self.lr *= 0.99
         # self.iterations += 1
-        self.epsilon *= (1-self.epsilon*.00000009)
+        self.epsilon *= (1-self.epsilon*.000003)
         # self.epsilon *= (1-self.epsilon*.0000009)
