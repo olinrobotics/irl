@@ -29,6 +29,7 @@ import sensor_msgs.point_cloud2 as pc2
 from cv_bridge import CvBridgeError, CvBridge
 from irl.msg import Real_Cube, Real_Structure
 from sensor_msgs.msg import Image, PointCloud2
+from std_msgs.msg import Bool
 
 import localization
 import skin_detector
@@ -68,6 +69,7 @@ class Perception:
         rospy.Subscriber('/camera/color/image_raw', Image, self._rgb_callback, queue_size=10)
         rospy.Subscriber('/camera/depth/image_rect_raw', Image, self._depth_callback, queue_size=10)
         rospy.Subscriber('/camera/depth_registered/points', PointCloud2, self._pointcloud_callback, queue_size=10)
+        rospy.Subscriber('/controller/status', Bool, self._building_status, queue_size=10)
         self.publisher = rospy.Publisher("perception", Real_Structure, queue_size=10)
         self.cam = CameraType(camera_type, width, height)
         self.cube_size = cube_size
@@ -90,6 +92,10 @@ class Perception:
 
     def _pointcloud_callback(self, data):
         self.point_cloud = data
+
+    def _building_status(self, data):
+        if data is False:
+            self.get_structure()
 
     def show_rgb(self):
         """
@@ -312,7 +318,7 @@ class Perception:
         return skin_detector.has_hand(self.rgb_data)
 
     def get_structure(self):
-        if not self._has_hand():
+        while not self._has_hand():
             rospy.Rate(20).sleep()
             if not self._has_hand():
                 self.get_pointcloud_coords()
@@ -320,15 +326,17 @@ class Perception:
                 coords = self.get_transformed_coords()
                 print "Transformed", coords[self.rowcol_to_i(self.cam.MID_ROW, self.cam.MID_COL)]
                 cubes = localization.cube_localization(coords, self.cube_size)
-                if self.cubes is None or abs(len(self.cubes) - len(cubes)) <= 10 and len(cubes) != 0:
+                if self.cubes is None or abs(len(self.cubes) - len(cubes)) <= 8 and len(cubes) != 0:
                     self.cubes = cubes
                 self._publish()
+                break
+
+    def run(self):
+        print "Perception running"
+        self.show_rgb()
+        self.get_structure()
 
 
 if __name__ == '__main__':
     perception = Perception(cube_size=localization.CUBE_SIZE_SMALL)
-    perception.show_rgb()
-    r = rospy.Rate(10)
-    while True:
-        r.sleep()
-        perception.get_structure()
+    perception.run()
