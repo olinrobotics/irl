@@ -18,21 +18,42 @@ import rospy
 class CoordFrames(object):
 
     def __init__(self):
-        #Dimensions of cubes in mm
+        """"
+        Setup and variables associated with coordinate frames
+        """
 
-        self.cubeHeight = 94
+        #Physical offsets of global origin
+        self.armOffSetY = -.550
+        self.polluxOffSetX = -.0254
+        self.polluxOffSetY = -.010
+
+        self.cubeSize = .0889
+
 
         #TODO
-        #Camera values. GET THESE FROM FIRST YEAR DATA
+        #Camera values. CONFIRM THESE WITH FIRST YEAR DATA
         self.pixelX = [-.025, .015, .055, .095, .135]
         self.pixelY = [.580, .540, .500, .460, .420]
         self.pixelZ = [.0185, .0585, .0985, .139, .180]
 
-        self.realX = [-177.8, -88.9, 0, 88.9, 177.8]
-        self.realY = [-177.8, -88.9, 0, 88.9, 177.8]
-        self.realZ = [47, 141, 237, 329, 423]
+        #Real world values
+        #Castor set
+        self.realXC = [2.0*self.cubeSize, self.cubeSize, 0.0, -self.cubeSize, -2.0*self.cubeSize]
+        self.realYC = [2.0*self.cubeSize+self.armOffSetY, self.cubeSize+self.armOffSetY, self.armOffSetY, 0.0, 0.0]
+
+        #Pollux Set
+        self.realXP = [-2.0*self.cubeSize+self.polluxOffSetX, -self.cubeSize+self.polluxOffSetX, 0.0, -self.cubeSize+self.polluxOffSetX, -2.0*self.cubeSize+self.polluxOffSetX]
+        self.realYP = [0.0, 0.0, 0.0, self.armOffSetY+self.cubeSize+self.polluxOffSetY, self.armOffSetY+2.0*self.cubeSize+self.polluxOffSetY]
+        
+        #Shared
+        self.realZ = [.047, .141, .237, .329, .423]
+
 
     def closest(self, values, val):
+        """
+        Returns the element from a list's index that is 
+        closest to the given value
+        """
         mini = 999999
         min_index = None
         for i in range(5):
@@ -81,11 +102,11 @@ class CoordFrames(object):
         real_cubes = Real_Structure()
         for cube in cubes.building:
             real_cube = Real_Cube()
-            real_cube.x = self.realX[cube.x]
+            real_cube.x = self.realX[cube.x]+self.armOffSetX
             real_cube.y = self.realY[cube.y]
             real_cube.z = self.realZ[cube.z]
             real_cubes.building.append(real_cube)
         return real_cubes
 
-if __name__ == u"__main__":
+if __name__ == "__main__":
     cf = CoordFrames()
