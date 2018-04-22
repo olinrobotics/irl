@@ -18,6 +18,18 @@ import matplotlib.pyplot as plt
 best parameters so far:
 lr = .02, every million .9 it
 epsilon = 1, every trial (1-epsilon*.0000002)
+
+similar:
+lr = .02, every million .99 it
+epsilon = 1, every trial (1-epsilon*.0000002)
+
+again similar:
+lr adaptive
+epsilon = 1, every trial (1-epsilon*.0000002)
+
+even better:
+lr adaptive
+epsilon = 1, every trial (1-epsilon*.000003)
 """
 
 class Main(object):
@@ -26,7 +38,7 @@ class Main(object):
         self.env = RL_environment()
         self.RL = None
         self.avg_reward = 0
-        self.trials = 20000000
+        self.trials = 30000000
         self.trial_finished = False
         self.observation = None
         self.action = None
@@ -128,7 +140,7 @@ class Main(object):
         print "FINISHED TRAINING"
         print "THERE ARE", len(self.RL.q_table), "TOTAL STATES"
         # print test
-        with open('/home/rooster/catkin_ws/src/memory/memory20mil_lr_near_constant.txt', 'wb') as f:
+        with open('/home/rooster/catkin_ws/src/memory/memory30mil_adaptivelr_low_exploit.txt', 'wb') as f:
             pickle.dump(self.RL.q_table, f)
 
         print "MEMORY SAVED"
