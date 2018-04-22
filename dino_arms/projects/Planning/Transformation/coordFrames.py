@@ -32,7 +32,7 @@ class CoordFrames(object):
 
         #TODO
         #Camera values. CONFIRM THESE WITH FIRST YEAR DATA
-        self.pixelX = [-.025, .015, .055, .095, .135]
+        self.pixelX = [-.065, -.025, .015, .055, .095]
         self.pixelY = [.580, .540, .500, .460, .420]
         self.pixelZ = [.0185, .0585, .0985, .139, .180]
 
@@ -44,14 +44,14 @@ class CoordFrames(object):
         #Pollux Set
         self.realXP = [-2.0*self.cubeSize+self.polluxOffSetX, -self.cubeSize+self.polluxOffSetX, 0.0, -self.cubeSize+self.polluxOffSetX, -2.0*self.cubeSize+self.polluxOffSetX]
         self.realYP = [0.0, 0.0, 0.0, self.armOffSetY+self.cubeSize+self.polluxOffSetY, self.armOffSetY+2.0*self.cubeSize+self.polluxOffSetY]
-        
+
         #Shared
         self.realZ = [.047, .141, .237, .329, .423]
 
 
     def closest(self, values, val):
         """
-        Returns the element from a list's index that is 
+        Returns the element from a list's index that is
         closest to the given value
         """
         mini = 999999
