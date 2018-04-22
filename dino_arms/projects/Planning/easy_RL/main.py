@@ -34,6 +34,8 @@ epsilon = 1, every trial (1-epsilon*.000003)
 even worse:
 lr adaptive
 epsilon = 1, every trial (1-epsilon*.00000009)
+
+epsilon with .000005 and .000009 also work, even stronger, but for 5x5 could be too exploit
 """
 
 class Main(object):

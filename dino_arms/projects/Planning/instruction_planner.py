@@ -46,7 +46,7 @@ class Planner(object):
 
         rospy.init_node("instruction_planner")
         # rospy.Subscriber("test_run", String, queue_size=10, callback=self.test_run)
-        # rospy.Subscriber("/digital_env", Structure, self.asm.set_cube_list)
+        # rospy.Subscriber("/digital_env", Grid_Structure, self.asm.set_cube_list)
         rospy.Subscriber("/perception", Real_Structure, self.plan)
 
         # self.digital_env_pub = rospy.Publisher("/digital_sig", String, queue_size=10)
@@ -59,6 +59,7 @@ class Planner(object):
         self.current_env = self.coord_trans.convertBoard(self.cube_list)
 
         self.add_descriptors()
+        print self.current_env
         self.sorted_grid_cubes = self.sequence()
 
         self.sorted_real_cubes = self.coord_trans.convertReal(self.sorted_grid_cubes)
