@@ -26,7 +26,7 @@ import rospy
 import numpy as np
 from std_msgs.msg import String, Int16
 import time
-from irl.msg import Cube, Structure
+from irl.msg import Grid_Cube, Grid_Structure, Real_Cube, Real_Structure
 from cube import Digital_Cube
 import itertools
 
@@ -51,7 +51,7 @@ class Environment(object):
         rospy.init_node("environment")
         rospy.Subscriber("digital_sig", String, self.create_a_struct)
 
-        self.env_pub = rospy.Publisher("perception", Structure, queue_size=10)
+        self.env_pub = rospy.Publisher("perception", Grid_Structure, queue_size=10)
         self.signal_pub = rospy.Publisher("test_run", String, queue_size=10)
 
 
@@ -87,6 +87,7 @@ class Environment(object):
                     prob = np.random.random_sample()
                     if prob < self.build_prob:
                         self.env[x,y,layer].turn_on(layer+1, x, y, layer)
+                        print 'turn on', x, y, layer
             layer += 1
 
         # then making actual usable cubes from the environment and filling out all the information
@@ -105,7 +106,7 @@ class Environment(object):
         converts between python class cube and ros data structure cube
         """
 
-        real_cube = Cube()
+        real_cube = Grid_Cube()
         real_cube.height = cube.height
         real_cube.connections = cube.connections
         real_cube.x = cube.x
@@ -123,7 +124,7 @@ class Environment(object):
         np.random.shuffle(self.cubes)
 
         # makes a ros structure to hold all the cubes, useful for publishing
-        struct = Structure()
+        struct = Grid_Structure()
         for block in self.cubes:
             struct.building.append(block)
 
