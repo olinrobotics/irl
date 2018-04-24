@@ -5,7 +5,7 @@ import rospy
 import numpy as np
 from std_msgs.msg import String, Int16
 import time
-from irl.msg import Cube, Structure
+from irl.msg import Grid_Cube, Grid_Structure
 from cube import Digital_Cube
 from digital_env import Environment
 import itertools
@@ -16,11 +16,11 @@ class RL_environment(object):
 
     def __init__(self):
         self.env = Environment()
-        self.action_space = range(27)
+        self.action_space = range(25)
         self.num_actions = len(self.action_space)
         self.target = None
-        self.current_bin = []
-        self.agent_state = [0]*27
+        # self.current_bin = []
+        self.agent_state = [0]*(self.num_actions*2)
         self.one_hot_mapping = {"[0, 0, 0]":0,  "[0, 1, 0]":1,  "[0, 2, 0]":2, \
                                 "[1, 0, 0]":3,  "[1, 1, 0]":4,  "[1, 2, 0]":5, \
                                 "[2, 0, 0]":6,  "[2, 1, 0]":7,  "[2, 2, 0]":8, \
@@ -38,41 +38,45 @@ class RL_environment(object):
     def reset(self):
         structure = self.env.create_a_struct()
         self.target = []
-        self.current_bin = []
-        self.agent_state = [0]*27
-        for cube_bin in structure:
-            target_bin = []
-            for cube in cube_bin:
-                one_hot = self.one_hot_mapping[str([cube.x, cube.y,cube.z])]
-                target_bin.append(one_hot)
-                self.agent_state[one_hot] = 1
-            self.target.append(target_bin)
+        # self.current_bin = []
+        self.agent_state = [0]*(self.num_actions*2)
+        for cube in structure:
+            # target_bin = []
+            # for cube in cube_bin:
+            one_hot = self.one_hot_mapping[str([cube.x, cube.y,cube.z])]
+            # target_bin.append(one_hot)
+            self.agent_state[one_hot] = 1
+            self.agent_state[one_hot+self.num_actions] = 1
+            self.target.append(one_hot)
 
         # print "THE TARGET", self.target
         # print "TARGET FLATTENED", [item for sublist in self.target for item in sublist]
         return self.agent_state[:]
 
+
     def step(self, action):
         self.agent_state[action.astype(int)] = 0
         s_ = self.agent_state[:]
 
-        if action not in self.target[0]:
+        if action != self.target[0]:
             reward = -1
             done = True
-            return s_, reward, done
-        if action in self.target[0]:
-            reward = 0
-            done = False
-            self.current_bin.append(action)
-            if sorted(self.current_bin) == sorted(self.target[0]):
-                reward = 1
-                self.target = self.target[1:]
-                self.current_bin = []
+            # return s_, reward, done
+        elif action == self.target[0]:
+            self.target = self.target[1:]
+            reward = 1 if len(self.target) == 0 else 0
+            done = True if len(self.target) == 0 else False
+
+            # self.current_bin.append(action)
+            # if sorted(self.current_bin) == sorted(self.target[0]):
+            #     # reward = 1
+            #     self.target = self.target[1:]
+            #     self.current_bin = []
 
         # print "TARGET", self.target
-        if self.target == []:
-            reward = 9
-            done = True
+        # if self.target == []:
+        #     reward = 1
+        #     done = True
         return s_, reward, done
 
 
