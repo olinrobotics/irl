@@ -30,9 +30,8 @@ We then check the cube by height. We define the height of the top surface of the
 
 ##### Step4: ```check_cubes(coords, height_level, cube_size)```
 * Give a confined region of square shape as defined in Step3, we first scanned the number of points in the point cloud. If the number of points in the region is less than threshold, we categorized that region as no cubes present. The threshold is currently defined to be
-* If the region have number of points greater than the threshold, we then
-* check the area formed by the point cloud
-* check presence of a hole
+* If the region have number of points greater than the threshold, we then check the area formed by the point cloud is above certain threshold.
+* Lastly, we check the presence of a hole.
 
 
 ## ```skin_detection.py```
