@@ -302,6 +302,7 @@ class PathPlanner():
 
     def run(self):
         print("Path planner running")
+        self.status_pub.publish(False)
         while not rospy.is_shutdown():
             try:
                 # wait for user input
