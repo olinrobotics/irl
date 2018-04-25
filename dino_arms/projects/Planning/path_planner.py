@@ -253,11 +253,11 @@ class PathPlanner():
 
         print('Push Flag:' + str(self.push_flag))
 
-        real_coordinates = coord_trans([grid_coord.x,grid_coord.y, grid_coord.z])
+        real_coordinates = self.coord_trans([grid_coord.x,grid_coord.y, grid_coord.z])
         real_coord.x = real_coordinates[0]
         real_coord.y = real_coordinates[1]
         real_coord_z = real_coordinates[2]
-        
+
         # make query to ur5_arm_node and wait for callback
         self.query = "coordinates"
         if grid_coord.y<2:
