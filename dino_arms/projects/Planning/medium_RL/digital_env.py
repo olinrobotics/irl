@@ -100,8 +100,8 @@ class Environment(object):
             self.reset()
             self.build_struct()
 
-        for cube in self.cubes:
-            print cube.x, cube.y, cube.z, cube.connections
+        # for cube in self.cubes:
+        #     print cube.x, cube.y, cube.z, cube.connections
 
 
     def make_real_cube(self, cube):
@@ -175,7 +175,7 @@ class Environment(object):
 
         self.reset()
         self.build_struct()
-        self.print_struct()
+        # self.print_struct()
         return self.sequence_struct()
 
 
