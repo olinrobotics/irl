@@ -89,7 +89,7 @@ class PathPlanner():
         '''
         if self.query == "coordinates":
             arm_info = data.data[1:len(data.data)-1]
-            # print("Arm coordinates are: " + arm_info)
+            print("Arm coordinates are: " + arm_info)
             self.curr_location = [float(i) for i in arm_info.split(',')]
         elif self.query == "joints":
             arm_info = data.data[1:len(data.data)-1]
@@ -277,6 +277,7 @@ class PathPlanner():
 
         # go to x,y coordinates
         print("move xy")
+        print(self.curr_location)
         msg = str(real_coord.x) + ' ' + str(real_coord.y) + ' ' + str(self.curr_location[2])
         if grid_coord.x<2:
             print('Sending Pollux:' + msg)
