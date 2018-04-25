@@ -22,6 +22,15 @@ class CoordFrames(object):
         Setup and variables associated with coordinate frames
         """
 
+        #Cube for calibration  due to camera shifting
+        f = open("previousOrigin.txt", "r")
+        coords = f.readlines()
+        f.close()
+        self.origin = Grid_Cube()
+        self.origin.x = float(coords[0].strip())
+        self.origin.y = float(coords[1].strip())
+        self.origin.z = float(coords[2].strip())
+
         #Physical offsets of global origin
         self.armOffSetY = -.550
         self.polluxOffSetX = -.0254
@@ -29,12 +38,18 @@ class CoordFrames(object):
 
         self.cubeSize = .0889
 
+        
+        #Camera values
+        self.pixelX = []
+        self.pixelY = []
+        self.pixelZ = []
 
-        #TODO
-        #Camera values. CONFIRM THESE WITH FIRST YEAR DATA
-        self.pixelX = [-.025, .015, .055, .095, .135]
-        self.pixelY = [.580, .540, .500, .460, .420]
-        self.pixelZ = [.0185, .0585, .0985, .139, .180]
+        for i in range(5):
+            self.pixelX.append(float('%.3f'%(self.origin.x+(i*0.04))))
+        for i in range(5):
+            self.pixelY.append(float('%.3f'%(self.origin.y-(i*0.04))))
+        for i in range(5):
+            self.pixelZ.append(float('%.3f'%(self.origin.z+(i*0.04))))
 
         #Real world values
         #Castor set
@@ -47,6 +62,35 @@ class CoordFrames(object):
         
         #Shared
         self.realZ = [.047, .141, .237, .329, .423]
+
+
+
+    def updateOrigin(self, originCube):
+        """
+        Updates the origin cube that is used to make the board
+
+        Use for calibration purposes. 
+        originCube is a Grid_Cube()
+        """
+        self.origin = originCube
+
+        self.pixelX = []
+        self.pixelY = []
+        self.pixelZ = []
+
+        for i in range(5):
+            self.pixelX.append(float('%.3f'%(self.origin.x+(i*0.04))))
+        for i in range(5):
+            self.pixelY.append(float('%.3f'%(self.origin.y-(i*0.04))))
+        for i in range(5):
+            self.pixelZ.append(float('%.3f'%(self.origin.z+(i*0.04))))
+
+        f = open("previousOrigin.txt", "w")
+        f.truncate()
+        f.write(str(self.origin.x)+"\n")
+        f.write(str(self.origin.y)+"\n")
+        f.write(str(self.origin.z)+"\n")
+        f.close()
 
 
     def closest(self, values, val):
