@@ -34,7 +34,7 @@ class Planner(object):
         self.asm = Assembler()
 
         self.coord_trans = CoordFrames()
-        # self.coord_trans.origin = #TODO
+        # self.change_origin(-.065, .600, .0185)
 
         self.cube_list = Real_Structure() # the premlinary cube list input used to model the env
         self.cubes = Grid_Structure() # the cube list output used to sort the cubes
@@ -52,7 +52,18 @@ class Planner(object):
         self.instructions_pub = rospy.Publisher("/build_cmd", Cube_Structures, queue_size=10)
 
 
+    def change_origin(self, px, py, pz):
+
+        origin_cube = Real_Cube()
+        origin_cube.x = px
+        origin_cube.y = py
+        origin_cube.z = pz
+
+        self.coord_trans.updateOrigin(origin_cube)
+
+
     def plan(self, cube_list):
+        
         self.cube_list.building = cube_list.building
 
         self.current_env = self.coord_trans.convertBoard(self.cube_list)
