@@ -51,16 +51,15 @@ class CoordFrames(object):
         for i in range(5):
             self.pixelZ.append(float('%.3f'%(self.origin.z+(i*0.04))))
 
-
-        #Real world values
+        #Real world values - Note arm coords are orthogonal to board coords.
         #Castor set
-        self.realXC = [2.0*self.cubeSize, self.cubeSize, 0.0, -self.cubeSize, -2.0*self.cubeSize]
-        self.realYC = [2.0*self.cubeSize+self.armOffSetY, self.cubeSize+self.armOffSetY, self.armOffSetY, 0.0, 0.0]
+        self.realXC = [2.0*self.cubeSize+self.armOffSetY, self.cubeSize+self.armOffSetY, self.armOffSetY, 0.0, 0.0]
+        self.realYC = [2.0*self.cubeSize, self.cubeSize, 0.0, -self.cubeSize, -2.0*self.cubeSize]
 
         #Pollux Set
-        self.realXP = [-2.0*self.cubeSize+self.polluxOffSetX, -self.cubeSize+self.polluxOffSetX, 0.0, -self.cubeSize+self.polluxOffSetX, -2.0*self.cubeSize+self.polluxOffSetX]
-        self.realYP = [0.0, 0.0, 0.0, self.armOffSetY+self.cubeSize+self.polluxOffSetY, self.armOffSetY+2.0*self.cubeSize+self.polluxOffSetY]
-
+        self.realXP = [0.0, 0.0, 0.0, self.armOffSetY+self.cubeSize+self.polluxOffSetY, self.armOffSetY+2.0*self.cubeSize+self.polluxOffSetY]
+        self.realYP = [-2.0*self.cubeSize+self.polluxOffSetX, -self.cubeSize+self.polluxOffSetX, 0.0, -self.cubeSize+self.polluxOffSetX, -2.0*self.cubeSize+self.polluxOffSetX]
+        
         #Shared
         self.realZ = [.047, .141, .237, .329, .423]
 
@@ -96,7 +95,7 @@ class CoordFrames(object):
 
     def closest(self, values, val):
         """
-        Returns the element from a list's index that is
+        Returns the element from a list's index that is 
         closest to the given value
         """
         mini = 999999
@@ -132,7 +131,7 @@ class CoordFrames(object):
             gcube.x = self.closest(self.pixelX, cube.x)
             gcube.y = self.closest(self.pixelY, cube.y)
             gcube.z = self.closest(self.pixelZ, cube.z)
-            board[gcube.x][gcube.y][gcube.z] = gcube
+            board[gcube.z][gcube.x][gcube.y] = gcube
         return board #3d array with x, y, and z of blocks
 
 
@@ -147,7 +146,7 @@ class CoordFrames(object):
         real_cubes = Real_Structure()
         for cube in cubes.building:
             real_cube = Real_Cube()
-            if(real_cube.y < 3):
+            if(real_cube.x < 3):
                 real_cube.x = self.realXC[cube.x]
                 real_cube.y = self.realYC[cube.y]
                 real_cube.z = self.realZ[cube.z]
