@@ -270,6 +270,17 @@ class PathPlanner():
 
         # go to x,y coordinates
         max_z = 0.47
+
+        msg = str(self.curr_location[0]) + ' ' + str(self.curr_location[1]) + ' ' + str(max_z)
+        if grid_coord.y<2:
+            print('Sending Pollux:' + msg)
+            self.coordinates_pub_pollux.publish(msg)
+            self.check_pollux()
+        else:
+            print('Sending Castor:' + msg)
+            self.coordinates_pub_castor.publish(msg)
+            self.check_castor()
+
         msg = str(real_coord.x) + ' ' + str(real_coord.y) + ' ' + str(max_z)
         if grid_coord.y<2:
             print('Sending Pollux:' + msg)
