@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-The Digital Environment (testing RL, just 3x3 instead of 5x5)
+The Digital Environment (testing RL, just 5x5 one layer, instead of 5x5x5)
 
 by Kevin Zhang
 
@@ -26,7 +26,7 @@ import rospy
 import numpy as np
 from std_msgs.msg import String, Int16
 import time
-from irl.msg import Cube, Structure
+from irl.msg import Grid_Cube, Grid_Structure
 from cube import Digital_Cube
 from assembly_instructor import Assembler
 import itertools
@@ -40,11 +40,12 @@ class Environment(object):
 
     def __init__(self):
         self.vCube = np.vectorize(Digital_Cube) # faster python struct using numpy
-        self.env_size = 3 # dimension of env
+        self.env_size = 5 # dimension of env
+        self.env_height = 1
 
-        self.env = np.empty((self.env_size,self.env_size,self.env_size), dtype=object) # the digital environment
+        self.env = np.empty((self.env_size,self.env_size, self.env_height), dtype=object) # the digital environment
         # filling out the environment with cubes, but they start deactivated
-        for x, y, z in itertools.product(*map(xrange,(self.env_size, self.env_size, self.env_size))):
+        for x, y, z in itertools.product(*map(xrange,(self.env_size, self.env_size, self.env_height))):
             self.env[x,y,z] = self.vCube()
         self.cubes = [] # the final list of cube information
         self.build_prob = 0.7 # the randomizer
@@ -58,7 +59,7 @@ class Environment(object):
         resets cube list and build_prob
         """
 
-        for x, y, z in itertools.product(*map(xrange,(self.env_size, self.env_size, self.env_size))):
+        for x, y, z in itertools.product(*map(xrange,(self.env_size, self.env_size, self.env_height))):
             self.env[x,y,z].turn_off()
         self.cubes = []
         self.build_prob = 0.7
@@ -73,12 +74,11 @@ class Environment(object):
         then creates Cubes and fills them in with information about the activated cubes in
         the environment, this becomes the self.cubes list
         """
-
         # first building the environemnt digitally, going up in layers and activating cubes
         layer = 0
-        while layer < self.env_size:
+        while layer < self.env_height:
             self.build_prob -= 0.1
-            for x, y in itertools.product(*map(xrange,(self.env_size, self.env_size))):
+            for y, x in itertools.product(*map(xrange,(self.env_size, self.env_size))):
                 if  layer == 0 or self.env[x,y,layer-1].activated:
                     prob = np.random.random_sample()
                     if prob < self.build_prob:
@@ -86,7 +86,7 @@ class Environment(object):
             layer += 1
 
         # then making actual usable cubes from the environment and filling out all the information
-        for x, y, z in itertools.product(*map(xrange,(self.env_size, self.env_size, self.env_size))):
+        for y, x, z in itertools.product(*map(xrange,(self.env_size, self.env_size, self.env_height))):
             if self.env[x,y,z].activated:
                 connections = 0
                 for c in [[x+1, y],[x-1, y], [x,y+1], [x,y-1]]:
@@ -100,13 +100,16 @@ class Environment(object):
             self.reset()
             self.build_struct()
 
+        for cube in self.cubes:
+            print cube.x, cube.y, cube.z, cube.connections
+
 
     def make_real_cube(self, cube):
         """
         converts between python class cube and ros data structure cube
         """
 
-        real_cube = Cube()
+        real_cube = Grid_Cube()
         real_cube.height = cube.height
         real_cube.connections = cube.connections
         real_cube.x = cube.x
@@ -124,7 +127,7 @@ class Environment(object):
         np.random.shuffle(self.cubes)
 
         # makes a ros structure to hold all the cubes, useful for publishing
-        struct = Structure()
+        struct = Grid_Structure()
         for block in self.cubes:
             struct.building.append(block)
 
@@ -146,9 +149,9 @@ class Environment(object):
         column = 0
         printed_map = np.zeros((self.env_size,self.env_size))
         total = 0
-        for x, y in itertools.product(*map(xrange, (self.env_size, self.env_size))):
+        for y, x in itertools.product(*map(xrange, (self.env_size, self.env_size))):
                 k = 0
-                while k < self.env_size and self.env[x,y,k].activated:
+                while k < self.env_height and self.env[x,y,k].activated:
                     k += 1
                     total += 1
                 printed_map[x,y] = k
@@ -157,9 +160,9 @@ class Environment(object):
         print "STRUCT AS SEEN FROM BIRD EYE VIEW"
         print total, "total cubes in this structure\n"
         for  i in range(self.env_size):
-            print ' | '.join(map(str,map(int, printed_map[i,:])))
+            print ' | '.join(map(str,map(int, printed_map[:,i])))
             if i < self.env_size-1:
-                print "---------"
+                print "-----------------"
         print "\n"
         return total
 
@@ -172,7 +175,7 @@ class Environment(object):
 
         self.reset()
         self.build_struct()
-        # self.print_struct()
+        self.print_struct()
         return self.sequence_struct()
 
 
@@ -193,4 +196,4 @@ class Environment(object):
 
 if __name__=="__main__":
     env = Environment()
-    env.run()
+    env.create_a_struct()

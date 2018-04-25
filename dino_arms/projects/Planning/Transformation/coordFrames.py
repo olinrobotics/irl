@@ -51,6 +51,7 @@ class CoordFrames(object):
         for i in range(5):
             self.pixelZ.append(float('%.3f'%(self.origin.z+(i*0.04))))
 
+
         #Real world values
         #Castor set
         self.realXC = [2.0*self.cubeSize, self.cubeSize, 0.0, -self.cubeSize, -2.0*self.cubeSize]
@@ -59,7 +60,7 @@ class CoordFrames(object):
         #Pollux Set
         self.realXP = [-2.0*self.cubeSize+self.polluxOffSetX, -self.cubeSize+self.polluxOffSetX, 0.0, -self.cubeSize+self.polluxOffSetX, -2.0*self.cubeSize+self.polluxOffSetX]
         self.realYP = [0.0, 0.0, 0.0, self.armOffSetY+self.cubeSize+self.polluxOffSetY, self.armOffSetY+2.0*self.cubeSize+self.polluxOffSetY]
-        
+
         #Shared
         self.realZ = [.047, .141, .237, .329, .423]
 
@@ -95,7 +96,7 @@ class CoordFrames(object):
 
     def closest(self, values, val):
         """
-        Returns the element from a list's index that is 
+        Returns the element from a list's index that is
         closest to the given value
         """
         mini = 999999
@@ -131,7 +132,7 @@ class CoordFrames(object):
             gcube.x = self.closest(self.pixelX, cube.x)
             gcube.y = self.closest(self.pixelY, cube.y)
             gcube.z = self.closest(self.pixelZ, cube.z)
-            board[gcube.z][gcube.x][gcube.y] = gcube
+            board[gcube.x][gcube.y][gcube.z] = gcube
         return board #3d array with x, y, and z of blocks
 
 

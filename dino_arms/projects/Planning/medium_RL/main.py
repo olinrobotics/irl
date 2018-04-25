@@ -14,13 +14,37 @@ import itertools
 import cPickle as pickle
 import matplotlib.pyplot as plt
 
+"""
+best parameters so far:
+lr = .02, every million .9 it
+epsilon = 1, every trial (1-epsilon*.0000002)
+
+similar:
+lr = .02, every million .99 it
+epsilon = 1, every trial (1-epsilon*.0000002)
+
+again similar:
+lr adaptive
+epsilon = 1, every trial (1-epsilon*.0000002)
+
+even better:
+lr adaptive
+epsilon = 1, every trial (1-epsilon*.000003)
+
+even worse:
+lr adaptive
+epsilon = 1, every trial (1-epsilon*.00000009)
+
+epsilon with .000005 and .000009 also work, even stronger, but for 5x5 could be too exploit
+"""
 
 class Main(object):
 
     def __init__(self, train):
         self.env = RL_environment()
-        self.accuracy = 0
-        self.trials = 10000000
+        self.RL = None
+        self.avg_reward = 0
+        self.trials = 3000000#0
         self.trial_finished = False
         self.observation = None
         self.action = None
@@ -39,20 +63,20 @@ class Main(object):
     def test(self):
         print "LOADING MEMORY"
 
-        with open('/home/rooster/catkin_ws/src/memory2.txt', 'rb') as f:
+        with open('/home/rooster/catkin_ws/src/memory/memory30mil_new_context.txt', 'rb') as f:
             q_table = pickle.load(f)
         print "DONE"
         self.RL = RL_brain(e_greedy=0, q_table=q_table)
 
         print "------FIRST SHOWING TESTING ON 100\n"
+        accuracy = 0
         for i in range(100):
             self.observation = self.env.reset()
             done_sequencing = False
-            accuracy = 0
             while not done_sequencing:
                 self.action = self.RL.choose_action(str(self.observation))
                 self.observation, self.reward, done_sequencing = self.env.step(self.action)
-                accuracy += 0 if self.reward == -1 else 1
+            accuracy += 0 if self.reward == -1 else 1
         print "TEST ACCURACY", accuracy, "%"
 
         print "------NOW SHOWING VERBOSE ON 10\n"
@@ -67,7 +91,7 @@ class Main(object):
                 sequence.append(self.action)
                 self.observation, self.reward, done_sequencing = self.env.step(self.action)
 
-            print "CORRECT SEQUENCE" if self.reward != -1 else "MISSED IT"
+            print "-----CORRECT SEQUENCE-----" if self.reward != -1 else "MISSED IT"
             print "RL's SEQUENCE", sequence
             print "TARGET's LIST", target
 
@@ -75,15 +99,22 @@ class Main(object):
 
     def train(self):
         self.RL = RL_brain()
-        acc_list = []
+        reward_list = []
+        # test = {}
 
         for i in range(self.trials):
             self.observation = self.env.reset()
+            # try:
+            #     test[len(np.nonzero(self.observation)[0])/2.0] += 1
+            # except KeyError:
+            #     test[len(np.nonzero(self.observation)[0])/2.0] = 1
             self.trial_finished = False
             # print "OBESRVATION IN MAIN", self.observation
             if i%self.test_interval == 0:
                 print "EPISODE", i
             while not self.trial_finished:
+
+                # print "MAKING MOVE"
 
                 # print "IN MAIN OBSERVATION BEFORE CHOOSE", str(self.observation)
                 self.action = self.RL.choose_action(str(self.observation))
@@ -97,28 +128,31 @@ class Main(object):
 
 
             self.RL.update_params()
+            # print 'Correct\n' if self.reward == 1 else "NOT\n"
 
             if i%self.test_interval == 0:
-                self.accuracy = 0
+                self.avg_reward = 0
                 for _ in range(100):
                     self.observation = self.env.reset()
                     self.trial_finished = False
                     while not self.trial_finished:
                         self.action = self.RL.choose_action(str(self.observation))
                         self.observation, self.reward, self.trial_finished = self.env.step(self.action)
-                    self.accuracy += 0 if self.reward == -1 else 1
-                print "TEST ACCURACY", self.accuracy, "%"
-                acc_list.append(self.accuracy)
+                    self.avg_reward += self.reward
+                self.avg_reward /= 100.0
+                print "AVG. REWARD (per 100)", self.avg_reward, ""
+                reward_list.append(self.avg_reward)
 
         print "FINISHED TRAINING"
         print "THERE ARE", len(self.RL.q_table), "TOTAL STATES"
-        with open('/home/rooster/catkin_ws/src/memory2.txt', 'wb') as f:
-            pickle.dump(self.RL.q_table, f)
-
-        print "MEMORY SAVED"
-        plt.plot(range(20000000/1000), acc_list)
-        plt.axis([0,20000000, 0, 100])
-        plt.show()
+        # print test
+        # with open('/home/rooster/catkin_ws/src/memory/memory30mil_adaptivelr_low_exploit.txt', 'wb') as f:
+        #     pickle.dump(self.RL.q_table, f)
+        #
+        # print "MEMORY SAVED"
+        # plt.plot(range(self.trials/self.test_interval), reward_list)
+        # plt.axis([0,self.trials/self.test_interval, -1, 1])
+        # plt.show()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
