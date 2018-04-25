@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """
 By Khang Vu & Sherrie Shen, 2018
 Last Modified April 15, 2018

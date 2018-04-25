@@ -51,7 +51,7 @@ class PathPlanner():
         # Make query about the joints/coordinates information and wait for callback
         self.query_pub_castor = rospy.Publisher("/query_cmd_castor", String, queue_size=10)
         self.info_sub_castor = rospy.Subscriber("/arm_info_castor", String, self.info_callback, queue_size=10)
-        self.arm_status_castor = rospy.Subscriber("/arm_info_castor", String, self.castor_status_callback, queue_size=10)
+        self.arm_status_castor = rospy.Subscriber("/arm_status_castor", String, self.castor_status_callback, queue_size=10)
 
         # controller_status determines when Perception start looking for a new goal
         self.status_pub = rospy.Publisher("/controller_status", Bool, queue_size=10)
@@ -100,7 +100,7 @@ class PathPlanner():
         '''
         check if castor is busy
         '''
-        if data.data = "busy":
+        if data.data == "busy":
             self.castor_busy = True
         else:
             self.castor_busy = False
@@ -109,7 +109,7 @@ class PathPlanner():
         '''
         check if pollux is busy
         '''
-        if data.data = "busy":
+        if data.data == "busy":
             self.pollux_busy = True
         else:
             self.pollux_busy = False
@@ -243,6 +243,7 @@ class PathPlanner():
             msg = "pg_hover"
             self.push_flag = 0
         print("Sending: ", msg)
+        print(grid_coord.y)
         if grid_coord.y<2:
             self.joints_pub_pollux.publish(msg)
             self.check_pollux()
@@ -251,6 +252,7 @@ class PathPlanner():
             self.check_castor()
 
         print('Push Flag:' + str(self.push_flag))
+
 
         # make query to ur5_arm_node and wait for callback
         self.query = "coordinates"
