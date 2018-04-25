@@ -26,7 +26,7 @@ class CoordFrames(object):
         f = open("previousOrigin.txt", "r")
         coords = f.readlines()
         f.close()
-        self.origin = Grid_Cube()
+        self.origin = Real_Cube()
         self.origin.x = float(coords[0].strip())
         self.origin.y = float(coords[1].strip())
         self.origin.z = float(coords[2].strip())
@@ -38,7 +38,11 @@ class CoordFrames(object):
 
         self.cubeSize = .0889
 
-        
+        # the currently accepted calibration, gonna keep these around for a while
+#         self.pixelX = [-.065, -.025, .015, .055, .095]
+# -       self.pixelY = [.600, .560, .520, .480, .440]
+# -       self.pixelZ = [.0185, .0585, .0985, .139, .180]
+
         #Camera values
         self.pixelX = []
         self.pixelY = []
@@ -70,7 +74,7 @@ class CoordFrames(object):
         """
         Updates the origin cube that is used to make the board
 
-        Use for calibration purposes. 
+        Use for calibration purposes.
         originCube is a Grid_Cube()
         """
         self.origin = originCube
