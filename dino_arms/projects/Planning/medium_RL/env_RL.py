@@ -41,7 +41,8 @@ class RL_environment(object):
             self.agent_state[one_hot+self.num_actions] = 1
             self.target.append(one_hot)
 
-        print "THE TARGET", self.target
+        # print "\n\nSTARTING STATE", self.agent_state
+        # print "THE TARGET", self.target
         return self.agent_state[:]
 
 
