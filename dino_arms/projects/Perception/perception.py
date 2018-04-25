@@ -94,7 +94,7 @@ class Perception:
         self.point_cloud = data
 
     def _building_status(self, data):
-        if data is False:
+        if data.data is False:
             self.get_structure()
 
     def show_rgb(self):
@@ -318,7 +318,7 @@ class Perception:
         return skin_detector.has_hand(self.rgb_data)
 
     def get_structure(self):
-        while not self._has_hand():
+        if not self._has_hand():
             rospy.Rate(20).sleep()
             if not self._has_hand():
                 self.get_pointcloud_coords()
@@ -326,15 +326,29 @@ class Perception:
                 coords = self.get_transformed_coords()
                 print "Transformed", coords[self.rowcol_to_i(self.cam.MID_ROW, self.cam.MID_COL)]
                 cubes = localization.cube_localization(coords, self.cube_size)
-                if self.cubes is None or abs(len(self.cubes) - len(cubes)) <= 8 and len(cubes) != 0:
-                    self.cubes = cubes
-                self._publish()
-                break
+                # if self._is_not_nan(coords) and self._is_not_nan(self._coords) and len(cubes) != 0:
+                if coords is not None and self._coords is not None and len(cubes) != 0:
+                    if self.cubes is None or abs(len(self.cubes) - len(cubes)) <= 8 and len(cubes) != 0:
+                        self.cubes = cubes
+                        self._publish()
+                    else:
+                        self.get_structure()
+                else:
+                    self.get_structure()
+            else:
+                self.get_structure()
+        else:
+            self.get_structure()
 
     def run(self):
         print "Perception running"
         self.show_rgb()
         self.get_structure()
+        while not rospy.is_shutdown():
+            try:
+                rospy.Rate(10).sleep()
+            except KeyboardInterrupt:
+                break
 
 
 if __name__ == '__main__':
