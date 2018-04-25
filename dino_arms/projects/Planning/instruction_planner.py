@@ -59,7 +59,6 @@ class Planner(object):
         self.current_env = self.coord_trans.convertBoard(self.cube_list)
 
         self.add_descriptors()
-        print self.current_env
         self.sorted_grid_cubes = self.sequence()
 
         self.sorted_real_cubes = self.coord_trans.convertReal(self.sorted_grid_cubes)
