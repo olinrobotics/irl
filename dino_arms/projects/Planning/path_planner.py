@@ -243,6 +243,8 @@ class PathPlanner():
                 self.push_flag = 0
         else:
             msg = "pg_hover"
+
+            # TODO: new pg_hover joints: 90 -104.47 93.78 -78.7 -90 0
             self.push_flag = 0
         print("Sending: ", msg)
         print(grid_coord.y)
@@ -270,24 +272,12 @@ class PathPlanner():
 
         # TODO pick up the block
 
+        # max_z = 0.47
+        print("The block to build is at: " + str(grid_coord.x) + ', ' + str(grid_coord.y) + ', ' + str(grid_coord.z))
+
         # go to x,y coordinates
-        max_z = 0.47
-
-        print("Current Grid is: " + str(grid_coord.x) + ', ' + str(grid_coord.y) + ', ' + str(grid_coord.z))
-
-        print("Descending to max_x")
-        msg = str(self.curr_location[0]) + ' ' + str(self.curr_location[1]) + ' ' + str(max_z)
-        if grid_coord.y<2:
-            print('Sending Pollux:' + msg)
-            self.coordinates_pub_pollux.publish(msg)
-            self.check_pollux()
-        else:
-            print('Sending Castor:' + msg)
-            self.coordinates_pub_castor.publish(msg)
-            self.check_castor()
-
         print("move xy")
-        msg = str(real_coord.x) + ' ' + str(real_coord.y) + ' ' + str(max_z)
+        msg = str(real_coord.x) + ' ' + str(real_coord.y) + ' ' + str(self.curr_location[2])
         if grid_coord.y<2:
             print('Sending Pollux:' + msg)
             self.coordinates_pub_pollux.publish(msg)
