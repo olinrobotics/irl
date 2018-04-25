@@ -265,6 +265,10 @@ class PathPlanner():
             self.query_pub_castor.publish(self.query)
         time.sleep(2)
 
+        temp = real_coord.x
+        real_coord.x = real_coord.y
+        real_coord = temp
+
         # cmd_location = self.coord_trans(grid_coord)
         # add extra space for pushing
         real_coord.x += self.push_instruction[self.push_flag][0] * self.unit_length
