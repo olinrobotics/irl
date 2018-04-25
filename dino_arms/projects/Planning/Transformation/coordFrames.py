@@ -59,13 +59,13 @@ class CoordFrames(object):
 
         #Real world values - Note arm coords are orthogonal to board coords.
         #Castor set
-        self.realXC = [2.0*self.cubeSize+self.armOffSetY, self.cubeSize+self.armOffSetY, self.armOffSetY, 0.0, 0.0]
-        self.realYC = [2.0*self.cubeSize, self.cubeSize, 0.0, -self.cubeSize, -2.0*self.cubeSize]
+        self.realYC = [2.0*self.cubeSize+self.armOffSetY, self.cubeSize+self.armOffSetY, self.armOffSetY, 0.0, 0.0]
+        self.realXC = [2.0*self.cubeSize, self.cubeSize, 0.0, -self.cubeSize, -2.0*self.cubeSize]
 
         #Pollux Set
         self.realXP = [0.0, 0.0, 0.0, self.armOffSetY+self.cubeSize+self.polluxOffSetY, self.armOffSetY+2.0*self.cubeSize+self.polluxOffSetY]
         self.realYP = [-2.0*self.cubeSize+self.polluxOffSetX, -self.cubeSize+self.polluxOffSetX, 0.0, -self.cubeSize+self.polluxOffSetX, -2.0*self.cubeSize+self.polluxOffSetX]
-        
+
         #Shared
         self.realZ = [.047, .141, .237, .329, .423]
 
@@ -101,7 +101,7 @@ class CoordFrames(object):
 
     def closest(self, values, val):
         """
-        Returns the element from a list's index that is 
+        Returns the element from a list's index that is
         closest to the given value
         """
         mini = 999999
