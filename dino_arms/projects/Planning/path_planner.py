@@ -155,7 +155,7 @@ class PathPlanner():
         '''
         # make query to ur5 arm for current coordinates
         self.query = "coordinates"
-        if grid_coord.x<2:
+        if grid_coord.x>2:
             self.query_pub_pollux.publish(self.query)
         else:
             self.query_pub_castor.publish(self.query)
@@ -164,7 +164,7 @@ class PathPlanner():
         # go up 2 units
         self.curr_location[2] = self.curr_location[2] + 2 * self.unit_length;
         msg = str(self.curr_location[0]) + ' ' + str(self.curr_location[1]) + ' ' + str(self.curr_location[2])
-        if grid_coord.x<2:
+        if grid_coord.x>2:
             print('Sending Pollux:' + msg)
             self.coordinates_pub_pollux.publish(msg)
             self.check_pollux()
@@ -177,7 +177,7 @@ class PathPlanner():
         self.curr_location[0] = self.curr_location[0] + self.push_instruction[self.push_flag][0] * 4 * self.unit_length;
         self.curr_location[1] = self.curr_location[1] + self.push_instruction[self.push_flag][1] * 4 * self.unit_length;
         msg = str(self.curr_location[0]) + ' ' + str(self.curr_location[1]) + ' ' + str(self.curr_location[2])
-        if grid_coord.x<2:
+        if grid_coord.x>2:
             print('Sending Pollux:' + msg)
             self.coordinates_pub_pollux.publish(msg)
             self.check_pollux()
@@ -189,7 +189,7 @@ class PathPlanner():
         # go down 2 units
         self.curr_location[2] = self.curr_location[2] - 2 * self.unit_length;
         msg = str(self.curr_location[0]) + ' ' + str(self.curr_location[1]) + ' ' + str(self.curr_location[2])
-        if grid_coord.x<2:
+        if grid_coord.x>2:
             print('Sending Pollux:' + msg)
             self.coordinates_pub_pollux.publish(msg)
             self.check_pollux()
@@ -202,7 +202,7 @@ class PathPlanner():
         self.curr_location[0] = self.curr_location[0] - self.push_instruction[self.push_flag][0] * 2 * self.unit_length;
         self.curr_location[1] = self.curr_location[1] - self.push_instruction[self.push_flag][1] * 2 * self.unit_length;
         msg = str(self.curr_location[0]) + ' ' + str(self.curr_location[1]) + ' ' + str(self.curr_location[2])
-        if grid_coord.x<2:
+        if grid_coord.x>2:
             print('Sending Pollux:' + msg)
             self.coordinates_pub_pollux.publish(msg)
             self.check_pollux()
@@ -248,7 +248,7 @@ class PathPlanner():
             self.push_flag = 0
         print("Sending: ", msg)
         print(grid_coord.y)
-        if grid_coord.x<2:
+        if grid_coord.x>2:
             self.joints_pub_pollux.publish(msg)
             self.check_pollux()
         else:
@@ -259,7 +259,7 @@ class PathPlanner():
 
         # make query to ur5_arm_node and wait for callback
         self.query = "coordinates"
-        if grid_coord.x<2:
+        if grid_coord.x>2:
             self.query_pub_pollux.publish(self.query)
         else:
             self.query_pub_castor.publish(self.query)
@@ -278,7 +278,7 @@ class PathPlanner():
         # go to x,y coordinates
         print("move xy")
         msg = str(real_coord.x) + ' ' + str(real_coord.y) + ' ' + str(self.curr_location[2])
-        if grid_coord.x<2:
+        if grid_coord.x>2:
             print('Sending Pollux:' + msg)
             self.coordinates_pub_pollux.publish(msg)
             self.check_pollux()
@@ -290,7 +290,7 @@ class PathPlanner():
         # go to z coordinate and place the block
         print("move z")
         msg = str(real_coord.x) + ' ' + str(real_coord.y) + ' ' + str(real_coord.z)
-        if grid_coord.x<2:
+        if grid_coord.x>2:
             print('Sending Pollux:' + msg)
             self.coordinates_pub_pollux.publish(msg)
             self.check_pollux()
