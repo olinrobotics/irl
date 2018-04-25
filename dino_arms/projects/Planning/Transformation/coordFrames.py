@@ -33,7 +33,7 @@ class CoordFrames(object):
         #TODO
         #Camera values. CONFIRM THESE WITH FIRST YEAR DATA
         self.pixelX = [-.065, -.025, .015, .055, .095]
-        self.pixelY = [.580, .540, .500, .460, .420]
+        self.pixelY = [.600, .560, .520, .480, .440]
         self.pixelZ = [.0185, .0585, .0985, .139, .180]
 
         #Real world values
