@@ -118,11 +118,13 @@ class PathPlanner():
         time.sleep(0.5)
         while self.castor_busy:
             pass
+        time.sleep(1)
 
     def check_pollux(self):
         time.sleep(0.5)
         while self.pollux_busy:
             pass
+        time.sleep(1)
 
     def pickup(self):
         '''
@@ -271,6 +273,9 @@ class PathPlanner():
         # go to x,y coordinates
         max_z = 0.47
 
+        print("Current Grid is: " + str(grid_coord.x) + ', ' + str(grid_coord.y) + ', ' + str(grid_coord.z))
+
+        print("Descending to max_x")
         msg = str(self.curr_location[0]) + ' ' + str(self.curr_location[1]) + ' ' + str(max_z)
         if grid_coord.y<2:
             print('Sending Pollux:' + msg)
@@ -281,6 +286,7 @@ class PathPlanner():
             self.coordinates_pub_castor.publish(msg)
             self.check_castor()
 
+        print("move xy")
         msg = str(real_coord.x) + ' ' + str(real_coord.y) + ' ' + str(max_z)
         if grid_coord.y<2:
             print('Sending Pollux:' + msg)
@@ -292,6 +298,7 @@ class PathPlanner():
             self.check_castor()
 
         # go to z coordinate and place the block
+        print("move z")
         msg = str(real_coord.x) + ' ' + str(real_coord.y) + ' ' + str(real_coord.z)
         if grid_coord.y<2:
             print('Sending Pollux:' + msg)
