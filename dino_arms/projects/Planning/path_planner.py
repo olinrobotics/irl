@@ -16,6 +16,7 @@ import sys
 import math
 from irl.msg import Cube_Structures, Grid_Cube, Real_Cube, Real_Structure, Grid_Structure
 from std_msgs.msg import String, Bool
+from coordFrames import convertReal
 rospack = rospkg.RosPack()
 PACKAGE_PATH = rospack.get_path("irl")
 sys.path.append(PACKAGE_PATH + '/projects/Controls')
@@ -79,7 +80,11 @@ class PathPlanner():
         Parse the build command from the brain
         '''
         self.grid_building = data.grid_building
-        self.real_building = data.real_building
+        for i in range(len(self.grid_building.building)):
+            tmp = self.grid_building.building[i].x
+            self.grid_building.building[i].x = self.grid_building.building[i].y
+            self.grid_building.building[i].y = tmp
+        self.real_building = convertReal(self.grid_building)
         self.is_building = True
         self.status_pub.publish(True)
 
