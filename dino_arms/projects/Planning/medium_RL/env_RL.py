@@ -55,7 +55,7 @@ class RL_environment(object):
             done = True
         elif action == self.target[0]:
             self.target = self.target[1:]
-            reward = 1 if len(self.target) == 0 else 0
+            reward = 1 if len(self.target) == 0 else 0.1
             done = True if len(self.target) == 0 else False
 
         return s_, reward, done
