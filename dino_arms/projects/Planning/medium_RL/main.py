@@ -54,6 +54,8 @@ class Main(object):
         self.mode = train
 
 
+
+
     def run(self):
         if self.mode:
             self.train()

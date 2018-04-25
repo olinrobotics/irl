@@ -13,7 +13,7 @@ import numpy
 import math
 from irl.msg import Grid_Cube, Real_Cube, Real_Structure, Grid_Structure, Cube_Structures
 import rospy
-
+import rospkg
 
 class CoordFrames(object):
 
@@ -22,8 +22,10 @@ class CoordFrames(object):
         Setup and variables associated with coordinate frames
         """
 
+        rospack = rospkg.RosPack()
+        self.PACKAGE_PATH = rospack.get_path("irl")
         #Cube for calibration  due to camera shifting
-        f = open("previousOrigin.txt", "r")
+        f = open(self.PACKAGE_PATH+"/projects/Planning/Transformation/previousOrigin.txt", "r")
         coords = f.readlines()
         f.close()
         self.origin = Real_Cube()
