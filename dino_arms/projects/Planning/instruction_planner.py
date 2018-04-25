@@ -34,6 +34,7 @@ class Planner(object):
         self.asm = Assembler()
 
         self.coord_trans = CoordFrames()
+        # self.change_origin(-.065, .600, .0185)
 
         self.cube_list = Real_Structure() # the premlinary cube list input used to model the env
         self.cubes = Grid_Structure() # the cube list output used to sort the cubes
@@ -45,15 +46,24 @@ class Planner(object):
         self.sorted_real_cubes = None
 
         rospy.init_node("instruction_planner")
-        # rospy.Subscriber("test_run", String, queue_size=10, callback=self.test_run)
-        # rospy.Subscriber("/digital_env", Grid_Structure, self.asm.set_cube_list)
+
         rospy.Subscriber("/perception", Real_Structure, self.plan)
 
-        # self.digital_env_pub = rospy.Publisher("/digital_sig", String, queue_size=10)
         self.instructions_pub = rospy.Publisher("/build_cmd", Cube_Structures, queue_size=10)
 
 
+    def change_origin(self, px, py, pz):
+
+        origin_cube = Real_Cube()
+        origin_cube.x = px
+        origin_cube.y = py
+        origin_cube.z = pz
+
+        self.coord_trans.updateOrigin(origin_cube)
+
+
     def plan(self, cube_list):
+        
         self.cube_list.building = cube_list.building
 
         self.current_env = self.coord_trans.convertBoard(self.cube_list)
@@ -88,26 +98,6 @@ class Planner(object):
 
         self.asm.set_cube_list(self.cubes)
         return self.asm.sequence()
-
-    # def test_run(self, data):
-    #     """
-    #     testing a digital environment with the assembler sequencer, might expand to include
-    #     other modules as well
-    #     """
-    #
-    #     if data.data == "1st_stage":
-    #         print "--------------STARTING A ROUND OF TRIAL------------------\n"
-    #         self.digital_env_pub.publish("build")
-    #         print "ENV BUILDING NEW STRUCTURE\n"
-    #     elif data.data == "2nd_stage":
-    #         print "ENV DONE, ASSEMBLER STARTING\n"
-    #         msg = self.asm.sequence()
-    #         print "SENDING INSTRUCTIONS"
-    #         self.instructions_pub.publish(msg)
-    #         print "DONE"
-    #
-    #         print "-----------------------TRIAL FINISHED-------------------------\n"
-
 
 
     def run(self):
