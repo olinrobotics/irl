@@ -49,10 +49,8 @@ class Environment(object):
         self.build_prob = 0.7 # the randomizer
 
         rospy.init_node("environment")
-        rospy.Subscriber("digital_sig", String, self.create_a_struct)
 
-        self.env_pub = rospy.Publisher("perception", Grid_Structure, queue_size=10)
-        self.signal_pub = rospy.Publisher("test_run", String, queue_size=10)
+        self.env_pub = rospy.Publisher("/perception_test", Grid_Structure, queue_size=10)
 
 
     def reset(self):
@@ -81,17 +79,17 @@ class Environment(object):
         # first building the environemnt digitally, going up in layers and activating cubes
         layer = 0
         while layer < self.env_size:
-            self.build_prob -= 0.1
-            for x, y in itertools.product(*map(xrange,(self.env_size, self.env_size))):
+
+            for y, x in itertools.product(*map(xrange,(self.env_size, self.env_size))):
                 if  layer == 0 or self.env[x,y,layer-1].activated:
                     prob = np.random.random_sample()
                     if prob < self.build_prob:
                         self.env[x,y,layer].turn_on(layer+1, x, y, layer)
-                        print 'turn on', x, y, layer
             layer += 1
+            self.build_prob -= 0.1
 
         # then making actual usable cubes from the environment and filling out all the information
-        for x, y, z in itertools.product(*map(xrange,(self.env_size, self.env_size, self.env_size))):
+        for y, x, z in itertools.product(*map(xrange,(self.env_size, self.env_size, self.env_size))):
             if self.env[x,y,z].activated:
                 connections = 0
                 for c in [[x+1, y],[x-1, y], [x,y+1], [x,y-1]]:
@@ -132,10 +130,6 @@ class Environment(object):
         self.env_pub.publish(struct)
         print "DONE"
 
-        # currently tuned to test with the assembly instructor
-        time.sleep(1)
-        self.signal_pub.publish("2nd_stage")
-
 
     def print_struct(self):
         """
@@ -147,7 +141,7 @@ class Environment(object):
         column = 0
         printed_map = np.zeros((self.env_size,self.env_size))
         total = 0
-        for x, y in itertools.product(*map(xrange, (self.env_size, self.env_size))):
+        for y, x in itertools.product(*map(xrange, (self.env_size, self.env_size))):
                 k = 0
                 while k < self.env_size and self.env[x,y,k].activated:
                     k += 1
@@ -158,23 +152,22 @@ class Environment(object):
         print "STRUCT AS SEEN FROM BIRD EYE VIEW"
         print total, "total cubes in this structure\n"
         for  i in range(self.env_size):
-            print ' | '.join(map(str,map(int, printed_map[i,:])))
+            print ' | '.join(map(str,map(int, printed_map[:,i])))
             if i < self.env_size-1:
                 print "-----------------"
         print "\n"
 
 
-    def create_a_struct(self, data):
+    def create_a_struct(self):
         """
         callback that prompts the script to refresh and make a brand new random
         struct for testing
         """
 
-        if data.data == "build":
-            self.reset()
-            self.build_struct()
-            self.print_struct()
-            self.send_struct()
+        self.reset()
+        self.build_struct()
+        self.print_struct()
+        self.send_struct()
 
 
     def run(self):
@@ -194,4 +187,5 @@ class Environment(object):
 
 if __name__=="__main__":
     env = Environment()
-    env.run()
+    time.sleep(3)
+    env.create_a_struct()

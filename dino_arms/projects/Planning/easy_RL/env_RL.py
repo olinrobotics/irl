@@ -19,17 +19,10 @@ class RL_environment(object):
         self.action_space = range(9)
         self.num_actions = len(self.action_space)
         self.target = None
-        # self.current_bin = []
         self.agent_state = [0]*(self.num_actions*2)
-        self.one_hot_mapping = {"[0, 0, 0]":0,  "[0, 1, 0]":1,  "[0, 2, 0]":2, \
-                                "[1, 0, 0]":3,  "[1, 1, 0]":4,  "[1, 2, 0]":5, \
-                                "[2, 0, 0]":6,  "[2, 1, 0]":7,  "[2, 2, 0]":8, \
-                                "[0, 0, 1]":9,  "[0, 1, 1]":10,  "[0, 2, 1]":11, \
-                                "[1, 0, 1]":12,  "[1, 1, 1]":13,  "[1, 2, 1]":14, \
-                                "[2, 0, 1]":15,  "[2, 1, 1]":16,  "[2, 2, 1]":17, \
-                                "[0, 0, 2]":18,  "[0, 1, 2]":19,  "[0, 2, 2]":20, \
-                                "[1, 0, 2]":21,  "[1, 1, 2]":22,  "[1, 2, 2]":23, \
-                                "[2, 0, 2]":24,  "[2, 1, 2]":25,  "[2, 2, 2]":26}
+        self.one_hot_mapping = {"[0, 0]":0,  "[1, 0]":1,  "[2, 0]":2, \
+                                "[0, 1]":3,  "[1, 1]":4,  "[2, 1]":5, \
+                                "[0, 2]":6,  "[1, 2]":7,  "[2, 2]":8}
 
     def build_maze(self):
         self.reset()
@@ -38,19 +31,15 @@ class RL_environment(object):
     def reset(self):
         structure = self.env.create_a_struct()
         self.target = []
-        # self.current_bin = []
         self.agent_state = [0]*(self.num_actions*2)
         for cube in structure:
-            # target_bin = []
-            # for cube in cube_bin:
-            one_hot = self.one_hot_mapping[str([cube.x, cube.y,cube.z])]
-            # target_bin.append(one_hot)
+            one_hot = self.one_hot_mapping[str([cube.x, cube.y])]
             self.agent_state[one_hot] = 1
             self.agent_state[one_hot+self.num_actions] = 1
             self.target.append(one_hot)
 
-        # print "THE TARGET", self.target
-        # print "TARGET FLATTENED", [item for sublist in self.target for item in sublist]
+        print "\n\n\nTARGET", self.target
+        print "AGENT", self.agent_state
         return self.agent_state[:]
 
 
@@ -61,22 +50,11 @@ class RL_environment(object):
         if action != self.target[0]:
             reward = -1
             done = True
-            # return s_, reward, done
         elif action == self.target[0]:
             self.target = self.target[1:]
             reward = 1 if len(self.target) == 0 else 0
             done = True if len(self.target) == 0 else False
 
-            # self.current_bin.append(action)
-            # if sorted(self.current_bin) == sorted(self.target[0]):
-            #     # reward = 1
-            #     self.target = self.target[1:]
-            #     self.current_bin = []
-
-        # print "TARGET", self.target
-        # if self.target == []:
-        #     reward = 1
-        #     done = True
         return s_, reward, done
 
 

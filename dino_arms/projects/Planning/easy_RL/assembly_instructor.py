@@ -38,15 +38,9 @@ class Assembler(object):
         self.instructions = []  # the finished set of instructions
         self.raw_sequence = [] # the starting set of shuffled instructions
         self.layers = []    # a middle man for sequencing
-        self.plane_mapping = {"[0, 0, 0]":0,  "[0, 1, 0]":1,  "[0, 2, 0]":2, \
-                                "[1, 0, 0]":3,  "[1, 1, 0]":4,  "[1, 2, 0]":5, \
-                                "[2, 0, 0]":6,  "[2, 1, 0]":7,  "[2, 2, 0]":8, \
-                                "[0, 0, 1]":9,  "[0, 1, 1]":10,  "[0, 2, 1]":11, \
-                                "[1, 0, 1]":12,  "[1, 1, 1]":13,  "[1, 2, 1]":14, \
-                                "[2, 0, 1]":15,  "[2, 1, 1]":16,  "[2, 2, 1]":17, \
-                                "[0, 0, 2]":18,  "[0, 1, 2]":19,  "[0, 2, 2]":20, \
-                                "[1, 0, 2]":21,  "[1, 1, 2]":22,  "[1, 2, 2]":23, \
-                                "[2, 0, 2]":24,  "[2, 1, 2]":25,  "[2, 2, 2]":26}
+        self.plane_mapping = {"[0, 0]":6,  "[1, 0]":1,  "[2, 0]":5, \
+                                "[0, 1]":2,  "[1, 1]":0,  "[2, 1]":4, \
+                                "[0, 2]":7,  "[1, 2]":3,  "[2, 2]":8}
 
 
     def set_cube_list(self, cubes):
@@ -170,7 +164,7 @@ class Assembler(object):
 
     def sort_by_plane(self, layer):
 
-        layer.sort(key=lambda x: self.plane_mapping[str([x.x, x.y, x.z])])
+        layer.sort(key=lambda x: self.plane_mapping[str([x.x, x.y])])
         return layer
 
     def print_sequence(self, instructions):
@@ -181,12 +175,10 @@ class Assembler(object):
         print "FINISHED INSTRUCTIONS ARE AS FOLLOWS"
         i = 1
         for instruction in instructions:
-            print "Connections:", instruction[0].connections, "Height:", instruction[0].height
-            for item in instruction:
-                print "Step", i, ": cube at", "x:", item.x, \
-                                              "y:", item.y, \
-                                              "z:", item.z
-                i += 1
+            print "Step", i, ": cube at", "x:", instruction.x, \
+                                          "y:", instruction.y, \
+                                          "z:", instruction.z
+            i += 1
 
         print "THOSE ARE ALL THE INSTRUCTIONS"
 

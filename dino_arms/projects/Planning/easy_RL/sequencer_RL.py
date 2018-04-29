@@ -35,7 +35,7 @@ even worse:
 lr adaptive
 epsilon = 1, every trial (1-epsilon*.00000009)
 
-epsilon with .000005 and .000009 also work, even stronger, but for 5x5 could be too exploit
+epsilon with .000005 and .000009 also work, even stronger
 """
 
 class Main(object):
@@ -44,7 +44,7 @@ class Main(object):
         self.env = RL_environment()
         self.RL = None
         self.avg_reward = 0
-        self.trials = 3000000#0
+        self.trials = 100000000
         self.trial_finished = False
         self.observation = None
         self.action = None
@@ -63,7 +63,7 @@ class Main(object):
     def test(self):
         print "LOADING MEMORY"
 
-        with open('/home/rooster/catkin_ws/src/memory/memory30mil_new_context.txt', 'rb') as f:
+        with open('/home/rooster/catkin_ws/src/memory/final_memory.txt', 'rb') as f:
             q_table = pickle.load(f)
         print "DONE"
         self.RL = RL_brain(e_greedy=0, q_table=q_table)
@@ -100,35 +100,24 @@ class Main(object):
     def train(self):
         self.RL = RL_brain()
         reward_list = []
-        # test = {}
 
         for i in range(self.trials):
             self.observation = self.env.reset()
-            # try:
-            #     test[len(np.nonzero(self.observation)[0])/2.0] += 1
-            # except KeyError:
-            #     test[len(np.nonzero(self.observation)[0])/2.0] = 1
             self.trial_finished = False
-            # print "OBESRVATION IN MAIN", self.observation
             if i%self.test_interval == 0:
                 print "EPISODE", i
             while not self.trial_finished:
 
-                # print "MAKING MOVE"
-
-                # print "IN MAIN OBSERVATION BEFORE CHOOSE", str(self.observation)
                 self.action = self.RL.choose_action(str(self.observation))
 
                 self.observation2, self.reward, self.trial_finished = self.env.step(self.action)
 
-                # print "IN MAIN OBSERVATION BEFORE LEARN ", str(self.observation)
                 self.RL.learn(str(self.observation), self.reward, str(self.observation2))
 
                 self.observation = self.observation2
 
 
             self.RL.update_params()
-            # print 'Correct\n' if self.reward == 1 else "NOT\n"
 
             if i%self.test_interval == 0:
                 self.avg_reward = 0
@@ -145,14 +134,13 @@ class Main(object):
 
         print "FINISHED TRAINING"
         print "THERE ARE", len(self.RL.q_table), "TOTAL STATES"
-        # print test
-        # with open('/home/rooster/catkin_ws/src/memory/memory30mil_adaptivelr_low_exploit.txt', 'wb') as f:
-        #     pickle.dump(self.RL.q_table, f)
-        #
-        # print "MEMORY SAVED"
-        # plt.plot(range(self.trials/self.test_interval), reward_list)
-        # plt.axis([0,self.trials/self.test_interval, -1, 1])
-        # plt.show()
+        with open('/home/rooster/catkin_ws/src/memory/final_memory.txt', 'wb') as f:
+            pickle.dump(self.RL.q_table, f)
+
+        print "MEMORY SAVED"
+        plt.plot(range(self.trials/self.test_interval), reward_list)
+        plt.axis([0,self.trials/self.test_interval, -1, 1])
+        plt.show()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
