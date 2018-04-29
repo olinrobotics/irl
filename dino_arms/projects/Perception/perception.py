@@ -178,10 +178,9 @@ class Perception:
         :return:
         """
         blur = cv2.GaussianBlur(self.rgb_data, (5, 5), 0)
-        rgb = cv2.cvtColor(blur, cv2.COLOR_BGR2RGB)
         lower_white = np.array([140, 140, 140])
         upper_white = np.array([255, 255, 255])
-        mask = cv2.inRange(rgb, lower_white, upper_white)
+        mask = cv2.inRange(blur, lower_white, upper_white)
 
         # Erosion
         kernel = np.ones((50, 50), np.uint8)
@@ -326,9 +325,8 @@ class Perception:
                 coords = self.get_transformed_coords()
                 print "Transformed", coords[self.rowcol_to_i(self.cam.MID_ROW, self.cam.MID_COL)]
                 cubes = localization.cube_localization(coords, self.cube_size)
-                # if self._is_not_nan(coords) and self._is_not_nan(self._coords) and len(cubes) != 0:
                 if coords is not None and self._coords is not None and len(cubes) != 0:
-                    if self.cubes is None or abs(len(self.cubes) - len(cubes)) <= 8 and len(cubes) != 0:
+                    if self.cubes is None or abs(len(self.cubes) - len(cubes)) <= 8:
                         self.cubes = cubes
                         self._publish()
                     else:
