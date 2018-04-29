@@ -15,7 +15,6 @@ class RL_brain(object):
         self.gamma = reward_decay
         self.epsilon = e_greedy
         self.q_table = {} if q_table is None else q_table
-        # self.iterations = 1
         self.q_table_counter = {}
 
     def choose_action(self, observation):
@@ -48,9 +47,7 @@ class RL_brain(object):
 
         self.q_table_counter[observation][self.encoded_action] += 1
 
-        # print "IN CHOOSE ACTION", self.encoded_action
-        # print "IN CHOOSE LENGTH OF QTABLE", len(self.q_table[observation])
-        # print "IN CHOOSE OBSERVATION            ", observation
+        # print "IN CHOOSE OBSERVATION ", observation
         # print "ENCODED", self.encoded_action
         # print "REAL", self.real_action
 
@@ -80,25 +77,12 @@ class RL_brain(object):
             num_actions = num_actions if num_actions > 0 else 1
             self.q_table[s_] = np.zeros(num_actions)
 
-        # print "IN LEARN", self.encoded_action
-        # print "IN LEARN LENGTH OF QTABLE", len(self.q_table[s])
-        # print "IN LEARN OBSERVATION", s
-        # print "IN LEARN OBSERVATION2", s_
-        # print "IN LEARN WHAT IS THIS", self.q_table[s_]
-
         q_predict = self.q_table[s][self.encoded_action]
         q_target = r + self.gamma * np.amax(self.q_table[s_])
         learning_rate = self.q_table_counter[s][self.encoded_action]
-        # self.q_table[s][self.encoded_action] += self.lr * (q_target - q_predict)  # update
         self.q_table[s][self.encoded_action] += (1.0/learning_rate) * (q_target - q_predict)  # update
 
 
 
     def update_params(self):
-        # if self.iterations % 1000000 == 0:
-        #     # self.lr *= (1-self.lr *.000025)
-        #     # self.lr *= 0.9
-        #     self.lr *= 0.99
-        # self.iterations += 1
         self.epsilon *= (1-self.epsilon*.000003)
-        # self.epsilon *= (1-self.epsilon*.0000009)
