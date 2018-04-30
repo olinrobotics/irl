@@ -78,8 +78,8 @@ class Environment(object):
         # first building the environemnt digitally, going up in layers and activating cubes
         layer = 0
         while layer < self.env_height:
-            self.build_prob -= 0.1
-            for x, y in itertools.product(*map(xrange,(self.env_size, self.env_size))):
+            # self.build_prob -= 0.1
+            for y, x in itertools.product(*map(xrange,(self.env_size, self.env_size))):
                 if  layer == 0 or self.env[x,y,layer-1].activated:
                     prob = np.random.random_sample()
                     if prob < self.build_prob:
@@ -87,7 +87,7 @@ class Environment(object):
             layer += 1
 
         # then making actual usable cubes from the environment and filling out all the information
-        for x, y, z in itertools.product(*map(xrange,(self.env_size, self.env_size, self.env_height))):
+        for y, x, z in itertools.product(*map(xrange,(self.env_size, self.env_size, self.env_height))):
             if self.env[x,y,z].activated:
                 connections = 0
                 for c in [[x+1, y],[x-1, y], [x,y+1], [x,y-1]]:
@@ -147,7 +147,7 @@ class Environment(object):
         column = 0
         printed_map = np.zeros((self.env_size,self.env_size))
         total = 0
-        for x, y in itertools.product(*map(xrange, (self.env_size, self.env_size))):
+        for y, x in itertools.product(*map(xrange, (self.env_size, self.env_size))):
                 k = 0
                 while k < self.env_height and self.env[x,y,k].activated:
                     k += 1
@@ -158,7 +158,7 @@ class Environment(object):
         print "STRUCT AS SEEN FROM BIRD EYE VIEW"
         print total, "total cubes in this structure\n"
         for  i in range(self.env_size):
-            print ' | '.join(map(str,map(int, printed_map[i,:])))
+            print ' | '.join(map(str,map(int, printed_map[:,i])))
             if i < self.env_size-1:
                 print "---------"
         print "\n"
