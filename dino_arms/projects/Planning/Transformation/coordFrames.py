@@ -13,26 +13,97 @@ import numpy
 import math
 from irl.msg import Grid_Cube, Real_Cube, Real_Structure, Grid_Structure, Cube_Structures
 import rospy
-
+import rospkg
 
 class CoordFrames(object):
 
     def __init__(self):
-        #Dimensions of cubes in mm
+        """"
+        Setup and variables associated with coordinate frames
+        """
 
-        self.cubeHeight = 94
+        rospack = rospkg.RosPack()
+        self.PACKAGE_PATH = rospack.get_path("irl")
+        #Cube for calibration  due to camera shifting
+        f = open(self.PACKAGE_PATH+"/projects/Planning/Transformation/previousOrigin.txt", "r")
+        coords = f.readlines()
+        f.close()
+        self.origin = Real_Cube()
+        self.origin.x = float(coords[0].strip())
+        self.origin.y = float(coords[1].strip())
+        self.origin.z = float(coords[2].strip())
 
-        #TODO
-        #Camera values. GET THESE FROM FIRST YEAR DATA
-        self.pixelX = [-.025, .015, .055, .095, .135]
-        self.pixelY = [.580, .540, .500, .460, .420]
-        self.pixelZ = [.0185, .0585, .0985, .139, .180]
+        #Physical offsets of global origin
+        self.armOffSetY = -.550
+        self.polluxOffSetX = -.0254
+        self.polluxOffSetY = -.010
 
-        self.realX = [-177.8, -88.9, 0, 88.9, 177.8]
-        self.realY = [-177.8, -88.9, 0, 88.9, 177.8]
-        self.realZ = [47, 141, 237, 329, 423]
+        self.cubeSize = .0889
+
+        # the currently accepted calibration, gonna keep these around for a while
+#         self.pixelX = [-.065, -.025, .015, .055, .095]
+# -       self.pixelY = [.600, .560, .520, .480, .440]
+# -       self.pixelZ = [.0185, .0585, .0985, .139, .180]
+
+        #Camera values
+        self.pixelX = []
+        self.pixelY = []
+        self.pixelZ = []
+
+        for i in range(5):
+            self.pixelX.append(float('%.3f'%(self.origin.x+(i*0.04))))
+        for i in range(5):
+            self.pixelY.append(float('%.3f'%(self.origin.y-(i*0.04))))
+        for i in range(5):
+            self.pixelZ.append(float('%.3f'%(self.origin.z+(i*0.04))))
+
+        #Real world values - Note arm coords are orthogonal to board coords.
+        #Castor set
+        self.realYC = [2.0*self.cubeSize+self.armOffSetY, self.cubeSize+self.armOffSetY, self.armOffSetY, 0.0, 0.0]
+        self.realXC = [2.0*self.cubeSize, self.cubeSize, 0.0, -self.cubeSize, -2.0*self.cubeSize]
+
+        #Pollux Set
+        self.realXP = [0.0, 0.0, 0.0, self.armOffSetY+self.cubeSize+self.polluxOffSetY, self.armOffSetY+2.0*self.cubeSize+self.polluxOffSetY]
+        self.realYP = [-2.0*self.cubeSize+self.polluxOffSetX, -self.cubeSize+self.polluxOffSetX, 0.0, -self.cubeSize+self.polluxOffSetX, -2.0*self.cubeSize+self.polluxOffSetX]
+
+        #Shared
+        self.realZ = [.047, .141, .237, .329, .423]
+
+
+
+    def updateOrigin(self, originCube):
+        """
+        Updates the origin cube that is used to make the board
+
+        Use for calibration purposes.
+        originCube is a Grid_Cube()
+        """
+        self.origin = originCube
+
+        self.pixelX = []
+        self.pixelY = []
+        self.pixelZ = []
+
+        for i in range(5):
+            self.pixelX.append(float('%.3f'%(self.origin.x+(i*0.04))))
+        for i in range(5):
+            self.pixelY.append(float('%.3f'%(self.origin.y-(i*0.04))))
+        for i in range(5):
+            self.pixelZ.append(float('%.3f'%(self.origin.z+(i*0.04))))
+
+        f = open("previousOrigin.txt", "w")
+        f.truncate()
+        f.write(str(self.origin.x)+"\n")
+        f.write(str(self.origin.y)+"\n")
+        f.write(str(self.origin.z)+"\n")
+        f.close()
+
 
     def closest(self, values, val):
+        """
+        Returns the element from a list's index that is
+        closest to the given value
+        """
         mini = 999999
         min_index = None
         for i in range(5):
@@ -81,11 +152,17 @@ class CoordFrames(object):
         real_cubes = Real_Structure()
         for cube in cubes.building:
             real_cube = Real_Cube()
-            real_cube.x = self.realX[cube.x]
-            real_cube.y = self.realY[cube.y]
-            real_cube.z = self.realZ[cube.z]
+            if(real_cube.x < 3):
+                real_cube.x = self.realXC[cube.x]
+                real_cube.y = self.realYC[cube.y]
+                real_cube.z = self.realZ[cube.z]
+            else:
+                real_cube.x = self.realXP[cube.x]
+                real_cube.y = self.realYP[cube.y]
+                real_cube.z = self.realZ[cube.z]
+
             real_cubes.building.append(real_cube)
         return real_cubes
 
-if __name__ == u"__main__":
+if __name__ == "__main__":
     cf = CoordFrames()
