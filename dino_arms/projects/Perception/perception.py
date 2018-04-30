@@ -171,7 +171,7 @@ class Perception:
         print "height", self.height, "angle", self.angle
         return transformation.transformPointCloud(self._coords, self.angle, self.height)
 
-    def find_paper_coords(self, show_video=False):
+    def find_paper_coords(self, show_video=True):
         """
         Find all white pixels of the paper and get the corresponding coordinates
         :param show_video: True to show the processed image
@@ -184,10 +184,10 @@ class Perception:
 
         # Erosion
         kernel = np.ones((50, 50), np.uint8)
-        mask = cv2.erode(mask, kernel, iterations=1)
+        erosion_mask = cv2.erode(mask, kernel, iterations=2)
 
         paper_coords = []
-        for row, item in enumerate(mask):
+        for row, item in enumerate(erosion_mask):
             for col, value in enumerate(item):
                 if value == 255:
                     i = self.rowcol_to_i(row, col)
@@ -195,7 +195,7 @@ class Perception:
                         paper_coords.append(self._coords[i])
         if show_video:
             cv2.imshow('image', self.rgb_data)
-            cv2.imshow('mask', mask)
+            cv2.imshow('mask', erosion_mask)
             cv2.waitKey(0)
 
         return paper_coords
