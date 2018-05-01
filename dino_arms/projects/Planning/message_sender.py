@@ -22,8 +22,8 @@ class MessageSender(object):
     def __init__(self):
         rospy.init_node("message_sender")
 
-        # self.cmd_sub = rospy.Subscriber("/build_cmd", Cube_Structures, self.send_msg, queue_size=1)
-        self.cmd_sub = rospy.Subscriber("/test_input", String, self.send_msg, queue_size=1)
+        self.cmd_sub = rospy.Subscriber("/build_cmd", Cube_Structures, self.send_msg, queue_size=1)
+        # self.cmd_sub = rospy.Subscriber("/test_input", String, self.send_msg, queue_size=1)
         self.is_sending = False
         self.cube_building = Cube_Structures()
 
