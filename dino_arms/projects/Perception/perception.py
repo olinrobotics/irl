@@ -185,7 +185,7 @@ class Perception:
         mask = cv2.inRange(blur, lower_white, upper_white)
 
         # Erosion
-        kernel = np.ones((50, 50), np.uint8)
+        kernel = np.ones((5, 5), np.uint8)
         erosion_mask = cv2.erode(mask, kernel, iterations=2)
 
         paper_coords = []
