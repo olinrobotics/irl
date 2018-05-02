@@ -71,7 +71,7 @@ class Perception:
         rospy.Subscriber('/camera/color/image_raw', Image, self._rgb_callback, queue_size=10)
         rospy.Subscriber('/camera/depth/image_rect_raw', Image, self._depth_callback, queue_size=10)
         rospy.Subscriber('/camera/depth_registered/points', PointCloud2, self._pointcloud_callback, queue_size=10)
-        rospy.Subscriber('/controller/status', Bool, self._building_status, queue_size=10)
+        rospy.Subscriber('/controller_status', Bool, self._building_status, queue_size=10)
         self.publisher = rospy.Publisher("perception", Real_Structure, queue_size=10)
         self.cam = CameraType(camera_type, width, height)
         self.cube_size = cube_size
@@ -173,7 +173,7 @@ class Perception:
         print "height", self.height, "angle", self.angle
         return transformation.transformPointCloud(self._coords, self.angle, self.height)
 
-    def find_paper_coords(self, show_video=True):
+    def find_paper_coords(self, show_video=False):
         """
         Find all white pixels of the paper and get the corresponding coordinates
         :param show_video: True to show the processed image
