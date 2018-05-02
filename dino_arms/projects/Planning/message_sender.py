@@ -29,10 +29,12 @@ class MessageSender(object):
 
     def send_msg(self, data):
         # TODO: figure out how to parse data for Cube_Structures type
-        self.grid_building = data
+        self.cube_building = data
         print("Data: ")
-        print(str(self.grid_building))
+        print(str(self.cube_building))
 
+        grid_building = self.cube_building.grid_building.building
+        real_building = self.cube_building.real_building.building
         smtp_ssl_host = 'smtp.gmail.com'  # smtp.mail.yahoo.com
         smtp_ssl_port = 465
         username = 'arms.irl2018@gmail.com'
@@ -40,7 +42,17 @@ class MessageSender(object):
         sender = 'arms.irl2018@gmail.com'
         targets = ['arms.irl2018@gmail.com']
 
-        msg = MIMEText(str(self.grid_building))
+        info = ''
+        for cube in real_building:
+            info = info + str(cube.x) + ','
+            info = info + str(cube.y) + ','
+            info = info + str(cube.z) + ','
+        for cube in grid_building:
+            info = info + str(cube.x) + ','
+            info = info + str(cube.y) + ','
+            info = info + str(cube.z) + ','
+
+        msg = MIMEText(info)
         msg['Subject'] = 'arm_msg ' + time.ctime()
         msg['From'] = sender
         msg['To'] = ', '.join(targets)

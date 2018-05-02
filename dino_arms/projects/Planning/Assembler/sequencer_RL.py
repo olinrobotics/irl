@@ -51,7 +51,7 @@ class Smart_Sequencer(object):
         return self.agent_state[:]
 
     def find_cube(self, action, cubes):
-        x, y = self.reverse_mapping(action)
+        x, y = self.reverse_mapping[action]
         for cube in cubes:
             if cube.x == x and cube.y == y:
                 return cube

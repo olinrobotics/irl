@@ -46,10 +46,27 @@ class MessageReceiver(object):
         M.logout()
 
         if subject != self.previous_subject and self.is_receiving:
-            structure = Cube_Structures()
-            # TODO parse body to be Cube_Structures type
+            cube_structure = Cube_Structures()
+            coords = body.split(',')
+            real_building = Real_Structure()
+            for i in range(len(coords) / 6):
+                real_cube = Real_Cube()
+                real_cube.x = float(coords[i*3])
+                real_cube.y = float(coords[i*3+1])
+                real_cube.z = float(coords[i*3+2])
+                real_building.append(real_cube)
+            cube_structure.real_building = real_building
 
-            self.cmd_pub.publish(structure)
+            grid_building = Grid_Structure()
+            for i in range(len(coords)/6, len(coords/3)):
+                grid_cube = Grid_Cube()
+                grid_cube.x = float(coords[i*3])
+                grid_cube.y = float(coords[i*3+1])
+                grid_cube.z = float(coords[i*3+2])
+                grid_building.append(grid_cube)
+            cube_structure.grid_building = grid_building
+
+            self.cmd_pub.publish(cube_structure)
 
         self.previous_subject = subject
         self.is_receiving = True
