@@ -47,8 +47,8 @@ class Planner(object):
 
         rospy.init_node("instruction_planner")
 
-        rospy.Subscriber("/perception_test", Grid_Structure, self.plan)
-        # rospy.Subscriber("/perception", Real_Structure, self.plan)
+        # rospy.Subscriber("/perception_test", Grid_Structure, self.plan)
+        rospy.Subscriber("/perception", Real_Structure, self.plan)
 
         self.instructions_pub = rospy.Publisher("/build_cmd", Cube_Structures, queue_size=10)
 
@@ -65,21 +65,21 @@ class Planner(object):
 
     def plan(self, cube_list):
 
-        # self.cube_list.building = cube_list.building
-        #
-        # self.current_env = self.coord_trans.convertBoard(self.cube_list)
+        self.cube_list.building = cube_list.building
 
-        # self.add_descriptors()
-        self.cubes = Grid_Structure()
-        self.cubes.building = cube_list.building
+        self.current_env = self.coord_trans.convertBoard(self.cube_list)
+
+        self.add_descriptors()
+        # self.cubes = Grid_Structure()
+        # self.cubes.building = cube_list.building
         self.sorted_grid_cubes = self.sequence()
         #
-        # self.sorted_real_cubes = self.coord_trans.convertReal(self.sorted_grid_cubes)
-        #
-        # self.two_structs.real_building = self.sorted_real_cubes
-        # self.two_structs.grid_building = self.sorted_grid_cubes
-        #
-        # self.instructions_pub.publish(self.two_structs)
+        self.sorted_real_cubes = self.coord_trans.convertReal(self.sorted_grid_cubes)
+
+        self.two_structs.real_building = self.sorted_real_cubes
+        self.two_structs.grid_building = self.sorted_grid_cubes
+
+        self.instructions_pub.publish(self.two_structs)
 
 
     def add_descriptors(self):

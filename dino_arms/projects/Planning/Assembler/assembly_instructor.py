@@ -118,8 +118,8 @@ class Assembler(object):
         # segregate the heights into binned connections
         for layer in self.layers:
             center, ring = self.separate_cubes(layer)
-            RL_bin = self.RL.smart_sequence(center)
-            layer_bin.extend(self.sort_by_connections(center))
+            # RL_bin = self.RL.smart_sequence(center)
+            layer_bin.extend(self.sort_by_connections(layer))
         for connection in layer_bin:
             self.instructions.extend(self.sort_by_plane(connection))
 
