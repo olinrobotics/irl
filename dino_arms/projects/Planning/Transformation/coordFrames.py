@@ -63,11 +63,11 @@ class CoordFrames(object):
         self.realXC = [2.0*self.cubeSize, self.cubeSize, 0.0, -self.cubeSize, -2.0*self.cubeSize]
 
         #Pollux Set
-        self.realXP = [0.0, 0.0, 0.0, self.armOffSetY+self.cubeSize+self.polluxOffSetY, self.armOffSetY+2.0*self.cubeSize+self.polluxOffSetY]
-        self.realYP = [-2.0*self.cubeSize+self.polluxOffSetX, -self.cubeSize+self.polluxOffSetX, 0.0, -self.cubeSize+self.polluxOffSetX, -2.0*self.cubeSize+self.polluxOffSetX]
+        self.realYP = [0.0, 0.0, 0.0, self.armOffSetY+self.cubeSize+self.polluxOffSetY, self.armOffSetY+2.0*self.cubeSize+self.polluxOffSetY]
+        self.realXP = [-2.0*self.cubeSize+self.polluxOffSetX, -self.cubeSize+self.polluxOffSetX, 0.0, -self.cubeSize+self.polluxOffSetX, -2.0*self.cubeSize+self.polluxOffSetX]
 
         #Shared
-        self.realZ = [.047, .141, .237, .329, .423]
+        self.realZ = [.147, .241, .337, .429, .523]
 
 
 
@@ -152,7 +152,7 @@ class CoordFrames(object):
         real_cubes = Real_Structure()
         for cube in cubes.building:
             real_cube = Real_Cube()
-            if(real_cube.x < 3):
+            if(cube.y < 3):
                 real_cube.x = self.realXC[cube.x]
                 real_cube.y = self.realYC[cube.y]
                 real_cube.z = self.realZ[cube.z]
