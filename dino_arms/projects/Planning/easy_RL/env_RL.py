@@ -1,5 +1,24 @@
 #!/usr/bin/env python
 
+"""
+The env_RL program is meant to act as a digital environment for the RL agent to run
+through and helps decide the reward based on the actions taken by the agent.
+
+This script is meant to be imported as a package into sequencer_RL.py
+
+the basic functionality is as follows:
+
+1. first initializes the environment, which consists of a one-hot mapping of the built
+structure from digital_env.py, this can include resetting as well. also will
+create a target which represents the sorted instructions as per the pattern sorter,
+which is what we're trying to make the RL agent learn
+2. after that, the sequencer_RL will call step on the environment given the action
+the RL agent decided to take, which will then run the action through the environment
+and return the results of running that action. this continues until the environment
+decides
+
+"""
+
 
 import rospy
 import numpy as np

@@ -22,7 +22,7 @@ class Smart_Sequencer(object):
         rospack = rospkg.RosPack()
         self.PACKAGE_PATH = rospack.get_path("irl")
         #Cube for calibration  due to camera shifting
-        with open(self.PACKAGE_PATH+"/projects/Planning/final_memory.txt", 'rb') as f:
+        with open(self.PACKAGE_PATH+"/projects/Planning/Assembler/final_memory.txt", 'rb') as f:
             q_table = pickle.load(f)
         print "DONE LOADING"
         self.RL = RL_brain(q_table=q_table)
