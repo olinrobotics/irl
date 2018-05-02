@@ -22,7 +22,7 @@ class MessageReceiver(object):
         rospy.init_node("message_receiver")
 
         self.cmd_pub = rospy.Publisher("/build_cmd", Cube_Structures, queue_size=1)
-        self.is_receiving = True
+        self.is_receiving = False
         self.previous_subject = ""
 
     def receive_email(self):
