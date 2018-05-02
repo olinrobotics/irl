@@ -69,7 +69,9 @@ class Smart_Sequencer(object):
 
 
     def smart_sequence(self, environment):
-        cubes = environment
+        if environment == []:
+            return []
+        cubes = environment[:]
         self.observation = self.convert_to_onehot(environment)
         done_sequencing = False
         while not done_sequencing:

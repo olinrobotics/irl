@@ -137,7 +137,7 @@ class CoordFrames(object):
             gcube.x = self.closest(self.pixelX, cube.x)
             gcube.y = self.closest(self.pixelY, cube.y)
             gcube.z = self.closest(self.pixelZ, cube.z)
-            board[gcube.z][gcube.x][gcube.y] = gcube
+            board[gcube.x][gcube.y][gcube.z] = gcube
         return board #3d array with x, y, and z of blocks
 
 

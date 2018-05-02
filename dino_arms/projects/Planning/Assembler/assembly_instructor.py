@@ -111,18 +111,32 @@ class Assembler(object):
 
         # sort by height
         self.layers = self.sort_by_height(self.raw_sequence)
-        layer_bin = []
-
-        #TODO: figure out this flow of execution
+        layer_bin_center = []
+        ring = []
+        rl_bin = []
+        center = []
+        rl_good = True
+        counter = 0
 
         # segregate the heights into binned connections
         for layer in self.layers:
             center, ring = self.separate_cubes(layer)
-            # RL_bin = self.RL.smart_sequence(center)
-            layer_bin.extend(self.sort_by_connections(layer))
-        for connection in layer_bin:
-            self.instructions.extend(self.sort_by_plane(connection))
+            rl_bin = self.RL.smart_sequence(center)
+            layer_bin_center  = self.sort_by_connections(center)
+            layer_bin_center_comparator = [item for sublist in layer_bin_center for item in sublist]
 
+            if all(self.compare_cubes(rl_bin[i], layer_bin_center_comparator[i]) for i in range(len(rl_bin))):
+                center = rl_bin
+            else:
+                rl_good = False
+                counter += 1
+                center = [item for sublist in layer_bin_center for item in self.sort_by_plane(sublist)]
+
+            ring = [item for sublist in self.sort_by_connections(ring) for item in self.sort_by_plane(sublist)]
+            self.instructions.extend(center)
+            self.instructions.extend(ring)
+
+        print 'RL is good' if rl_good else "RL failed at least once, PR was substituted %d times"%counter
         # print out instructions, and then return finished sequence to the brain
         self.print_sequence(self.instructions)
         return self.package_sequence(self.instructions)
@@ -183,6 +197,9 @@ class Assembler(object):
         connection.sort(key=lambda x: self.plane_mapping[str([x.x, x.y])])
         return connection
 
+
+    def compare_cubes(self, cube1, cube2):
+        return cube1.x == cube2.x and cube1.y == cube2.y and cube1.z == cube2.z
 
     def package_sequence(self, instructions):
         """

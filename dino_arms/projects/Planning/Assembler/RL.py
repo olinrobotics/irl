@@ -25,7 +25,6 @@ class RL_brain(object):
             self.q_table[observation] = np.zeros(num_actions)
             state_action = self.q_table[observation]
 
-
         # choose best action
         state_action = np.argwhere(state_action==np.amax(state_action)).flatten().tolist()
         self.encoded_action = np.random.choice(state_action)
