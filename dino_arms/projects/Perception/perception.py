@@ -96,7 +96,7 @@ class Perception:
         self.point_cloud = data
 
     def _building_status(self, data):
-        if data is False:
+        if data.data is False:
             self.get_structure()
 
     def show_rgb(self):
@@ -173,24 +173,23 @@ class Perception:
         print "height", self.height, "angle", self.angle
         return transformation.transformPointCloud(self._coords, self.angle, self.height)
 
-    def find_paper_coords(self, show_video=False):
+    def find_paper_coords(self, show_video=True):
         """
         Find all white pixels of the paper and get the corresponding coordinates
         :param show_video: True to show the processed image
         :return:
         """
         blur = cv2.GaussianBlur(self.rgb_data, (5, 5), 0)
-        rgb = cv2.cvtColor(blur, cv2.COLOR_BGR2RGB)
         lower_white = np.array([140, 140, 140])
         upper_white = np.array([255, 255, 255])
-        mask = cv2.inRange(rgb, lower_white, upper_white)
+        mask = cv2.inRange(blur, lower_white, upper_white)
 
         # Erosion
-        kernel = np.ones((50, 50), np.uint8)
-        mask = cv2.erode(mask, kernel, iterations=1)
+        kernel = np.ones((5, 5), np.uint8)
+        erosion_mask = cv2.erode(mask, kernel, iterations=2)
 
         paper_coords = []
-        for row, item in enumerate(mask):
+        for row, item in enumerate(erosion_mask):
             for col, value in enumerate(item):
                 if value == 255:
                     i = self.rowcol_to_i(row, col)
@@ -198,7 +197,7 @@ class Perception:
                         paper_coords.append(self._coords[i])
         if show_video:
             cv2.imshow('image', self.rgb_data)
-            cv2.imshow('mask', mask)
+            cv2.imshow('mask', erosion_mask)
             cv2.waitKey(0)
 
         return paper_coords
@@ -320,7 +319,7 @@ class Perception:
         return skin_detector.has_hand(self.rgb_data)
 
     def get_structure(self):
-        while not self._has_hand():
+        if not self._has_hand():
             rospy.Rate(20).sleep()
             if not self._has_hand():
                 self.get_pointcloud_coords()
@@ -328,15 +327,28 @@ class Perception:
                 coords = self.get_transformed_coords()
                 print "Transformed", coords[self.rowcol_to_i(self.cam.MID_ROW, self.cam.MID_COL)]
                 cubes = localization.cube_localization(coords, self.cube_size)
-                if self.cubes is None or abs(len(self.cubes) - len(cubes)) <= 8 and len(cubes) != 0:
-                    self.cubes = cubes
-                self._publish()
-                break
+                if coords is not None and self._coords is not None and len(cubes) != 0:
+                    if self.cubes is None or abs(len(self.cubes) - len(cubes)) <= 8:
+                        self.cubes = cubes
+                        self._publish()
+                    else:
+                        self.get_structure()
+                else:
+                    self.get_structure()
+            else:
+                self.get_structure()
+        else:
+            self.get_structure()
 
     def run(self):
         print "Perception running"
         self.show_rgb()
         self.get_structure()
+        while not rospy.is_shutdown():
+            try:
+                rospy.Rate(10).sleep()
+            except KeyboardInterrupt:
+                break
 
 
 if __name__ == '__main__':
