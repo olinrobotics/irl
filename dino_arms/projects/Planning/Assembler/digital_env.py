@@ -11,8 +11,8 @@ This script is meant to run stand alone, just use
 
 rosrun irl digital_env.py
 
-remember to have catkin_make for the ros msgs, and then just publish to digital_sig
-to execute a structure
+remember that every execution of the code on terminal will allow for one environment
+to be built and sent, also remember to have catkin_make for the ros msgs
 
 how it works:
 1. resets its Environment
