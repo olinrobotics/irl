@@ -332,8 +332,6 @@ class PathPlanner():
                 if self.is_building:
                     # self.pickup()
                     block_index = 0
-                    print(self.grid_building)
-                    print(self.real_building)
                     while block_index < len(self.grid_building.building):
                         print("index" + str(block_index))
                         # continue building until the build sequence is empty
