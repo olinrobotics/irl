@@ -47,7 +47,6 @@ class Planner(object):
 
         rospy.init_node("instruction_planner")
 
-        # rospy.Subscriber("/perception_test", Grid_Structure, self.plan)
         rospy.Subscriber("/perception", Real_Structure, self.plan)
 
         self.instructions_pub = rospy.Publisher("/build_cmd", Cube_Structures, queue_size=10)
@@ -68,10 +67,8 @@ class Planner(object):
         self.cube_list.building = cube_list.building
 
         self.current_env = self.coord_trans.convertBoard(self.cube_list)
-
+        #
         self.add_descriptors()
-        # self.cubes = Grid_Structure()
-        # self.cubes.building = cube_list.building
         self.sorted_grid_cubes = self.sequence()
         #
         self.sorted_real_cubes = self.coord_trans.convertReal(self.sorted_grid_cubes)
@@ -85,16 +82,51 @@ class Planner(object):
     def add_descriptors(self):
 
         self.cubes = Grid_Structure()
+        current_env_center = np.empty((self.env_size,self.env_size,self.env_size), dtype=object)
+        current_env_ring = np.empty((self.env_size,self.env_size,self.env_size), dtype=object)
+
+        for x, y, z in itertools.product(*map(xrange,(self.env_size, self.env_size, self.env_size))):
+            if x < 4 and x > 0 and y < 4 and y > 0:
+                if self.current_env[x][y][z]:
+                    current_env_center[x][y][z] = self.make_grid_cube(self.current_env[x][y][z])
+            else:
+                if self.current_env[x][y][z]:
+                    current_env_ring[x][y][z] = self.make_grid_cube(self.current_env[x][y][z])
+
         # make actual usable cubes from the environment and filling out all the information
         for x, y, z in itertools.product(*map(xrange,(self.env_size, self.env_size, self.env_size))):
-            if self.current_env[x][y][z]:
+            if current_env_center[x][y][z]:
                 connections = 0
                 for c in [[x+1, y],[x-1, y], [x,y+1], [x,y-1]]:
-                    if all(n >= 0 and n < self.env_size for n in c) and self.current_env[c[0]][c[1]][z]:
+                    if all(n >= 0 and n < self.env_size for n in c) and current_env_center[c[0]][c[1]][z]:
                         connections += 1
-                self.current_env[x][y][z].connections = connections
-                self.current_env[x][y][z].height = self.current_env[x][y][z].z + 1
-                self.cubes.building.append(self.current_env[x][y][z])
+                current_env_center[x][y][z].connections = connections
+                current_env_center[x][y][z].height = current_env_center[x][y][z].z + 1
+
+            elif current_env_ring[x][y][z]:
+                connections = 0
+                for c in [[x+1, y],[x-1, y], [x,y+1], [x,y-1]]:
+                    if all(n >= 0 and n < self.env_size for n in c) and current_env_ring[c[0]][c[1]][z]:
+                        connections += 1
+                current_env_ring[x][y][z].connections = connections
+                current_env_ring[x][y][z].height = current_env_ring[x][y][z].z + 1
+
+        for x, y, z in itertools.product(*map(xrange,(self.env_size, self.env_size, self.env_size))):
+            if x < 4 and x > 0 and y < 4 and y > 0 and current_env_center[x][y][z]:
+                self.cubes.building.append(current_env_center[x][y][z])
+            elif current_env_ring[x][y][z]:
+                self.cubes.building.append(current_env_ring[x][y][z])
+
+
+    def make_grid_cube(self, cube):
+        """
+        converting between data types, this one converts from python cube to ros cube
+        """
+        grid_cube = Grid_Cube()
+        grid_cube.x = cube.x
+        grid_cube.y = cube.y
+        grid_cube.z = cube.z
+        return grid_cube
 
 
     def sequence(self):

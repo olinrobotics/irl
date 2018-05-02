@@ -99,6 +99,11 @@ class Environment(object):
                 self.cubes.append(self.make_real_cube(self.env[x,y,z]))
 
 
+        # ensures that the environment is never empty
+        if self.cubes == []:
+            self.reset()
+            self.build_struct()
+
     def make_real_cube(self, cube):
         """
         converts between python class cube and ros data structure cube
