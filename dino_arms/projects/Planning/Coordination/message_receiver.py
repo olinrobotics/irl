@@ -38,7 +38,7 @@ class MessageReceiver(object):
         typ, data = M.search(None, 'ALL')
 
         # read from the most recent email
-        num = data[0][-1]
+        num = data[0].split(' ')[-1]
         typ, data = M.fetch(num, '(RFC822)')
         subject = data[0][1].split('\r\n')[11]
         body = data[0][1].split('\r\n')[15]
