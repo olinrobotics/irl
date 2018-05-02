@@ -1,16 +1,15 @@
 #!/usr/bin/env python
 
 """
-MVP assembler sequencer
+The final Assembler sequencer with Reinforcement Learning
 
 by Kevin Zhang
 
 takes in a list of building blocks that comprise of the structure being built, and
 then returns a "sorted" list of building block instructions for how to go about
-building that structure. uses formal systematic rule-based methods to determine
-the sequence of blocks
+building that structure. uses Reinforcement Learning in the "sorting"
 
-this script is imported by Brain_Spring_2018 as package
+this script is imported by instruction_planner.py as package
 
 how it works:
 1. it merely sits and waits for a prompt from the brain executing its set_cube_list()
@@ -90,6 +89,12 @@ class Assembler(object):
 
 
     def separate_cubes(self, cube_list):
+        """
+        separate cubes in the structure for center and ring, because the RL
+        only sorts a 3x3. Thus center is the center 3x3 tower, and the ring is
+        everything that surrounds it
+        """
+
         ring = []
         center = []
         for cube in cube_list:
@@ -103,28 +108,36 @@ class Assembler(object):
 
     def sequence(self):
         """
-        systematic sorting method
+        reinforcement/systematic sorting method
         the main sequence method, first sorts by height, then within each bin
-        then sorts by connections and bins those into separate arrays,
+        uses RL to sort each layer, only center because that's all it was trained on (not enough time to do more)
+        compares RL to systematic sort of the center for quality assurance,
+        then adds that to the final instructions,
+        then for the ring, sorts by connection
         and at last sorts each binned connection type according to a known pattern above
         """
 
         # sort by height
         self.layers = self.sort_by_height(self.raw_sequence)
+
+        # a bunch of variables for RL and systematic sorting
         layer_bin_center = []
         ring = []
         rl_bin = []
-        center = []
-        rl_good = True
-        counter = 0
+        center = [] # the true center, either layer_bin_center or rl_bin depending on whether RL is right
+        rl_good = True # just an output
+        counter = 0 # counts number of mistakes, should be always 0
 
         # segregate the heights into binned connections
         for layer in self.layers:
-            center, ring = self.separate_cubes(layer)
-            rl_bin = self.RL.smart_sequence(center)
+            center, ring = self.separate_cubes(layer) # separate the cubes
+            rl_bin = self.RL.smart_sequence(center) # use RL to sequence center
+
+            # systematic to sequence center
             layer_bin_center  = self.sort_by_connections(center)
             layer_bin_center_comparator = [item for sublist in layer_bin_center for item in sublist]
 
+            # check that RL is correct (quality assurance), and determine which one is the true center
             if all(self.compare_cubes(rl_bin[i], layer_bin_center_comparator[i]) for i in range(len(rl_bin))):
                 center = rl_bin
             else:
@@ -132,7 +145,10 @@ class Assembler(object):
                 counter += 1
                 center = [item for sublist in layer_bin_center for item in self.sort_by_plane(sublist)]
 
+            # sort the ring
             ring = [item for sublist in self.sort_by_connections(ring) for item in self.sort_by_plane(sublist)]
+
+            # add to final instructions
             self.instructions.extend(center)
             self.instructions.extend(ring)
 
@@ -193,13 +209,22 @@ class Assembler(object):
         return binned_by_connections
 
     def sort_by_plane(self, connection):
+        """
+        sorts each connection bin in a layer by a planar mapping, described in
+        the init
+        """
 
         connection.sort(key=lambda x: self.plane_mapping[str([x.x, x.y])])
         return connection
 
 
     def compare_cubes(self, cube1, cube2):
+        """
+        comparator for the cubes
+        """
+        
         return cube1.x == cube2.x and cube1.y == cube2.y and cube1.z == cube2.z
+
 
     def package_sequence(self, instructions):
         """
