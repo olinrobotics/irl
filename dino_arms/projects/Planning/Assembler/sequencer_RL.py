@@ -11,13 +11,18 @@ from RL import RL_brain
 import argparse
 import itertools
 import cPickle as pickle
+import rospkg
+
 
 
 class Smart_Sequencer(object):
 
     def __init__(self):
         print "LOADING MEMORY"
-        with open('/home/rooster/catkin_ws/src/memory/final_memory.txt', 'rb') as f:
+        rospack = rospkg.RosPack()
+        self.PACKAGE_PATH = rospack.get_path("irl")
+        #Cube for calibration  due to camera shifting
+        with open(self.PACKAGE_PATH+"/projects/Planning/final_memory.txt", 'rb') as f:
             q_table = pickle.load(f)
         print "DONE LOADING"
         self.RL = RL_brain(q_table=q_table)
@@ -25,6 +30,7 @@ class Smart_Sequencer(object):
         self.action = None
         self.reward = None
         self.env = None
+        self.num_actions = 9
         self.agent_state = [0]*(self.num_actions*2)
         self.sequence = []
         self.one_hot_mapping = {"[1, 1]":0,  "[2, 1]":1,  "[3, 1]":2, \

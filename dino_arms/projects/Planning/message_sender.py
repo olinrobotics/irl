@@ -29,7 +29,7 @@ class MessageSender(object):
 
     def send_msg(self, data):
         # TODO: figure out how to parse data for Cube_Structures type
-        self.grid_building = data.data
+        self.grid_building = data
         print("Data: ")
         print(str(self.grid_building))
 

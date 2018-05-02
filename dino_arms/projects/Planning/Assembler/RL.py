@@ -25,10 +25,6 @@ class RL_brain(object):
             self.q_table[observation] = np.zeros(num_actions)
             state_action = self.q_table[observation]
 
-        try:
-            counters = self.q_table_counter[observation]
-        except KeyError:
-            self.q_table_counter[observation] = np.zeros(num_actions)
 
         # choose best action
         state_action = np.argwhere(state_action==np.amax(state_action)).flatten().tolist()
