@@ -13,7 +13,7 @@
 
 
 Servo myservo;  //creates servo object "myservo"
-int pos = 0;    // variable to store the servo position
+int pos = 90;    // variable to store the servo position
 const int servoPin = 9;
 
 ros::NodeHandle gemini_claw;
@@ -44,7 +44,7 @@ void setup() {
   gemini_claw.initNode();
   gemini_claw.subscribe(sub);
   delay(500);
-  //Serial.begin(9600);   //start communication with serial port
+  Serial.begin(9600);   //start communication with serial port
 }
 
 void loop() {
@@ -58,16 +58,16 @@ void loop() {
 
 void change_grip() {
   if (command == 1) {
-      rest_to_inwards(60);
+      rest_to_inwards(-360);
       delay(400);
       slow_to_rest(60);
     }
     if (command == 2) {
-      rest_to_outwards(120);
+      rest_to_outwards(400);
       delay(400);
       slow_to_rest(120);
     }
-    myservo.write(90);
+    //myservo.write(90);
     delay(500);
 }
 
