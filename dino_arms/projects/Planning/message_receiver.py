@@ -49,23 +49,18 @@ class MessageReceiver(object):
             cube_structure = Cube_Structures()
             coords = body.split(',')
             real_building = Real_Structure()
+            coords = coords[0:len(coords)-1]
+
             for i in range(len(coords) / 6):
-                real_cube = Real_Cube()
-                real_cube.x = float(coords[i*3])
-                real_cube.y = float(coords[i*3+1])
-                real_cube.z = float(coords[i*3+2])
-                real_building.append(real_cube)
+                real_building.building.append(Real_Cube(x=float(coords[i*3]), y=float(coords[i*3+1]), z=float(coords[i*3+2])))
             cube_structure.real_building = real_building
 
             grid_building = Grid_Structure()
-            for i in range(len(coords)/6, len(coords/3)):
-                grid_cube = Grid_Cube()
-                grid_cube.x = float(coords[i*3])
-                grid_cube.y = float(coords[i*3+1])
-                grid_cube.z = float(coords[i*3+2])
-                grid_building.append(grid_cube)
+            for i in range(len(coords)/6, len(coords)/3):
+                grid_building.building.append(Grid_Cube(x=int(coords[i*3]), y=int(coords[i*3+1]), z=int(coords[i*3+2])))
             cube_structure.grid_building = grid_building
 
+            # print(cube_structure)
             self.cmd_pub.publish(cube_structure)
 
         self.previous_subject = subject
