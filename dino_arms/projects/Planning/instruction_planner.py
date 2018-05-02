@@ -68,12 +68,12 @@ class Planner(object):
         # self.cube_list.building = cube_list.building
         #
         # self.current_env = self.coord_trans.convertBoard(self.cube_list)
-        #
+
         # self.add_descriptors()
         self.cubes = Grid_Structure()
         self.cubes.building = cube_list.building
         self.sorted_grid_cubes = self.sequence()
-
+        #
         # self.sorted_real_cubes = self.coord_trans.convertReal(self.sorted_grid_cubes)
         #
         # self.two_structs.real_building = self.sorted_real_cubes
