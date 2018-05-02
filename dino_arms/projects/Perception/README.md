@@ -1,14 +1,14 @@
 # Perception
 ## ```perception.py```
-* This is the master script of cube detection and localization for a given structure. The cube size is  
+* This is the master script of cube detection and localization for a given structure. The cube size is 3.7 cm.
 This script initialize the depth camera.
 * Get point clouds
 * Call ```color_detection.py``` to perform tf transform using vectors defined by the point cloud of the table to  indicate the horizontal direction
-* calculate the angle of camera tilted
-* transform the point cloud such that the coordinate system of the camera aligns with that of the real world
-* get xyz coordinates of each point
-* call ```localization.py``` to check for cubes
-* call ```skin_detection.py``` to check the presence of a hand
+* Calculate the angle of camera tilted
+* Transform the point cloud such that the coordinate system of the camera aligns with that of the real world
+* Get xyz coordinates of each point
+* Call ```localization.py``` to check for cubes
+* Call ```skin_detection.py``` to check the presence of a hand
 
 
 
@@ -30,9 +30,8 @@ We then check the cube by height. We define the height of the top surface of the
 
 ##### Step4: ```check_cubes(coords, height_level, cube_size)```
 * Give a confined region of square shape as defined in Step3, we first scanned the number of points in the point cloud. If the number of points in the region is less than threshold, we categorized that region as no cubes present. The threshold is currently defined to be
-* If the region have number of points greater than the threshold, we then
-* check the area formed by the point cloud
-* check presence of a hole
+* If the region have number of points greater than the threshold, we then check the area formed by the point cloud is above certain threshold.
+* Lastly, we check the presence of a hole.
 
 
 ## ```skin_detection.py```

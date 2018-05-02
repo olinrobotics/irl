@@ -16,7 +16,7 @@ import sys
 import math
 from irl.msg import Cube_Structures, Grid_Cube, Real_Cube, Real_Structure, Grid_Structure
 from std_msgs.msg import String, Bool
-from coordFrames import convertReal
+from Transformation.coordFrames import CoordFrames
 rospack = rospkg.RosPack()
 PACKAGE_PATH = rospack.get_path("irl")
 sys.path.append(PACKAGE_PATH + '/projects/Controls')
@@ -32,6 +32,10 @@ class PathPlanner():
     '''
     def __init__(self):
         rospy.init_node("path_planner", anonymous=True)
+        tcp_ip = rospy.get_param("~robot_ip")
+        arm_dict = {'10.42.0.175':'pollux','10.42.0.54':'castor'}
+        self.name = arm_dict[tcp_ip]
+
         # receive model and xyz location
         self.model_pub = rospy.Publisher("/model_cmd", String, queue_size=1)
         # build_cmd is rececived from the brain as a cube structures with real and grid coordinates
@@ -59,6 +63,8 @@ class PathPlanner():
 
         self.grip_pub = rospy.Publisher("/grip_cmd", String, queue_size=10)
 
+        self.frame_converter = CoordFrames()
+
         self.curr_model = [[0 for col in range(5)] for row in range(5)]
         self.is_building = False
         self.castor_busy = False
@@ -84,7 +90,7 @@ class PathPlanner():
             tmp = self.grid_building.building[i].x
             self.grid_building.building[i].x = self.grid_building.building[i].y
             self.grid_building.building[i].y = tmp
-        self.real_building = convertReal(self.grid_building)
+        self.real_building = self.frame_converter.convertReal(self.grid_building)
         self.is_building = True
         self.status_pub.publish(True)
 
@@ -328,7 +334,12 @@ class PathPlanner():
                     block_index = 0
                     while block_index < len(self.grid_building.building):
                         # continue building until the build sequence is empty
-                        self.place_block(self.grid_building.building[block_index], self.real_building.building[block_index])
+                        if self.grid_building.building[block_index] <=2:
+                            if self.name == 'castor':
+                                self.place_block(self.grid_building.building[block_index], self.real_building.building[block_index])
+                        else:
+                            if self.name == 'pollux':
+                                self.place_block(self.grid_building.building[block_index], self.real_building.building[block_index])
                         block_index += 1
                     self.is_building = False
                     self.status_pub.publish(False)
