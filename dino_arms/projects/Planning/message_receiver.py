@@ -22,7 +22,7 @@ class MessageReceiver(object):
         rospy.init_node("message_receiver")
 
         self.cmd_pub = rospy.Publisher("/build_cmd", Cube_Structures, queue_size=1)
-        self.is_receiving = False
+        self.is_receiving = True
         self.previous_subject = ""
 
     def receive_email(self):
@@ -46,6 +46,7 @@ class MessageReceiver(object):
         M.logout()
 
         if subject != self.previous_subject and self.is_receiving:
+            print("email received")
             cube_structure = Cube_Structures()
             coords = body.split(',')
             real_building = Real_Structure()
