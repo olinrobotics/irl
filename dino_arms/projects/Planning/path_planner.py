@@ -16,7 +16,7 @@ import sys
 import math
 from irl.msg import Cube_Structures, Grid_Cube, Real_Cube, Real_Structure, Grid_Structure
 from std_msgs.msg import String, Bool
-from coordFrames import convertReal
+from Transformation.coordFrames import CoordFrames
 rospack = rospkg.RosPack()
 PACKAGE_PATH = rospack.get_path("irl")
 sys.path.append(PACKAGE_PATH + '/projects/Controls')
@@ -32,6 +32,10 @@ class PathPlanner():
     '''
     def __init__(self):
         rospy.init_node("path_planner", anonymous=True)
+        tcp_ip = rospy.get_param("~robot_ip")
+        arm_dict = {'10.42.0.175':'pollux','10.42.0.54':'castor'}
+        self.name = arm_dict[tcp_ip]
+
         # receive model and xyz location
         self.model_pub = rospy.Publisher("/model_cmd", String, queue_size=1)
         # build_cmd is rececived from the brain as a cube structures with real and grid coordinates
@@ -59,6 +63,8 @@ class PathPlanner():
 
         self.grip_pub = rospy.Publisher("/grip_cmd", String, queue_size=10)
 
+        self.frame_converter = CoordFrames()
+
         self.curr_model = [[0 for col in range(5)] for row in range(5)]
         self.is_building = False
         self.castor_busy = False
@@ -84,7 +90,7 @@ class PathPlanner():
             tmp = self.grid_building.building[i].x
             self.grid_building.building[i].x = self.grid_building.building[i].y
             self.grid_building.building[i].y = tmp
-        self.real_building = convertReal(self.grid_building)
+        self.real_building = self.frame_converter.convertReal(self.grid_building)
         self.is_building = True
         self.status_pub.publish(True)
 
@@ -160,7 +166,7 @@ class PathPlanner():
         '''
         # make query to ur5 arm for current coordinates
         self.query = "coordinates"
-        if grid_coord.x>2:
+        if grid_coord.y>2:
             self.query_pub_pollux.publish(self.query)
         else:
             self.query_pub_castor.publish(self.query)
@@ -169,7 +175,7 @@ class PathPlanner():
         # go up 2 units
         self.curr_location[2] = self.curr_location[2] + 2 * self.unit_length;
         msg = str(self.curr_location[0]) + ' ' + str(self.curr_location[1]) + ' ' + str(self.curr_location[2])
-        if grid_coord.x>2:
+        if grid_coord.y>2:
             print('Sending Pollux:' + msg)
             self.coordinates_pub_pollux.publish(msg)
             self.check_pollux()
@@ -182,7 +188,7 @@ class PathPlanner():
         self.curr_location[0] = self.curr_location[0] + self.push_instruction[self.push_flag][0] * 4 * self.unit_length;
         self.curr_location[1] = self.curr_location[1] + self.push_instruction[self.push_flag][1] * 4 * self.unit_length;
         msg = str(self.curr_location[0]) + ' ' + str(self.curr_location[1]) + ' ' + str(self.curr_location[2])
-        if grid_coord.x>2:
+        if grid_coord.y>2:
             print('Sending Pollux:' + msg)
             self.coordinates_pub_pollux.publish(msg)
             self.check_pollux()
@@ -194,7 +200,7 @@ class PathPlanner():
         # go down 2 units
         self.curr_location[2] = self.curr_location[2] - 2 * self.unit_length;
         msg = str(self.curr_location[0]) + ' ' + str(self.curr_location[1]) + ' ' + str(self.curr_location[2])
-        if grid_coord.x>2:
+        if grid_coord.y>2:
             print('Sending Pollux:' + msg)
             self.coordinates_pub_pollux.publish(msg)
             self.check_pollux()
@@ -207,7 +213,7 @@ class PathPlanner():
         self.curr_location[0] = self.curr_location[0] - self.push_instruction[self.push_flag][0] * 2 * self.unit_length;
         self.curr_location[1] = self.curr_location[1] - self.push_instruction[self.push_flag][1] * 2 * self.unit_length;
         msg = str(self.curr_location[0]) + ' ' + str(self.curr_location[1]) + ' ' + str(self.curr_location[2])
-        if grid_coord.x>2:
+        if grid_coord.y>2:
             print('Sending Pollux:' + msg)
             self.coordinates_pub_pollux.publish(msg)
             self.check_pollux()
@@ -249,11 +255,11 @@ class PathPlanner():
         else:
             msg = "pg_hover"
 
-            # TODO: new pg_hover joints: 90 -104.47 93.78 -78.7 -90 0
+            # new pg_hover joints: 90 -104.47 93.78 -78.7 -90 0
             self.push_flag = 0
         print("Sending: ", msg)
         print(grid_coord.y)
-        if grid_coord.x>2:
+        if grid_coord.y>2:
             self.joints_pub_pollux.publish(msg)
             self.check_pollux()
         else:
@@ -264,7 +270,7 @@ class PathPlanner():
 
         # make query to ur5_arm_node and wait for callback
         self.query = "coordinates"
-        if grid_coord.x>2:
+        if grid_coord.y>2:
             self.query_pub_pollux.publish(self.query)
         else:
             self.query_pub_castor.publish(self.query)
@@ -285,7 +291,7 @@ class PathPlanner():
         print("move xy")
         print(self.curr_location)
         msg = str(real_coord.x) + ' ' + str(real_coord.y) + ' ' + str(self.curr_location[2])
-        if grid_coord.x>2:
+        if grid_coord.y>2:
             print('Sending Pollux:' + msg)
             self.coordinates_pub_pollux.publish(msg)
             self.check_pollux()
@@ -297,7 +303,7 @@ class PathPlanner():
         # go to z coordinate and place the block
         print("move z")
         msg = str(real_coord.x) + ' ' + str(real_coord.y) + ' ' + str(real_coord.z)
-        if grid_coord.x>2:
+        if grid_coord.y>2:
             print('Sending Pollux:' + msg)
             self.coordinates_pub_pollux.publish(msg)
             self.check_pollux()
@@ -327,8 +333,16 @@ class PathPlanner():
                     # self.pickup()
                     block_index = 0
                     while block_index < len(self.grid_building.building):
+                        print("index" + str(block_index))
                         # continue building until the build sequence is empty
-                        self.place_block(self.grid_building.building[block_index], self.real_building.building[block_index])
+                        if self.grid_building.building[block_index].y <=2:
+                            if self.name == 'castor':
+                                print("Running on Castor")
+                                self.place_block(self.grid_building.building[block_index], self.real_building.building[block_index])
+                        else:
+                            if self.name == 'pollux':
+                                print("Running on Pollux")
+                                self.place_block(self.grid_building.building[block_index], self.real_building.building[block_index])
                         block_index += 1
                     self.is_building = False
                     self.status_pub.publish(False)

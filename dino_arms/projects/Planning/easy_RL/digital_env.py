@@ -7,12 +7,9 @@ by Kevin Zhang
 
 Creates random structures using building blocks to be sent to other modules for testing
 
-This script is meant to run stand alone, just use
+This script is meant to be imported as a package in env_RL.py
 
-rosrun irl digital_env.py
-
-remember to have catkin_make for the ros msgs, and then just publish to digital_sig
-to execute a structure
+remember to have catkin_make for the ros msgs
 
 how it works:
 1. resets its Environment
