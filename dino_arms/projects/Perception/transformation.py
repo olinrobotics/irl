@@ -1,5 +1,6 @@
+#!/usr/bin/env python
 """
-These functions are borrowed from tf transform
+These functions are borrowed from ROS tf transform
 as PointCloud2 transformation is not supported for now
 """
 import numpy as np
