@@ -1,5 +1,13 @@
 # Perception
-## ```perception.py```
+## Prerequisites
+Read [Install ROS Wrapper 2.0 for Intel RealSense Devices](https://github.com/olinrobotics/irl/wiki/Install-ROS-Wrapper-2.0-for-Intel-RealSense-Devices)
+for the full instruction.
+* librealsense: https://github.com/IntelRealSense/librealsense
+* realsense2_camera: https://github.com/intel-ros/realsense
+* rgbd_launch: https://github.com/ros-drivers/rgbd_launch.git
+
+## Documentation
+### ```perception.py```
 This is the master script of cube detection and localization for a structure of cubes. The cube size is 3.7 cm.
 This script will:
 * Initialize the depth camera
@@ -14,11 +22,11 @@ the coordinate system of the camera aligns with that of the real world
 * Using the transformed coordinates, call `localization.py` to localize the cubes
 * Publish the result to the **perception** topic
 
-### ```find_paper_coords()```
+#### ```find_paper_coords()```
 This functions performs paper detection using color detection of white given an image from 
 the intel realsense camera and output 3D point cloud of the paper (the table where we set up the cube structure)
 
-### ```find_height_angle()```
+#### ```find_height_angle()```
 Given the point cloud of the paper (the flat surface on which we build the structure) and the
 way the camera is positioned, we want to find the depression angle of the camera
 and its height. First, we take 3 random linearly independent points of the paper
@@ -26,14 +34,14 @@ to form a normal vector of the flat surface. Using the normal vector, we then co
 of depression of the camera. In order to find the height, we just need to find the distance between
 the origin (aka the camera) to the surface defined by the 3 random points above.  
 
-## ```skin_detection.py```
+### ```skin_detection.py```
 Given an array of RGB pixels, the presence of a hand is determined using a range of HSV pixel intensities that could be
 considered as skin. A `skinMask` is then created to isolate the relevant pixels and `has_hand()` returns true if the count
 reaches a certain threshold.
 
 Credits to the `pyimagesearch` tutorial on skin detection
 
-## ```localization.py```
+### ```localization.py```
 This script performs localization of each cube, given a point cloud of the entire structure. The xyz coordinate system of the point cloud has been transformed to match the xyz coordinate system of the world to offset the effect of camera tilting at some nonzero angle. After the transformation, the y axis represents the up and down direction, which is the height of the structure, the z axis represents forward and backward direction, which is the depth of the structure with respect to the camera, and the x asis represents the left and right direction, which is width of the structure. Given the point cloud of the structure, we then execute the following steps to find the xyz coordinate of each cube with respect to the world:
 
 
@@ -53,3 +61,9 @@ We then check the cube by height. We define the height of the top surface of the
 * Give a confined region of square shape as defined in **Step 3**, we first scanned the number of points in the point cloud. If the number of points in the region is less than threshold, we categorized that region as no cubes present. The threshold is currently defined to be
 * If the region have number of points greater than the threshold, we then check the area formed by the point cloud is above certain threshold.
 * Lastly, we check the presence of a hole.
+
+## Authors
+* [**Cassandra Overney**](https://github.com/coverney)
+* [**Enmo Ren**](https://github.com/Enmoren)
+* [**Khang Vu**](https://github.com/minhkhang1795)
+* [**Sherrie Shen**](https://github.com/xieruishen)
