@@ -15,7 +15,7 @@ import time
 import sys
 import math
 from irl.msg import Cube_Structures, Grid_Cube, Real_Cube, Real_Structure, Grid_Structure
-from std_msgs.msg import String, Bool
+from std_msgs.msg import String, Bool, Int32
 from Transformation.coordFrames import CoordFrames
 rospack = rospkg.RosPack()
 PACKAGE_PATH = rospack.get_path("irl")
@@ -40,6 +40,7 @@ class PathPlanner():
         self.model_pub = rospy.Publisher("/model_cmd", String, queue_size=1)
         # build_cmd is rececived from the brain as a cube structures with real and grid coordinates
         self.cmd_sub = rospy.Subscriber("/build_cmd", Cube_Structures, self.cmd_callback,queue_size=1)
+        self.grab_pub = rospy.Publisher("/grab_cmd", Int32, queue_size=10)
 
         # setting up publisher for two arms
         # two ways of controlling the arm with coordinates / joint behaviors
@@ -137,12 +138,29 @@ class PathPlanner():
             pass
         time.sleep(1)
 
-    def pickup(self):
+    def pickup(self, grid_coord):
         '''
         Pick up the cube from a predefined location
         pick-up locations will be mirrored for two arms
         '''
-        pass
+        if grid_coord.y>2:
+            msg = "pg_pickup_pollux"
+            print("Sending:", msg)
+            self.joints_pub_pollux(msg)
+            self.check_pollux()
+        else:
+            msg = "pg_pickup_castor"
+            print("Sending:", msg)
+            self.joints_pub_castor(msg)
+            self.check_castor()
+
+        #1 for grabing and 2 for opening
+        print("Releasing Gripper")
+        self.grab_pub.publish(2)
+        time.sleep(5)
+        print("Closing Gripper")
+        self.grab_pub.publish(1)
+        time.sleep(0.5)
 
     def coord_trans(self, base):
         '''
@@ -282,8 +300,6 @@ class PathPlanner():
         real_coord.x += self.push_instruction[self.push_flag][0] * self.unit_length
         real_coord.y += self.push_instruction[self.push_flag][1] * self.unit_length
 
-        # TODO pick up the block
-
         # max_z = 0.47
         print("The block to build is at: " + str(grid_coord.x) + ', ' + str(grid_coord.y) + ', ' + str(grid_coord.z))
 
@@ -312,11 +328,13 @@ class PathPlanner():
             self.coordinates_pub_castor.publish(msg)
             self.check_castor()
 
-        # TODO Publish to gripper to release
+        print('Releasing Gripper')
+        self.grab_pub.publish(2)
 
         # push the block into place
         if self.push_flag != 0:
-            # TODO grip firmly
+            print('Closing Gripper')
+            self.grab_pub.publish(1)
             self.push_block(grid_coord);
 
         # update the current model
@@ -330,7 +348,6 @@ class PathPlanner():
             try:
                 # wait for user input
                 if self.is_building:
-                    # self.pickup()
                     block_index = 0
                     while block_index < len(self.grid_building.building):
                         print("index" + str(block_index))
@@ -338,10 +355,12 @@ class PathPlanner():
                         if self.grid_building.building[block_index].y <=2:
                             if self.name == 'castor':
                                 print("Running on Castor")
+                                self.pickup(self.grid_building.building[block_index])
                                 self.place_block(self.grid_building.building[block_index], self.real_building.building[block_index])
                         else:
                             if self.name == 'pollux':
                                 print("Running on Pollux")
+                                self.pickup(self.grid_building.building[block_index]))
                                 self.place_block(self.grid_building.building[block_index], self.real_building.building[block_index])
                         block_index += 1
                     self.is_building = False
