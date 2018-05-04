@@ -101,7 +101,7 @@ class Main(object):
 
         print "LOADING MEMORY"
 
-        with open('/home/rooster/catkin_ws/src/memory/final_memory.txt', 'rb') as f:
+        with open('/home/rooster/catkin_ws/src/irl/dino_arms/projects/Planning/Assembler/final_memory.txt', 'rb') as f:
             q_table = pickle.load(f)
         print "DONE"
 
