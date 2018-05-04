@@ -26,7 +26,7 @@ import random
 import time
 import itertools
 from irl.msg import Real_Cube, Grid_Cube, Real_Structure, Grid_Structure, Cube_Structures
-from std_msgs.msg import String, Int16
+from std_msgs.msg import String, Int16, Bool
 from Assembler.cube import Digital_Cube
 
 from Assembler.assembly_instructor import Assembler
@@ -49,7 +49,8 @@ class Planner(object):
         self.cubes = Grid_Structure() # the cube list output used to sort the cubes
         self.two_structs = Cube_Structures()
         self.env_size = 5 # dimension of env
-        self.current_env = np.empty((self.env_size,self.env_size,self.env_size), dtype=object) # the digital environment
+        self.env_diffs = np.empty((self.env_size,self.env_size,self.env_size), dtype=object) # the digital environment
+        self.current_env = np.empty((self.env_size,self.env_size,self.env_size), dtype=object) # the previous digital environment
 
         # sorted cubes in both grid format and real coordinate format, the real one is deprecated through
         self.sorted_grid_cubes = None
@@ -61,6 +62,7 @@ class Planner(object):
         rospy.Subscriber("/perception", Real_Structure, self.plan)
         # sending instructions to the controller
         self.instructions_pub = rospy.Publisher("/build_cmd", Cube_Structures, queue_size=10)
+        self.status_pub = rospy.Publisher("/controller_status", Bool, queue_size=10)
 
 
     def change_origin(self, px, py, pz):
@@ -93,26 +95,58 @@ class Planner(object):
         self.cube_list.building = cube_list.building
 
         # format to Grid World
-        self.current_env = self.coord_trans.convertBoard(self.cube_list)
+        env = self.coord_trans.convertBoard(self.cube_list)
 
-        #TODO add diffs
-        #
+        # find any differences between this read environment and the last one, and
+        # determine if there needs to be anything built
+        need_build = self.find_diffs(env)
 
-        # add descriptors for sorting
-        self.add_descriptors()
+        if need_build:
 
-        # sort into instructions
-        self.sorted_grid_cubes = self.sequence()
+            # add descriptors for sorting
+            self.add_descriptors()
 
-        # convert into real cubes (deprecated)
-        self.sorted_real_cubes = self.coord_trans.convertReal(self.sorted_grid_cubes)
+            # sort into instructions
+            self.sorted_grid_cubes = self.sequence()
 
-        # builds message
-        self.two_structs.real_building = self.sorted_real_cubes
-        self.two_structs.grid_building = self.sorted_grid_cubes
+            # convert into real cubes (deprecated)
+            self.sorted_real_cubes = self.coord_trans.convertReal(self.sorted_grid_cubes)
 
-        # publish to Controller
-        self.instructions_pub.publish(self.two_structs)
+            # builds message
+            self.two_structs.real_building = self.sorted_real_cubes
+            self.two_structs.grid_building = self.sorted_grid_cubes
+
+            # publish to Controller
+            self.instructions_pub.publish(self.two_structs)
+            for x, y, z in itertools.product(*map(xrange,(self.env_size, self.env_size, self.env_size))):
+                if self.env_diffs[x][y][z]:
+                    self.current_env[x][y][z] = self.make_grid_cube(self.env_diffs[x][y][z])
+        else:
+            # else just do nothing and let the perception read again
+            print "NOTHING NEW, NO NEED TO BUILD THIS READING"
+            self.status_pub.publish(False)
+
+
+    def find_diffs(self, environment):
+        """
+        find the differences between the current and previous readings, and output
+        whether something needs to built
+        """
+
+        self.env_diffs = np.empty((self.env_size,self.env_size,self.env_size), dtype=object)
+
+        for x, y, z in itertools.product(*map(xrange,(self.env_size, self.env_size, self.env_size))):
+            if environment[x][y][z] != self.current_env[x][y][z]:
+                self.env_diffs[x][y][z] = self.make_grid_cube(environment[x][y][z])
+
+        if all(self.env_diffs[x][y][z] == None for \
+            x, y, z in itertools.product(*map(xrange,(self.env_size, self.env_size, self.env_size)))):
+            return False
+        else:
+            return True
+
+
+
 
 
     def add_descriptors(self):
@@ -131,11 +165,11 @@ class Planner(object):
         # populates them from the current_env
         for x, y, z in itertools.product(*map(xrange,(self.env_size, self.env_size, self.env_size))):
             if x < 4 and x > 0 and y < 4 and y > 0:
-                if self.current_env[x][y][z]:
-                    current_env_center[x][y][z] = self.make_grid_cube(self.current_env[x][y][z])
+                if self.env_diffs[x][y][z]:
+                    current_env_center[x][y][z] = self.make_grid_cube(self.env_diffs[x][y][z])
             else:
-                if self.current_env[x][y][z]:
-                    current_env_ring[x][y][z] = self.make_grid_cube(self.current_env[x][y][z])
+                if self.env_diffs[x][y][z]:
+                    current_env_ring[x][y][z] = self.make_grid_cube(self.env_diffs[x][y][z])
 
         # make actual usable cubes from the environment and filling out all the information
         # this is describes the center and the ring in a vacuum, so they don't interfere with each other
@@ -168,7 +202,8 @@ class Planner(object):
         """
         converting between data types, this one converts from python cube to ros cube
         """
-
+        if not cube:
+            return None
         grid_cube = Grid_Cube()
         grid_cube.x = cube.x
         grid_cube.y = cube.y
