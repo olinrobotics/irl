@@ -12,6 +12,7 @@ Credits to the pyimagesearch tutorial on skin detection
 import numpy as np
 
 import cv2
+import time
 import imutils
 
 
@@ -49,6 +50,7 @@ def has_hand(image):
                 count += 1
                 if count > 50:
                     print("Hand detected")
+                    time.sleep(1)
                     return True
     return False
 

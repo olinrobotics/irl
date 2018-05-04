@@ -135,18 +135,22 @@ class Planner(object):
 
         self.env_diffs = np.empty((self.env_size,self.env_size,self.env_size), dtype=object)
 
+        # goes through the newly read environment and sees if there are any differences
+        # between it and the known environment
         for x, y, z in itertools.product(*map(xrange,(self.env_size, self.env_size, self.env_size))):
             if environment[x][y][z] != self.current_env[x][y][z]:
                 self.env_diffs[x][y][z] = self.make_grid_cube(environment[x][y][z])
 
+        # checks to see if anything needs to be built
+        # note that this will also say nothing needs to be built for removed cubes,
+        # as they show up as diffs but self.env_diffs is set to None, since now there's
+        # nothing there. This is fine for the current idea of the presentation, as
+        # we're not planning on allowing deletions, only additions
         if all(self.env_diffs[x][y][z] == None for \
             x, y, z in itertools.product(*map(xrange,(self.env_size, self.env_size, self.env_size)))):
             return False
         else:
             return True
-
-
-
 
 
     def add_descriptors(self):
