@@ -100,6 +100,8 @@ class Assembler(object):
         per_layer = []
         for layer in self.layers:
             per_layer.extend(self.sort_by_connections(layer))
+
+        # then for each connections, sort by a planar mapping in a spiral formation
         for layer in per_layer:
             self.instructions.extend(self.sort_by_plane(layer))
 
@@ -163,9 +165,14 @@ class Assembler(object):
 
 
     def sort_by_plane(self, layer):
+        """
+        sorts each connection bin in a layer by a planar mapping, described in
+        the init
+        """
 
         layer.sort(key=lambda x: self.plane_mapping[str([x.x, x.y])])
         return layer
+
 
     def print_sequence(self, instructions):
         """
