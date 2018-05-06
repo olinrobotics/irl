@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 By Khang Vu, Cassandra & Sherrie, 2018
 Last Modified April 18, 2018
@@ -10,9 +11,6 @@ import numpy as np
 CUBE_SIZE_SMALL = 0.037  # in meter
 CUBE_SIZE_LARGE = 0.086  # in meter
 GRID_HEIGHT = 0.00635  # in meter
-
-
-# GRID_HEIGHT = 0 # in meter
 
 
 def cube_localization(coords, cube_size=CUBE_SIZE_SMALL):
@@ -171,4 +169,5 @@ if __name__ == '__main__':
     cubes = cube_localization(coords)
     print cubes, len(cubes), "cubes"
     import plot
+
     plot.plot_cube2d(cubes)

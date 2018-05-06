@@ -1,3 +1,8 @@
+#!/usr/bin/env python
+"""
+Plot helpers to visualize the structure
+"""
+
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import axes3d, Axes3D
 import numpy as np
