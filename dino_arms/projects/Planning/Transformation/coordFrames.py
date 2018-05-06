@@ -67,7 +67,7 @@ class CoordFrames(object):
         self.realXP = [-2.0*self.cubeSize+self.polluxOffSetX, -self.cubeSize+self.polluxOffSetX, 0.0, self.cubeSize+self.polluxOffSetX, 2.0*self.cubeSize+self.polluxOffSetX]
 
         #Shared
-        self.realZ = [.147, .241, .337, .429, .523]
+        self.realZ = [.197, .291, .387, .479, .573]
 
 
 
