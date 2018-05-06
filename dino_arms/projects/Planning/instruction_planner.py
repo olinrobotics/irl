@@ -1,13 +1,17 @@
 #!/usr/bin/env python
 
 """
-Project Gemini Planner
+Project Gemini Instruction Planner
 
 by Kevin Zhang
 
 The Instruction Planner that holds the RL and systematic sequencer which can
 take a group of cubes and "sort" them into a comprehensive set of instructions
 for the controller to use
+
+You just rosrun this thing:
+
+rosrun irl instruction_planner
 
 How it goes:
 1. Waits for data from perception team
@@ -143,7 +147,7 @@ class Planner(object):
 
         # checks to see if anything needs to be built
         # note that this will also say nothing needs to be built for removed cubes,
-        # as they show up as diffs but self.env_diffs is set to None, since now there's
+        # as they show up as diffs but self.env_diffs is set to None there, since now there's
         # nothing there. This is fine for the current idea of the presentation, as
         # we're not planning on allowing deletions, only additions
         if all(self.env_diffs[x][y][z] == None for \
