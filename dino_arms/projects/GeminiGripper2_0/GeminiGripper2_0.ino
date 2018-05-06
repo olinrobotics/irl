@@ -58,24 +58,24 @@ void loop() {
 
 void change_grip() {
   if (command == 1) {
-      rest_to_inwards(-360);
-      delay(400);
+      rest_to_inwards(60);
+      delay(1400);
       slow_to_rest(60);
     }
     if (command == 2) {
-      rest_to_outwards(400);
-      delay(400);
+      rest_to_outwards(120);
+      delay(1200);
       slow_to_rest(120);
     }
     //myservo.write(90);
-    delay(500);
+    delay(300);
 }
 
 //starting at rest, go to out_speed
 void rest_to_outwards(int out_speed) {
   for (pos = 90; pos <= out_speed; pos += 1) {
     myservo.write(pos);
-    delay(5);
+    delay(1);
   }
 }
 
@@ -83,7 +83,7 @@ void rest_to_outwards(int out_speed) {
 void rest_to_inwards(int in_speed) {
   for (pos = 90; pos >= in_speed; pos -= 1) {
     myservo.write(pos);
-    delay(5);
+    delay(1);
   }
 }
 
@@ -92,13 +92,13 @@ void slow_to_rest(int cur_speed) {
   if (cur_speed > 90) {
     for (pos = cur_speed; pos >= 90; pos -= 1) {
       myservo.write(pos);
-      delay(5);
+      delay(1);
     }
   }
   else if (cur_speed < 90) {
-    for (pos = cur_speed; pos < 90; pos += 1) {
+    for (pos = cur_speed; pos <= 90; pos += 1) {
       myservo.write(pos);
-      delay(5);
+      delay(1);
     }
   }
 }
