@@ -37,7 +37,7 @@ class CoordFrames(object):
         self.armOffSetY = -.550
         self.polluxOffSetX = -.0254
         self.polluxOffSetY = -.010
-        self.castorOffSetX = -.545
+        self.castorOffSetX = -.54
         self.castorOffSetY = -.01
         self.cubeSize = .0889
 
