@@ -82,6 +82,25 @@ class PathPlanner():
         self.push_flag = 0 # 0:don't need pushing; 1:push from back; 2:push from front; 3:push from left; 4: push from right
         self.push_instruction = [(0,0), (0, -1.0/3), (0,1.0/3), (-1.0/3, 0), (1.0/3, 0)]
 
+        # coordFrames
+        self.armOffSetY = -.550
+        self.polluxOffSetX = -.005
+        self.polluxOffSetY = -.015
+        self.castorOffSetY = -.545
+        self.castorOffSetX = -.01
+        self.cubeSize = .0889
+
+        #Castor set
+        self.realYC = [2.0*self.cubeSize+self.castorOffSetY, self.cubeSize+self.castorOffSetY, self.castorOffSetY, 0.0, 0.0]
+        self.realXC = [2.0*self.cubeSize+self.castorOffSetX, self.cubeSize+self.castorOffSetX, self.castorOffSetX, -self.cubeSize+self.castorOffSetX, -2.0*self.cubeSize+self.castorOffSetX]
+
+        #Pollux Set
+        self.realYP = [0.0, 0.0, 0.0, self.armOffSetY+self.cubeSize+self.polluxOffSetY, self.armOffSetY+2.0*self.cubeSize+self.polluxOffSetY]
+        self.realXP = [-2.0*self.cubeSize+self.polluxOffSetX, -self.cubeSize+self.polluxOffSetX, self.polluxOffSetX, self.cubeSize+self.polluxOffSetX, 2.0*self.cubeSize+self.polluxOffSetX]
+
+        #Shared
+        self.realZ = [.197+.07, .291+.07, .387+.07, .479+.07, .573+.07]
+
     def cmd_callback(self,data):
         '''
         Parse the build command from the brain
@@ -144,20 +163,20 @@ class PathPlanner():
         pick-up locations will be mirrored for two arms
         '''
         if grid_coord.y>2:
-            msg = "pg_pickup_pollux"
+            msg = str(self.realXP[0]) + ' ' + str(self.realYP[4]) + ' ' + str(self.realZ[0])
             print("Sending:", msg)
-            self.joints_pub_pollux.publish(msg)
+            self.coordinates_pub_pollux.publish(msg)
             self.check_pollux()
         else:
-            msg = "pg_pickup_castor"
+            msg = str(self.realXC[4]) + ' ' + str(self.realYP[0]) + ' ' + str(self.realZ[0])
             print("Sending:", msg)
-            self.joints_pub_castor.publish(msg)
+            self.coordinates_pub_castor.publish(msg)
             self.check_castor()
 
         #1 for grabbing and 2 for opening
         print("Closing Gripper")
         self.grab_pub.publish(1)
-        time.sleep(5)
+        time.sleep(3)
 
     def coord_trans(self, base):
         '''
@@ -281,6 +300,17 @@ class PathPlanner():
             self.joints_pub_castor.publish(msg)
             self.check_castor()
 
+        self.pickup(grid_coord)
+
+        print("Sending: ", msg)
+        print(grid_coord.y)
+        if grid_coord.y>2:
+            self.joints_pub_pollux.publish(msg)
+            self.check_pollux()
+        else:
+            self.joints_pub_castor.publish(msg)
+            self.check_castor()
+
         print('Push Flag:' + str(self.push_flag))
 
         # make query to ur5_arm_node and wait for callback
@@ -290,7 +320,6 @@ class PathPlanner():
         else:
             self.query_pub_castor.publish(self.query)
         time.sleep(2)
-
 
         # cmd_location = self.coord_trans(grid_coord)
         # add extra space for pushing
@@ -327,14 +356,27 @@ class PathPlanner():
 
         print('Releasing Gripper')
         self.grab_pub.publish(2)
-        time.sleep(5)
+        time.sleep(3)
 
         # push the block into place
         if self.push_flag != 0:
-            print('Closing Gripper')
-            self.grab_pub.publish(1)
-            time.sleep(5)
+            # This could cause problem. Comment out for now
+            # print('Closing Gripper')
+            # self.grab_pub.publish(1)
+            # time.sleep(5)
             self.push_block(grid_coord);
+
+        # goes up after finishing placing the block
+        print("move up")
+        msg = str(real_coord.x) + ' ' + str(real_coord.y) + ' ' + str(self.realZ[4])
+        if grid_coord.y>2:
+            print('Sending Pollux:' + msg)
+            self.coordinates_pub_pollux.publish(msg)
+            self.check_pollux()
+        else:
+            print('Sending Castor:' + msg)
+            self.coordinates_pub_castor.publish(msg)
+            self.check_castor()
 
         # update the current model
         self.curr_model[grid_coord.x][grid_coord.y] += 1
@@ -354,7 +396,6 @@ class PathPlanner():
                         if self.grid_building.building[block_index].y <=2:
                             if self.name == 'castor':
                                 print("Running on Castor")
-                                self.pickup(self.grid_building.building[block_index])
                                 self.place_block(self.grid_building.building[block_index], self.real_building.building[block_index])
                         else:
                             if self.name == 'pollux':
