@@ -37,8 +37,8 @@ class CoordFrames(object):
         self.armOffSetY = -.550
         self.polluxOffSetX = -.0254
         self.polluxOffSetY = -.010
-        self.castorOffSetX = -.1
-        self.castorOffSetY = -.3
+        self.castorOffSetX = -.540
+        self.castorOffSetY = -.015
         self.cubeSize = .0889
 
         # the currently accepted calibration, gonna keep these around for a while
