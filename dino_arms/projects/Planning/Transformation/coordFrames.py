@@ -35,8 +35,8 @@ class CoordFrames(object):
 
         #Physical offsets of global origin
         self.armOffSetY = -.550
-        self.polluxOffSetX = -.0254
-        self.polluxOffSetY = -.010
+        self.polluxOffSetX = -.005
+        self.polluxOffSetY = -.015
         self.castorOffSetY = -.545
         self.castorOffSetX = -.01
         self.cubeSize = .0889
@@ -65,7 +65,7 @@ class CoordFrames(object):
 
         #Pollux Set
         self.realYP = [0.0, 0.0, 0.0, self.armOffSetY+self.cubeSize+self.polluxOffSetY, self.armOffSetY+2.0*self.cubeSize+self.polluxOffSetY]
-        self.realXP = [-2.0*self.cubeSize+self.polluxOffSetX, -self.cubeSize+self.polluxOffSetX, 0.0, self.cubeSize+self.polluxOffSetX, 2.0*self.cubeSize+self.polluxOffSetX]
+        self.realXP = [-2.0*self.cubeSize+self.polluxOffSetX, -self.cubeSize+self.polluxOffSetX, self.polluxOffSetX, self.cubeSize+self.polluxOffSetX, 2.0*self.cubeSize+self.polluxOffSetX]
 
         #Shared
         self.realZ = [.197+.07, .291+.07, .387+.07, .479+.07, .573+.07]
