@@ -284,8 +284,8 @@ class Arm():
         ### Project Gemini Gestures
         self.gestures["pg_hover"] = [Route([90, -104.47, 93.78, -78.7, -90, 0],2)]
         self.gestures["pg_hover_alternate"] = [Route([90, -104.47, 93.78, -78.7, -90, 90],2)]
-        self.gestures["pg_pickup_pollux"] = [Route([0, -104.47, 93.79, -135, -90, 0], 2)]
-        self.gestures["pg_pickup_castor"] = [Route([180, -104.47, 93.79, -135, -90, 0], 2)]
+        self.gestures["pg_pickup_pollux"] = [Route([0, -104.47, 93.79, -135, -90, 0], 3)]
+        self.gestures["pg_pickup_castor"] = [Route([180, -104.47, 93.79, -135, -90, 0], 3)]
 
         ### IDLE GESTURES
         self.gestures["idle_stare_1"] = [Route([-40.20, -88.37, -23.93, -66.92, 76.21, 0], 2)]
