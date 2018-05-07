@@ -400,7 +400,6 @@ class PathPlanner():
                         else:
                             if self.name == 'pollux':
                                 print("Running on Pollux")
-                                self.pickup(self.grid_building.building[block_index])
                                 self.place_block(self.grid_building.building[block_index], self.real_building.building[block_index])
                         block_index += 1
                     self.is_building = False
