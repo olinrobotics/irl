@@ -154,13 +154,10 @@ class PathPlanner():
             self.joints_pub_castor.publish(msg)
             self.check_castor()
 
-        #1 for grabing and 2 for opening
-        print("Releasing Gripper")
-        self.grab_pub.publish(2)
-        time.sleep(5)
+        #1 for grabbing and 2 for opening
         print("Closing Gripper")
         self.grab_pub.publish(1)
-        time.sleep(0.5)
+        time.sleep(5)
 
     def coord_trans(self, base):
         '''
@@ -330,11 +327,13 @@ class PathPlanner():
 
         print('Releasing Gripper')
         self.grab_pub.publish(2)
+        time.sleep(5)
 
         # push the block into place
         if self.push_flag != 0:
             print('Closing Gripper')
             self.grab_pub.publish(1)
+            time.sleep(5)
             self.push_block(grid_coord);
 
         # update the current model
