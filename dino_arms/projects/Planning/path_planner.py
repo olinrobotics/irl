@@ -146,12 +146,12 @@ class PathPlanner():
         if grid_coord.y>2:
             msg = "pg_pickup_pollux"
             print("Sending:", msg)
-            self.joints_pub_pollux(msg)
+            self.joints_pub_pollux.publish(msg)
             self.check_pollux()
         else:
             msg = "pg_pickup_castor"
             print("Sending:", msg)
-            self.joints_pub_castor(msg)
+            self.joints_pub_castor.publish(msg)
             self.check_castor()
 
         #1 for grabing and 2 for opening
