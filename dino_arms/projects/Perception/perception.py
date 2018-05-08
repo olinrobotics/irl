@@ -22,7 +22,8 @@ Dependencies:
 - realsense2_camera: https://github.com/intel-ros/realsense
 - librealsense: https://github.com/IntelRealSense/librealsense
 - rgbd_launch: https://github.com/ros-drivers/rgbd_launch.git
-- To run test() function, install matplotlib: 
+- To run test() function, install matplotlib: https://matplotlib.org
+
 To use:
 - Open Terminal and run the code below:
 
@@ -375,6 +376,10 @@ class Perception:
                 break
 
     def test(self):
+        """
+        This function plots a 3D figure of the structure
+        :return: None
+        """
         import matplotlib.pyplot as plt
         from mpl_toolkits.mplot3d import axes3d, Axes3D
         import plot
