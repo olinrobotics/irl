@@ -157,23 +157,24 @@ class PathPlanner():
         Pick up the cube from a predefined location
         pick-up locations will be mirrored for two arms
         '''
-        pickup_offset = 0.232
         if grid_coord.y>2:
-            msg = str(self.realXP[0] - pickup_offset) + ' ' + str(self.realYP[4] + pickup_offset) + ' ' + str(self.realZ[4])
+            pickup_offset_pollux = 0.232
+            msg = str(self.realXP[0] - pickup_offset_pollux) + ' ' + str(self.realYP[4] + pickup_offset_pollux) + ' ' + str(self.realZ[4])
             print("Sending:", msg)
             self.coordinates_pub_pollux.publish(msg)
             self.check_pollux()
             # adding offset for the cube to be pickup
-            msg = str(self.realXP[0] - pickup_offset) + ' ' + str(self.realYP[4] + pickup_offset) + ' ' + str(self.realZ[0])
+            msg = str(self.realXP[0] - pickup_offset_pollux) + ' ' + str(self.realYP[4] + pickup_offset_pollux) + ' ' + str(self.realZ[0])
             print("Sending:", msg)
             self.coordinates_pub_pollux.publish(msg)
             self.check_pollux()
         else:
-            msg = str(self.realXC[0] + pickup_offset) + ' ' + str(self.realYC[0] + pickup_offset) + ' ' + str(self.realZ[4])
+            pickup_offset_castor = 0.232
+            msg = str(self.realXC[0] + pickup_offset_castor) + ' ' + str(self.realYC[0] + pickup_offset_castor) + ' ' + str(self.realZ[4])
             print("Sending:", msg)
             self.coordinates_pub_castor.publish(msg)
             self.check_castor()
-            msg = str(self.realXC[0] + pickup_offset) + ' ' + str(self.realYC[0] + pickup_offset) + ' ' + str(self.realZ[0])
+            msg = str(self.realXC[0] + pickup_offset_castor) + ' ' + str(self.realYC[0] + pickup_offset_castor) + ' ' + str(self.realZ[0])
             print("Sending:", msg)
             self.coordinates_pub_castor.publish(msg)
             self.check_castor()
