@@ -39,7 +39,7 @@ class CoordFrames(object):
         self.polluxOffSetY = -.015
         self.castorOffSetY = -.545
         self.castorOffSetX = -.01
-        self.cubeSize = .0889
+        self.cubeSize = .0897
 
         # the currently accepted calibration, gonna keep these around for a while
 #         self.pixelX = [-.065, -.025, .015, .055, .095]

@@ -88,7 +88,7 @@ class PathPlanner():
         self.polluxOffSetY = -.015
         self.castorOffSetY = -.545
         self.castorOffSetX = -.01
-        self.cubeSize = .0889
+        self.cubeSize = .0897
 
         #Castor set
         self.realYC = [2.0*self.cubeSize+self.castorOffSetY, self.cubeSize+self.castorOffSetY, self.castorOffSetY, 0.0, 0.0]
@@ -168,7 +168,7 @@ class PathPlanner():
             self.coordinates_pub_pollux.publish(msg)
             self.check_pollux()
         else:
-            msg = str(self.realXC[4]) + ' ' + str(self.realYP[0]) + ' ' + str(self.realZ[0])
+            msg = str(self.realXC[4]) + ' ' + str(self.realYC[0]) + ' ' + str(self.realZ[0])
             print("Sending:", msg)
             self.coordinates_pub_castor.publish(msg)
             self.check_castor()
