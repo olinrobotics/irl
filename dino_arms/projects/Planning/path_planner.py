@@ -169,12 +169,13 @@ class PathPlanner():
             self.coordinates_pub_pollux.publish(msg)
             self.check_pollux()
         else:
-            pickup_offset_castor = 0.232
-            msg = str(self.realXC[0] + pickup_offset_castor) + ' ' + str(self.realYC[0] + pickup_offset_castor) + ' ' + str(self.realZ[4])
+            pickup_offset_castor_x = 0.236
+            pickup_offset_castor_y = 0.220
+            msg = str(self.realXC[0] + pickup_offset_castor_x) + ' ' + str(self.realYC[0] + pickup_offset_castor_y) + ' ' + str(self.realZ[4])
             print("Sending:", msg)
             self.coordinates_pub_castor.publish(msg)
             self.check_castor()
-            msg = str(self.realXC[0] + pickup_offset_castor) + ' ' + str(self.realYC[0] + pickup_offset_castor) + ' ' + str(self.realZ[0])
+            msg = str(self.realXC[0] + pickup_offset_castor_x) + ' ' + str(self.realYC[0] + pickup_offset_castor_y) + ' ' + str(self.realZ[0])
             print("Sending:", msg)
             self.coordinates_pub_castor.publish(msg)
             self.check_castor()
