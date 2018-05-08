@@ -35,7 +35,29 @@ def reduce_coords(coords):
     return np.asarray(c)
 
 
+def plot_structure(cubes, cube_size=0.037, color='c'):
+    """Plots the obstacle course that is generated"""
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    plt.rcParams["figure.figsize"] = (12, 12)
+
+    for cube in cubes:
+        x, z, y = cube
+        ax.bar3d(x * 10, y * 10, (z - cube_size / 2) * 10, cube_size * 10, cube_size * 10, cube_size * 10, color,
+                 alpha=0.8)
+
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+    ax.set_zlim(0, 2)
+    plt.xlim(-1, 1.5)
+    plt.ylim(4.2, 7)
+    plt.show()
+
+
 if __name__ == '__main__':
-    coords = np.loadtxt('coords_1.txt', dtype=float)
-    coords = reduce_coords(coords)
-    plot_cube3d(coords)
+    plot_structure([[0, 0, 0]])
+    # coords = np.loadtxt('coords_1.txt', dtype=float)
+    # coords = reduce_coords(coords)
+    # plot_cube3d(coords)

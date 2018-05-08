@@ -22,7 +22,7 @@ Dependencies:
 - realsense2_camera: https://github.com/intel-ros/realsense
 - librealsense: https://github.com/IntelRealSense/librealsense
 - rgbd_launch: https://github.com/ros-drivers/rgbd_launch.git
-
+- To run test() function, install matplotlib: 
 To use:
 - Open Terminal and run the code below:
 
@@ -40,7 +40,6 @@ from cv_bridge import CvBridgeError, CvBridge
 from irl.msg import Real_Cube, Real_Structure
 from sensor_msgs.msg import Image, PointCloud2
 from std_msgs.msg import Bool
-from typing import List
 
 import localization
 import skin_detection
@@ -83,11 +82,11 @@ class Perception:
         rospy.Subscriber('/controller_status', Bool, self._building_status, queue_size=10)
         self.publisher = rospy.Publisher("perception", Real_Structure, queue_size=10)
         self.cam = CameraType(camera_type, width, height)
-        self.cube_size = cube_size  # type: float
+        self.cube_size = cube_size
         self.rgb_data = self.depth_data = self.point_cloud = None
-        self.angle = self.height = None  # type: float
-        self.cubes = None  # type: List[List[float]]
-        self._coords = [None] * self.cam.IMAGE_HEIGHT * self.cam.IMAGE_WIDTH  # type: List[List[float]]
+        self.angle = self.height = None
+        self.cubes = None
+        self._coords = [None] * self.cam.IMAGE_HEIGHT * self.cam.IMAGE_WIDTH
 
     def _rgb_callback(self, data):
         try:
@@ -202,7 +201,7 @@ class Perception:
         kernel = np.ones((5, 5), np.uint8)
         erosion_mask = cv2.erode(mask, kernel, iterations=2)
 
-        paper_coords = []  # type: List[List[float]]
+        paper_coords = []
         for row, item in enumerate(erosion_mask):
             for col, value in enumerate(item):
                 if value == 255:
@@ -266,7 +265,7 @@ class Perception:
         :param p: point in point cloud
         :return: x, y, z in meter
         """
-        x, y, z = p  # type: float
+        x, y, z = p
         x = x * self.cam.DEPTH_UNIT + self.cam.OFFSET
         y = y * self.cam.DEPTH_UNIT + self.cam.OFFSET
         z = z * self.cam.DEPTH_UNIT + self.cam.OFFSET
@@ -367,7 +366,6 @@ class Perception:
             self.get_structure()
 
     def run(self):
-        print "Perception running"
         self.show_rgb()
         self.get_structure()
         while not rospy.is_shutdown():
@@ -376,7 +374,25 @@ class Perception:
             except KeyboardInterrupt:
                 break
 
+    def test(self):
+        import matplotlib.pyplot as plt
+        from mpl_toolkits.mplot3d import axes3d, Axes3D
+        import plot
+        while not rospy.is_shutdown():
+            if not self._has_hand():
+                rospy.Rate(20).sleep()
+                if not self._has_hand():
+                    self.get_pointcloud_coords()
+                    print "Original", self._coords[self.rowcol_to_i(self.cam.MID_ROW, self.cam.MID_COL)]
+                    coords = self.get_transformed_coords()
+                    print "Transformed", coords[self.rowcol_to_i(self.cam.MID_ROW, self.cam.MID_COL)]
+                    cubes = localization.cube_localization(coords, self.cube_size)
+                    print cubes
+                    plot.plot_structure(cubes)
+            rospy.Rate(10).sleep()
+
 
 if __name__ == '__main__':
+    print "Perception running"
     perception = Perception()
     perception.run()
