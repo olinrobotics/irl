@@ -83,23 +83,18 @@ class PathPlanner():
         self.push_instruction = [(0,0), (0, -1.0/3), (0,1.0/3), (-1.0/3, 0), (1.0/3, 0)]
 
         # coordFrames
-        self.armOffSetY = -.550
-        self.polluxOffSetX = -.005
-        self.polluxOffSetY = -.015
-        self.castorOffSetY = -.545
-        self.castorOffSetX = -.01
-        self.cubeSize = .0889
+        self.cubeSize = self.frame_converter.cubeSize
 
         #Castor set
-        self.realYC = [2.0*self.cubeSize+self.castorOffSetY, self.cubeSize+self.castorOffSetY, self.castorOffSetY, 0.0, 0.0]
-        self.realXC = [2.0*self.cubeSize+self.castorOffSetX, self.cubeSize+self.castorOffSetX, self.castorOffSetX, -self.cubeSize+self.castorOffSetX, -2.0*self.cubeSize+self.castorOffSetX]
+        self.realYC = self.frame_converter.realYC
+        self.realXC = self.frame_converter.realXC
 
         #Pollux Set
-        self.realYP = [0.0, 0.0, 0.0, self.armOffSetY+self.cubeSize+self.polluxOffSetY, self.armOffSetY+2.0*self.cubeSize+self.polluxOffSetY]
-        self.realXP = [-2.0*self.cubeSize+self.polluxOffSetX, -self.cubeSize+self.polluxOffSetX, self.polluxOffSetX, self.cubeSize+self.polluxOffSetX, 2.0*self.cubeSize+self.polluxOffSetX]
+        self.realYP = self.frame_converter.realYP
+        self.realXP = self.frame_converter.realXP
 
         #Shared
-        self.realZ = [.197+.07, .291+.07, .387+.07, .479+.07, .573+.07]
+        self.realZ = self.frame_converter.realZ
 
     def cmd_callback(self,data):
         '''
@@ -162,13 +157,23 @@ class PathPlanner():
         Pick up the cube from a predefined location
         pick-up locations will be mirrored for two arms
         '''
+        pickup_offset = 0.232
         if grid_coord.y>2:
-            msg = str(self.realXP[0]) + ' ' + str(self.realYP[4]) + ' ' + str(self.realZ[0])
+            msg = str(self.realXP[0] - pickup_offset) + ' ' + str(self.realYP[4] + pickup_offset) + ' ' + str(self.realZ[4])
+            print("Sending:", msg)
+            self.coordinates_pub_pollux.publish(msg)
+            self.check_pollux()
+            # adding offset for the cube to be pickup
+            msg = str(self.realXP[0] - pickup_offset) + ' ' + str(self.realYP[4] + pickup_offset) + ' ' + str(self.realZ[0])
             print("Sending:", msg)
             self.coordinates_pub_pollux.publish(msg)
             self.check_pollux()
         else:
-            msg = str(self.realXC[4]) + ' ' + str(self.realYP[0]) + ' ' + str(self.realZ[0])
+            msg = str(self.realXC[0] + pickup_offset) + ' ' + str(self.realYC[0] + pickup_offset) + ' ' + str(self.realZ[4])
+            print("Sending:", msg)
+            self.coordinates_pub_castor.publish(msg)
+            self.check_castor()
+            msg = str(self.realXC[0] + pickup_offset) + ' ' + str(self.realYC[0] + pickup_offset) + ' ' + str(self.realZ[0])
             print("Sending:", msg)
             self.coordinates_pub_castor.publish(msg)
             self.check_castor()
@@ -378,10 +383,6 @@ class PathPlanner():
             self.coordinates_pub_castor.publish(msg)
             self.check_castor()
 
-        # update the current model
-        self.curr_model[grid_coord.x][grid_coord.y] += 1
-        self.model_pub.publish(str(self.curr_model))
-
     def run(self):
         print("Path planner running")
         self.status_pub.publish(False)
@@ -401,6 +402,10 @@ class PathPlanner():
                             if self.name == 'pollux':
                                 print("Running on Pollux")
                                 self.place_block(self.grid_building.building[block_index], self.real_building.building[block_index])
+
+                        # update the current model
+                        self.curr_model[self.grid_building.building[block_index].x][self.grid_building.building[block_index].y] += 1
+                        self.model_pub.publish(str(self.curr_model))
                         block_index += 1
                     self.is_building = False
                     self.status_pub.publish(False)
