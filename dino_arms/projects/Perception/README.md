@@ -6,6 +6,8 @@ for the full instruction.
 * realsense2_camera: https://github.com/intel-ros/realsense
 * rgbd_launch: https://github.com/ros-drivers/rgbd_launch.git
 
+To run `test()` function in `perception.py` and plot the results in 3D, install `matplotlib`: https://matplotlib.org
+
 ## Documentation
 ### ```perception.py```
 This is the master script of cube detection and localization for a structure of cubes. The cube size is 3.7 cm.
@@ -61,6 +63,9 @@ We then check the cube by height. We define the height of the top surface of the
 * Give a confined region of square shape as defined in **Step 3**, we first scanned the number of points in the point cloud. If the number of points in the region is less than threshold, we categorized that region as no cubes present. The threshold is currently defined to be
 * If the region have number of points greater than the threshold, we then check the area formed by the point cloud is above certain threshold.
 * Lastly, we check the presence of a hole.
+
+## Demo
+Youtube link: https://www.youtube.com/watch?v=fltjSKhnXMo
 
 ## Authors
 * [**Cassandra Overney**](https://github.com/coverney)
