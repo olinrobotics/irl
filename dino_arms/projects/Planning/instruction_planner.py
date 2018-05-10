@@ -113,12 +113,17 @@ class Planner(object):
             # sort into instructions
             self.sorted_grid_cubes = self.sequence()
 
+            # for the controller to work properly, prioritize all middle column cubes. This is a hotfix designed to avoid collisions
+            # because we didn't have the time to properly implement it
+            self.prioritize_middle()
+
             # convert into real cubes (deprecated)
             self.sorted_real_cubes = self.coord_trans.convertReal(self.sorted_grid_cubes)
 
             # builds message
             self.two_structs.real_building = self.sorted_real_cubes
             self.two_structs.grid_building = self.sorted_grid_cubes
+
 
             # publish to Controller
             self.instructions_pub.publish(self.two_structs)
@@ -129,6 +134,31 @@ class Planner(object):
             # else just do nothing and let the perception read again
             print "NOTHING NEW, NO NEED TO BUILD THIS READING"
             self.status_pub.publish(False)
+
+
+    def prioritize_middle(self):
+        """
+        hotfix that avoids collisions by making all middle column moves go first
+        """
+
+        iterated = 0
+        index = len(self.sorted_grid_cubes.building)-1
+        while iterated < len(self.sorted_grid_cubes.building):
+            if self.sorted_grid_cubes.building[index].x == 2:
+                self.sorted_grid_cubes.building.insert(0, self.sorted_grid_cubes.building.pop(index))
+            else:
+                index -= 1
+            iterated += 1
+
+        # print "------REVISED------ FINISHED INSTRUCTIONS ARE AS FOLLOWS"
+        # i = 1
+        # for instruction in self.sorted_grid_cubes.building:
+        #     print "Step", i, ": cube at", "x:", instruction.x, \
+        #                                   "y:", instruction.y, \
+        #                                   "z:", instruction.z
+        #     i += 1
+        #
+        # print "THOSE ARE ALL THE INSTRUCTIONS"
 
 
     def find_diffs(self, environment):
