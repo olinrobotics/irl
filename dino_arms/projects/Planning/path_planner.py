@@ -96,9 +96,6 @@ class PathPlanner():
         #Shared
         self.realZ = self.frame_converter.realZ
 
-        self.prevX = -1
-        self.prevY = -1
-
     def cmd_callback(self,data):
         '''
         Parse the build command from the brain
@@ -396,21 +393,25 @@ class PathPlanner():
                 # wait for user input
                 if self.is_building:
                     block_index = 0
+
+                    # add wait time
+                    if self.name == 'pollux':
+                        counter = 0
+                        index = 0
+                        while (self.grid_building.building[index].y == 2):
+                            counter += 1
+                            index += 1
+                        if counter > 0:
+                            time.sleep(counter * 10)
+
                     while block_index < len(self.grid_building.building):
                         print("index" + str(block_index))
                         # continue building until the build sequence is empty
                         if self.grid_building.building[block_index].y <=2:
-                            self.prevX = self.grid_building.building[block_index].x
-                            self.prevY = self.grid_building.building[block_index].y
                             if self.name == 'castor':
                                 print("Running on Castor")
                                 self.place_block(self.grid_building.building[block_index], self.real_building.building[block_index])
                         else:
-                            if (abs(self.prevX - self.grid_building.building[block_index].x)<=1) and (self.prevY==2) and (self.grid_building.building[block_index].y==3):
-                                print("waiting waiting waiting")
-                                time.sleep(10)
-                            self.prevX = -1
-                            self.prevY = -1
                             if self.name == 'pollux':
                                 print("Running on Pollux")
                                 self.place_block(self.grid_building.building[block_index], self.real_building.building[block_index])
@@ -419,14 +420,6 @@ class PathPlanner():
                         self.curr_model[self.grid_building.building[block_index].x][self.grid_building.building[block_index].y] += 1
                         self.model_pub.publish(str(self.curr_model))
                         block_index += 1
-                    msg = "pg_hover"
-                    print("Sending: ", msg)
-                    if self.name == 'pollux':
-                        self.joints_pub_pollux.publish(msg)
-                        self.check_pollux()
-                    else:
-                        self.joints_pub_castor.publish(msg)
-                        self.check_castor()
                     self.is_building = False
                     self.status_pub.publish(False)
                     time.sleep(1)
