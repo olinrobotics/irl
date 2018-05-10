@@ -402,7 +402,7 @@ class PathPlanner():
                             counter += 1
                             index += 1
                         if counter > 0:
-                            time.sleep(counter * 10)
+                            time.sleep(counter * 15)
 
                     while block_index < len(self.grid_building.building):
                         print("index" + str(block_index))
@@ -421,6 +421,14 @@ class PathPlanner():
                         self.curr_model[self.grid_building.building[block_index].x][self.grid_building.building[block_index].y] += 1
                         self.model_pub.publish(str(self.curr_model))
                         block_index += 1
+                    msg = "pg_hover"
+                    print("Sending: ", msg)
+                    if self.name == 'pollux':
+                        self.joints_pub_pollux.publish(msg)
+                        self.check_pollux()
+                    else:
+                        self.joints_pub_castor.publish(msg)
+                        self.check_castor()
                     self.is_building = False
                     self.status_pub.publish(False)
                     time.sleep(1)
