@@ -412,6 +412,7 @@ class PathPlanner():
                                 print("Running on Castor")
                                 self.place_block(self.grid_building.building[block_index], self.real_building.building[block_index])
                         else:
+
                             if self.name == 'pollux':
                                 print("Running on Pollux")
                                 self.place_block(self.grid_building.building[block_index], self.real_building.building[block_index])
