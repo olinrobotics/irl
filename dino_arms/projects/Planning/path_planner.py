@@ -407,6 +407,7 @@ class PathPlanner():
                                 self.place_block(self.grid_building.building[block_index], self.real_building.building[block_index])
                         else:
                             if (abs(self.prevX - self.grid_building.building[block_index].x)<=1) and (self.prevY==2) and (self.grid_building.building[block_index].y==3):
+                                print("waiting waiting waiting")
                                 time.sleep(10)
                             self.prevX = -1
                             self.prevY = -1
@@ -418,6 +419,14 @@ class PathPlanner():
                         self.curr_model[self.grid_building.building[block_index].x][self.grid_building.building[block_index].y] += 1
                         self.model_pub.publish(str(self.curr_model))
                         block_index += 1
+                    msg = "pg_hover"
+                    print("Sending: ", msg)
+                    if self.name == 'pollux':
+                        self.joints_pub_pollux.publish(msg)
+                        self.check_pollux()
+                    else:
+                        self.joints_pub_castor.publish(msg)
+                        self.check_castor()
                     self.is_building = False
                     self.status_pub.publish(False)
                     time.sleep(1)
