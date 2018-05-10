@@ -96,6 +96,9 @@ class PathPlanner():
         #Shared
         self.realZ = self.frame_converter.realZ
 
+        self.prevX = -1
+        self.prevY = -1
+
     def cmd_callback(self,data):
         '''
         Parse the build command from the brain
@@ -397,10 +400,16 @@ class PathPlanner():
                         print("index" + str(block_index))
                         # continue building until the build sequence is empty
                         if self.grid_building.building[block_index].y <=2:
+                            self.prevX = self.grid_building.building[block_index].x
+                            self.prevY = self.grid_building.building[block_index].y
                             if self.name == 'castor':
                                 print("Running on Castor")
                                 self.place_block(self.grid_building.building[block_index], self.real_building.building[block_index])
                         else:
+                            if (abs(self.prevX - self.grid_building.building[block_index].x)<=1) and (self.prevY==2) and (self.grid_building.building[block_index].y==3):
+                                time.sleep(10)
+                            self.prevX = -1
+                            self.prevY = -1
                             if self.name == 'pollux':
                                 print("Running on Pollux")
                                 self.place_block(self.grid_building.building[block_index], self.real_building.building[block_index])
