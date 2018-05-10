@@ -408,7 +408,7 @@ class PathPlanner():
                         else:
                             if (abs(self.prevX - self.grid_building.building[block_index].x)<=1) and (self.prevY==2) and (self.grid_building.building[block_index].y==3):
                                 print("waiting waiting waiting")
-                                time.sleep(10)
+                                time.sleep(5)
                             self.prevX = -1
                             self.prevY = -1
                             if self.name == 'pollux':
