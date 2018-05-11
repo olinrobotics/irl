@@ -394,15 +394,6 @@ class PathPlanner():
                 if self.is_building:
                     block_index = 0
 
-                    # add wait time
-                    if self.name == 'pollux':
-                        counter = 0
-                        index = 0
-                        while (self.grid_building.building[index].y == 2):
-                            counter += 1
-                            index += 1
-                        if counter > 0:
-                            time.sleep(counter * 15)
 
                     while block_index < len(self.grid_building.building):
                         print("index " + str(block_index))
