@@ -329,12 +329,13 @@ class PathPlanner():
         # publish coordination status
         if self.name == 'castor':
             if self.num_built > 0:
-                while self.other_status != 'True':
+                while self.other_status == 'False':
                     pass
         else:
-            while self.other_status != 'True':
+            while self.other_status == 'False':
                 pass
-        self.other_status = 'False'
+        if self.other_status != 'Finish':
+            self.other_status = 'False'
 
         if grid_coord.y>2:
             pickup_offset_pollux = 0.232
@@ -465,6 +466,7 @@ class PathPlanner():
                     else:
                         self.joints_pub_castor.publish(msg)
                         self.check_castor()
+                    self.coord_status_pub.publish('Finish')
                     self.is_building = False
                     self.status_pub.publish(False)
                     time.sleep(1)
