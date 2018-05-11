@@ -74,11 +74,11 @@ class MessageReceiver(object):
             elif topic == '/coordination_status_castor' and self.name == 'pollux':
                 print('Castor Status Message Published')
                 print(coords[0])
-                self.castor_status_pub(coords[0])
+                self.castor_status_pub.publish(coords[0])
             elif topic == '/coordination_status_pollux' and self.name == 'castor':
                 print('Pollux Status Message Published')
                 print(coords[0])
-                self.pollux_status_pub(coords[0])
+                self.pollux_status_pub.publish(coords[0])
 
         self.previous_subject = subject
         self.is_receiving = True
