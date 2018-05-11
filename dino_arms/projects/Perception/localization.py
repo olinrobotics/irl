@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 By Khang Vu, Cassandra & Sherrie, 2018
 Last Modified April 18, 2018
@@ -10,9 +11,6 @@ import numpy as np
 CUBE_SIZE_SMALL = 0.037  # in meter
 CUBE_SIZE_LARGE = 0.086  # in meter
 GRID_HEIGHT = 0.00635  # in meter
-
-
-# GRID_HEIGHT = 0 # in meter
 
 
 def cube_localization(coords, cube_size=CUBE_SIZE_SMALL):
@@ -50,7 +48,7 @@ def reduced_coords(coords, cube_size):
         # y coordinates flips for the librealsense camera
         coord[1] = -coord[1]
         x, y, z = coord
-        if 0.75 * cube_size + GRID_HEIGHT <= y <= 6.25 * cube_size + GRID_HEIGHT and z < 1:
+        if 0.75 * cube_size + GRID_HEIGHT <= y <= 6.25 * cube_size + GRID_HEIGHT and z < 0.7 and -0.1 < x < 0.15:
             r_coords.append(coord)
     return np.asarray(r_coords)
 
@@ -157,7 +155,7 @@ def check_cubes(coords, height_level, cube_size):
         print("count", count)
 
         # Now it's officially a valid top surface
-        if count > 500:
+        if count > len(coords) * 75 / 100:
             while height_level >= 1:
                 cube_y = (height_level - 1) * cube_size + cube_size / 2
                 cube = np.asarray([cube_x, cube_y, cube_z])
@@ -171,4 +169,5 @@ if __name__ == '__main__':
     cubes = cube_localization(coords)
     print cubes, len(cubes), "cubes"
     import plot
+
     plot.plot_cube2d(cubes)

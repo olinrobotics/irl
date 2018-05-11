@@ -1,30 +1,37 @@
 #!/usr/bin/env python
-
 """
 By Khang Vu & Sherrie Shen, 2018
 Last Modified April 15, 2018
 
-The script ...
+This is the master script of cube detection and localization for a given structure.
+This script will:
+- Initialize the depth camera
+- Get point clouds and RGB stream from the camera
+- Call skin_detection.py to check the presence of human hands
+- If hands are not present, call find_paper_coords() function
+to get the coordinates of the table (white pixels in the RGB image)
+- Using the table coordinates, call find_height_angle() to calculate
+the height and the angle of depression of the camera
+- Having the height and the angle, perform transformation so that
+the coordinate system of the camera aligns with that of the real world
+- Using the transformed coordinates, call localization.py to localize the cubes
+- Publish the result to the "perception" topic
 
 Dependencies:
 - realsense2_camera: https://github.com/intel-ros/realsense
 - librealsense: https://github.com/IntelRealSense/librealsense
-- rgbd.launch: https://github.com/ros-drivers/rgbd_launch.git
+- rgbd_launch: https://github.com/ros-drivers/rgbd_launch.git
+- To run test() function, install matplotlib: https://matplotlib.org
 
 To use:
 - Open Terminal and run the code below:
 
 roslaunch realsense2_camera rs_rgbd.launch
 
-TODO:
-- More testing
-- Modify publisher/subscriber
-- Extend code to work with the big world
 """
-
+# import plot # Uncomment this to run test(). Require matplotlib!
 import numpy as np
 import random
-
 import cv2
 import rospy
 import sensor_msgs.point_cloud2 as pc2
@@ -34,7 +41,7 @@ from sensor_msgs.msg import Image, PointCloud2
 from std_msgs.msg import Bool
 
 import localization
-import skin_detector
+import skin_detection
 import transformation
 
 
@@ -49,8 +56,8 @@ class CameraType:
     DEPTH_UNIT_SR300 = 0.124986647279
     OFFSET_SR300 = 0.005
 
-    def __init__(self, type="D400", width=640, height=480):
-        if type is "D400":
+    def __init__(self, camera_type="D400", width=640, height=480):
+        if camera_type is "D400":
             self.MID_ROW = CameraType.MID_ROW_D400
             self.MID_COL = CameraType.MID_COL_D400
             self.DEPTH_UNIT = CameraType.DEPTH_UNIT_D400
@@ -96,12 +103,17 @@ class Perception:
         self.point_cloud = data
 
     def _building_status(self, data):
+        """
+        Receive building status. Only send the structure data to the perception topic when the status is False
+        :param data: False to analyze the structure and publish the data
+        :return: None
+        """
         if data.data is False:
             self.get_structure()
 
     def show_rgb(self):
         """
-        Show rgb video
+        Show RGB video
         :return: None
         """
         while self.rgb_data is None:
@@ -152,7 +164,7 @@ class Perception:
     def get_pointcloud_coords(self):
         """
         Get the current point cloud coordinates
-        :return: numpy array of 3D coordinates
+        :return: numpy array of 3D coordinates from the camera
         """
         while self.point_cloud is None:
             print "No point cloud found"
@@ -164,7 +176,7 @@ class Perception:
     def get_transformed_coords(self):
         """
         Get the current transformed point cloud coordinates
-        :return: numpy array of 3D transformed coordinates; if there's no transformed coordinates, keep searching for one
+        :return: numpy array of 3D transformed coordinates; keep searching until transformed coordinates are found
         """
         self.find_height_angle()
         while not self._is_not_nan(self.angle) and not self._is_not_nan(self.height):
@@ -177,7 +189,7 @@ class Perception:
         """
         Find all white pixels of the paper and get the corresponding coordinates
         :param show_video: True to show the processed image
-        :return:
+        :return: numpy array of 3D coordinates of the paper
         """
         blur = cv2.GaussianBlur(self.rgb_data, (5, 5), 0)
         lower_white = np.array([140, 140, 140])
@@ -207,12 +219,13 @@ class Perception:
         Find the angle and height of the camera
         :return: angle (degrees), height
         """
+        # Find the coordinates of the table where we build the structure
         paper_coords = self.find_paper_coords()
         if len(paper_coords) < 3:
             return None, None
 
-        def find_angle(points):
-            v1, v2 = points[0] - points[1], points[1] - points[2]
+        def find_angle(pts):
+            v1, v2 = pts[0] - pts[1], pts[1] - pts[2]
             normal_vector = np.cross(v1, v2)
             zhat = np.asarray([0, 0, 1])
             angle = np.arccos(np.matmul(normal_vector, zhat) / (np.linalg.norm(normal_vector) * np.linalg.norm(zhat)))
@@ -221,31 +234,33 @@ class Perception:
                 angle = 180 - angle
             return angle
 
-        def find_height(points):
-            v1, v2 = points[0] - points[1], points[1] - points[2]
+        def find_height(pts):
+            v1, v2 = pts[0] - pts[1], pts[1] - pts[2]
             normal_vector = np.cross(v1, v2)
-            d = np.matmul(normal_vector, points[0])  # d in equation ax + by + cz = d
+            d = np.matmul(normal_vector, pts[0])  # d in equation ax + by + cz = d
             origin = [0, 0, 0]
             height = abs(np.matmul(origin, normal_vector) - d) / np.linalg.norm(normal_vector)
             return height
 
+        # Find the height and the angle of the camera 10 times and take the median
         heights_angles = []
         for _ in range(10):
+            # Find 3 points that are linearly independent
             i1, i2, i3 = random.sample(range(0, len(paper_coords)), 3)
             points = [paper_coords[i1], paper_coords[i2], paper_coords[i3]]
-            while self._is_linear_dependent(points):
+            while self._is_linearly_dependent(points):
                 i3 = random.randint(0, len(paper_coords))
                 points = [paper_coords[i1], paper_coords[i2], paper_coords[i3]]
-
-            # Find 10 heights and angles of the camera
             heights_angles.append([find_angle(points), find_height(points)])
+
+        # Sort the results and get the median of the result
         heights_angles.sort(key=lambda x: x[0])
         self.angle, self.height = heights_angles[5]
         return self.angle, self.height
 
     def get_xyz(self, p):
         """
-        Get coordinates from a point in point cloud
+        Get coordinates from a point in the point cloud
         :param p: point in point cloud
         :return: x, y, z in meter
         """
@@ -270,18 +285,18 @@ class Perception:
         return i / self.cam.IMAGE_WIDTH, i % self.cam.IMAGE_WIDTH
 
     @staticmethod
-    def _is_linear_dependent(points):
+    def _is_linearly_dependent(points):
         """
-        Check three points on a surface and see if they're linear dependent (a.k.a on the same line)
+        Check three points on a surface and see if they're linearly dependent (a.k.a on the same line)
         :param points: 3 points
-        :return: True if linear dependent
+        :return: True if linearly dependent
         :rtype: bool
         """
         v1, v2 = points[0] - points[1], points[1] - points[2]
         angle = np.arccos(np.matmul(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2)))
         angle = np.degrees(angle)
         if abs(angle) < 15 or abs(angle) > 165:
-            print "Linear dependent. Finding a different point"
+            print "Linearly dependent. Finding a different point"
             return True
         return False
 
@@ -297,9 +312,18 @@ class Perception:
 
     @staticmethod
     def _is_not_nan(a):
+        """
+        Check if a is NaN (not or number)
+        :param a: a number
+        :return: False if a is NaN or None
+        """
         return a is not None and not np.isnan(a)
 
     def _publish(self):
+        """
+        Convert self.cubes to msg.Real_Cube and publish it to the perception topic.
+        :return: None
+        """
         if self.cubes is None:
             return
         else:
@@ -316,41 +340,48 @@ class Perception:
         """
         if self.rgb_data is None:
             return True
-        return skin_detector.has_hand(self.rgb_data)
+        return skin_detection.has_hand(self.rgb_data)
 
     def get_structure(self):
-        if not self._has_hand():
-            rospy.Rate(20).sleep()
+        while not rospy.is_shutdown():
             if not self._has_hand():
-                self.get_pointcloud_coords()
-                print "Original", self._coords[self.rowcol_to_i(self.cam.MID_ROW, self.cam.MID_COL)]
-                coords = self.get_transformed_coords()
-                print "Transformed", coords[self.rowcol_to_i(self.cam.MID_ROW, self.cam.MID_COL)]
-                cubes = localization.cube_localization(coords, self.cube_size)
-                if coords is not None and self._coords is not None and len(cubes) != 0:
-                    if self.cubes is None or abs(len(self.cubes) - len(cubes)) <= 8:
+                rospy.Rate(20).sleep()
+                if not self._has_hand():
+                    self.get_pointcloud_coords()
+                    print "Original", self._coords[self.rowcol_to_i(self.cam.MID_ROW, self.cam.MID_COL)]
+                    coords = self.get_transformed_coords()
+                    print "Transformed", coords[self.rowcol_to_i(self.cam.MID_ROW, self.cam.MID_COL)]
+                    cubes = localization.cube_localization(coords, self.cube_size)
+                    if len(cubes) != 0 and (self.cubes is None or abs(len(self.cubes) - len(cubes)) <= 8):
                         self.cubes = cubes
                         self._publish()
-                    else:
-                        self.get_structure()
-                else:
-                    self.get_structure()
-            else:
-                self.get_structure()
-        else:
-            self.get_structure()
+                        break
 
     def run(self):
-        print "Perception running"
         self.show_rgb()
         self.get_structure()
+        rospy.spin()
+
+    def test(self):
+        """
+        This function plots a 3D figure of the structure
+        :return: None
+        """
         while not rospy.is_shutdown():
-            try:
-                rospy.Rate(10).sleep()
-            except KeyboardInterrupt:
-                break
+            if not self._has_hand():
+                rospy.Rate(20).sleep()
+                if not self._has_hand():
+                    self.get_pointcloud_coords()
+                    print "Original", self._coords[self.rowcol_to_i(self.cam.MID_ROW, self.cam.MID_COL)]
+                    coords = self.get_transformed_coords()
+                    print "Transformed", coords[self.rowcol_to_i(self.cam.MID_ROW, self.cam.MID_COL)]
+                    cubes = localization.cube_localization(coords, self.cube_size)
+                    print cubes
+                    plot.plot_structure(cubes)
+            rospy.Rate(10).sleep()
 
 
 if __name__ == '__main__':
-    perception = Perception(cube_size=localization.CUBE_SIZE_SMALL)
+    print "Perception running"
+    perception = Perception()
     perception.run()
