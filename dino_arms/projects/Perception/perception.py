@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 """
 By Khang Vu & Sherrie Shen, 2018
 Last Modified April 15, 2018
@@ -30,10 +29,9 @@ To use:
 roslaunch realsense2_camera rs_rgbd.launch
 
 """
-
+# import plot # Uncomment this to run test(). Require matplotlib!
 import numpy as np
 import random
-
 import cv2
 import rospy
 import sensor_msgs.point_cloud2 as pc2
@@ -345,44 +343,30 @@ class Perception:
         return skin_detection.has_hand(self.rgb_data)
 
     def get_structure(self):
-        if not self._has_hand():
-            rospy.Rate(20).sleep()
+        while not rospy.is_shutdown():
             if not self._has_hand():
-                self.get_pointcloud_coords()
-                print "Original", self._coords[self.rowcol_to_i(self.cam.MID_ROW, self.cam.MID_COL)]
-                coords = self.get_transformed_coords()
-                print "Transformed", coords[self.rowcol_to_i(self.cam.MID_ROW, self.cam.MID_COL)]
-                cubes = localization.cube_localization(coords, self.cube_size)
-                if coords is not None and self._coords is not None and len(cubes) != 0:
-                    if self.cubes is None or abs(len(self.cubes) - len(cubes)) <= 8:
+                rospy.Rate(20).sleep()
+                if not self._has_hand():
+                    self.get_pointcloud_coords()
+                    print "Original", self._coords[self.rowcol_to_i(self.cam.MID_ROW, self.cam.MID_COL)]
+                    coords = self.get_transformed_coords()
+                    print "Transformed", coords[self.rowcol_to_i(self.cam.MID_ROW, self.cam.MID_COL)]
+                    cubes = localization.cube_localization(coords, self.cube_size)
+                    if len(cubes) != 0 and (self.cubes is None or abs(len(self.cubes) - len(cubes)) <= 8):
                         self.cubes = cubes
                         self._publish()
-                    else:
-                        self.get_structure()
-                else:
-                    self.get_structure()
-            else:
-                self.get_structure()
-        else:
-            self.get_structure()
+                        break
 
     def run(self):
         self.show_rgb()
         self.get_structure()
-        while not rospy.is_shutdown():
-            try:
-                rospy.Rate(10).sleep()
-            except KeyboardInterrupt:
-                break
+        rospy.spin()
 
     def test(self):
         """
         This function plots a 3D figure of the structure
         :return: None
         """
-        import matplotlib.pyplot as plt
-        from mpl_toolkits.mplot3d import axes3d, Axes3D
-        import plot
         while not rospy.is_shutdown():
             if not self._has_hand():
                 rospy.Rate(20).sleep()
