@@ -202,17 +202,6 @@ class PathPlanner():
         self.grab_pub.publish(1)
         time.sleep(3)
 
-        if grid_coord.y>2:
-            msg = str(self.realXP[0] - pickup_offset_pollux) + ' ' + str(self.realYP[4] + pickup_offset_pollux) + ' ' + str(self.realZ[4])
-            print("Sending:", msg)
-            self.coordinates_pub_pollux.publish(msg)
-            self.check_pollux()
-        else:
-            msg = str(self.realXC[0] + pickup_offset_castor_x) + ' ' + str(self.realYC[0] + pickup_offset_castor_y) + ' ' + str(self.realZ[4])
-            print("Sending:", msg)
-            self.coordinates_pub_castor.publish(msg)
-            self.check_castor()
-
     def coord_trans(self, base):
         '''
         Transform base coordinates to actual coordinate for the arm to place the block
@@ -323,9 +312,9 @@ class PathPlanner():
                 self.push_flag = 0
         else:
             msg = "pg_hover"
-
             # new pg_hover joints: 90 -104.47 93.78 -78.7 -90 0
             self.push_flag = 0
+
         print("Sending: ", msg)
         print(grid_coord.y)
         if grid_coord.y>2:
@@ -346,6 +335,20 @@ class PathPlanner():
             while self.other_status != 'True':
                 pass
         self.other_status = 'False'
+
+        if grid_coord.y>2:
+            pickup_offset_pollux = 0.232
+            msg = str(self.realXP[0] - pickup_offset_pollux) + ' ' + str(self.realYP[4] + pickup_offset_pollux) + ' ' + str(self.realZ[4])
+            print("Sending:", msg)
+            self.coordinates_pub_pollux.publish(msg)
+            self.check_pollux()
+        else:
+            pickup_offset_castor_x = 0.236
+            pickup_offset_castor_y = 0.220
+            msg = str(self.realXC[0] + pickup_offset_castor_x) + ' ' + str(self.realYC[0] + pickup_offset_castor_y) + ' ' + str(self.realZ[4])
+            print("Sending:", msg)
+            self.coordinates_pub_castor.publish(msg)
+            self.check_castor()
 
         print("Sending: ", msg)
         print(grid_coord.y)
