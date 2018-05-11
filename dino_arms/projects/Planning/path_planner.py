@@ -326,15 +326,6 @@ class PathPlanner():
 
         self.pickup(grid_coord)
 
-        print("Sending: ", msg)
-        print(grid_coord.y)
-        if grid_coord.y>2:
-            self.joints_pub_pollux.publish(msg)
-            self.check_pollux()
-        else:
-            self.joints_pub_castor.publish(msg)
-            self.check_castor()
-
         # publish coordination status
         if self.name == 'castor':
             if self.num_built > 0:
@@ -344,6 +335,15 @@ class PathPlanner():
             while self.other_status != 'True':
                 pass
         self.other_status = 'False'
+
+        print("Sending: ", msg)
+        print(grid_coord.y)
+        if grid_coord.y>2:
+            self.joints_pub_pollux.publish(msg)
+            self.check_pollux()
+        else:
+            self.joints_pub_castor.publish(msg)
+            self.check_castor()
 
         print('Push Flag:' + str(self.push_flag))
 
