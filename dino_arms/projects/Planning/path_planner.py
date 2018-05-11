@@ -59,6 +59,15 @@ class PathPlanner():
         self.info_sub_castor = rospy.Subscriber("/arm_info_castor", String, self.info_callback, queue_size=10)
         self.arm_status_castor = rospy.Subscriber("/arm_status_castor", String, self.castor_status_callback, queue_size=10)
 
+        # received Yes means the other arm finishes the current movement and proceeds to pickup
+        if self.name == 'pollux':
+            self.coord_status_pub = rospy.Publisher("/coordination_status_pollux", String, queue_size=1)
+            self.coord_status_sub = rospy.Subscriber("/coordination_status_castor", String, self.coord_status_callback, queue_size=1)
+        else:
+            self.coord_status_pub = rospy.Publisher("/coordination_status_castor", String, queue_size=1)
+            self.coord_status_sub = rospy.Subscriber("/coordination_status_pollux", String, self.coord_status_callback, queue_size=1)
+        self.other_status = 'False'
+
         # controller_status determines when Perception start looking for a new goal
         self.status_pub = rospy.Publisher("/controller_status", Bool, queue_size=10)
 
@@ -95,6 +104,14 @@ class PathPlanner():
 
         #Shared
         self.realZ = self.frame_converter.realZ
+
+        self.num_built = 0
+
+    def coord_status_callback(self, data):
+        '''
+        Parse coordination status from the other arm
+        '''
+        self.other_status = str(data.data)
 
     def cmd_callback(self,data):
         '''
@@ -318,6 +335,16 @@ class PathPlanner():
             self.joints_pub_castor.publish(msg)
             self.check_castor()
 
+        # publish coordination status
+        if self.name == 'castor':
+            if self.num_built > 0:
+                while self.other_status != 'True':
+                    pass
+        else:
+            while self.other_status != 'True':
+                pass
+        self.other_status = 'False'
+
         print('Push Flag:' + str(self.push_flag))
 
         # make query to ur5_arm_node and wait for callback
@@ -373,6 +400,8 @@ class PathPlanner():
             # time.sleep(5)
             self.push_block(grid_coord);
 
+        self.coord_status_pub.publish('True')
+
         # goes up after finishing placing the block
         print("move up")
         msg = str(real_coord.x) + ' ' + str(real_coord.y) + ' ' + str(self.realZ[4])
@@ -402,11 +431,13 @@ class PathPlanner():
                             if self.name == 'castor':
                                 print("Running on Castor")
                                 self.place_block(self.grid_building.building[block_index], self.real_building.building[block_index])
+                                self.num_built += 1
                         else:
 
                             if self.name == 'pollux':
                                 print("Running on Pollux")
                                 self.place_block(self.grid_building.building[block_index], self.real_building.building[block_index])
+                                self.num_built += 1
 
                         # update the current model
                         self.curr_model[self.grid_building.building[block_index].x][self.grid_building.building[block_index].y] += 1

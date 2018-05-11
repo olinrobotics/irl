@@ -20,8 +20,13 @@ class MessageReceiver(object):
     """
     def __init__(self):
         rospy.init_node("message_receiver")
+        tcp_ip = rospy.get_param("~robot_ip")
+        arm_dict = {'10.42.0.175':'pollux','10.42.0.54':'castor'}
+        self.name = arm_dict[tcp_ip]
 
         self.cmd_pub = rospy.Publisher("/build_cmd", Cube_Structures, queue_size=1)
+        self.castor_status_pub = rospy.Publisher("/coordination_status_castor", String, queue_size=1)
+        self.pollux_status_pub = rospy.Publisher("/coordination_status_pollux", String, queue_size=1)
         self.is_receiving = False
         self.previous_subject = ""
 
@@ -49,20 +54,31 @@ class MessageReceiver(object):
             print("email received")
             cube_structure = Cube_Structures()
             coords = body.split(',')
-            real_building = Real_Structure()
-            coords = coords[0:len(coords)-1]
+            topic = coords[0]
+            coords = coords[1:]
+            if topic == '/build_cmd':
+                real_building = Real_Structure()
+                coords = coords[0:len(coords)-1]
 
-            for i in range(len(coords) / 6):
-                real_building.building.append(Real_Cube(x=float(coords[i*3]), y=float(coords[i*3+1]), z=float(coords[i*3+2])))
-            cube_structure.real_building = real_building
+                for i in range(len(coords) / 6):
+                    real_building.building.append(Real_Cube(x=float(coords[i*3]), y=float(coords[i*3+1]), z=float(coords[i*3+2])))
+                cube_structure.real_building = real_building
 
-            grid_building = Grid_Structure()
-            for i in range(len(coords)/6, len(coords)/3):
-                grid_building.building.append(Grid_Cube(x=int(coords[i*3]), y=int(coords[i*3+1]), z=int(coords[i*3+2])))
-            cube_structure.grid_building = grid_building
+                grid_building = Grid_Structure()
+                for i in range(len(coords)/6, len(coords)/3):
+                    grid_building.building.append(Grid_Cube(x=int(coords[i*3]), y=int(coords[i*3+1]), z=int(coords[i*3+2])))
+                cube_structure.grid_building = grid_building
 
-            # print(cube_structure)
-            self.cmd_pub.publish(cube_structure)
+                print("Cube Message Published")
+                self.cmd_pub.publish(cube_structure)
+            elif topic == '/coordination_status_castor' and self.name == 'pollux':
+                print('Castor Status Message Published')
+                print(coords[0])
+                self.castor_status_pub(coords[0])
+            elif topic == '/coordination_status_pollux' and self.name == 'castor':
+                print('Pollux Status Message Published')
+                print(coords[0])
+                self.pollux_status_pub(coords[0])
 
         self.previous_subject = subject
         self.is_receiving = True
