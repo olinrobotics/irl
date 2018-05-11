@@ -405,7 +405,7 @@ class PathPlanner():
                             time.sleep(counter * 15)
 
                     while block_index < len(self.grid_building.building):
-                        print("index" + str(block_index))
+                        print("index " + str(block_index))
                         # continue building until the build sequence is empty
                         if self.grid_building.building[block_index].y <=2:
                             if self.name == 'castor':
