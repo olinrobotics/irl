@@ -175,22 +175,22 @@ class PathPlanner():
         pick-up locations will be mirrored for two arms
         '''
         if grid_coord.y>2:
-            pickup_offset_pollux = 0.232
-            msg = str(self.realXP[0] - pickup_offset_pollux) + ' ' + str(self.realYP[4] + pickup_offset_pollux) + ' ' + str(self.realZ[4])
+            # pickup_offset_pollux = 0.232
+            msg = "pg_pickup_up_pollux"
             print("Sending:", msg)
-            self.coordinates_pub_pollux.publish(msg)
+            self.joints_pub_pollux.publish(msg)
             self.check_pollux()
             # adding offset for the cube to be pickup
-            msg = str(self.realXP[0] - pickup_offset_pollux) + ' ' + str(self.realYP[4] + pickup_offset_pollux) + ' ' + str(self.realZ[0])
+            msg = "pg_pickup_down_pollux"
             print("Sending:", msg)
-            self.coordinates_pub_pollux.publish(msg)
+            self.joints_pub_pollux.publish(msg)
             self.check_pollux()
         else:
-            pickup_offset_castor_x = 0.236
-            pickup_offset_castor_y = 0.220
-            msg = str(self.realXC[0] + pickup_offset_castor_x) + ' ' + str(self.realYC[0] + pickup_offset_castor_y) + ' ' + str(self.realZ[4])
+            # pickup_offset_castor_x = 0.236
+            # pickup_offset_castor_y = 0.220
+            msg = "pg_pickup_up_castor"
             print("Sending:", msg)
-            self.coordinates_pub_castor.publish(msg)
+            self.joints.publish(msg)
             self.check_castor()
             msg = str(self.realXC[0] + pickup_offset_castor_x) + ' ' + str(self.realYC[0] + pickup_offset_castor_y) + ' ' + str(self.realZ[0])
             print("Sending:", msg)
@@ -287,6 +287,7 @@ class PathPlanner():
         pg_hover: 90, -90, 45, -45, -90, 0
         coor : 110.29 -372.42 289.06
         '''
+        # start arm movement from initialization position pg_hover
         print("Sending: pg_hover")
         print(grid_coord.y)
         if grid_coord.y>2:
@@ -298,7 +299,7 @@ class PathPlanner():
 
         self.pickup(grid_coord)
 
-        # publish coordination status
+        # wait for other arm to finish
         if self.name == 'castor':
             if self.num_built > 0:
                 while self.other_status == 'False':
@@ -309,20 +310,22 @@ class PathPlanner():
         if self.other_status != 'Finish':
             self.other_status = 'False'
 
+        # goes up after pick up cube
         if grid_coord.y>2:
-            pickup_offset_pollux = 0.232
-            msg = str(self.realXP[0] - pickup_offset_pollux) + ' ' + str(self.realYP[4] + pickup_offset_pollux) + ' ' + str(self.realZ[4])
+            # pickup_offset_pollux = 0.232
+            msg = "pg_pickup_up_pollux"
             print("Sending:", msg)
-            self.coordinates_pub_pollux.publish(msg)
+            self.joints_pub_pollux.publish(msg)
             self.check_pollux()
         else:
-            pickup_offset_castor_x = 0.236
-            pickup_offset_castor_y = 0.220
-            msg = str(self.realXC[0] + pickup_offset_castor_x) + ' ' + str(self.realYC[0] + pickup_offset_castor_y) + ' ' + str(self.realZ[4])
+            # pickup_offset_castor_x = 0.236
+            # pickup_offset_castor_y = 0.220
+            msg = "pg_pickup_up_castor"
             print("Sending:", msg)
-            self.coordinates_pub_castor.publish(msg)
+            self.joints_pub_castor.publish(msg)
             self.check_castor()
 
+        # flags to determine whether pushing is necessary for the current cube placement
         self.back_blocked = (grid_coord.y<4 and self.curr_model[grid_coord.x][grid_coord.y+1] > grid_coord.z)
         self.front_blocked = (grid_coord.y>0 and self.curr_model[grid_coord.x][grid_coord.y-1] > grid_coord.z)
         self.right_blocked = (grid_coord.x>0 and self.curr_model[grid_coord.x-1][grid_coord.y] > grid_coord.z)
@@ -408,7 +411,7 @@ class PathPlanner():
 
         # push the block into place
         if self.push_flag != 0:
-            # This could cause problem. Comment out for now
+            # TODO: figure out if arm is strong enough to handle pushing
             # print('Closing Gripper')
             # self.grab_pub.publish(1)
             # time.sleep(5)
