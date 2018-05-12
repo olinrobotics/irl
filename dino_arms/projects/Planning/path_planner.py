@@ -287,41 +287,13 @@ class PathPlanner():
         pg_hover: 90, -90, 45, -45, -90, 0
         coor : 110.29 -372.42 289.06
         '''
-
-        self.back_blocked = (grid_coord.y<4 and self.curr_model[grid_coord.x][grid_coord.y+1] > grid_coord.z)
-        self.front_blocked = (grid_coord.y>0 and self.curr_model[grid_coord.x][grid_coord.y-1] > grid_coord.z)
-        self.right_blocked = (grid_coord.x>0 and self.curr_model[grid_coord.x-1][grid_coord.y] > grid_coord.z)
-        self.left_blocked = (grid_coord.x<4 and self.curr_model[grid_coord.x+1][grid_coord.y] > grid_coord.z)
-
-        if (self.back_blocked or self.front_blocked):
-            if (self.left_blocked or self.right_blocked):
-                if not self.left_blocked:
-                    msg = "pg_hover_alternate"
-                    self.push_flag = 3
-                elif not self.right_blocked:
-                    msg = "pg_hover_alternate"
-                    self.push_flag = 4
-                elif not self.back_blocked:
-                    msg = "pg_hover"
-                    self.push_flag = 1
-                else:
-                    msg = "pg_hover"
-                    self.push_flag = 2
-            else:
-                msg = "pg_hover_alternate"
-                self.push_flag = 0
-        else:
-            msg = "pg_hover"
-            # new pg_hover joints: 90 -104.47 93.78 -78.7 -90 0
-            self.push_flag = 0
-
-        print("Sending: ", msg)
+        print("Sending: pg_hover")
         print(grid_coord.y)
         if grid_coord.y>2:
-            self.joints_pub_pollux.publish(msg)
+            self.joints_pub_pollux.publish("pg_hover")
             self.check_pollux()
         else:
-            self.joints_pub_castor.publish(msg)
+            self.joints_pub_castor.publish("pg_hover")
             self.check_castor()
 
         self.pickup(grid_coord)
@@ -350,6 +322,33 @@ class PathPlanner():
             print("Sending:", msg)
             self.coordinates_pub_castor.publish(msg)
             self.check_castor()
+
+        self.back_blocked = (grid_coord.y<4 and self.curr_model[grid_coord.x][grid_coord.y+1] > grid_coord.z)
+        self.front_blocked = (grid_coord.y>0 and self.curr_model[grid_coord.x][grid_coord.y-1] > grid_coord.z)
+        self.right_blocked = (grid_coord.x>0 and self.curr_model[grid_coord.x-1][grid_coord.y] > grid_coord.z)
+        self.left_blocked = (grid_coord.x<4 and self.curr_model[grid_coord.x+1][grid_coord.y] > grid_coord.z)
+
+        if (self.back_blocked or self.front_blocked):
+            if (self.left_blocked or self.right_blocked):
+                if not self.left_blocked:
+                    msg = "pg_hover_alternate"
+                    self.push_flag = 3
+                elif not self.right_blocked:
+                    msg = "pg_hover_alternate"
+                    self.push_flag = 4
+                elif not self.back_blocked:
+                    msg = "pg_hover"
+                    self.push_flag = 1
+                else:
+                    msg = "pg_hover"
+                    self.push_flag = 2
+            else:
+                msg = "pg_hover_alternate"
+                self.push_flag = 0
+        else:
+            msg = "pg_hover"
+            # new pg_hover joints: 90 -104.47 93.78 -78.7 -90 0
+            self.push_flag = 0
 
         print("Sending: ", msg)
         print(grid_coord.y)
