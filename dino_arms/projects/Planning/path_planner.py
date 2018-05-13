@@ -101,8 +101,8 @@ class PathPlanner():
         #Pollux Set
         self.realYP = self.frame_converter.realYP
         self.realXP = self.frame_converter.realXP
-        self.realYP_offset = -0.015
-        self.realXP_offset = -0.0067
+        self.realYP_offset = -0.0121
+        self.realXP_offset = -0.0046
 
         #Shared
         self.realZP = self.frame_converter.realZP
