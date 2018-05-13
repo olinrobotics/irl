@@ -60,12 +60,20 @@ class CoordFrames(object):
 
         #Real world values - Note arm coords are orthogonal to board coords.
         #Castor set
-        self.realYC = [2.0*self.cubeSize+self.castorOffSetY, self.cubeSize+self.castorOffSetY, self.castorOffSetY, 0.0, 0.0]
-        self.realXC = [2.0*self.cubeSize+self.castorOffSetX, self.cubeSize+self.castorOffSetX, self.castorOffSetX, -self.cubeSize+self.castorOffSetX, -2.0*self.cubeSize+self.castorOffSetX]
+        # self.realYC = [2.0*self.cubeSize+self.castorOffSetY, self.cubeSize+self.castorOffSetY, self.castorOffSetY, 0.0, 0.0]
+        # self.realXC = [2.0*self.cubeSize+self.castorOffSetX, self.cubeSize+self.castorOffSetX, self.castorOffSetX, -self.cubeSize+self.castorOffSetX, -2.0*self.cubeSize+self.castorOffSetX]
+
+        # Castor new set
+        self.realYC = [-0.3551, -0.4441, -0.5361, 0.0, 0.0]
+        self.realXC = [0.1689, 0.0785, -0.0153, -0.108, -0.2038]
 
         #Pollux Set
-        self.realYP = [0.0, 0.0, 0.0, self.armOffSetY+self.cubeSize+self.polluxOffSetY, self.armOffSetY+2.0*self.cubeSize+self.polluxOffSetY]
-        self.realXP = [-2.0*self.cubeSize+self.polluxOffSetX, -self.cubeSize+self.polluxOffSetX, self.polluxOffSetX, self.cubeSize+self.polluxOffSetX, 2.0*self.cubeSize+self.polluxOffSetX]
+        # self.realYP = [0.0, 0.0, 0.0, self.armOffSetY+self.cubeSize+self.polluxOffSetY, self.armOffSetY+2.0*self.cubeSize+self.polluxOffSetY]
+        # self.realXP = [-2.0*self.cubeSize+self.polluxOffSetX, -self.cubeSize+self.polluxOffSetX, self.polluxOffSetX, self.cubeSize+self.polluxOffSetX, 2.0*self.cubeSize+self.polluxOffSetX]
+
+        # Pollux new Set
+        self.realYP = [0.0, 0.0, 0.0, -0.4633, -0.3702]
+        self.realXP = [-0.1718 ,-0.0839 , 0.0095, 0.1072, 0.1946]
 
         #Shared
         self.realZ = [.197+.07, .291+.07, .387+.07, .479+.07, .573+.07]
