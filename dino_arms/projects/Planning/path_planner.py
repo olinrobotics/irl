@@ -190,11 +190,11 @@ class PathPlanner():
             # pickup_offset_castor_y = 0.220
             msg = "pg_pickup_up_castor"
             print("Sending:", msg)
-            self.joints.publish(msg)
+            self.joints_pub_castor.publish(msg)
             self.check_castor()
-            msg = str(self.realXC[0] + pickup_offset_castor_x) + ' ' + str(self.realYC[0] + pickup_offset_castor_y) + ' ' + str(self.realZ[0])
+            msg = "pg_pickup_down_castor"
             print("Sending:", msg)
-            self.coordinates_pub_castor.publish(msg)
+            self.joints_pub_castor.publish(msg)
             self.check_castor()
 
         #1 for grabbing and 2 for opening
@@ -468,6 +468,7 @@ class PathPlanner():
                     else:
                         self.joints_pub_castor.publish(msg)
                         self.check_castor()
+                    time.sleep(5)
                     self.coord_status_pub.publish('Finish')
                     self.is_building = False
                     self.status_pub.publish(False)
