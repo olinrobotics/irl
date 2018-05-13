@@ -101,6 +101,8 @@ class PathPlanner():
         #Pollux Set
         self.realYP = self.frame_converter.realYP
         self.realXP = self.frame_converter.realXP
+        self.realYP_offset = -0.015
+        self.realXP_offset = -0.0067
 
         #Shared
         self.realZP = self.frame_converter.realZP
@@ -373,6 +375,10 @@ class PathPlanner():
             msg = "pg_hover"
             # new pg_hover joints: 90 -104.47 93.78 -78.7 -90 0
             self.push_flag = 0
+
+        if msg == "pg_hover_alternate" and self.name == 'pollux':
+            real_coord.x += self.realXP_offset
+            real_coord.y += self.realYP_offset
 
         self.push_move = msg
         print("Sending: ", msg)
