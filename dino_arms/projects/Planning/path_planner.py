@@ -243,18 +243,18 @@ class PathPlanner():
             self.coordinates_pub_castor.publish(msg)
             self.check_castor()
 
-        # if self.push_move = "pg_hover":
-        #     msg = "pg_hover_alternate"
-        # else:
-        #     msg = "pg_hover"
-        # if grid_coord.y>2:
-        #     print('Sending Pollux:' + msg)
-        #     self.coordinates_pub_pollux.publish(msg)
-        #     self.check_pollux()
-        # else:
-        #     print('Sending Castor:' + msg)
-        #     self.coordinates_pub_castor.publish(msg)
-        #     self.check_castor()
+        if self.push_move = "pg_hover":
+            msg = "pg_hover_alternate"
+        else:
+            msg = "pg_hover"
+        if grid_coord.y>2:
+            print('Sending Pollux:' + msg)
+            self.coordinates_pub_pollux.publish(msg)
+            self.check_pollux()
+        else:
+            print('Sending Castor:' + msg)
+            self.coordinates_pub_castor.publish(msg)
+            self.check_castor()
 
         # go outward
         self.curr_location[0] = self.curr_location[0] + self.push_instruction[self.push_flag][0] * 4 * self.unit_length;
