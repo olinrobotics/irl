@@ -246,19 +246,6 @@ class PathPlanner():
             self.coordinates_pub_castor.publish(msg)
             self.check_castor()
 
-        if self.push_move == "pg_hover":
-            msg = "pg_hover_alternate"
-        else:
-            msg = "pg_hover"
-        if grid_coord.y>2:
-            print('Sending Pollux:' + msg)
-            self.joints_pub_pollux.publish(msg)
-            self.check_pollux()
-        else:
-            print('Sending Castor:' + msg)
-            self.joints_pub_castor.publish(msg)
-            self.check_castor()
-
         # go outward
         self.curr_location[0] = self.curr_location[0] + self.push_instruction[self.push_flag][0] * 4 * self.unit_length;
         self.curr_location[1] = self.curr_location[1] + self.push_instruction[self.push_flag][1] * 4 * self.unit_length;
@@ -273,7 +260,7 @@ class PathPlanner():
             self.check_castor()
 
         # go down 2 units
-        self.curr_location[2] = self.curr_location[2] - 2 * self.unit_length;
+        self.curr_location[2] = self.curr_location[2] - 2.2 * self.unit_length;
         msg = str(self.curr_location[0]) + ' ' + str(self.curr_location[1]) + ' ' + str(self.curr_location[2])
         if grid_coord.y>2:
             print('Sending Pollux:' + msg)
@@ -377,8 +364,8 @@ class PathPlanner():
             self.push_flag = 0
 
         if msg == "pg_hover_alternate" and self.name == 'pollux':
-            real_coord.x += self.realXP_offset
-            real_coord.y += self.realYP_offset
+            real_coord.x -= self.realXP_offset
+            real_coord.y -= self.realYP_offset
 
         self.push_move = msg
         print("Sending: ", msg)
