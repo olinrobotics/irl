@@ -287,7 +287,7 @@ class Arm():
         self.gestures["pg_pickup_down_pollux"] = [Route([4.84, -96.21, 121.08, -115.34, -86.59, -84.39], 3)]
         self.gestures["pg_pickup_down_castor"] = [Route([146.27, -95.34, 120.23, -115.19, -92.42, 55.93], 3)]
         self.gestures["pg_pickup_up_pollux"] = [Route([4.98, -97.45, 75.63, -68.63, -86.59, -84.86], 3)]
-        self.gestures["pg_pickup_up_castor"] = [Route([145.26, -95.85, 73.33, -67.77, -89.94, 54.78], 3)]
+        self.gestures["pg_pickup_up_castor"] = [Route([145.51, -91.14, 57.46, -56.61, -89.94, 55], 3)]
 
         ### IDLE GESTURES
         self.gestures["idle_stare_1"] = [Route([-40.20, -88.37, -23.93, -66.92, 76.21, 0], 2)]

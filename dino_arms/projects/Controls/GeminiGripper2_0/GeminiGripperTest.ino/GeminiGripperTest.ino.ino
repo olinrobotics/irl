@@ -24,7 +24,7 @@ void setup() {
 
    // THIS CLOSES IT
       rest_to_inwards(60);
-      delay(1400);
+      delay(1475);
       slow_to_rest(60);
     
 
