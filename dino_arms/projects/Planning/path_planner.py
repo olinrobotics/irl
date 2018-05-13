@@ -243,7 +243,7 @@ class PathPlanner():
             self.coordinates_pub_castor.publish(msg)
             self.check_castor()
 
-        if self.push_move = "pg_hover":
+        if self.push_move == "pg_hover":
             msg = "pg_hover_alternate"
         else:
             msg = "pg_hover"
