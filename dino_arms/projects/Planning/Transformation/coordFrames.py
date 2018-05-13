@@ -64,8 +64,8 @@ class CoordFrames(object):
         # self.realXC = [2.0*self.cubeSize+self.castorOffSetX, self.cubeSize+self.castorOffSetX, self.castorOffSetX, -self.cubeSize+self.castorOffSetX, -2.0*self.cubeSize+self.castorOffSetX]
 
         # Castor new set
-        self.realYC = [-0.3513, -0.4395, -0.5330, 0.0, 0.0]
-        self.realXC = [0.1720, 0.0807, -0.0110, -0.1050, -0.1950]
+        self.realYC = [-0.3510, -0.4380, -0.5330, 0.0, 0.0]
+        self.realXC = [0.1720, 0.0807, -0.0107, -0.1050, -0.1950]
 
         #Pollux Set
         # self.realYP = [0.0, 0.0, 0.0, self.armOffSetY+self.cubeSize+self.polluxOffSetY, self.armOffSetY+2.0*self.cubeSize+self.polluxOffSetY]
