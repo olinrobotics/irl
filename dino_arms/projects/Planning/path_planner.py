@@ -349,10 +349,16 @@ class PathPlanner():
             if (self.left_blocked or self.right_blocked):
                 if not self.left_blocked:
                     msg = "pg_hover_alternate"
-                    self.push_flag = 4
+                    if self.name == 'pollux':
+                        self.push_flag = 4
+                    else:
+                        self.push_flag = 3
                 elif not self.right_blocked:
                     msg = "pg_hover_alternate"
-                    self.push_flag = 3
+                    if self.name == 'pollux':
+                        self.push_flag = 3
+                    else:
+                        self.push_flag = 4
                 elif not self.back_blocked:
                     msg = "pg_hover"
                     self.push_flag = 1
