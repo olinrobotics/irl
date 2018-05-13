@@ -23,15 +23,15 @@ void setup() {
    // Toggle between these two blocks of code to custom move the gripper in/out
 
    // THIS CLOSES IT
-      rest_to_inwards(60);
-      delay(1475);
-      slow_to_rest(60);
+//      rest_to_inwards(60);
+//      delay(1475);
+//      slow_to_rest(60);
     
 
   //THIS OPENS IT
-//      rest_to_outwards(120);
-//      delay(1200);
-//      slow_to_rest(120);
+      rest_to_outwards(120);
+      delay(1200);
+      slow_to_rest(120);
 
 
   
