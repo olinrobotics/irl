@@ -67,7 +67,7 @@ void change_grip() {
       delay(1200);
       slow_to_rest(120);
     }
-    //myservo.write(90);
+    myservo.write(90);
     delay(300);
 }
 
