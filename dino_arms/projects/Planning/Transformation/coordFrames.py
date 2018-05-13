@@ -76,7 +76,8 @@ class CoordFrames(object):
         self.realXP = [-0.1718 ,-0.0839 , 0.0095, 0.1072, 0.1946]
 
         #Shared
-        self.realZ = [.197+.07, .291+.07, .387+.07, .479+.07, .573+.07]
+        self.realZP = [.197+.07, .291+.07, .387+.07, .479+.07, .573+.07]
+        self.realZC = [0.242, 0.336, 0.43, 0.524, 0.618]
 
 
 
@@ -164,11 +165,11 @@ class CoordFrames(object):
             if(cube.y < 3):
                 real_cube.x = self.realXC[cube.x]
                 real_cube.y = self.realYC[cube.y]
-                real_cube.z = self.realZ[cube.z]
+                real_cube.z = self.realZC[cube.z]
             else:
                 real_cube.x = self.realXP[cube.x]
                 real_cube.y = self.realYP[cube.y]
-                real_cube.z = self.realZ[cube.z]
+                real_cube.z = self.realZP[cube.z]
 
             real_cubes.building.append(real_cube)
         return real_cubes
