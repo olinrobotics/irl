@@ -473,7 +473,7 @@ class PathPlanner():
                             self.place_block(pollux_grid_building[i], pollux_real_building[i])
                             self.curr_model[pollux_grid_building[i].x][pollux_grid_building[i].y] += 1
                             self.num_built += 1
-                            self.model_pub.publish(str(curr_model))
+                            self.model_pub.publish(str(self.curr_model))
                     else:
                         print("Running on Castor")
                         for i in range(len(castor_grid_building)):
@@ -483,7 +483,7 @@ class PathPlanner():
                             self.num_built += 1
                             if i<len(pollux_grid_building):
                                 self.curr_model[pollux_grid_building[i].x][pollux_grid_building[i].y] += 1
-                            self.model_pub.publish(str(curr_model))
+                            self.model_pub.publish(str(self.curr_model))
                     msg = "pg_hover"
                     print("Sending: ", msg)
                     if self.name == 'pollux':
