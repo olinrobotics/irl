@@ -25,6 +25,7 @@ class MessageSender(object):
         arm_dict = {'10.42.0.175':'pollux','10.42.0.54':'castor'}
         self.name = arm_dict[tcp_ip]
 
+        self.timer = 0
         self.cmd_sub = rospy.Subscriber("/build_cmd", Cube_Structures, self.send_cube_msg, queue_size=1)
         if self.name =='castor':
             self.castor_status_sub = rospy.Subscriber("/coordination_status_castor", String, self.send_castor_status_msg, queue_size=1)
@@ -78,39 +79,41 @@ class MessageSender(object):
         server.quit()
 
     def send_cube_msg(self, data):
-        self.cube_building = data
-        print("Data: ")
-        print(str(self.cube_building))
+        if self.timer == 0:
+            self.cube_building = data
+            print("Data: ")
+            print(str(self.cube_building))
 
-        grid_building = self.cube_building.grid_building.building
-        real_building = self.cube_building.real_building.building
-        smtp_ssl_host = 'smtp.gmail.com'  # smtp.mail.yahoo.com
-        smtp_ssl_port = 465
-        username = 'arms.irl2018@gmail.com'
-        password = 'PolluxCastor2018'
-        sender = 'arms.irl2018@gmail.com'
-        targets = ['arms.irl2018@gmail.com']
+            grid_building = self.cube_building.grid_building.building
+            real_building = self.cube_building.real_building.building
+            smtp_ssl_host = 'smtp.gmail.com'  # smtp.mail.yahoo.com
+            smtp_ssl_port = 465
+            username = 'arms.irl2018@gmail.com'
+            password = 'PolluxCastor2018'
+            sender = 'arms.irl2018@gmail.com'
+            targets = ['arms.irl2018@gmail.com']
 
-        info = '/build_cmd,'
-        for cube in real_building:
-            info = info + str(cube.x) + ','
-            info = info + str(cube.y) + ','
-            info = info + str(cube.z) + ','
-        for cube in grid_building:
-            info = info + str(cube.x) + ','
-            info = info + str(cube.y) + ','
-            info = info + str(cube.z) + ','
+            info = '/build_cmd,'
+            for cube in real_building:
+                info = info + str(cube.x) + ','
+                info = info + str(cube.y) + ','
+                info = info + str(cube.z) + ','
+            for cube in grid_building:
+                info = info + str(cube.x) + ','
+                info = info + str(cube.y) + ','
+                info = info + str(cube.z) + ','
 
-        msg = MIMEText(info)
-        msg['Subject'] = 'arm_msg ' + time.ctime()
-        msg['From'] = sender
-        msg['To'] = ', '.join(targets)
+            msg = MIMEText(info)
+            msg['Subject'] = 'arm_msg ' + time.ctime()
+            msg['From'] = sender
+            msg['To'] = ', '.join(targets)
 
-        server = smtplib.SMTP_SSL(smtp_ssl_host, smtp_ssl_port)
-        server.login(username, password)
-        server.sendmail(sender, targets, msg.as_string())
-        print ('Cube Message Sent Successfully!')
-        server.quit()
+            server = smtplib.SMTP_SSL(smtp_ssl_host, smtp_ssl_port)
+            server.login(username, password)
+            server.sendmail(sender, targets, msg.as_string())
+            print ('Cube Message Sent Successfully!')
+            server.quit()
+            self.timer += 1
 
 
     def run(self):
