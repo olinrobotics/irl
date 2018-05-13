@@ -103,7 +103,8 @@ class PathPlanner():
         self.realXP = self.frame_converter.realXP
 
         #Shared
-        self.realZ = self.frame_converter.realZ
+        self.realZP = self.frame_converter.realZP
+        self.realZC = self.frame_converter.realZC
 
         self.num_built = 0
         self.push_move = "pg_hover"
