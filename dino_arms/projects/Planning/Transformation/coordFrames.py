@@ -72,8 +72,8 @@ class CoordFrames(object):
         # self.realXP = [-2.0*self.cubeSize+self.polluxOffSetX, -self.cubeSize+self.polluxOffSetX, self.polluxOffSetX, self.cubeSize+self.polluxOffSetX, 2.0*self.cubeSize+self.polluxOffSetX]
 
         # Pollux new Set
-        self.realYP = [0.0, 0.0, 0.0, -0.4579, -0.3645]
-        self.realXP = [-0.1861 ,-0.0928 , -0.0001, 0.0917, 0.1818]
+        self.realYP = [0.0, 0.0, 0.0, -0.4579, -0.3635]
+        self.realXP = [-0.1871 ,-0.0938 , -0.0011, 0.0907, 0.1808]
 
         #Shared
         self.realZP = [.197+.07, .291+.07, .387+.07, .479+.07, .573+.07]
