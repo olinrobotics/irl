@@ -89,7 +89,7 @@ class PathPlanner():
         self.curr_location = []
         self.curr_angle = []
         self.push_flag = 0 # 0:don't need pushing; 1:push from back; 2:push from front; 3:push from left; 4: push from right
-        self.push_instruction = [(0,0), (0, -1.0/3), (0,1.0/3), (-1.0/3, 0), (1.0/3, 0)]
+        self.push_instruction = [(0,0), (0, -1.0/2), (0,1.0/2), (-1.0/2, 0), (1.0/2, 0)]
 
         # coordFrames
         self.cubeSize = self.frame_converter.cubeSize
