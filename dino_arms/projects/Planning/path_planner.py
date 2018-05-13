@@ -182,9 +182,9 @@ class PathPlanner():
             self.joints_pub_pollux.publish(msg)
             self.check_pollux()
             # adding offset for the cube to be pickup
-            msg = "pg_pickup_down_pollux"
+            msg = "-0.4139 -0.1463 0.267"
             print("Sending:", msg)
-            self.joints_pub_pollux.publish(msg)
+            self.coordinates_pub_pollux.publish(msg)
             self.check_pollux()
         else:
             # pickup_offset_castor_x = 0.236
@@ -193,9 +193,9 @@ class PathPlanner():
             print("Sending:", msg)
             self.joints_pub_castor.publish(msg)
             self.check_castor()
-            msg = "pg_pickup_down_castor"
+            msg = "0.4033, -0.1431, 0.242"
             print("Sending:", msg)
-            self.joints_pub_castor.publish(msg)
+            self.coordinates_pub_castor.publish(msg)
             self.check_castor()
 
         #1 for grabbing and 2 for opening
