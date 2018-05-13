@@ -81,7 +81,7 @@ class PathPlanner():
         self.pollux_busy = False
 
         # geometry of the cube
-        self.unit_length = 0.1016
+        self.unit_length = 0.09
 
         self.grid_building = Grid_Structure()
         self.real_building = Real_Structure()
@@ -106,6 +106,7 @@ class PathPlanner():
         self.realZ = self.frame_converter.realZ
 
         self.num_built = 0
+        self.push_move = "pg_hover"
 
     def coord_status_callback(self, data):
         '''
@@ -242,6 +243,19 @@ class PathPlanner():
             self.coordinates_pub_castor.publish(msg)
             self.check_castor()
 
+        # if self.push_move = "pg_hover":
+        #     msg = "pg_hover_alternate"
+        # else:
+        #     msg = "pg_hover"
+        # if grid_coord.y>2:
+        #     print('Sending Pollux:' + msg)
+        #     self.coordinates_pub_pollux.publish(msg)
+        #     self.check_pollux()
+        # else:
+        #     print('Sending Castor:' + msg)
+        #     self.coordinates_pub_castor.publish(msg)
+        #     self.check_castor()
+
         # go outward
         self.curr_location[0] = self.curr_location[0] + self.push_instruction[self.push_flag][0] * 4 * self.unit_length;
         self.curr_location[1] = self.curr_location[1] + self.push_instruction[self.push_flag][1] * 4 * self.unit_length;
@@ -353,6 +367,7 @@ class PathPlanner():
             # new pg_hover joints: 90 -104.47 93.78 -78.7 -90 0
             self.push_flag = 0
 
+        self.push_move = msg
         print("Sending: ", msg)
         print(grid_coord.y)
         if grid_coord.y>2:
