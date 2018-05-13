@@ -249,11 +249,11 @@ class PathPlanner():
             msg = "pg_hover"
         if grid_coord.y>2:
             print('Sending Pollux:' + msg)
-            self.behaviors_cmd_pollux.publish(msg)
+            self.joints_pub_pollux.publish(msg)
             self.check_pollux()
         else:
             print('Sending Castor:' + msg)
-            self.behaviors_cmd_castor.publish(msg)
+            self.joints_pub_castor.publish(msg)
             self.check_castor()
 
         # go outward
