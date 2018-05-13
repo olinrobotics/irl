@@ -453,28 +453,37 @@ class PathPlanner():
             try:
                 # wait for user input
                 if self.is_building:
-                    block_index = 0
-
-
-                    while block_index < len(self.grid_building.building):
-                        print("index " + str(block_index))
-                        # continue building until the build sequence is empty
-                        if self.grid_building.building[block_index].y <=2:
-                            if self.name == 'castor':
-                                print("Running on Castor")
-                                self.place_block(self.grid_building.building[block_index], self.real_building.building[block_index])
-                                self.num_built += 1
+                    castor_grid_building = []
+                    pollux_grid_building = []
+                    castor_real_building = []
+                    pollux_real_building = []
+                    for i in range(len(self.grid_building.building)):
+                        if self.grid_building.building[i].y > 2:
+                            pollux_grid_building.append(self.grid_building.building[i])
+                            pollux_real_building.append(self.real_building.building[i])
                         else:
-
-                            if self.name == 'pollux':
-                                print("Running on Pollux")
-                                self.place_block(self.grid_building.building[block_index], self.real_building.building[block_index])
-                                self.num_built += 1
-
-                        # update the current model
-                        self.curr_model[self.grid_building.building[block_index].x][self.grid_building.building[block_index].y] += 1
-                        self.model_pub.publish(str(self.curr_model))
-                        block_index += 1
+                            castor_grid_building.append(self.grid_building.building[i])
+                            castor_real_building.append(self.real_building.building[i])
+                    if self.name == 'pollux':
+                        print("Running on Pollux")
+                        for i in range(len(pollux_grid_building)):
+                            print("index is " + str(i))
+                            if i<len(castor_grid_building):
+                                self.curr_model[castor_grid_building[i].x][castor_grid_building[i].y] += 1
+                            self.place_block(pollux_grid_building[i], pollux_real_building[i])
+                            self.curr_model[pollux_grid_building[i].x][pollux_grid_building[i].y] += 1
+                            self.num_built += 1
+                            self.model_pub.publish(str(curr_model))
+                    else:
+                        print("Running on Castor")
+                        for i in range(len(castor_grid_building)):
+                            print("index is " + str(i))
+                            self.place_block(castor_grid_building[i], castor_real_building[i])
+                            self.curr_model[castor_grid_building[i].x][castor_grid_building[i].y] += 1
+                            self.num_built += 1
+                            if i<len(pollux_grid_building):
+                                self.curr_model[pollux_grid_building[i].x][pollux_grid_building[i].y] += 1
+                            self.model_pub.publish(str(curr_model))
                     msg = "pg_hover"
                     print("Sending: ", msg)
                     if self.name == 'pollux':
