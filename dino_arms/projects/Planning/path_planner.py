@@ -194,7 +194,7 @@ class PathPlanner():
             print("Sending:", msg)
             self.joints_pub_castor.publish(msg)
             self.check_castor()
-            msg = "0.4033, -0.1431, 0.242"
+            msg = "0.4033 -0.1431 0.242"
             print("Sending:", msg)
             self.coordinates_pub_castor.publish(msg)
             self.check_castor()
