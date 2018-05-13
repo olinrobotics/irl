@@ -443,7 +443,10 @@ class PathPlanner():
 
         # goes up after finishing placing the block
         print("move up")
-        msg = str(real_coord.x) + ' ' + str(real_coord.y) + ' ' + str(self.realZ[4])
+        if self.name == "pollux":
+            msg = str(real_coord.x) + ' ' + str(real_coord.y) + ' ' + str(self.realZP[4])
+        else:
+            msg = str(real_coord.x) + ' ' + str(real_coord.y) + ' ' + str(self.realZC[4])
         if grid_coord.y>2:
             print('Sending Pollux:' + msg)
             self.coordinates_pub_pollux.publish(msg)
