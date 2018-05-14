@@ -59,7 +59,7 @@ class MessageReceiver(object):
             coords = body.split(',')
             topic = coords[0]
             coords = coords[1:]
-            if topic == '/build_cmd_pollux' or topic == '/build_cmd_castor':
+            if topic == '/build_cmd':
                 real_building = Real_Structure()
                 coords = coords[0:len(coords)-1]
 
