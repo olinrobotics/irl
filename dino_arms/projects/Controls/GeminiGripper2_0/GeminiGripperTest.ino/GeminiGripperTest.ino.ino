@@ -24,13 +24,13 @@ void setup() {
 
    // THIS CLOSES IT
 //      rest_to_inwards(60);
-//      delay(1475);
+//      delay(200);
 //      slow_to_rest(60);
     
 
   //THIS OPENS IT
       rest_to_outwards(120);
-      delay(1200);
+      delay(1600);
       slow_to_rest(120);
 
 
