@@ -39,7 +39,10 @@ class PathPlanner():
         # receive model and xyz location
         self.model_pub = rospy.Publisher("/model_cmd", String, queue_size=1)
         # build_cmd is rececived from the brain as a cube structures with real and grid coordinates
-        self.cmd_sub = rospy.Subscriber("/build_cmd", Cube_Structures, self.cmd_callback,queue_size=1)
+        if self.name == 'pollux':
+            self.cmd_sub = rospy.Subscriber("/build_cmd_pollux", Cube_Structures, self.cmd_callback, queue_size=1)
+        else:
+            self.cmd_sub = rospy.Subscriber("/build_cmd_castor", Cube_Structures, self.cmd_callback, queue_size=1)
         self.grab_pub = rospy.Publisher("/grab_cmd", Int32, queue_size=10)
 
         # setting up publisher for two arms
