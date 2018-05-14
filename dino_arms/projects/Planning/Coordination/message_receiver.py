@@ -24,7 +24,10 @@ class MessageReceiver(object):
         arm_dict = {'10.42.0.175':'pollux','10.42.0.54':'castor'}
         self.name = arm_dict[tcp_ip]
 
-        self.cmd_pub = rospy.Publisher("/build_cmd", Cube_Structures, queue_size=1)
+        # only pollux receives the message
+        if self.name == 'pollux':
+            self.cmd_pub = rospy.Publisher("/build_cmd_pollux", Cube_Structures, queue_size=1)
+
         self.castor_status_pub = rospy.Publisher("/coordination_status_castor", String, queue_size=1)
         self.pollux_status_pub = rospy.Publisher("/coordination_status_pollux", String, queue_size=1)
         self.is_receiving = False
@@ -56,7 +59,7 @@ class MessageReceiver(object):
             coords = body.split(',')
             topic = coords[0]
             coords = coords[1:]
-            if topic == '/build_cmd':
+            if topic == '/build_cmd_pollux' or topic == '/build_cmd_castor':
                 real_building = Real_Structure()
                 coords = coords[0:len(coords)-1]
 
