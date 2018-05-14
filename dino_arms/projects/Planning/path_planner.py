@@ -275,8 +275,12 @@ class PathPlanner():
             self.check_castor()
 
         # push inward
-        self.curr_location[0] = self.curr_location[0] - self.push_instruction[self.push_flag][0] * 2.2 * self.unit_length;
-        self.curr_location[1] = self.curr_location[1] - self.push_instruction[self.push_flag][1] * 2.2 * self.unit_length;
+        if self.name == 'pollux':
+            self.curr_location[0] = self.curr_location[0] - self.push_instruction[self.push_flag][0] * 2.2 * self.unit_length
+            self.curr_location[1] = self.curr_location[1] - self.push_instruction[self.push_flag][1] * 2.2 * self.unit_length
+        else:
+            self.curr_location[0] = self.curr_location[0] - self.push_instruction[self.push_flag][0] * 2 * self.unit_length
+            self.curr_location[1] = self.curr_location[1] - self.push_instruction[self.push_flag][1] * 2 * self.unit_length
         msg = str(self.curr_location[0]) + ' ' + str(self.curr_location[1]) + ' ' + str(self.curr_location[2])
         if grid_coord.y>2:
             print('Sending Pollux:' + msg)
