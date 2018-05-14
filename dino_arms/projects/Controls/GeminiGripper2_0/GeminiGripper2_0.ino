@@ -59,12 +59,12 @@ void loop() {
 void change_grip() {
   if (command == 1) {
       rest_to_inwards(60);
-      delay(1475);
+      delay(1875);
       slow_to_rest(60);
     }
     if (command == 2) {
       rest_to_outwards(120);
-      delay(1200);
+      delay(1600);
       slow_to_rest(120);
     }
     myservo.write(90);

@@ -65,7 +65,7 @@ class Planner(object):
         # getting data from perception
         rospy.Subscriber("/perception", Real_Structure, self.plan)
         # sending instructions to the controller
-        self.instructions_pub = rospy.Publisher("/build_cmd", Cube_Structures, queue_size=10)
+        self.instructions_pub = rospy.Publisher("/build_cmd_castor", Cube_Structures, queue_size=10)
         self.status_pub = rospy.Publisher("/controller_status", Bool, queue_size=10)
 
 
