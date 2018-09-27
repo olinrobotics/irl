@@ -5,7 +5,7 @@ The [Olin Robotics Lab](http://olinrobotics.github.io) is working to build a low
 
 ### Handwritten Communication
 
-[![forge_pic](https://github.com/olinrobotics/irl/blob/gh-pages/images/writing_thumbnail.png)](https://www.youtube.com/watch?v=HwmvSCOPStg&index=1&list=PLJM0FO8qEb3wIP3sY_EpJsm3OK1juWhqN)
+<iframe width="560" height="315" src="https://www.youtube.com/embed/HwmvSCOPStg" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
 
 ### Object Tracking and Recognization
 
