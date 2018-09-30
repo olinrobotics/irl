@@ -1,6 +1,6 @@
 ---
 title: Index
-layout: template
+layout: default
 filename: index
 ---
 
@@ -11,24 +11,24 @@ The [Olin Robotics Lab](http://olinrobotics.github.io) is working to build a low
 
 ### Handwritten Communication
 
-[![forge_pic](images/writing_thumbnail.png)](https://www.youtube.com/watch?v=HwmvSCOPStg&index=1&list=PLJM0FO8qEb3wIP3sY_EpJsm3OK1juWhqN)
+[![forge_pic](assets/images/archive/writing_thumbnail.png)](https://www.youtube.com/watch?v=HwmvSCOPStg&index=1&list=PLJM0FO8qEb3wIP3sY_EpJsm3OK1juWhqN)
 
 ### Object Tracking and Recognization
 
-[![track_pic](images/track_thumbnail.png)](https://www.youtube.com/watch?v=wFORJR2kNos&list=PLJM0FO8qEb3wIP3sY_EpJsm3OK1juWhqN&index=2)
+[![track_pic](assets/images/archive/track_thumbnail.png)](https://www.youtube.com/watch?v=wFORJR2kNos&list=PLJM0FO8qEb3wIP3sY_EpJsm3OK1juWhqN&index=2)
 
 ### Push Cup Game
 <p>Push Cup is a simple game played by one human with Edwin, demonstrating
 Edwin's capability to operate safely within the same physical space as a
 human.</p> [read more](pushcup)
 
-[![cup_pic](images/cup_thumbnail.png)](https://www.youtube.com/watch?v=dPkxl1ZD-vY&list=PLJM0FO8qEb3wIP3sY_EpJsm3OK1juWhqN&index=3)
+[![cup_pic](assets/images/archive/cup_thumbnail.png)](https://www.youtube.com/watch?v=dPkxl1ZD-vY&list=PLJM0FO8qEb3wIP3sY_EpJsm3OK1juWhqN&index=3)
 
 ### Simon Says
 
 ### Tic Tac Toe
 
-[![tictactoe_pic](images/tictactoe_thumbnail.png)](https://www.youtube.com/watch?v=jjyEv3PJ6AQ&index=4&list=PLJM0FO8qEb3wIP3sY_EpJsm3OK1juWhqN&t=31s)
+[![tictactoe_pic](assets/images/archive/tictactoe_thumbnail.png)](https://www.youtube.com/watch?v=jjyEv3PJ6AQ&index=4&list=PLJM0FO8qEb3wIP3sY_EpJsm3OK1juWhqN&t=31s)
 
 ## Software Architecture
 *Under Construction*

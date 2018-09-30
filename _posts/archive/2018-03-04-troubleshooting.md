@@ -1,7 +1,10 @@
 ---
 title: Troubleshooting
-layout: template
+layout: default
 filename: troubleshooting
+excerpt: "Troubleshooting"
+categories: [Spring 2018]
+published: true
 ---
 
 
