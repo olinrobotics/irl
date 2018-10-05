@@ -1,11 +1,11 @@
 ---
 title: Edwin Installation Instructions
 layout: default
+date: 2018-01-02
 excerpt: "Instructions to install necessary software for running Edwin"
-filename: install_edwin
 thumbnail:
-categories: [Spring 2019]
-published: true
+categories: [Archives]
+published: false
 ---
 
 ### Install Ubuntu 16.04

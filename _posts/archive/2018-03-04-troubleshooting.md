@@ -1,10 +1,10 @@
 ---
 title: Troubleshooting
 layout: default
-filename: troubleshooting
+date: 2018-01-02
 excerpt: "Troubleshooting"
-categories: [Spring 2018]
-published: true
+categories: [Archives]
+published: false
 ---
 
 

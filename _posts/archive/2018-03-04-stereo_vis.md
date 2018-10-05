@@ -1,8 +1,8 @@
 ---
 title: Stereo Vision
 layout: default
-filename: stereo_vis
-categories: [Summer 2018]
+date: 2018-01-02
+categories: [Archives]
 excerpt: "The goal of this research was to intuitively teach Edwin to recognize and remember objects, thus creating a robust tool for dataset generation."
 published: true
 ---
