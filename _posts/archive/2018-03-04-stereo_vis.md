@@ -57,7 +57,7 @@ In order to identify objects we were interested in "teaching" to Edwin, we devel
 
   While our mount design was adequate for holding our cameras steady, the micro-USB 3.0 to USB 2.0 cables had a tendency to come unplugged from the cameras when handled or disturbed too much. We resoldered the micro-USB 3.0 female ports on the oCams, which reduced instances of this problem, but did not completely solve them.
   
-**Better (and cheaper) cameras
+**Better (and cheaper) cameras**
 
   Having used the oCams for a semester, we have identified the important factors when choosing a camera for visual processing.
   Of these factors, the most relevant to us are:

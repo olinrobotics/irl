@@ -2,8 +2,9 @@
 title:        Human Interactions Robotics Laboratory
 tagline:      HIRo is working to build a low-cost robotic coworker that can assist in workplace tasks and interact with other humans around it.
 baseurl:      "/irl"
-paginate:     1
+paginate:     0
 locale:       "en"
+permalink:    /:categories/:title:output_ext
 
 # About/contact
 author:
