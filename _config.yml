@@ -1,6 +1,6 @@
 # Setup
-title:        Interactive Robotics Laboratory
-tagline:      IRL is working to build a low-cost robotic coworker that can assist in workplace tasks and interact with other humans around it.
+title:        Human Interactions Robotics Laboratory
+tagline:      HIRo is working to build a low-cost robotic coworker that can assist in workplace tasks and interact with other humans around it.
 baseurl:      "/irl"
 paginate:     1
 locale:       "en"
