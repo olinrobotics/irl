@@ -11,4 +11,4 @@ If you're responsible for maintaining IRL's Github page, check out [this documen
 If you're a project member in IRL, please look at [this document](/CREATE_A_POST.md) to learn how to upload your project's post to our page.
 
 ### Other
-If you found any bug, feel free to create a new issue to report a bug.
+If you found any bug, feel free to create a new issue to report the bug.
