@@ -29,7 +29,7 @@ ruby 2.X.X
 ```
 If you don't have Ruby installed, install [Ruby 2.1.0 or higher](https://www.ruby-lang.org/en/documentation/installation/).
 
-Then follow more instructions here (look at the Guide section): [https://jekyllrb.com/docs/installation/](https://jekyllrb.com/docs/installation/)
+Then follow more instructions to install Jekyll here (look at the **Guide section**): [https://jekyllrb.com/docs/installation/](https://jekyllrb.com/docs/installation/)
 
 #### Step 2: Check out gh-pages branch
 Simply clone IRL and checkout `gh-pages`:
@@ -43,7 +43,7 @@ If you already cloned IRL, make sure you have the lasted version of `gh-pages` b
 $ git pull origin gh-pages
 ```
 #### Step 3: branch off from `gh-pages`
-You should have your own branch when working on your post because you will not be able to push directly to `gh-pages`. You'll need to create a pull request in **Step 7**.
+You should have your own branch when working on your post because you will not be able to push directly to `gh-pages`, and you'll need to create a pull request later on in **Step 7**.
 
 To branch off, simply type:
 ```
