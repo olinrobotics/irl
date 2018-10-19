@@ -20,7 +20,7 @@ The [Olin Robotics Lab](http://olinrobotics.github.io) is working to build a low
 ### Push Cup Game
 <p>Push Cup is a simple game played by one human with Edwin, demonstrating
 Edwin's capability to operate safely within the same physical space as a
-human.</p> [read more](pushcup)
+human.</p>
 
 [![cup_pic](assets/images/archive/cup_thumbnail.png)](https://www.youtube.com/watch?v=dPkxl1ZD-vY&list=PLJM0FO8qEb3wIP3sY_EpJsm3OK1juWhqN&index=3)
 
@@ -29,14 +29,3 @@ human.</p> [read more](pushcup)
 ### Tic Tac Toe
 
 [![tictactoe_pic](assets/images/archive/tictactoe_thumbnail.png)](https://www.youtube.com/watch?v=jjyEv3PJ6AQ&index=4&list=PLJM0FO8qEb3wIP3sY_EpJsm3OK1juWhqN&t=31s)
-
-## Software Architecture
-*Under Construction*
-
-### Main Directory:
-*Under Construction*
-
-## Useful Information
-*Under Construction*
-
-*This Github page is currently under construction. Last edited on 1/23/17.*

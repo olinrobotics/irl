@@ -3,6 +3,7 @@ title: Stereo Vision
 layout: default
 date: 2018-01-02
 categories: [Archives]
+tags: [Edwin, vision]
 excerpt: "The goal of this research was to intuitively teach Edwin to recognize and remember objects, thus creating a robust tool for dataset generation."
 published: true
 ---
@@ -75,19 +76,4 @@ Wide FOV: If we can provide more data for our visual processing, we can cope wit
 
 Color: While most visual processing only requires black and white camera feeds, we also account for the dominant color of an object, which requires a color camera.
   
-#### Arduino powered turntable
-
-### The Software
-
-  
-
-#### OpenCV
-
-##### Optical Flow
-
-##### Color Detection
-
-##### 
-
-
-*This page is under construction. Last edited on 1/29/17 by [L. Zuehsow](https://github.com/Oktober13).*
+*Last edited on 1/29/17 by [L. Zuehsow](https://github.com/Oktober13).*

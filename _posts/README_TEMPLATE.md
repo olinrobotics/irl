@@ -1,7 +1,8 @@
 ---
 title: Project Name
 date: 2018-10-15
-categories: [Archives]
+categories: [Fall 2018]
+tags: [vision, machine learning]
 excerpt: "This is a short description about your project to show in the project listing page."
 thumbnail: "/assets/images/thumbnail.jpg"
 coverImgURL: "/assets/images/thumbnail.jpg"
