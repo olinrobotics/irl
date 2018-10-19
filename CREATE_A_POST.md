@@ -5,10 +5,14 @@ This is the instruction on how to create a post for the [IRL project page](https
 If you have any questions, email Khang Vu @ minhkhang.vu@students.olin.edu
 ## 1. Overview
 In order to create a post, you'll need two things:
-- A `README.md` file in a [Markdown format](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet). This file needs to have a **front matter block** on the top for Jekyll to generate the web page. _(see Section 2)_   
+- A `README.md` file in a [Markdown format](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet). This file needs to have a **front matter block** on the top for Jekyll to generate the web page. _(see Section 2a)_   
 - Any images used in your README file.
+
 The basic idea is Jekyll will use Markdown files to generate webpages. However, the Markdown file might be a little bit different.
-## 2. How to prepare your README file
+
+## 2. Basic preparations
+
+### a. How to prepare your README file
 Copy this [raw Markdown template](https://raw.githubusercontent.com/olinrobotics/irl/gh-pages/_posts/README_TEMPLATE.md) and save it as a markdown file (with a file extension `.md`)
 
 Read this before you edit that file:
@@ -39,10 +43,10 @@ published: true
 </iframe>
 ```
 
-## 3. Prepare image files
+### b. Prepare image files
 If possible, convert all your image files into `.jpg` and reduce the image size. If you use Photoshop, simply open a image file in Photoshop and go to `File > Export > Save for Web (Legacy)`, choose `.jpg` medium size.
 
-## 4. Publish your post
+## 3. Publish your post
 After gathering these things, you'll have 2 options:
 ### Option 1: upload the post by yourself (Recommended)
 If you choose this option, you will 
