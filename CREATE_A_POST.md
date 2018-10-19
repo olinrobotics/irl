@@ -7,7 +7,7 @@ If you have any questions, email Khang Vu @ minhkhang.vu@students.olin.edu
 In order to create a post, you'll need two things:
 - A `README.md` file in a [Markdown format](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet). This file needs to have a **front matter block** on the top for Jekyll to generate the web page. _(see Section 2)_   
 - Any images used in your README file.
-
+The basic idea is Jekyll will use Markdown files to generate webpages. However, the Markdown file might be a little bit different.
 ## 2. How to prepare your README file
 Copy this [raw Markdown template](https://raw.githubusercontent.com/olinrobotics/irl/gh-pages/_posts/README_TEMPLATE.md) and save it as a markdown file (with a file extension `.md`)
 
