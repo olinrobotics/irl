@@ -1,6 +1,5 @@
 ---
 title: Project Name
-layout: default
 date: 2018-10-15
 categories: [Archives]
 excerpt: "This is a short description about your project to show in the project listing page."
@@ -47,7 +46,7 @@ A list of helpful markdown syntax [Markdown Cheatsheet](https://github.com/adam-
 [I'm an inline-style link with title](https://www.google.com "Google's Homepage")
 
 ## Examples of Images
-The format is `{{ site.baseurl }}/assets/images/` + `your_image_name` 
+The format is `{{ site.baseurl }}/assets/images/` + `your_image_name`
 
 ![Alternative text]({{ site.baseurl }}/assets/images/thumbnail.jpg)
 
