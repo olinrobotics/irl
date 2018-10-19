@@ -12,10 +12,10 @@ Feel free to structure your project's post however you like. A good post should 
 - A succinct introduction about your project
 - A section that thoroughly documents your work - design, technical, and appropriate process work
 - Any media (photos, videos) that is suitably polished to represent your finished work publicly on the website
-- A link to your Github repo (e.g. a folder you store your work, not the main IRL home folder)
+- A link to your Github repo (i.e. a folder you store your work, not the main IRL home folder)
 - (Optional) Future steps
-- (Optional) A credit section if you use third-party libraries/tools
 - (Optional) Installation guide: imagine an Olin student with a skillset similar to yours should be able to reproduce your work
+- (Optional) A credit section if you use third-party libraries/tools
 
 A list of helpful markdown syntax [Markdown Cheatsheet](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet).
 
@@ -41,9 +41,9 @@ A list of helpful markdown syntax [Markdown Cheatsheet](https://github.com/adam-
 
 ## Examples of Links
 
-[I'm an inline-style link](https://www.google.com)
+[I'm an inline-style link](http://olinrobotics.github.io)
 
-[I'm an inline-style link with title](https://www.google.com "Google's Homepage")
+[I'm an inline-style link with title](http://olinrobotics.github.io "Olin Robotics's Homepage")
 
 ## Examples of Images
 The format is `{{ site.baseurl }}/assets/images/` + `your_image_name`
@@ -63,6 +63,6 @@ def function_name():
     pass
 ```
 Terminal code block
-``` console
+```console
 $ pip install something
 ```
