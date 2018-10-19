@@ -2,13 +2,42 @@
 
 This is the instruction on how to create a post for the [IRL project page](https://olinrobotics.github.io/irl/projects.html).
 
+If you have any questions, email Khang Vu @ minhkhang.vu@students.olin.edu
 ## 1. Overview
 In order to create a post, you'll need two things:
 - A `README.md` file in a [Markdown format](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet). This file needs to have a **front matter block** on the top for Jekyll to generate the web page. _(see Section 2)_   
 - Any images used in your README file.
 
 ## 2. How to prepare your README file
-_Under construction_
+Copy this [raw Markdown template](https://raw.githubusercontent.com/olinrobotics/irl/gh-pages/_posts/README_TEMPLATE.md) and save it as a markdown file (with a file extension `.md`)
+
+Read this before you edit that file:
+* The file include a **front matter block** on the top. This code block tells Jekyll how to generate the site. 
+```markdown
+---
+title: Project Name
+date: 2018-10-15
+categories: [Fall 2018]
+excerpt: "This is a short description about your project to show in the project listing page."
+thumbnail: "/assets/images/thumbnail.jpg"
+coverImgURL: "/assets/images/thumbnail.jpg"
+published: true
+---
+```  
+* `thumbnail`, `coverImgURL`, and `published` are optional fields. You don't have to include them if you don't have thumbnail/cover images. `published` indicates whether you want to show or hide the post.
+* The app will sort the posts based on their published date. Therefore, you should put `date: yyyy-mm-dd` correctly. To make it easy, you could choose the Olin Demo date as the published date. (Don't put the date in the future because the post can't be published in the future)
+* Note the way we show images: The path `{{ site.baseurl }}/assets/images/` is important to show your image on the website. You wouldn't be able to see your image in the Markdown file, however.
+```markdown
+![Alternative text]({{ site.baseurl }}/assets/images/thumbnail.jpg "Your image title")
+```
+* Note the way we show Youtube video: you can just copy the embedded code block from Youtube and paste it here
+```html
+<iframe width="560" height="315" 
+        src="https://www.youtube.com/embed/DGbLDu6VkR0" 
+        frameborder="0" 
+        allow="autoplay; encrypted-media" allowfullscreen>
+</iframe>
+```
 
 ## 3. Prepare image files
 If possible, convert all your image files into `.jpg` and reduce the image size. If you use Photoshop, simply open a image file in Photoshop and go to `File > Export > Save for Web (Legacy)`, choose `.jpg` medium size.
