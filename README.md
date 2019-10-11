@@ -1,3 +1,5 @@
+### This repository is deprecated! Please check out the current repository, [hiro](https://github.com/olinrobotics/hiro).
+---
 # Interactive Robotics Laboratory
 ST-R17 and UR5 interactive co-working dinosaur (and dragon) robotic arms
 Website: https://olinrobotics.github.io/irl/
